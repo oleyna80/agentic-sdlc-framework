@@ -10,6 +10,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/critic-gate.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -29,6 +39,10 @@
     "solution-architect": {
       "description": "Pre-implementation research (read-only)",
       "color": "green"
+    },
+    "critic": {
+      "description": "Independent review of Control Tower decisions, Stage 0→1 (read-only)",
+      "color": "yellow"
     },
     "verifier": {
       "description": "Post-implementation verification gate (read-only)",

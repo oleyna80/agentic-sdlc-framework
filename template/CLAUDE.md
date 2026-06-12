@@ -124,24 +124,46 @@ Tool capability does not expand authority; `AGENTS.md` remains canonical.
 For non-trivial Work Blocks, the recommended default sequence:
 
 ```
-solution-architect  →  verifier (skill)  →  Plan mode  →  Implement  →  verifier (agent)
-    ↑                      ↑                    ↑              ↑              ↑
- research + risks    confirm findings     design steps    make changes    BLOCKED/READY
- pre-implementation   pre-plan gate        write plan     (direct or      final gate
-                                                          scoped-coder)   persistent memory
+solution-architect  →  verifier (skill)  →  Plan mode  →  critic  →  Implement  →  verifier (agent)
+    ↑                      ↑                    ↑            ↑            ↑              ↑
+ research + risks    confirm findings     design steps   review      make changes    BLOCKED/READY
+ pre-implementation   pre-plan gate        write plan    decisions    (direct or      final gate
+                                                         pre-impl     scoped-coder)   persistent memory
 ```
+
+**Dual-model QC (Full tier / high-risk):**
+
+```
+critic (Claude) ──→  gpt-critic (GPT via MCP)   ──→ merge → Control Tower decision
+verifier (Claude) ──→ gpt-verifier (GPT via MCP) ──→ merge → consolidation report
+```
+
+GPT agents run AFTER Claude agents. They delegate to Codex via `mcp__codex__*` tools.
+GPT output is advisory — Claude agents remain the authoritative gates.
+Model for GPT agents: configurable in `.codex/config.toml` (`gpt-5.5` default).
 
 **Key rules:**
 
 1. `solution-architect` runs **before** Plan mode — finds blockers, validates architecture, builds risk matrix. Its report is the input artifact for the plan.
 2. `verifier` skill runs **before** implementation starts — confirms the research findings are real.
 3. Plan mode produces an approved plan file. Implementation does not start without approval.
-4. Implementation follows the plan. Stop only for Hard Stops or BLOCKED verifier verdict.
-5. `verifier` agent runs **after** implementation — issues READY/BLOCKED with evidence.
+4. `critic` runs **after** Stage 0 Preflight, **before** Stage 1 — independently reviews Control Tower decisions. **Mandatory** when any critic trigger is active (see AGENTS.md). Skip requires Owner approval recorded in orchestrator-log.
+5. Implementation follows the plan. Stop only for Hard Stops or BLOCKED verifier verdict.
+6. `verifier` agent runs **after** implementation — issues READY/BLOCKED with evidence. Spawn as subagent when mandatory (see sdd-protocol.md Verifier Mode Decision Table). Use inline tsc only for 1-2 file, no-DB, no-auth changes.
 
-**When to skip:** trivial quick-fixes (typos, single-line changes, ≤2 files, no route/schema/API/security impact).
+**When to skip solution-architect:** solution-architect already covered this domain in a previous Work Block of the same project.
 
-**Agent memory ROI:** `solution-architect` accumulates architectural patterns and integration points. `verifier` accumulates failure patterns, flaky tests, and contract-sensitive zones. Both compound in value with each Work Block.
+**Solution-architect explicit triggers** — must run BEFORE Plan mode when:
+
+- New service layer (new file in `src/server/services/` or `src/lib/`)
+- New DB model or schema change (Prisma schema, migration)
+- New API surface (new route, new endpoint, changed contract)
+- New subagent topology (agent combination not used before in this project)
+- Cross-cutting concern (auth, logging, error handling, rate limiting)
+
+**When to skip critic:** trivial quick-fixes (typos, single-line changes, ≤2 files, no route/schema/API/security impact), documentation-only Work Blocks. All other skips require Owner approval.
+
+**Agent memory ROI:** `solution-architect` accumulates architectural patterns and integration points. `verifier` accumulates failure patterns, flaky tests, and contract-sensitive zones. `critic` accumulates orchestrator blind spots, chronically under-routed skills, and weak skip reason patterns. All three compound in value with each Work Block.
 
 ---
 

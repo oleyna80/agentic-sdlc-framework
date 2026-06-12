@@ -36,10 +36,12 @@ States:
 3. **Subagent Topology** — classify `Subagent-Required` triggers, plan dispatch
 4. **Preflight** — output Stage 0 Preflight block: skills, subagent topology, side-effect class, DB mode, hard stops, write gate status
 5. **Research** — if needed, launch `solution-architect` for pre-implementation analysis
-6. **Plan Approval** — produce plan, get Owner approval if non-trivial
+6. **Critic Review** — launch `critic` agent to independently review Control Tower decisions (scope, skill routing, skip reasons, risk gaps). Required when: 3+ files touched, side-effect class ≥ production code write, new subagent topology, or 2+ skills skipped. Skip for trivial/documentation-only Work Blocks.
+7. **Plan Approval** — produce plan, get Owner approval if non-trivial
 
 ### Exit Conditions
 - Write gate: `READY`
+- Critic verdict: APPROVE or SUPPLEMENT (if RECONSIDER — re-run Stage 0 with corrections)
 - Plan approved (for non-trivial work)
 - All matched skills recorded (used or skipped with reason)
 
@@ -79,6 +81,20 @@ States:
 - Implementation complete (Stage 1 DONE)
 - Verification tier specified (lite/standard/full)
 
+### Verifier Mode Decision Table
+
+How to verify depends on Work Block characteristics. "Mandatory" = must spawn
+verifier agent; cannot be replaced by inline tsc.
+
+| Condition | Verifier Mode |
+|---|---|
+| 1-2 files, no DB, no auth, read-only | Inline tsc + lint |
+| 3+ files, logic changes | Inline tsc + spawn verifier agent (Standard tier) |
+| DB writes / migrations | Spawn verifier agent — **mandatory** |
+| Auth / security-sensitive changes | Spawn verifier agent — **mandatory** |
+| Parallel dispatch results (merge step) | Spawn verifier agent — **mandatory** |
+| Side-effect class: live-infra / live-data | Spawn verifier agent + Full tier — **mandatory** |
+
 ### Activities
 
 #### Lite Tier
@@ -104,11 +120,45 @@ States:
 - [ ] Runtime proof via `curl -fsSI`
 - [ ] CSP/security headers verified
 - [ ] CSRF/origin guard for mutations
+- [ ] Codex adversarial review (if Codex installed) — second opinion from GPT model family
+- [ ] Consolidation: merge Verifier + Codex findings
 
 ### Exit Conditions
 - Verdict: `READY` or `BLOCKED`
 - All blockers documented with file:line evidence
 - Verification report written to `docs/reports/`
+
+---
+
+## Merge Protocol (Parallel Agents Only)
+
+**Owner:** Control Tower
+**Write authority:** `docs/reports/*`, `memory_bank/*`
+
+> Runs between Stage 2 and Stage 3 when 2+ subagents were dispatched in parallel.
+> Skip for single-agent or sequential Work Blocks.
+
+### Entry Conditions
+- All parallel subagents completed (or timed out)
+- Snapshot exists from pre-dispatch (via `context-snapshot`)
+
+### Activities
+1. **Collect** — gather all subagent reports from `docs/reports/` or direct outputs
+2. **Deduplicate** — group findings by `file:line`; same finding from multiple agents → one merged entry
+3. **Detect conflicts** — same file, different verdicts → apply conflict resolution rules:
+   - PASS vs ISSUES → ISSUES wins (conservative)
+   - ISSUES vs BLOCKED → BLOCKED wins
+   - Two different ISSUES on same file → both included
+   - Unresolvable contradiction → escalate to Control Tower (hard stop)
+4. **Classify** — rate each finding: P0 (must fix) / P1 (should fix) / P2 (might fix) / Accepted
+5. **Produce consolidation report** — save to `docs/reports/consolidation-[wb-id]-[stage]-[date].md`
+6. **Update logs** — `orchestrator-log.md` + `review-log.md`
+
+### Exit Conditions
+- Consolidation report written
+- All conflicts resolved or escalated
+- BLOCKED verdicts addressed (corrective Work Block or Owner acceptance)
+- Consolidation decision: PROCEED / ESCALATE / RERUN
 
 ---
 
@@ -119,11 +169,12 @@ States:
 
 ### Entry Conditions
 - Verification complete (READY or BLOCKED with documented follow-ups)
+- If parallel agents were used: consolidation report written, conflicts resolved
 
 ### Activities
 1. **SSOT Sync** — update tasklist status, memory_bank context/progress/decisions
 2. **Crash Test Gate** — if routes changed: run local crash test
-3. **Closeout Report** — summarize: what was done, verification result, risks accepted, follow-ups
+3. **Closeout Report** — summarize: what was done, verification result, consolidation (if parallel), risks accepted, follow-ups
 4. **Owner Report** — present closeout summary
 
 ### Exit Conditions

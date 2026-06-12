@@ -45,7 +45,7 @@ find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o 
 
 # 3. Copy default skills (Core SDLC)
 echo "==> Copying core skills..."
-CORE_SKILLS="architecture-discovery technical-discovery task-decomposition project-estimation scoped-coder verifier reviewer systematic-debugging webapp-testing memory-bank-manager ssot-sync-closeout subagent-mission-brief agent-operations-review output-skill scoped-commit-guard shell-context-guard"
+CORE_SKILLS="architecture-discovery technical-discovery task-decomposition project-estimation scoped-coder verifier reviewer systematic-debugging webapp-testing memory-bank-manager ssot-sync-closeout subagent-mission-brief agent-operations-review output-skill scoped-commit-guard shell-context-guard orchestrator-log context-snapshot merge-protocol critic-review"
 mkdir -p "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills"
 for skill in $CORE_SKILLS; do
   if [ -d "$FRAMEWORK_DIR/skills/$skill" ]; then

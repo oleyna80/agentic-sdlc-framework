@@ -20,8 +20,10 @@ For non-trivial work, read before planning edits:
 | File | Purpose | Update Trigger |
 |---|---|---|
 | `context.md` | Current focus, active WBs, next gate | After Stage 3 closeout |
-| `progress.md` | Rolling log: date, WB, status, verdict, notes | After each verified closeout |
+| `progress.md` | Rolling log: WHAT was done, status, verdict | After each verified closeout |
 | `decisions.md` | Architecture decisions + rationale | When a significant decision is made |
+| `orchestrator-log.md` | WHY decisions were made: tier, skips, topology, critic verdict, outcome | After Stage 0 (decisions) and Stage 3 (outcome) |
+| `review-log.md` | WHAT subagents found: agent, verdict, key findings, evidence | After each subagent returns |
 
 ## Rules
 

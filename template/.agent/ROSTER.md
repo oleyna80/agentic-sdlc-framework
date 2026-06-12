@@ -11,9 +11,13 @@
 |---|---|---|---|
 | Control Tower | `{{PROJECT_SLUG}}-control-tower` | Orchestration, planning, task slicing, SSOT | task-decomposition, ssot-sync-closeout, memory-bank-manager, subagent-mission-brief |
 | Solution Architect | `{{PROJECT_SLUG}}-solution-architect` | Pre-implementation research (read-only) | architecture-discovery, technical-discovery, project-estimation |
+| Critic | `{{PROJECT_SLUG}}-critic` | Independent review of Control Tower decisions, Stage 0→1 gate (read-only) | critic-review |
+| GPT Critic | `{{PROJECT_SLUG}}-gpt-critic` | External adversarial review of decisions (GPT model family, read-only) | codex-verification, critic-review |
 | Scoped Coder | `{{PROJECT_SLUG}}-scoped-coder` | Approved-scope implementation only | scoped-coder, scoped-commit-guard, shell-context-guard |
 | Reviewer | `{{PROJECT_SLUG}}-reviewer` | Read-only multi-dimension review | reviewer, security-audit-triage |
 | Verifier | `{{PROJECT_SLUG}}-verifier` | AC verification gate (read-only) | verifier, security-verification-gate, systematic-debugging |
+| GPT Verifier | `{{PROJECT_SLUG}}-gpt-verifier` | External adversarial verification (GPT model family, read-only) | codex-verification, verifier |
+| Codex Reviewer | `{{PROJECT_SLUG}}-codex-reviewer` | External adversarial code review (GPT model family, read-only) | codex-verification |
 
 ---
 
@@ -27,15 +31,19 @@
 | `technical-discovery` | Project structure analysis, technical decisions | No |
 | `task-decomposition` | Breaking goals into atomic tasks | No |
 | `project-estimation` | Stage 0 effort estimation | No |
+| `critic-review` | After Stage 0 Preflight, before Stage 1 Implementation | No |
 | `scoped-coder` | Any file-changing work | No |
 | `verifier` | Post-implementation verification | No |
 | `reviewer` | Multi-dimension code review | No |
 | `systematic-debugging` | Bug investigation before fixes | No |
 | `ssot-sync-closeout` | Post-stage SSOT synchronization | No |
+| `merge-protocol` | Collect, deduplicate, resolve conflicts from parallel subagents | No |
 | `subagent-mission-brief` | Delegating work to subagents | No |
 | `memory-bank-manager` | Memory bank maintenance | No |
 | `agent-operations-review` | Agent workflow retrospectives | No |
 | `output-skill` | Complete code generation | No |
+| `context-snapshot` | Freeze system state before parallel dispatch or stage transitions | No |
+| `orchestrator-log` | Session audit trail: orchestrator decisions + subagent results | No |
 | `scoped-commit-guard` | Safe commits in dirty worktrees | No |
 | `shell-context-guard` | Shell context safety | No |
 
@@ -68,12 +76,14 @@
 | `skill-creator` | Creating or editing skills |
 | `graphify-code-map` | Code visualization |
 | `webapp-testing` | Playwright-based web testing |
+| `codex-verification` | External adversarial review via Codex (GPT) — Full tier only |
 
 ---
 
 ## Routing Priority
 
 1. Hard Stop gates first (security, verification)
-2. Mandatory SDLC skills (scoped-coder, verifier)
-3. Domain-specific skills (frontend, backend, design)
-4. Support skills (debugging, output)
+2. Critic review (after Stage 0, before Stage 1)
+3. Mandatory SDLC skills (scoped-coder, verifier)
+4. Domain-specific skills (frontend, backend, design)
+5. Support skills (debugging, output)

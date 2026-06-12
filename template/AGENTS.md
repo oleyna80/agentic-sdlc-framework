@@ -289,9 +289,10 @@ available:
 ```
 Standard:
   Plan & Discover (Control Tower)
-    └─→ Implement (Scoped Coder, per-task)
-          └─→ Verify (Verifier gate, tier-scoped)
-                └─→ Sync & Report (SSOT Sync + Owner report)
+    └─→ Critic Review (Critic — independent decision review)
+          └─→ Implement (Scoped Coder, per-task)
+                └─→ Verify (Verifier gate, tier-scoped)
+                      └─→ Sync & Report (SSOT Sync + Owner report)
 
 Quick-fix (≤3 files, no route/schema/API/security):
   Implement (Lite checks) → Inline sync → Done
@@ -333,6 +334,10 @@ For non-trivial work, read these files before planning edits:
 5. `memory_bank/progress.md` — rolling status log
 6. `memory_bank/decisions.md` — ADRs and durable decisions
 
+For multi-Work-Block sessions or when resuming after interruption, also read:
+- `memory_bank/orchestrator-log.md` — why past decisions were made
+- `memory_bank/review-log.md` — what past subagents found
+
 Read additional specs, plans, tasklists, skills, or code only when they are relevant
 to the approved objective.
 
@@ -361,6 +366,79 @@ or subagent-delegated work:
 
 Skipping a matching skill requires a recorded reason. Hard Stop skills still
 require explicit Owner approval.
+
+### Critic Review Gate (Stage 0 → Stage 1)
+
+After Stage 0 Preflight and before Stage 1 Implementation, launch the `critic`
+agent to independently review Control Tower decisions when:
+
+- Work Block touches 3+ files, OR
+- Side-effect class is `production code write` or higher, OR
+- Subagent topology is new (first use of this agent combination), OR
+- 2+ skills were skipped in the same Work Block, OR
+- Work Block involves security, auth, payments, DB, deploy, or external providers.
+
+Skip for: trivial fixes (single-file, no logic change), documentation-only Work Blocks.
+
+**Mandatory enforcement:** If ANY trigger above is active, critic becomes
+**mandatory** — Control Tower must spawn the critic agent before Stage 1.
+This is enforced by the `critic-gate.sh` PreToolUse hook (registered in
+`.claude/settings.json`). The hook blocks all Edit/Write until
+`.agent/critic-gate.md` status is `READY` or `SKIPPED`.
+
+The only valid skip is explicit Owner approval, recorded in orchestrator-log:
+
+```
+critic: SKIPPED — Owner approval — [reason]
+```
+
+Control Tower writes `Status: SKIPPED` and the Work Block ID into
+`.agent/critic-gate.md` alongside the orchestrator-log entry. The hook
+validates that BOTH exist before allowing SKIPPED.
+
+**No-skip domains:** The following domains CANNOT be skipped — critic is
+truly mandatory for the first Work Block in each:
+
+- Authentication / authorization (middleware, sessions, login, RBAC)
+- Payments / billing (Stripe, checkout, pricing changes)
+- Database migrations (new models, schema changes, data migrations)
+- New service layer (first file in `src/server/services/` for a domain)
+- Deploy / infrastructure (Docker, Vercel, CI/CD, environment config)
+
+If a Work Block touches any of these AND the domain hasn't been covered
+by a prior WB with a READY critic verdict → `No-Skip: true` in gate file.
+
+**Consecutive skip limit:** 3 consecutive SKIPs → next WB cannot skip.
+Critic becomes mandatory regardless of triggers. Counter resets when
+critic returns APPROVE/SUPPLEMENT/RECONSIDER.
+
+**Scope change re-trigger:** If a verification-only WB (0 code changes)
+finds blockers requiring implementation, the gate resets to PENDING.
+Critic must re-assess the expanded scope before fixes proceed.
+
+The critic returns APPROVE / SUPPLEMENT / RECONSIDER:
+- **APPROVE:** Proceed to Stage 1.
+- **SUPPLEMENT:** Address findings or document acceptance of risks, then proceed.
+- **RECONSIDER:** Re-run Stage 0 with corrections before proceeding.
+
+Control Tower decides how to respond to critic findings, but cannot skip the
+critic itself without Owner approval. Critic Report is saved to
+`docs/reports/critic-<wb-id>.md`.
+
+#### GPT Critic (dual-model review)
+
+For Full tier Work Blocks or when a second opinion from a different model family
+is valuable, launch `gpt-critic` **after** the Claude critic. GPT Critic runs the
+same decision-quality review through OpenAI Codex (GPT model) via MCP:
+
+- **Model:** Claude agent → `mcp__codex__exec` → Codex CLI → GPT (`.codex/config.toml`)
+- **Trigger:** Same as critic, but only for Full tier or when Claude critic returns SUPPLEMENT/RECONSIDER
+- **Output:** GPT Critic Report — merged with Claude critic findings by Control Tower
+- **Verdict:** APPROVE / SUPPLEMENT / RECONSIDER (advisory, not a gate)
+- **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude critic only
+
+GPT Critic catches blind spots the Claude critic misses — different model family,
+different reasoning patterns.
 
 ### External Skill Discovery
 
@@ -399,6 +477,20 @@ Standard +:
 - [ ] CSP/security headers in actual responses
 - [ ] Mutation endpoints: CSRF/origin guard in place
 
+### GPT Verifier (dual-model verification)
+
+For Full tier Work Blocks, launch `gpt-verifier` **after** the Claude verifier.
+GPT Verifier runs adversarial verification through OpenAI Codex (GPT model) via MCP:
+
+- **Model:** Claude agent → `mcp__codex__exec` → Codex CLI → GPT (`.codex/config.toml`)
+- **Trigger:** Full verification tier OR security-sensitive changes OR first WB in new domain
+- **Focus:** Correctness edge cases, security blind spots, contract violations — what Claude verifier likely missed
+- **Output:** GPT Verifier Report — merged with Claude verifier findings in consolidation report
+- **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude verifier only
+
+GPT Verifier is advisory — it cannot issue BLOCKED. The Claude verifier remains
+the authoritative gate.
+
 ---
 
 ## DB Access Matrix
@@ -433,6 +525,9 @@ Standard +:
 | Coder | Scoped implementation only after approval |
 | Reviewer | Read-only review for defects and risks |
 | Verifier | Checks against objective, AC, scope, and verification matrix |
+| GPT Critic | External adversarial review of decisions (GPT via MCP) |
+| GPT Verifier | External adversarial verification of implementation (GPT via MCP) |
+| Codex Reviewer | External adversarial code review (GPT via MCP) |
 
 Full roster with skill assignments: `.agent/ROSTER.md`
 
