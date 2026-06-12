@@ -1,0 +1,43 @@
+# Agentic SDLC Framework
+
+# Private/project-specific material
+archive/
+
+# Session/state files
+.claude/backups/
+.claude/plans/
+.claude/plugins/
+.claude/shell-snapshots/
+.claude/.last-cleanup
+
+# Keep published content
+!.claude/agents/
+!.claude/hooks/
+!.claude/skills/
+!.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+
+# Python/generated artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Build/test output
+dist/
+build/
+coverage/
+node_modules/

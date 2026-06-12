@@ -1,0 +1,57 @@
+# Agentic SDLC Framework - generated project ignore file
+#
+# bootstrap.sh copies this file to .gitignore in new projects.
+# Keep this filename inactive inside the framework repository so the
+# publishable template files are not hidden by nested gitignore rules.
+
+# Keep local workflow layer private by default
+.agent/
+memory_bank/
+.claude/agent-memory/
+
+# Keep Codex layer private by default
+.codex/
+.codexignore
+.agentsignore
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

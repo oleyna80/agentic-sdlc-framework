@@ -1,0 +1,20 @@
+# Optional project-local Codex config template.
+#
+# Copy to `.codex/config.toml` only when this project needs local Codex
+# overrides. Keep `.codex/` local-only by default.
+#
+# Claude Code is the primary tool. Codex is secondary/optional.
+#
+# Do not store secrets or provider tokens in this file.
+
+multi_agent = true
+# [mcp_servers.context7]
+# command = "npx"
+# args = ["-y", "@upstash/context7-mcp"]
+
+# Figma MCP is intentionally disabled by default.
+# Enable only after Owner approves the local setup.
+#
+# [mcp_servers.figma]
+# command = "npx"
+# args = ["-y", "figma-developer-mcp", "--stdio"]

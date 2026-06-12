@@ -1,0 +1,83 @@
+# Security patterns — common vulnerability classes to check during review.
+# Extend with project-specific patterns in your local `.claude/security-patterns.yaml`.
+
+patterns:
+  - id: pg_query_template_literal
+    severity: high
+    description: PostgreSQL query built with template literals instead of parameterized queries
+    regex: '(await\s+(pool|client)\.(query|execute)\(`[^`]*\$\{)'
+
+  - id: pg_query_string_concat
+    severity: high
+    description: PostgreSQL query built with string concatenation
+    regex: '(await\s+(pool|client)\.(query|execute)\(["'"'"'][^"'"'"']*\+\s*(req\.|ctx\.|params\.|body\.))'
+
+  - id: admin_route_missing_middleware
+    severity: high
+    description: Admin API route without auth middleware
+    regex: '(export\s+(async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH)\b)(?![\s\S]*?(withAuth|withAdminAuth|authenticate))'
+
+  - id: admin_api_no_auth_check
+    severity: high
+    description: Admin API handler without session/auth check
+    regex: 'admin.*route\.(ts|js).*export\s+(async\s+)?function\s+(GET|POST)'
+
+  - id: form_endpoint_missing_rate_limit
+    severity: medium
+    description: Form submission endpoint without rate limiting
+    regex: 'POST.*(contact|form|submit|intake|lead)(?![\s\S]*?(rateLimit|rate_limit))'
+
+  - id: chmod_too_permissive
+    severity: medium
+    description: chmod with overly permissive modes
+    regex: 'chmod\s+(-R\s+)?[0-7]*7[0-7]*7\b'
+
+  - id: curl_without_fail
+    severity: low
+    description: curl without --fail flag
+    regex: '\bcurl\s+(?!.*(--fail|-f)\b)'
+
+  - id: unquoted_env_var_in_script
+    severity: medium
+    description: Unquoted environment variable in shell script
+    regex: '\$\{?[A-Z_][A-Z0-9_]{3,}\}?(?!.*["'"'"'])'
+
+  - id: dockerfile_broad_copy
+    severity: medium
+    description: Dockerfile COPY with broad wildcard
+    regex: 'COPY\s+\.\s+'
+
+  - id: dockerfile_npm_secret_mount
+    severity: medium
+    description: npm ci/install without --mount=type=secret for private packages
+    regex: 'npm\s+(ci|install)(?!.*--mount=type=secret)'
+
+  - id: express_json_no_limit
+    severity: medium
+    description: express.json() or bodyParser.json() without size limit
+    regex: '(express|bodyParser)\.json\(\)'
+
+  - id: cors_allow_origin_wildcard
+    severity: medium
+    description: CORS Access-Control-Allow-Origin: *
+    regex: 'Access-Control-Allow-Origin:\s*\*'
+
+  - id: dangerously_set_html
+    severity: high
+    description: dangerouslySetInnerHTML without sanitization
+    regex: 'dangerouslySetInnerHTML(?![\s\S]*?(DOMPurify|sanitize|sanitizeHtml))'
+
+  - id: redirect_to_user_input
+    severity: high
+    description: Redirect using user-controlled input
+    regex: '(redirect|Router\.push|router\.push)\((req\.|params\.|searchParams\.|body\.|ctx\.)'
+
+  - id: npm_legacy_peer_deps
+    severity: low
+    description: --legacy-peer-deps flag bypasses dependency conflict checks
+    regex: '--legacy-peer-deps'
+
+  - id: env_file_with_secrets_committed
+    severity: critical
+    description: .env file staged for commit
+    regex: '\.env\b(?!.*example)'

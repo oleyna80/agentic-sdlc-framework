@@ -1,0 +1,13 @@
+# In generated projects, .agent/ is local-only by default because the root
+# .gitignore ignores .agent/.
+#
+# In the framework repository, this file must not hide the publishable scaffold
+# under template/.agent/, so the core routing files are explicitly kept visible.
+*
+!.gitignore
+!README.md
+!ROSTER.md
+!workflows/
+!workflows/**
+!skills/
+!skills/README.md
