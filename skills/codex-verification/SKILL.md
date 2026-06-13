@@ -1,10 +1,10 @@
 ---
 name: codex-verification
-description: "External adversarial review using OpenAI Codex (GPT). Spawns /codex:adversarial-review against the current diff. Use for Full verification tier, security-sensitive Work Blocks, or when a second opinion from a different model family is needed. Codex output is evidence, not acceptance — Control Tower validates before acting."
+description: "External adversarial review using OpenAI Codex (GPT) through the project Codex MCP server. Use for Full verification tier, security-sensitive Work Blocks, first work in a new domain, or when a second opinion from a different model family is needed. Codex output is evidence, not acceptance — Control Tower validates before acting."
 user-invocable: true
-argument-hint: "[focus text for adversarial review] [--base <ref>]"
+argument-hint: "[read-only focus text for adversarial review] [base/ref]"
 allowed-tools:
-  - Bash
+  - mcp__codex__codex
 ---
 
 # Codex Verification
@@ -15,15 +15,17 @@ Run an adversarial review using OpenAI Codex as a second pair of eyes from a
 different model family. Complements Claude Verifier — catches blind spots that
 one model family misses.
 
-Codex runs locally via the Codex CLI and the `codex@openai-codex` Claude Code plugin.
-It shares the same filesystem and git repository. No cloud Codex instance is used.
+Codex runs locally via the Codex MCP server configured in `.mcp.json`. It shares
+the same filesystem and git repository, but the template starts it with
+`--sandbox read-only --ask-for-approval never` and this skill uses it as a
+read-only advisory reviewer/verifier by default.
 
 ## Prerequisites
 
 1. Codex CLI installed: `npm install -g @openai/codex`
 2. Codex authenticated: `codex login`
-3. Claude Code plugin: `/plugin install codex@openai-codex`
-4. Plugin setup: `/codex:setup`
+3. MCP server configured in `.mcp.json`: `codex --sandbox read-only --ask-for-approval never mcp-server`
+4. Claude settings allow the MCP tool, not direct `Bash(codex *)`
 
 ## When to Use (Triggers)
 
@@ -42,12 +44,15 @@ Skip when:
 
 ## Workflow
 
-1. Control Tower spawns `codex-reviewer` agent with a mission brief
-2. Agent runs `/codex:adversarial-review --base main [focus text]`
-3. Agent collects Codex output
-4. Agent structures findings as a Reviewer Report
-5. Control Tower merges Codex findings with Verifier findings
-6. Both go into the consolidation report
+1. Control Tower spawns `gpt-critic` for Stage 0.5 decision review or
+   `gpt-verifier` for Stage 2 implementation verification
+2. Agent prepares a focused read-only prompt with objective, scope, base/ref,
+   changed files or preflight decisions, and project rules
+3. Agent calls Codex through `mcp__codex__codex`
+4. Agent structures Codex output with session id, mode, scope, findings,
+   inspection gaps, and merge recommendation
+5. Control Tower merges Codex findings with Claude critic/verifier findings
+6. Consolidated results go into the closeout or review report
 
 ## Relationship with Other Skills
 
@@ -65,6 +70,10 @@ Skip when:
 - If Codex is unavailable → log gap, proceed with Claude-only verification
 - Codex review adds time — use only for Full tier, not every WB
 - Codex findings may overlap with Claude findings → merge protocol deduplicates
+- Codex must stay read-only/advisory. Prompt it as read-only even though the
+  template MCP server also starts it with a read-only sandbox and never-ask
+  approval policy.
+- Do not call `codex` through Bash; use the MCP tool only
 
 ## Handoff
 

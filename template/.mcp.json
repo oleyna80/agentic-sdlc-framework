@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex": {
+      "command": "codex",
+      "args": ["--sandbox", "read-only", "--ask-for-approval", "never", "mcp-server"]
+    }
+  }
+}

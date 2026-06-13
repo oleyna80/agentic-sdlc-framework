@@ -1,4 +1,17 @@
 {
+  "enabledMcpjsonServers": [
+    "codex"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__codex__codex"
+    ]
+  },
+  "autoMode": {
+    "allow": [
+      "$defaults"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -12,7 +25,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|MultiEdit|Write",
         "hooks": [
           {
             "type": "command",
@@ -24,7 +37,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|MultiEdit|Write",
         "hooks": [
           {
             "type": "command",
@@ -41,7 +54,7 @@
       "color": "green"
     },
     "critic": {
-      "description": "Independent review of Control Tower decisions, Stage 0→1 (read-only)",
+      "description": "Independent review of Control Tower decisions, Stage 0\u21921 (read-only)",
       "color": "yellow"
     },
     "verifier": {

@@ -73,12 +73,18 @@ Write-capable Coder subagents require an approved write-set; use exactly one
 write-capable Coder per write-set.
 
 Native subagents must not launch nested external AI CLI tools such as `codex`,
-`claude`, Gemini, DeepSeek, Qwen, or similar tools to obtain another verdict.
-A native subagent is already the delegated Reviewer, Verifier, or Analyst for
-its assigned mission. External AI review is a separate Control Tower work item:
-assign it explicitly as `External Audit Runner`, provide a local task file,
-define timeouts and fallback, and keep the same scope, read-only, side-effect,
-secret, DB, deploy, commit, and push boundaries.
+`claude`, Gemini, DeepSeek, Qwen, or similar tools through shell or plugin
+paths to obtain another verdict. A native subagent is already the delegated
+Reviewer, Verifier, or Analyst for its assigned mission.
+
+Exception: the framework-defined GPT agents (`gpt-critic`, `gpt-verifier`,
+and optional `codex-reviewer`) may call `mcp__codex__codex` when Control Tower
+explicitly dispatches them in the dual-model QC flow. They remain
+read-only/advisory, inherit the Work Block scope, and cannot expand write, DB,
+deploy, commit, or push authority. Any other external AI review is a separate
+Control Tower work item: assign it explicitly as `External Audit Runner`,
+provide a local task file, define timeouts and fallback, and keep the same
+scope, read-only, side-effect, secret, DB, deploy, commit, and push boundaries.
 
 The Orchestrator may skip subagents for a `Subagent-Required` Work Block only
 when it records one of these reasons in Stage 0:
@@ -400,10 +406,10 @@ validates that BOTH exist before allowing SKIPPED.
 truly mandatory for the first Work Block in each:
 
 - Authentication / authorization (middleware, sessions, login, RBAC)
-- Payments / billing (Stripe, checkout, pricing changes)
+- Payments / billing (payment provider, checkout, pricing changes)
 - Database migrations (new models, schema changes, data migrations)
 - New service layer (first file in `src/server/services/` for a domain)
-- Deploy / infrastructure (Docker, Vercel, CI/CD, environment config)
+- Deploy / infrastructure (container registry, hosting platform, CI/CD, environment config)
 
 If a Work Block touches any of these AND the domain hasn't been covered
 by a prior WB with a READY critic verdict → `No-Skip: true` in gate file.
@@ -427,18 +433,48 @@ critic itself without Owner approval. Critic Report is saved to
 
 #### GPT Critic (dual-model review)
 
-For Full tier Work Blocks or when a second opinion from a different model family
-is valuable, launch `gpt-critic` **after** the Claude critic. GPT Critic runs the
-same decision-quality review through OpenAI Codex (GPT model) via MCP:
+The orchestrator **automatically** launches `gpt-critic` after the Claude critic when:
 
-- **Model:** Claude agent → `mcp__codex__exec` → Codex CLI → GPT (`.codex/config.toml`)
-- **Trigger:** Same as critic, but only for Full tier or when Claude critic returns SUPPLEMENT/RECONSIDER
-- **Output:** GPT Critic Report — merged with Claude critic findings by Control Tower
+- Work Block is **Full tier** (security/auth/deploy/DB), OR
+- Claude critic returns **SUPPLEMENT** or **RECONSIDER**, OR
+- This is the **first Work Block in a new domain** (no-skip enforced)
+
+GPT Critic runs the same decision-quality review through OpenAI Codex (GPT model) via MCP.
+The orchestrator merges Claude + GPT critic findings into a combined assessment.
+
+- **Model:** Claude agent → `mcp__codex__codex` → Codex MCP server → GPT (`.codex/config.toml`)
+- **Output:** GPT Critic Report — auto-merged with Claude critic findings
 - **Verdict:** APPROVE / SUPPLEMENT / RECONSIDER (advisory, not a gate)
 - **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude critic only
+- **Cost:** record actual token usage per invocation; use a Work Block budget for Full-tier QC
 
 GPT Critic catches blind spots the Claude critic misses — different model family,
-different reasoning patterns.
+different reasoning patterns. Use the MCP tool only; direct `codex` shell calls are not allowed. Skip ONLY for Lite/Standard tier with Claude critic APPROVE.
+
+### Dual-Model QC Decision Tree
+
+The orchestrator follows this decision tree automatically. No manual gating.
+
+```
+Stage 0.5: Critic Gate
+  ├── 1. Launch critic (Claude) ← always when triggers active
+  ├── 2. IF Full tier OR first-WB-in-domain OR Claude critic SUPPLEMENT/RECONSIDER:
+  │     Launch gpt-critic (GPT via MCP)
+  └── 3. Merge findings → combined verdict
+
+Stage 2: Verify
+  ├── 1. Launch verifier (Claude) ← always
+  ├── 2. IF Full tier OR security/auth/DB/payments/middleware:
+  │     Launch gpt-verifier (GPT via MCP)
+  │     Optionally launch codex-reviewer only for explicit extra deep review
+  └── 3. Merge findings → consolidation report
+```
+
+**GPT agents are advisory.** Claude agents remain the authoritative gates.
+Control Tower merges findings and makes the final decision.
+
+**Cost budget:** set and record a GPT token budget per Full-tier Work Block.
+If the budget is exceeded, the orchestrator logs the overage and proceeds with Claude-only findings.
 
 ### External Skill Discovery
 
@@ -479,17 +515,23 @@ Standard +:
 
 ### GPT Verifier (dual-model verification)
 
-For Full tier Work Blocks, launch `gpt-verifier` **after** the Claude verifier.
-GPT Verifier runs adversarial verification through OpenAI Codex (GPT model) via MCP:
+The orchestrator **automatically** launches `gpt-verifier` after the Claude verifier when:
 
-- **Model:** Claude agent → `mcp__codex__exec` → Codex CLI → GPT (`.codex/config.toml`)
-- **Trigger:** Full verification tier OR security-sensitive changes OR first WB in new domain
+- Work Block is **Full tier** (security/auth/deploy/DB), OR
+- Changes touch **auth, payments, DB schema, or middleware**, OR
+- This is the **first Work Block in a new domain** (no-skip enforced)
+
+GPT Verifier runs adversarial verification through OpenAI Codex (GPT model) via MCP.
+The orchestrator merges Claude + GPT verifier findings in the consolidation report.
+
+- **Model:** Claude agent → `mcp__codex__codex` → Codex MCP server → GPT (`.codex/config.toml`)
 - **Focus:** Correctness edge cases, security blind spots, contract violations — what Claude verifier likely missed
-- **Output:** GPT Verifier Report — merged with Claude verifier findings in consolidation report
+- **Output:** GPT Verifier Report — auto-merged with Claude verifier findings
 - **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude verifier only
+- **Cost:** record actual token usage per invocation; keep Full-tier QC inside the Work Block budget
 
 GPT Verifier is advisory — it cannot issue BLOCKED. The Claude verifier remains
-the authoritative gate.
+the authoritative gate. Use `codex-reviewer` only when Control Tower explicitly requests an additional deep review. Skip ONLY for Lite/Standard tier with no security/auth/DB touch.
 
 ---
 

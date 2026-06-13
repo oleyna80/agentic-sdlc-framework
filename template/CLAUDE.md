@@ -131,16 +131,23 @@ solution-architect  →  verifier (skill)  →  Plan mode  →  critic  →  Imp
                                                          pre-impl     scoped-coder)   persistent memory
 ```
 
-**Dual-model QC (Full tier / high-risk):**
+**Dual-model QC (orchestrator auto-dispatches):**
 
 ```
-critic (Claude) ──→  gpt-critic (GPT via MCP)   ──→ merge → Control Tower decision
-verifier (Claude) ──→ gpt-verifier (GPT via MCP) ──→ merge → consolidation report
+Stage 0.5: critic (Claude) ──→ gpt-critic (GPT via MCP)   ──→ merge
+Stage 2:   verifier (Claude) ──→ gpt-verifier (GPT via MCP) ──→ merge
+                               └── codex-reviewer (optional extra deep review)
 ```
 
-GPT agents run AFTER Claude agents. They delegate to Codex via `mcp__codex__*` tools.
-GPT output is advisory — Claude agents remain the authoritative gates.
-Model for GPT agents: configurable in `.codex/config.toml` (`gpt-5.5` default).
+GPT critic/verifier agents launch automatically when: Full tier, first WB in new domain, or
+Claude agent returns non-approve verdict. `codex-reviewer` is optional and only for explicit extra deep review. GPT output is advisory — Claude agents
+remain the authoritative gates. If Codex MCP unavailable → log gap, proceed.
+
+**Setup (one-time):** Codex CLI + `codex login` + `.codex/config.toml` (model).
+Template `.mcp.json` and `.claude/settings.json` pre-configure the MCP server
+with read-only sandboxing, never-ask approvals, and MCP tool permission. Direct
+`codex` Bash calls are not allowed. See root `SETUP.md` and
+`skills/codex-verification/SKILL.md` for the reusable setup contract.
 
 **Key rules:**
 
