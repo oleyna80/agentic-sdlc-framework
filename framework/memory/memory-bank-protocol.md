@@ -24,10 +24,12 @@ For non-trivial work, read before planning edits:
 | `decisions.md` | Architecture decisions + rationale | When a significant decision is made |
 | `orchestrator-log.md` | WHY decisions were made: tier, skips, topology, critic verdict, outcome | After Stage 0 (decisions) and Stage 3 (outcome) |
 | `review-log.md` | WHAT subagents found: agent, verdict, key findings, evidence | After each subagent returns |
+| `external-team-log.md` | HOW delegated external teams worked: accepted scope, actions, files, checks, risks | During and after external handoff sessions |
 
 ## Rules
 
 - Update only after implementation has verification evidence
 - Never write secrets, tokens, or credentials to memory bank
+- Never write private chain-of-thought; log decision/action summaries only
 - Memory bank is a cache, not a contract — docs/ beats memory_bank in conflicts
 - Keep entries concise — one line per decision, one line per progress entry

@@ -8,6 +8,11 @@
 .agent/
 memory_bank/
 .claude/agent-memory/
+.claude/backups/
+.claude/plans/
+.claude/plugins/
+.claude/shell-snapshots/
+.claude/.last-cleanup
 
 # Keep Codex layer private by default
 .codex/

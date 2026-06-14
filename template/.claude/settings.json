@@ -46,6 +46,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/verification-gate.sh",
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   },
   "agents": {
@@ -57,9 +68,29 @@
       "description": "Independent review of Control Tower decisions, Stage 0\u21921 (read-only)",
       "color": "yellow"
     },
+    "gpt-critic": {
+      "description": "External adversarial review of Control Tower decisions via Codex MCP (read-only)",
+      "color": "orange"
+    },
+    "reviewer": {
+      "description": "Read-only multi-dimension review across code, docs, architecture, drift, and security triage",
+      "color": "yellow"
+    },
+    "scoped-coder": {
+      "description": "Approved-scope implementation only; one write-capable coder per write-set",
+      "color": "blue"
+    },
     "verifier": {
       "description": "Post-implementation verification gate (read-only)",
       "color": "red"
+    },
+    "gpt-verifier": {
+      "description": "External adversarial verification via Codex MCP (read-only)",
+      "color": "purple"
+    },
+    "codex-reviewer": {
+      "description": "Optional extra-deep Codex MCP review beyond the default GPT verifier",
+      "color": "blue"
     }
   }
 }

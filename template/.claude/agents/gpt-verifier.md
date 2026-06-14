@@ -96,7 +96,7 @@ The same dimensions as the Claude verifier, but with GPT's adversarial lens:
 
 ## Prompt Assembly for Codex
 
-Follow `codex-verification` skill and `gpt-5-4-prompting` skill patterns:
+Follow the `codex-verification` skill and the inline verification contract below:
 
 ```
 <task>

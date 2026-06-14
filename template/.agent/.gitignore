@@ -7,6 +7,8 @@
 !.gitignore
 !README.md
 !ROSTER.md
+!critic-gate.md
+!verification-gate.md
 !workflows/
 !workflows/**
 !skills/

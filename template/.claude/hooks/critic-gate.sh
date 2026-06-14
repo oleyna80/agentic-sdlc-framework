@@ -36,6 +36,45 @@ field() {
     || true
 }
 
+is_placeholder() {
+  local value="$1"
+  [ -z "$value" ] && return 0
+  case "$value" in
+    "["*"]"|PENDING|pending|none|NONE) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+require_report_file() {
+  local field_name="$1"
+  local label="$2"
+  local report_path
+  report_path=$(field "$field_name")
+
+  is_placeholder "$report_path" \
+    && deny "Critic gate: ${label} requires ${field_name} to point to a report under docs/reports/."
+
+  report_path=$(relative_path "$report_path")
+  case "$report_path" in
+    docs/reports/*) ;;
+    *) deny "Critic gate: ${field_name} must be under docs/reports/, got '${report_path}'." ;;
+  esac
+
+  [ -s "$report_path" ] \
+    || deny "Critic gate: ${field_name} report does not exist or is empty: ${report_path}."
+}
+
+require_log_entry() {
+  local needle="$1"
+  local label="$2"
+
+  [ -f "$LOG_FILE" ] \
+    || deny "Critic gate: ${label} requires orchestrator-log entry. ${LOG_FILE} not found."
+
+  grep -q "^|.*${wb_id}.*${needle}" "$LOG_FILE" 2>/dev/null \
+    || deny "Critic gate: ${label} missing orchestrator-log entry for ${wb_id}: ${needle}."
+}
+
 approved_write_set() {
   awk '
     BEGIN { in_set = 0 }
@@ -99,6 +138,7 @@ rel_file_path=$(relative_path "$file_path")
 # Control Tower must always be able to open/refresh the active gate and log.
 case "$rel_file_path" in
   "$GATE_FILE"|"$LOG_FILE") exit 0 ;;
+  .claude/agent-memory/*/MEMORY.md) exit 0 ;;
 esac
 
 [ -n "$file_path" ] || deny "Critic gate: Edit/MultiEdit/Write payload did not include tool_input.file_path."
@@ -106,6 +146,13 @@ esac
 
 status=$(field "Status")
 wb_id=$(field "Work Block")
+verification_tier=$(field "Verification Tier")
+new_domain=$(field "New Domain")
+topology_status=$(field "Subagent Topology Status")
+critic_verdict=$(field "Critic Verdict")
+gpt_critic_status=$(field "GPT Critic Status")
+gpt_critic_reason=$(field "GPT Critic Reason")
+gpt_degraded_reason=$(field "GPT Critic Degraded Reason")
 expires=$(field "Expires")
 gate_session=$(field "Session")
 
@@ -129,8 +176,63 @@ fi
 path_allowed "$file_path" \
   || deny "Critic gate: ${rel_file_path} is outside the Approved Write-Set for ${wb_id}. If this file is intended, update Stage 0 approval by adding this line under Approved Write-Set in ${GATE_FILE}: - ${rel_file_path}"
 
+case "$topology_status" in
+  SINGLE_AGENT|PLANNED|BLOCKED) ;;
+  PENDING|"") deny "Critic gate: Subagent Topology Status is ${topology_status:-missing}. Complete Stage 0 topology classification before editing files." ;;
+  *) deny "Critic gate: invalid Subagent Topology Status '${topology_status}'. Use SINGLE_AGENT, PLANNED, or BLOCKED." ;;
+esac
+
+case "$gpt_critic_status" in
+  NOT_REQUIRED|READY|DEGRADED) ;;
+  PENDING|"") deny "Critic gate: GPT Critic Status is ${gpt_critic_status:-missing}. Complete GPT critic decision before editing files." ;;
+  *) deny "Critic gate: invalid GPT Critic Status '${gpt_critic_status}'. Use NOT_REQUIRED, READY, or DEGRADED." ;;
+esac
+
+gpt_critic_required=0
+case "$verification_tier" in
+  full|FULL) gpt_critic_required=1 ;;
+  lite|standard|LITE|STANDARD|"") ;;
+  PENDING|pending) deny "Critic gate: Verification Tier is PENDING. Classify verification tier before editing files." ;;
+  *) deny "Critic gate: invalid Verification Tier '${verification_tier}'. Use lite, standard, or full." ;;
+esac
+case "$new_domain" in
+  true|TRUE|yes|YES) gpt_critic_required=1 ;;
+  false|FALSE|no|NO|"") ;;
+  PENDING|pending) deny "Critic gate: New Domain is PENDING. Classify domain status before editing files." ;;
+  *) deny "Critic gate: invalid New Domain '${new_domain}'. Use true or false." ;;
+esac
+case "$critic_verdict" in
+  SUPPLEMENT|RECONSIDER) gpt_critic_required=1 ;;
+  APPROVE|PENDING|"") ;;
+  *) deny "Critic gate: invalid Critic Verdict '${critic_verdict}'. Use APPROVE, SUPPLEMENT, RECONSIDER, or PENDING." ;;
+esac
+
+case "$gpt_critic_status" in
+  NOT_REQUIRED)
+    [ "$gpt_critic_required" -eq 0 ] \
+      || deny "Critic gate: GPT critic is required by trigger; NOT_REQUIRED is not allowed."
+    is_placeholder "$gpt_critic_reason" \
+      && deny "Critic gate: GPT Critic Reason is required when GPT Critic Status is NOT_REQUIRED."
+    ;;
+  READY)
+    require_report_file "GPT Critic Report" "GPT critic READY"
+    ;;
+  DEGRADED)
+    [ "$gpt_degraded_reason" = "review-degraded:codex-mcp-unavailable" ] \
+      || deny "Critic gate: GPT critic DEGRADED requires GPT Critic Degraded Reason: review-degraded:codex-mcp-unavailable."
+    require_log_entry "review-degraded:codex-mcp-unavailable" "GPT critic DEGRADED"
+    ;;
+esac
+
 case "$status" in
   READY)
+    require_report_file "Critic Report" "Critic READY"
+    case "$critic_verdict" in
+      APPROVE|SUPPLEMENT) ;;
+      RECONSIDER) deny "Critic gate: Critic Verdict is RECONSIDER. Re-run Stage 0 before editing files." ;;
+      PENDING|"") deny "Critic gate: Critic Verdict is ${critic_verdict:-missing}. Record critic verdict before editing files." ;;
+      *) deny "Critic gate: invalid Critic Verdict '${critic_verdict}'. Use APPROVE, SUPPLEMENT, or RECONSIDER." ;;
+    esac
     exit 0
     ;;
 

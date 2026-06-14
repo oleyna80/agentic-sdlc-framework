@@ -1,6 +1,8 @@
-# Optional: Codex agent operating contract.
-# Copy to `.codex/AGENTS.md` only when using Codex alongside Claude Code.
-# Claude Code + AGENTS.md is the primary operating contract.
+# Codex agent operating contract.
+# Use alongside the root `AGENTS.md` when Codex operates in this project.
+# Codex can run the Agentic SDLC independently. Claude Code is a separate
+# runtime/team layer that Codex may delegate to through the handoff contract
+# when a Work Block benefits from Claude Code's native orchestrator/subagents.
 
 Operating mode: Agentic SDLC with controlled multi-agent orchestration.
 
@@ -30,6 +32,8 @@ Core rules:
 - Use the existing project workflow by default:
   Plan → Spec → Implementation → Review → Verification.
 - Use the Agentic Development Lifecycle for non-trivial, risky, multi-domain, architectural, design, security, migration, or production-impacting work.
+- Treat root `AGENTS.md` as the shared SDLC authority model. This file adds
+  Codex-specific execution rules, subagent usage, and write-gate behavior.
 
 Role rules:
 - Orchestrator plans, assigns scoped subagents, consolidates findings, identifies risks, and proposes next actions.
@@ -44,6 +48,10 @@ Subagent rules:
 - Each subagent assignment must define: role, scope, out of scope, expected output, file-change permission.
 - If native subagent/fork workflow is limited or unavailable, use scoped explorer tasks as fallback.
 - Subagents inherit default session settings unless explicitly overridden.
+- Codex subagents are first-class participants in the Codex runtime. They do
+  not make Claude Code mandatory.
+- Do not launch Claude Code from a Codex subagent. The main Codex orchestrator
+  owns external-team delegation through `handoff/`.
 
 Approval rules:
 - Any repository file change requires an approved scope.
@@ -62,6 +70,15 @@ Git and safety rules:
 - Do not stage, commit, or push without explicit Owner approval.
 - Do not commit secrets, .env files, tokens, private keys, credentials, or build artifacts.
 - Destructive operations require explicit approval.
+
+Handoff rules:
+- Use `handoff/` when Codex should delegate a scoped Work Block to Claude Code
+  as an independent external team.
+- The handoff task must define objective, context, approved scope,
+  forbidden scope, timeout, response contract, and external-team-log contract.
+- Codex remains responsible for accepting, rejecting, or escalating the returned
+  result. Claude Code's internal process is observable evidence, not automatic
+  acceptance.
 
 Small Task Path:
 - For trivial tasks, do not use the full Agentic Lifecycle.

@@ -48,14 +48,57 @@ for path in \
   "template/.agent/ROSTER.md" \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.agent/skills/README.md" \
+  "template/.mcp.json" \
+  "template/.claude/settings.json" \
+  "template/.claude/agent-memory/codex-reviewer/MEMORY.md" \
+  "template/.claude/agent-memory/critic/MEMORY.md" \
+  "template/.claude/agent-memory/gpt-critic/MEMORY.md" \
+  "template/.claude/agent-memory/gpt-verifier/MEMORY.md" \
+  "template/.claude/agent-memory/reviewer/MEMORY.md" \
+  "template/.claude/agent-memory/scoped-coder/MEMORY.md" \
   "template/.claude/agent-memory/solution-architect/MEMORY.md" \
   "template/.claude/agent-memory/verifier/MEMORY.md" \
+  "template/.claude/agents/codex-reviewer.md" \
+  "template/.claude/agents/critic.md" \
+  "template/.claude/agents/gpt-critic.md" \
+  "template/.claude/agents/gpt-verifier.md" \
+  "template/.claude/agents/reviewer.md" \
+  "template/.claude/agents/scoped-coder.md" \
+  "template/.claude/agents/solution-architect.md" \
+  "template/.claude/agents/verifier.md" \
+  "template/.claude/hooks/critic-gate.sh" \
+  "template/.claude/hooks/hard-stop.sh" \
+  "template/.claude/hooks/typecheck.sh" \
+  "template/.claude/hooks/verification-gate.sh" \
   "template/.claude/skills/README.md" \
+  "template/.agent/critic-gate.md" \
+  "template/.agent/verification-gate.md" \
   "template/.codex/write-gate.md" \
+  "template/memory_bank/external-team-log.md" \
   "template/docs/plans/README.md" \
   "template/docs/specs/README.md" \
   "template/docs/tasklist/README.md" \
-  "template/docs/reports/README.md"; do
+  "template/docs/reports/README.md" \
+  "framework/knowledge/README.md" \
+  "framework/knowledge/claude-code-cli.md" \
+  "handoff/.gitignore" \
+  "handoff/README.md" \
+  "handoff/active/.gitkeep" \
+  "handoff/done/.gitkeep" \
+  "handoff/failed/.gitkeep" \
+  "handoff/logs/.gitkeep" \
+  "handoff/parallel/.gitkeep" \
+  "handoff/queue/.gitkeep" \
+  "handoff/runtime/.gitkeep" \
+  "handoff/runner/cleanup.sh" \
+  "handoff/runner/handoff-runner.sh" \
+  "handoff/runner/install-systemd-user-service.sh" \
+  "handoff/runner/parallel-runner.sh" \
+  "handoff/runner/sanitize-env.sh" \
+  "handoff/runner/watch-queue.sh" \
+  "handoff/systemd/agentic-sdlc-handoff.service.template" \
+  "handoff/systemd/handoff.env.example" \
+  "handoff/templates/claude-team-task-template.md"; do
   require_file "$path"
 done
 
@@ -79,11 +122,11 @@ else
   ok "no Python bytecode/cache files in public paths"
 fi
 
-PRIVATE_MARKERS='azursystech|178\.156\.212\.10|/home/dmitrii|oleyna80|home-dmitrii'
+PRIVATE_MARKERS='azursystech|choushop|178\.156\.212\.10|/home/dmitrii|oleyna80|home-dmitrii'
 if command -v rg >/dev/null 2>&1; then
-  PRIVATE_HITS="$(rg -n -i "$PRIVATE_MARKERS" "$ROOT" -g '!archive/**' -g '!scripts/validate-publication.sh' || true)"
+  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" -g '!.git/**' -g '!archive/**' -g '!scripts/validate-publication.sh' || true)"
 else
-  PRIVATE_HITS="$(grep -RInE --exclude-dir=archive --exclude=validate-publication.sh "$PRIVATE_MARKERS" "$ROOT" || true)"
+  PRIVATE_HITS="$(grep -RInE --exclude-dir=.git --exclude-dir=archive --exclude=validate-publication.sh "$PRIVATE_MARKERS" "$ROOT" || true)"
 fi
 if [ -n "$PRIVATE_HITS" ]; then
   echo "$PRIVATE_HITS"
@@ -94,13 +137,23 @@ fi
 
 for script in \
   "$ROOT/bootstrap.sh" \
+  "$ROOT/scripts/test-critic-gate.sh" \
   "$ROOT/template/scripts/bootstrap.sh" \
   "$ROOT/template/.claude/hooks/hard-stop.sh" \
   "$ROOT/template/.claude/hooks/typecheck.sh" \
-  "$ROOT/scripts/validate-publication.sh"; do
+  "$ROOT/template/.claude/hooks/verification-gate.sh" \
+  "$ROOT/scripts/validate-publication.sh" \
+  "$ROOT/handoff/runner/cleanup.sh" \
+  "$ROOT/handoff/runner/handoff-runner.sh" \
+  "$ROOT/handoff/runner/install-systemd-user-service.sh" \
+  "$ROOT/handoff/runner/parallel-runner.sh" \
+  "$ROOT/handoff/runner/sanitize-env.sh" \
+  "$ROOT/handoff/runner/watch-queue.sh"; do
   bash -n "$script" || fail "bash syntax failed: $script"
 done
 ok "bash syntax checks completed"
+
+"$ROOT/scripts/test-critic-gate.sh" || fail "critic gate smoke tests failed"
 
 if command -v python3 >/dev/null 2>&1; then
   python3 -B -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text())' "$ROOT/template/.codex/hooks/stage0_write_gate.py" || fail "Python syntax failed"

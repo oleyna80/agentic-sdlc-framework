@@ -97,7 +97,7 @@ The same dimensions as the Claude critic, but with GPT's perspective:
 
 ## Prompt Assembly for Codex
 
-Follow `codex-verification` skill and `gpt-5-4-prompting` skill patterns:
+Follow the `codex-verification` skill and the inline review contract below:
 
 ```
 <task>

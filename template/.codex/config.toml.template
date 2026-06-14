@@ -3,7 +3,9 @@
 # Copy to `.codex/config.toml` only when this project needs local Codex
 # overrides. Keep `.codex/` local-only by default.
 #
-# Claude Code is the primary tool. Codex is secondary/optional.
+# Codex can run the shared Agentic SDLC contract independently. Claude Code is
+# a separate runtime/team layer available through the handoff contract when
+# that extra architecture is useful.
 #
 # Do not store secrets or provider tokens in this file.
 

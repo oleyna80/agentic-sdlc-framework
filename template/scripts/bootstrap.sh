@@ -52,10 +52,24 @@ PROJECTCONFIG
 for path in \
   ".gitignore" \
   ".agent/ROSTER.md" \
+  ".agent/critic-gate.md" \
+  ".agent/verification-gate.md" \
   ".agent/workflows/sdd-protocol.md" \
   ".agent/skills/README.md" \
+  ".mcp.json" \
+  ".claude/settings.json" \
+  ".claude/agent-memory/codex-reviewer/MEMORY.md" \
+  ".claude/agent-memory/critic/MEMORY.md" \
+  ".claude/agent-memory/gpt-critic/MEMORY.md" \
+  ".claude/agent-memory/gpt-verifier/MEMORY.md" \
+  ".claude/agent-memory/reviewer/MEMORY.md" \
+  ".claude/agent-memory/scoped-coder/MEMORY.md" \
   ".claude/agent-memory/solution-architect/MEMORY.md" \
   ".claude/agent-memory/verifier/MEMORY.md" \
+  ".claude/hooks/critic-gate.sh" \
+  ".claude/hooks/hard-stop.sh" \
+  ".claude/hooks/typecheck.sh" \
+  ".claude/hooks/verification-gate.sh" \
   ".claude/skills/README.md" \
   ".codex/write-gate.md" \
   "docs/plans/README.md" \
@@ -67,6 +81,7 @@ for path in \
   "$MEMORY_DIR/decisions.md" \
   "$MEMORY_DIR/orchestrator-log.md" \
   "$MEMORY_DIR/review-log.md" \
+  "$MEMORY_DIR/external-team-log.md" \
   "$MEMORY_DIR/snapshots/.gitkeep"; do
   if [ ! -f "$ROOT/$path" ]; then
     echo "  MISSING: $path"

@@ -37,11 +37,14 @@ States:
 4. **Preflight** — output Stage 0 Preflight block: skills, subagent topology, side-effect class, DB mode, hard stops, write gate status
 5. **Research** — if needed, launch `solution-architect` for pre-implementation analysis
 6. **Critic Review** — launch `critic` agent to independently review Control Tower decisions (scope, skill routing, skip reasons, risk gaps). Required when: 3+ files touched, side-effect class ≥ production code write, new subagent topology, or 2+ skills skipped. Skip for trivial/documentation-only Work Blocks.
-7. **Plan Approval** — produce plan, get Owner approval if non-trivial
+7. **GPT Critic Review** — launch `gpt-critic` after `critic` when the Work Block is Full tier, the first Work Block in a new domain, or the Claude critic returns SUPPLEMENT/RECONSIDER. If Codex MCP is unavailable, record `review-degraded:codex-mcp-unavailable` and continue with the Claude critic result.
+8. **Plan Approval** — produce plan, get Owner approval if non-trivial
 
 ### Exit Conditions
 - Write gate: `READY`
 - Critic verdict: APPROVE or SUPPLEMENT (if RECONSIDER — re-run Stage 0 with corrections)
+- GPT critic second opinion completed or degraded reason recorded when its trigger matched
+- `.agent/critic-gate.md` records evidence-backed critic/GPT critic status before source edits
 - Plan approved (for non-trivial work)
 - All matched skills recorded (used or skipped with reason)
 
@@ -93,7 +96,13 @@ verifier agent; cannot be replaced by inline tsc.
 | DB writes / migrations | Spawn verifier agent — **mandatory** |
 | Auth / security-sensitive changes | Spawn verifier agent — **mandatory** |
 | Parallel dispatch results (merge step) | Spawn verifier agent — **mandatory** |
-| Side-effect class: live-infra / live-data | Spawn verifier agent + Full tier — **mandatory** |
+| Side-effect class: live-infra / live-data | Spawn verifier agent + Full tier + `gpt-verifier` — **mandatory** |
+
+After the Claude verifier completes, launch `gpt-verifier` when the Work Block
+is Full tier, the first Work Block in a new domain, or the Claude verifier
+returns BLOCKED. If Codex MCP is unavailable, record
+`review-degraded:codex-mcp-unavailable` and continue with the Claude verifier
+verdict as authoritative.
 
 ### Activities
 
@@ -127,6 +136,8 @@ verifier agent; cannot be replaced by inline tsc.
 - Verdict: `READY` or `BLOCKED`
 - All blockers documented with file:line evidence
 - Verification report written to `docs/reports/`
+- GPT verifier second opinion completed or degraded reason recorded when its trigger matched
+- `.agent/verification-gate.md` records evidence-backed verifier/GPT verifier status before closeout
 
 ---
 

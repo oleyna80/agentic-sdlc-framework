@@ -21,6 +21,10 @@ Two log files:
 - `memory_bank/orchestrator-log.md` — Control Tower decisions (why)
 - `memory_bank/review-log.md` — subagent results (what they found)
 
+Related delegated-team log:
+- `memory_bank/external-team-log.md` — external agent team execution trace
+  for Claude Code handoff sessions (how the contractor team worked)
+
 ## When to Use (Triggers)
 
 ### Write to orchestrator-log
@@ -39,11 +43,20 @@ Control Tower writes to `memory_bank/review-log.md`:
 
 - **After each subagent returns** — log agent, verdict, key findings, evidence summary
 
+### Read external-team-log
+
+External Claude Code handoff sessions may write
+`memory_bank/external-team-log.md` when the task contract explicitly requires
+it. Control Tower reads that log during closeout and consolidates only the
+verdict/findings into `review-log.md`.
+
 ## When to Skip
 
 - Trivial fixes (single-file, no logic change) — no decision trail needed
 - Documentation-only Work Blocks — nothing to audit
-- The log files are write-only for Control Tower; subagents do not write to them
+- `orchestrator-log.md` and `review-log.md` are write-only for Control Tower;
+  external Claude Code teams write only `external-team-log.md` when delegated
+  through a handoff contract
 
 ## Workflow
 
@@ -97,6 +110,7 @@ Control Tower writes to `memory_bank/review-log.md`:
 | `progress.md` | WHAT was done | Does NOT touch |
 | `orchestrator-log.md` | WHY decisions were made | WRITES |
 | `review-log.md` | WHAT subagents found | WRITES |
+| `external-team-log.md` | HOW external teams worked | READS |
 | `decisions.md` | Architecture decisions | Does NOT touch |
 | `docs/reports/` | Full subagent reports | References |
 

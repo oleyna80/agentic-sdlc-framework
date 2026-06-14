@@ -23,6 +23,22 @@ and predictable collaborators.
 4. **Local-first workflow** — `.agent/` and `memory_bank/` stay local unless explicitly published
 5. **Evidence over assertion** — every verdict, every check, every claim backed by file:line or command output
 
+## Runtime Layering
+
+Agentic SDLC is the core process, not a single tool's feature set.
+
+| Layer | Purpose | Primary files |
+|---|---|---|
+| Core SDLC | Runtime-neutral operating model for planning, implementation, review, verification, memory, and closeout | `AGENTS.md`, `.agent/`, `skills/`, `docs/`, `memory_bank/` |
+| Codex runtime | Codex-specific instructions, subagent policy, local config, and Stage 0 write gate for independent Codex operation | `.codex/` |
+| Handoff | File-based dispatch between Codex control tower and Claude Code external team sessions | `handoff/` |
+| Claude Code runtime | Claude Code orchestrator/subagent team layer with hooks, MCP, per-agent memory, critic/verifier gates | `CLAUDE.md`, `.claude/` |
+
+Codex can run the core SDLC by itself. Claude Code is added when a Work Block
+benefits from its native team architecture: subagents, hooks, MCP integration,
+and independent critic/verifier workflows. The handoff layer connects the two
+without making either runtime the only valid executor.
+
 ## Stage Flow
 
 ```
@@ -51,7 +67,9 @@ Quick-fix (≤3 files, no route/schema/API/security):
 | Document | Purpose |
 |---|---|
 | `AGENTS.md` | Operating contract — authoritative |
-| `CLAUDE.md` | Entry point + Hard Stops summary |
 | `.agent/ROSTER.md` | Agent routing + skill assignments |
 | `.agent/workflows/sdd-protocol.md` | Full stage definitions |
+| `.codex/` | Codex runtime adapter, instructions, config, write gate |
+| `CLAUDE.md` / `.claude/` | Claude Code runtime adapter, hooks, agents, memory |
+| `handoff/` | Codex -> Claude Code delegation runner |
 | `memory_bank/` | Durable project context |

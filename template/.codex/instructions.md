@@ -1,14 +1,16 @@
 # Codex Instructions — Project-Level
 
 > System instructions for Codex CLI. Read alongside `AGENTS.md`.
-> Primary operating contract is `AGENTS.md` (Claude Code).
-> This file applies only when using Codex as a secondary tool.
+> Root `AGENTS.md` is the shared Agentic SDLC contract.
+> This file defines how Codex runs that contract with its own subagents,
+> write gate, context hygiene, and optional handoff to Claude Code.
 
 ---
 
 ## Sub-Agent Delegation Policy
 
-You have `multi_agent = true`. Keep the main thread as Control Tower: plan,
+Codex may operate as an independent SDLC runtime. You have `multi_agent = true`.
+Keep the main thread as Control Tower: plan,
 delegate, collect results, handle Owner/Hard Stop decisions, and report. Use
 sub-agents actively whenever delegation materially improves speed, quality,
 context isolation, or expected work size. Do not run large/non-trivial pipelines
@@ -64,6 +66,22 @@ Stage 1 · Implement         →  Spawn sub-agent(s) per task from write-set
 Stage 2 · Verify            →  Spawn verifier agent OR run inline for Lite tier
 Stage 3 · Sync & Report     →  Main thread (you)
 ```
+
+## Claude Code Handoff
+
+Use Claude Code only when the Work Block benefits from an external team with
+its own orchestrator, subagents, hooks, critic/verifier gates, or MCP toolchain.
+Do not treat Claude Code as a required part of ordinary Codex execution.
+
+When delegating:
+
+1. Write a task file from `handoff/templates/claude-team-task-template.md`.
+2. Include objective, context, approved scope, forbidden scope, timeout,
+   expected reports, and external-team-log requirements.
+3. Run the handoff runner or queue watcher from the framework repository.
+4. Read the result file and logs.
+5. Accept, reject, or escalate based on evidence. Claude Code output is an
+   external-team delivery, not automatic approval.
 
 ### Verification tier routing
 
