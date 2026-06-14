@@ -272,12 +272,12 @@ Build up this memory system over time so future verification runs can leverage p
 **Step 1** — write the memory to its own file using frontmatter:
 ```markdown
 ---
-name: {{short-kebab-case-slug}}
-description: {{one-line summary for relevance matching}}
+name: <short-kebab-case-slug>
+description: <one-line summary for relevance matching>
 metadata:
-  type: {{failure-pattern|contract-sensitive|project|feedback}}
+  type: <failure-pattern|contract-sensitive|project|feedback>
 ---
-{{memory content. Link related memories with [[their-name]].}}
+<memory content. Link related memories with [[their-name]].>
 ```
 
 **Step 2** — add a pointer to `MEMORY.md`: `- [Title](file.md) — one-line hook`. Keep entries under ~150 chars.

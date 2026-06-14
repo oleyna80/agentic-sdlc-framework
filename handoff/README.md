@@ -93,9 +93,75 @@ point for delegated Claude Code work.
 
 ## Manual Run
 
+Do not run `handoff/templates/claude-team-task-template.md` unchanged. Fill in
+`task_id`, `project_root`, scope, objective, context, and response contract
+first.
+
 ```bash
 cd /path/to/framework
 handoff/runner/handoff-runner.sh handoff/queue/001.codex-to-claude.md
+```
+
+## Smoke Task
+
+After bootstrapping a test project, create a scoped smoke task like this:
+
+```bash
+cd /path/to/framework
+SMOKE_PROJECT=/path/to/generated-smoke-project
+TASK_ID="$(date -u +%Y%m%dT%H%M%SZ)-smoke-001"
+
+cat > "handoff/queue/${TASK_ID}.md.tmp" <<EOF
+---
+task_id: ${TASK_ID}
+from: codex
+to: claude
+timeout_seconds: 600
+project_root: ${SMOKE_PROJECT}
+allowed_scope:
+  - memory_bank/handoff-smoke.txt
+  - memory_bank/external-team-log.md
+forbidden_scope:
+  - .env
+  - .env.*
+  - secrets/**
+---
+
+# Objective
+
+Create memory_bank/handoff-smoke.txt with the text:
+
+handoff smoke ok
+
+# Context
+
+This is a publication smoke test for the Agentic SDLC Framework handoff runner.
+Stay inside the allowed scope.
+
+# Decision Summary
+
+Codex is validating that Claude Code can act as an independent external team
+through the handoff runner.
+
+# Work Log Contract
+
+Append a concise entry to memory_bank/external-team-log.md.
+
+# Response Contract
+
+Print status, actions taken, files changed, checks, risks, and next step.
+EOF
+
+mv "handoff/queue/${TASK_ID}.md.tmp" "handoff/queue/${TASK_ID}.md"
+handoff/runner/handoff-runner.sh "handoff/queue/${TASK_ID}.md"
+```
+
+Expected checks:
+
+```bash
+test -f "${SMOKE_PROJECT}/memory_bank/handoff-smoke.txt"
+grep -q "handoff smoke ok" "${SMOKE_PROJECT}/memory_bank/handoff-smoke.txt"
+ls handoff/done handoff/failed handoff/logs
 ```
 
 ## Watch Queue

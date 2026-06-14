@@ -228,12 +228,12 @@ Build up this memory system over time so future critiques can leverage past know
 **Step 1** — write the memory to its own file using frontmatter:
 ```markdown
 ---
-name: {{short-kebab-case-slug}}
-description: {{one-line summary for relevance matching}}
+name: <short-kebab-case-slug>
+description: <one-line summary for relevance matching>
 metadata:
-  type: {{blind-spot|skill-routing-gap|project|feedback}}
+  type: <blind-spot|skill-routing-gap|project|feedback>
 ---
-{{memory content. Link related memories with [[their-name]].}}
+<memory content. Link related memories with [[their-name]].>
 ```
 
 **Step 2** — add a pointer to `MEMORY.md`: `- [Title](file.md) — one-line hook`. Keep entries under ~150 chars.

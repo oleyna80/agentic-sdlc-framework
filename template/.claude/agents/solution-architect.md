@@ -175,12 +175,12 @@ These exclusions apply even when the user explicitly asks to save. If they ask y
 **Step 1** — write the memory to its own file using frontmatter format:
 ```markdown
 ---
-name: {{short-kebab-case-slug}}
-description: {{one-line summary for relevance matching}}
+name: <short-kebab-case-slug>
+description: <one-line summary for relevance matching>
 metadata:
-  type: {{user|feedback|project|reference}}
+  type: <user|feedback|project|reference>
 ---
-{{memory content. Link related memories with [[their-name]].}}
+<memory content. Link related memories with [[their-name]].>
 ```
 
 **Step 2** — add a pointer to `MEMORY.md`: `- [Title](file.md) — one-line hook`. Keep entries under ~150 chars. `MEMORY.md` is an index, never write memory content there.
