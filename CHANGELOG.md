@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a Live Handoff Smoke Work Block report demonstrating Codex-to-Claude
+  Code runner execution on a clean scaffold with scope audit and
+  external-team log.
+- Added a `handoff-live-smoke` skill so future sessions reuse the verified
+  live handoff checklist and avoid sandbox/scope/evidence overclaims.
 - Added Codex-layer critic review and decision-log parity docs so Codex can run
   as an independent Orchestrator with auditable critic feedback.
 - Added a Codex critic layer Work Block report with critic findings and
