@@ -80,7 +80,7 @@ echo "  git init && git add -A && git commit -m 'Initial scaffold from Agentic S
 echo ""
 echo "Then customize:"
 echo "  1. Review AGENTS.md defaults for source directories and tech stack"
-echo "  2. Copy additional skills from framework/skills/ as needed"
+echo "  2. Copy additional skills from this repository's skills/ as needed"
 echo "  3. Configure MCP servers (.mcp.json)"
 echo "  4. Set up project-specific security patterns"
 echo "  5. Update memory_bank/context.md with current focus"

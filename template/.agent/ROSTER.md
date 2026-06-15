@@ -76,6 +76,7 @@
 | `skill-creator` | Creating or editing skills |
 | `graphify-code-map` | Code visualization |
 | `webapp-testing` | Playwright-based web testing |
+| `handoff-live-smoke` | Live Codex-to-Claude Code handoff smoke validation |
 | `codex-verification` | External adversarial review via Codex (GPT) — Full tier only |
 
 ---

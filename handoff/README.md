@@ -136,10 +136,15 @@ project_root: ${SMOKE_PROJECT}
 allowed_scope:
   - memory_bank/handoff-smoke.txt
   - memory_bank/external-team-log.md
+  - memory_bank/orchestrator-log.md
+  - .agent/critic-gate.md
+  - .agent/verification-gate.md
 forbidden_scope:
   - .env
   - .env.*
   - secrets/**
+  - "*.pem"
+  - "*.key"
 ---
 
 # Objective

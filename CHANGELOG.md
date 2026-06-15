@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added first-15-minutes onboarding docs that explain Codex-only, Claude Code
+  team, and Codex-to-Claude Code swarm operating modes with smoke-test evidence.
 - Expanded Work Block closeout with an evidence-based retrospective gate,
   critic value capture, and evidence wording rules.
 - Added a Live Handoff Smoke Work Block report demonstrating Codex-to-Claude

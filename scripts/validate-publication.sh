@@ -105,6 +105,15 @@ for path in \
   require_file "$path"
 done
 
+CORE_SKILLS="$(sed -n 's/^CORE_SKILLS="\(.*\)"$/\1/p' "$ROOT/bootstrap.sh")"
+if [ -z "$CORE_SKILLS" ]; then
+  fail "unable to read CORE_SKILLS from bootstrap.sh"
+else
+  for skill in $CORE_SKILLS; do
+    require_file "skills/$skill/SKILL.md"
+  done
+fi
+
 require_absent "template/.gitignore"
 
 if grep -qx 'archive/' "$ROOT/.gitignore"; then

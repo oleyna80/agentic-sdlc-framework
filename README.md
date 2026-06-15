@@ -84,6 +84,54 @@ git commit -m "Initial scaffold from Agentic SDLC Framework"
 The generated project receives a `.gitignore` copied from
 `template/project.gitignore`. By default it keeps local agent state private.
 
+## First 15 Minutes
+
+Use this path to confirm the scaffold is understandable before customizing it:
+
+1. **Bootstrap a clean project.**
+
+   ```bash
+   ./bootstrap.sh /tmp/my-agentic-project "My Agentic Project" my-agentic-project
+   cd /tmp/my-agentic-project
+   bash scripts/bootstrap.sh
+   ```
+
+2. **Choose the operating mode.**
+
+   | Mode | Use when | Start here |
+   |---|---|---|
+   | Codex-only SDLC | You want Codex or another agent to run the core workflow directly | `AGENTS.md`, `.codex/write-gate.md`, `.codex/critic.md` |
+   | Claude Code team | You want Claude Code to act as its own orchestrator with agents, hooks, and memory | `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/` |
+   | Codex -> Claude Code swarm | Codex should delegate scoped work to Claude Code as an external team | framework `handoff/README.md` |
+
+3. **Open the operating contract.**
+
+   Read `AGENTS.md` first. It defines roles, Stage 0 preflight, write gates,
+   critic review, verification, hard stops, and closeout expectations.
+
+4. **Run one local health check.**
+
+   ```bash
+   bash scripts/bootstrap.sh
+   ```
+
+   Expected result: required workflow files print `OK`, followed by
+   `Workflow layer: OK`. Warnings about missing `node_modules/` or
+   `DATABASE_URL` are normal for a fresh scaffold before project-specific setup.
+
+5. **Know where evidence goes.**
+
+   - `memory_bank/orchestrator-log.md`: why the orchestrator made decisions
+   - `memory_bank/review-log.md`: what critics/reviewers/verifiers found
+   - `memory_bank/external-team-log.md`: how delegated Claude Code teams worked
+   - `docs/templates/work-block-template.md`: expected final result, execution
+     log, verification plan, and retrospective closeout
+
+6. **Keep secrets local.**
+
+   Do not commit `.env`, provider tokens, private memory, MCP credentials,
+   generated logs with secrets, or user-level Claude Code env files.
+
 ## Directory Structure
 
 ```text

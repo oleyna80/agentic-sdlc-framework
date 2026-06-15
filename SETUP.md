@@ -30,6 +30,142 @@ The scaffold has three separable layers:
    access, and per-agent memory. This layer is Claude Code-specific and can run
    its own orchestrator/subagent process behind the handoff contract.
 
+## Choose Your Operating Mode
+
+The layers are independent. Start with the smallest mode that matches the
+project, then add the others only when the Work Block needs them.
+
+### Mode 1: Codex-only SDLC
+
+Use this when Codex, or another capable agent, should run the SDLC directly.
+
+Read first:
+
+```text
+AGENTS.md
+.agent/ROSTER.md
+.codex/write-gate.md
+.codex/critic.md
+memory_bank/orchestrator-log.md
+memory_bank/review-log.md
+```
+
+Expected behavior:
+
+- Stage 0 states expected final result, scope, skills, subagent strategy,
+  verification plan, execution log, and retrospective plan.
+- Non-trivial decisions are checked by the Codex critic contract when triggers
+  match.
+- Implementation stays inside the approved write-set.
+- Closeout records verification evidence and any process lessons.
+
+### Mode 2: Claude Code team runtime
+
+Use this when Claude Code should manage its own project-local orchestrator,
+subagents, hooks, MCP tools, and per-agent memory.
+
+Read first:
+
+```text
+CLAUDE.md
+.claude/settings.json
+.claude/agents/
+.claude/hooks/
+.claude/skills/
+.claude/agent-memory/
+```
+
+Expected behavior:
+
+- Claude Code reads `AGENTS.md` before tool use.
+- Hooks enforce hard stops, critic gate, verification gate, and typecheck
+  behavior where applicable.
+- Agents use `model: inherit`; provider/model routing comes from the active
+  Claude Code environment.
+- Per-agent memory remains project-local unless deliberately published.
+
+### Mode 3: Codex -> Claude Code swarm
+
+Use this when Codex remains the control tower but delegates a scoped Work Block
+to Claude Code as an independent external team.
+
+Read first in the framework repository:
+
+```text
+handoff/README.md
+handoff/templates/claude-team-task-template.md
+skills/handoff-live-smoke/SKILL.md
+```
+
+Read first in the generated project:
+
+```text
+memory_bank/external-team-log.md
+```
+
+Expected behavior:
+
+- Codex writes a task file with `project_root`, `allowed_scope`,
+  `forbidden_scope`, objective, context, and response contract.
+- The handoff runner moves tasks through `queue/`, `active/`, `done/`, or
+  `failed/` and writes logs/status files.
+- Claude Code works as an external team; Codex observes the delivery result and
+  summary log rather than controlling every internal step.
+- Scope audit includes ignored local-first paths such as `.agent/` and
+  `memory_bank/`.
+
+## Smoke Checks
+
+Run these before trusting a new installation.
+
+### Scaffold health check
+
+```bash
+cd /path/to/generated-project
+bash scripts/bootstrap.sh
+```
+
+Expected result:
+
+```text
+Workflow layer: OK
+```
+
+Warnings about missing `node_modules/` or `DATABASE_URL` are normal for a fresh
+scaffold before project-specific setup.
+
+### Framework publication check
+
+From this repository:
+
+```bash
+bash scripts/validate-publication.sh
+```
+
+Expected result:
+
+```text
+Publication validation OK
+```
+
+### Live handoff smoke
+
+Use only when Claude Code CLI and provider environment are configured.
+
+1. Bootstrap a throwaway generated project.
+2. From the framework repository, follow `handoff/README.md#smoke-task`.
+3. Use the framework `skills/handoff-live-smoke/SKILL.md` as the checklist.
+   The generated project also receives a local copy at
+   `.agent/skills/handoff-live-smoke/SKILL.md`.
+
+Expected result:
+
+- task moves to `handoff/done/`
+- `memory_bank/handoff-smoke.txt` contains `handoff smoke ok`
+- `memory_bank/external-team-log.md` receives a concise delivery entry
+- runner log exists in `handoff/logs/`
+- scope audit does not report forbidden paths
+
 ## Manual Setup
 
 ### Step 1: Copy the Template
@@ -62,7 +198,8 @@ scoped-coder verifier reviewer systematic-debugging webapp-testing
 memory-bank-manager ssot-sync-closeout subagent-mission-brief
 agent-operations-review output-skill scoped-commit-guard shell-context-guard
 orchestrator-log context-snapshot merge-protocol critic-review
-codex-verification security-audit-triage security-verification-gate
+codex-verification handoff-live-smoke security-audit-triage
+security-verification-gate
 ```
 
 Install each selected skill into the project-neutral routing layer and any
