@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded the Work Block template with expected final result, done criteria,
+  dependency check, subagent strategy, execution log, and retrospective notes.
 - Added Claude Code global bootstrap guidance for provider env, shared
   subagents, portable hooks, and project-local gate boundaries.
 - Added publication validation and public repository hygiene docs.

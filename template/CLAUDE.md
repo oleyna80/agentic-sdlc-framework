@@ -16,11 +16,15 @@ Read Set listed there.
 
 Before any Edit/Write in a non-trivial Work Block, output:
 
-- **Final Outcome:** exact end state this Work Block must reach
+- **Expected Final Result:** exact end state this Work Block must reach
+- **Done Criteria:** measurable conditions that define completion
+- **Dependency Check:** what must be solved before start vs what can be solved during work
 - **Skills:** checked / matched / used / skipped (from `.agent/ROSTER.md` + `.agent/skills/*/SKILL.md`)
-- **Subagent Topology:** classification + dispatch/skip decision + skip reason if applicable
+- **Subagent Strategy:** classification + Claude Code/Codex critic/verifier dispatch or skip decision + skip reason if applicable
+- **Execution Mode:** end-to-end autonomous, staged approval, read-only review, or advisory
 - **Side-effect class** + **DB action mode** (from `AGENTS.md`)
 - **Hard Stops in scope**
+- **Execution Log:** where decisions, checks, and evidence will be recorded
 - **Write gate:** `READY` or `BLOCKED`
 
 If not `READY` → no edits, stage, commit, push, deploy, DB, env, or client
