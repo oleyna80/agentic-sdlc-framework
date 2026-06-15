@@ -82,6 +82,7 @@ for path in \
   "template/docs/reports/README.md" \
   "framework/knowledge/README.md" \
   "framework/knowledge/claude-code-cli.md" \
+  "framework/knowledge/claude-code-global-bootstrap.md" \
   "handoff/.gitignore" \
   "handoff/README.md" \
   "handoff/active/.gitkeep" \
@@ -125,7 +126,7 @@ fi
 
 PRIVATE_MARKERS='azursystech|choushop|178\.156\.212\.10|/home/dmitrii|oleyna80|home-dmitrii'
 if command -v rg >/dev/null 2>&1; then
-  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" -g '!.git/**' -g '!archive/**' -g '!scripts/validate-publication.sh' || true)"
+  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" -g '!.git/**' -g '!archive/**' -g '!**/scripts/validate-publication.sh' || true)"
 else
   PRIVATE_HITS="$(grep -RInE --exclude-dir=.git --exclude-dir=archive --exclude=validate-publication.sh "$PRIVATE_MARKERS" "$ROOT" || true)"
 fi

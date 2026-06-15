@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed publication validation private-marker scanning for fresh GitHub archive
+  layouts.
 - Expanded the Work Block template with expected final result, done criteria,
   dependency check, subagent strategy, execution log, and retrospective notes.
 - Added Claude Code global bootstrap guidance for provider env, shared
