@@ -22,6 +22,7 @@ done < <(
   allow_var PATH
   allow_var TMPDIR
   allow_var ANTHROPIC_BASE_URL
+  allow_var ANTHROPIC_API_KEY
   allow_var ANTHROPIC_AUTH_TOKEN
   allow_var ANTHROPIC_MODEL
   allow_var ANTHROPIC_DEFAULT_SONNET_MODEL

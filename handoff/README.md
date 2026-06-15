@@ -306,12 +306,24 @@ and loads optional environment overrides from
 
 ## Environment
 
+Before computing runner defaults, `handoff-runner.sh` loads an optional local
+env file:
+
+```text
+handoff/runtime/handoff.env
+```
+
+Override the path with `HANDOFF_ENV_FILE=/path/to/handoff.env`. Keep real env
+files ignored and mode `600`; logs record only the file path and whether it was
+loaded, never the variable values.
+
 `sanitize-env.sh` launches Claude Code with a small whitelist:
 
 - `HOME`
 - `PATH`
 - `TMPDIR`
 - `ANTHROPIC_BASE_URL`
+- `ANTHROPIC_API_KEY`
 - `ANTHROPIC_AUTH_TOKEN`
 - `ANTHROPIC_MODEL`
 - `ANTHROPIC_DEFAULT_SONNET_MODEL`

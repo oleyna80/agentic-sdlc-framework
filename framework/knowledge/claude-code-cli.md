@@ -3,7 +3,7 @@
 > Working notes for treating Claude Code as an independent external delivery
 > team inside the Agentic SDLC framework.
 
-Last verified: 2026-06-14
+Last verified: 2026-06-15
 
 ## Purpose
 
@@ -26,6 +26,7 @@ Refresh these before changing automation or security assumptions:
 | Settings, scopes, permissions | https://code.claude.com/docs/en/settings |
 | Subagents and agent teams | https://code.claude.com/docs/en/sub-agents |
 | Hooks lifecycle and event schemas | https://code.claude.com/docs/en/hooks |
+| DeepSeek Anthropic-compatible API | https://api-docs.deepseek.com/guides/anthropic_api |
 | OpenAI Codex plugin for Claude Code | https://github.com/openai/codex-plugin-cc |
 
 ## Mental Model
@@ -117,6 +118,69 @@ Do not hard-code per-agent Claude model names in the framework template until a
 LiteLLM-based routing layer has been tested end-to-end. When LiteLLM is added,
 document the routing policy, fallback behavior, cost limits, and failure modes
 before changing agent frontmatter.
+
+## DeepSeek Anthropic-Compatible Provider
+
+Source checked: https://api-docs.deepseek.com/guides/anthropic_api
+
+DeepSeek documents an Anthropic API-compatible endpoint at:
+
+```bash
+ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+```
+
+Their SDK example uses:
+
+```bash
+ANTHROPIC_API_KEY=<deepseek-api-key>
+```
+
+Claude Code environments may instead expose provider credentials through
+runtime-specific variables such as `ANTHROPIC_AUTH_TOKEN`. Do not assume a VS
+Code extension-injected environment exists when running `handoff-runner.sh`,
+`watch-queue.sh`, or a systemd user service. For autonomous handoff runs, define
+the provider environment explicitly in an ignored local env file or systemd env
+file and load it before launching Claude Code.
+
+Recommended project-local handoff variables:
+
+```bash
+ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+ANTHROPIC_API_KEY=<deepseek-api-key-if-your-runtime-uses-this-name>
+ANTHROPIC_AUTH_TOKEN=<deepseek-api-key-if-your-runtime-uses-this-name>
+ANTHROPIC_MODEL=deepseek-v4-pro
+ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro
+ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro
+ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash
+CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash
+```
+
+Keep the real file out of git. Use `handoff/systemd/handoff.env.example` as the
+committed template and a local ignored runtime file or
+`~/.config/agentic-sdlc-framework/handoff.env` for real credentials.
+
+Operational notes from the DeepSeek guide:
+
+- Unsupported model names passed to the Anthropic-compatible API are mapped by
+  DeepSeek to `deepseek-v4-flash`.
+- Claude model name prefixes are mapped by DeepSeek: `claude-opus*` to
+  `deepseek-v4-pro`; `claude-haiku*` and `claude-sonnet*` to
+  `deepseek-v4-flash`.
+- Tool calling is supported, but some Anthropic fields are ignored or not
+  supported. Re-check the compatibility table before relying on advanced
+  Anthropic-specific features such as MCP message fields, document/image
+  content blocks, or cache-control behavior.
+
+Failure pattern to recognize:
+
+```text
+API Error: Unable to connect to API (ConnectionRefused)
+```
+
+If Claude Code works in a VS Code terminal but fails through the handoff runner,
+first compare the effective provider environment. The likely problem is missing
+or incomplete environment injection in the runner/systemd context, not the
+handoff task itself.
 
 ## Claude Team Contract
 

@@ -11,6 +11,16 @@ FAILED_DIR="$HANDOFF_ROOT/failed"
 LOG_DIR="$HANDOFF_ROOT/logs"
 RUNTIME_DIR="$HANDOFF_ROOT/runtime"
 SANITIZE_ENV="$SCRIPT_DIR/sanitize-env.sh"
+HANDOFF_ENV_FILE="${HANDOFF_ENV_FILE:-$RUNTIME_DIR/handoff.env}"
+HANDOFF_ENV_LOADED=0
+
+if [ -f "$HANDOFF_ENV_FILE" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  . "$HANDOFF_ENV_FILE"
+  set +a
+  HANDOFF_ENV_LOADED=1
+fi
 
 LOCK_FILE="${HANDOFF_AGENT_LOCK:-$HANDOFF_ROOT/agent.lock}"
 STATUS_FILE="${HANDOFF_STATUS_FILE:-$RUNTIME_DIR/status.json}"
@@ -629,6 +639,8 @@ STARTED_AT="$(now_utc)"
   printf 'timeout_seconds=%s\n' "$TIMEOUT_SECONDS"
   printf 'timeout_kill_after=%s\n' "$TIMEOUT_KILL_AFTER"
   printf 'handoff_root=%s\n' "$HANDOFF_ROOT"
+  printf 'handoff_env_file=%s\n' "$HANDOFF_ENV_FILE"
+  printf 'handoff_env_loaded=%s\n' "$HANDOFF_ENV_LOADED"
   printf 'lock_file=%s\n' "$LOCK_FILE"
   printf 'status_file=%s\n' "$STATUS_FILE"
   printf 'project_root=%s\n\n' "$PROJECT_ROOT"
