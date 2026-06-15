@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added Claude Code global bootstrap guidance for provider env, shared
+  subagents, portable hooks, and project-local gate boundaries.
 - Added publication validation and public repository hygiene docs.
 - Added root MIT license and third-party notices.
 - Split generated project ignore rules into `template/project.gitignore` so

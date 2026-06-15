@@ -9,6 +9,7 @@ patterns.
 | Topic | File | Use |
 |---|---|---|
 | Claude Code CLI | `claude-code-cli.md` | Treat Claude Code as an external delivery team: CLI modes, settings, subagents, hooks, plugins, observability, and safety notes. |
+| Claude Code global bootstrap | `claude-code-global-bootstrap.md` | User-level setup for provider env, global agents, portable hooks, and project-local gate boundaries. |
 
 ## Update Rules
 

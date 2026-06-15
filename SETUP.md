@@ -120,6 +120,48 @@ Add only the extra servers the project needs:
 
 Never commit MCP tokens or local credentials.
 
+### Optional: Global Claude Code Bootstrap
+
+Use a user-level Claude Code setup when the same workstation should run CC from
+many projects with the same provider environment, global agents, and safety
+hooks. Keep this separate from project-local scaffold files.
+
+Recommended user files:
+
+```text
+~/.config/claude-code/env
+~/.claude/settings.json
+~/.claude/agents/
+~/.claude/agent-memory/
+~/.claude/hooks/
+~/.claude/skills/
+```
+
+Rules:
+
+- Store real provider keys only in `~/.config/claude-code/env` or another
+  ignored user-owned env file with mode `600`.
+- Source that env file from `~/.bashrc` before the non-interactive shell guard
+  if Claude Code may be launched by scripts or editor terminals.
+- Copy global agents, hooks, skills, and starter memory from
+  `template/.claude/` only after creating backups of existing user files.
+- Do not copy `settings.local.json.example` as an active local settings file.
+- User-level hook commands must use absolute paths such as
+  `bash /home/<user>/.claude/hooks/hard-stop.sh`.
+- Project gates such as `critic-gate.sh` and `verification-gate.sh` should
+  no-op outside Agentic SDLC projects, then enforce when `.agent/*-gate.md`
+  files exist.
+
+Project-local `.claude/settings.json` remains canonical for repository
+governance. The global setup is a convenience layer for manual CC use and
+cross-project bootstrap.
+
+Detailed checklist:
+
+```text
+framework/knowledge/claude-code-global-bootstrap.md
+```
+
 ### Handoff Runner
 
 `handoff/` is a framework-level orchestration tool for Codex -> Claude Code
