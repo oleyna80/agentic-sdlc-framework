@@ -44,6 +44,7 @@ for path in \
   "CHANGELOG.md" \
   "PUBLICATION_CHECKLIST.md" \
   "bootstrap.sh" \
+  "scripts/test-handoff-scope-audit.sh" \
   "template/project.gitignore" \
   "template/.agent/ROSTER.md" \
   "template/.agent/workflows/sdd-protocol.md" \
@@ -138,6 +139,7 @@ fi
 for script in \
   "$ROOT/bootstrap.sh" \
   "$ROOT/scripts/test-critic-gate.sh" \
+  "$ROOT/scripts/test-handoff-scope-audit.sh" \
   "$ROOT/template/scripts/bootstrap.sh" \
   "$ROOT/template/.claude/hooks/hard-stop.sh" \
   "$ROOT/template/.claude/hooks/typecheck.sh" \
@@ -154,6 +156,7 @@ done
 ok "bash syntax checks completed"
 
 "$ROOT/scripts/test-critic-gate.sh" || fail "critic gate smoke tests failed"
+"$ROOT/scripts/test-handoff-scope-audit.sh" || fail "handoff scope audit smoke test failed"
 
 if command -v python3 >/dev/null 2>&1; then
   python3 -B -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text())' "$ROOT/template/.codex/hooks/stage0_write_gate.py" || fail "Python syntax failed"

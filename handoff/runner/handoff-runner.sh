@@ -137,6 +137,14 @@ has_scope_rules() {
   [ "${#ALLOWED_SCOPE[@]}" -gt 0 ] || [ "${#FORBIDDEN_SCOPE[@]}" -gt 0 ]
 }
 
+require_scope_audit_tools() {
+  local tool
+
+  for tool in find cksum readlink comm awk; do
+    command -v "$tool" >/dev/null 2>&1 || fail_fast "$tool is required when scope rules are declared"
+  done
+}
+
 append_default_forbidden_scope() {
   [ "$DEFAULT_FORBIDDEN_SCOPE_ENABLED" = "1" ] || return 0
 
@@ -192,15 +200,41 @@ collect_changed_paths() {
     done
 }
 
-path_was_in_baseline() {
-  local candidate="$1"
-  local baseline
+collect_project_snapshot() {
+  local project_root="$1"
+  local output_file="$2"
+  local path rel target fingerprint
 
-  for baseline in "${BASELINE_CHANGED_PATHS[@]}"; do
-    [ "$candidate" = "$baseline" ] && return 0
-  done
+  (
+    cd "$project_root" || exit 2
+    find . -path ./.git -prune -o -print0 |
+      while IFS= read -r -d '' path; do
+        [ "$path" = "." ] && continue
+        rel="${path#./}"
 
-  return 1
+        if [ -L "$path" ]; then
+          target="$(readlink "$path" 2>/dev/null || printf 'unreadable')"
+          printf 'L\t%s\t%s\n' "$rel" "$target"
+        elif [ -f "$path" ]; then
+          fingerprint="$(cksum < "$path" 2>/dev/null || printf 'unreadable')"
+          printf 'F\t%s\t%s\n' "$rel" "$fingerprint"
+        elif [ -d "$path" ]; then
+          printf 'D\t%s\t-\n' "$rel"
+        else
+          printf 'O\t%s\t-\n' "$rel"
+        fi
+      done | LC_ALL=C sort
+  ) > "$output_file"
+}
+
+changed_paths_from_snapshots() {
+  local before_file="$1"
+  local after_file="$2"
+
+  {
+    comm -23 "$before_file" "$after_file"
+    comm -13 "$before_file" "$after_file"
+  } | awk -F '\t' 'NF >= 2 {print $2}' | LC_ALL=C sort -u
 }
 
 pattern_matches_path() {
@@ -373,9 +407,16 @@ run_scope_audit() {
   local -a after_paths=()
   local path
 
-  mapfile -t after_paths < <(collect_changed_paths "$PROJECT_ROOT")
+  if [ ! -f "$SCOPE_SNAPSHOT_BEFORE_FILE" ]; then
+    SCOPE_AUDIT_STATUS="failed"
+    SCOPE_AUDIT_REASON="missing-before-snapshot"
+    SCOPE_AUDIT_VIOLATIONS+=("scope_audit_internal:missing-before-snapshot")
+    return 0
+  fi
+
+  collect_project_snapshot "$PROJECT_ROOT" "$SCOPE_SNAPSHOT_AFTER_FILE"
+  mapfile -t after_paths < <(changed_paths_from_snapshots "$SCOPE_SNAPSHOT_BEFORE_FILE" "$SCOPE_SNAPSHOT_AFTER_FILE")
   for path in "${after_paths[@]}"; do
-    path_was_in_baseline "$path" && continue
     SCOPE_AUDIT_CHANGED_PATHS+=("$path")
 
     if path_matches_any_pattern "$path" "${FORBIDDEN_SCOPE[@]}"; then
@@ -541,10 +582,10 @@ if ! run_runtime_guard; then
 fi
 
 if [ "$SCOPE_AUDIT_ENABLED" != "0" ] && has_scope_rules; then
-  command -v git >/dev/null 2>&1 || fail_fast "git is required when scope rules are declared"
-  git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
-    fail_fast "project_root must be a git work tree when scope rules are declared: $PROJECT_ROOT"
-  mapfile -t BASELINE_CHANGED_PATHS < <(collect_changed_paths "$PROJECT_ROOT")
+  require_scope_audit_tools
+  if command -v git >/dev/null 2>&1 && git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    mapfile -t BASELINE_CHANGED_PATHS < <(collect_changed_paths "$PROJECT_ROOT")
+  fi
 fi
 
 LOG_STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -552,6 +593,8 @@ LOG_FILE="$LOG_DIR/session-$TASK_ID-$LOG_STAMP-$$.log"
 LOG_REL="$(relative_to_root "$LOG_FILE")"
 RUNTIME_TASK_DIR="$RUNTIME_DIR/$TASK_ID-$LOG_STAMP-$$"
 RUNTIME_TMP_DIR="$RUNTIME_TASK_DIR/tmp"
+SCOPE_SNAPSHOT_BEFORE_FILE="$RUNTIME_TASK_DIR/scope-before.tsv"
+SCOPE_SNAPSHOT_AFTER_FILE="$RUNTIME_TASK_DIR/scope-after.tsv"
 ACTIVE_FILE="$ACTIVE_DIR/$TASK_ID.md"
 DONE_TASK_FILE="$DONE_DIR/$TASK_ID.md"
 FAILED_TASK_FILE="$FAILED_DIR/$TASK_ID.md"
@@ -574,6 +617,9 @@ fi
 mv "$TASK_INPUT_ABS" "$ACTIVE_FILE"
 mkdir -p "$RUNTIME_TMP_DIR"
 chmod 700 "$RUNTIME_TASK_DIR" "$RUNTIME_TMP_DIR"
+if [ "$SCOPE_AUDIT_ENABLED" != "0" ] && has_scope_rules; then
+  collect_project_snapshot "$PROJECT_ROOT" "$SCOPE_SNAPSHOT_BEFORE_FILE"
+fi
 STARTED_AT="$(now_utc)"
 
 {
@@ -596,6 +642,8 @@ STARTED_AT="$(now_utc)"
   append_list_to_log "allowed_scope" "${ALLOWED_SCOPE[@]}"
   append_list_to_log "forbidden_scope" "${FORBIDDEN_SCOPE[@]}"
   append_list_to_log "baseline_changed_paths" "${BASELINE_CHANGED_PATHS[@]}"
+  printf 'scope_audit_mode=%s\n' "filesystem-snapshot"
+  printf 'scope_snapshot_before=%s\n' "$(relative_to_root "$SCOPE_SNAPSHOT_BEFORE_FILE")"
   printf '\n'
 } >> "$LOG_FILE"
 
@@ -675,3 +723,4 @@ printf 'task_id=%s\n' "$TASK_ID"
 printf 'exit_code=%s\n' "$FINAL_EXIT_CODE"
 printf 'log=%s\n' "$LOG_REL"
 printf 'result=%s\n' "$FINAL_RESULT_REL"
+exit "$FINAL_EXIT_CODE"

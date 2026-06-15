@@ -102,6 +102,21 @@ cd /path/to/framework
 handoff/runner/handoff-runner.sh handoff/queue/001.codex-to-claude.md
 ```
 
+## Scope Audit
+
+When a task declares `allowed_scope` or `forbidden_scope`, the runner captures a
+filesystem snapshot of `project_root` before and after Claude Code runs, then
+compares the snapshots. The audit excludes `.git/` but includes ignored
+local-first paths such as `.agent/`, `.codex/`, `.claude/agent-memory/`, and
+`memory_bank/`.
+
+This means `.gitignore` does not hide files from enforcement. A task that
+changes any path outside `allowed_scope`, or any path matching
+`forbidden_scope`, finishes as `scope_failed` with exit code `90`.
+
+Scope audit uses standard Unix utilities: `find`, `cksum`, `readlink`, `comm`,
+and `awk`.
+
 ## Smoke Task
 
 After bootstrapping a test project, create a scoped smoke task like this:
@@ -153,8 +168,12 @@ Print status, actions taken, files changed, checks, risks, and next step.
 EOF
 
 mv "handoff/queue/${TASK_ID}.md.tmp" "handoff/queue/${TASK_ID}.md"
-handoff/runner/handoff-runner.sh "handoff/queue/${TASK_ID}.md"
+HANDOFF_CLAUDE_MAX_BUDGET_USD=2.00 handoff/runner/handoff-runner.sh "handoff/queue/${TASK_ID}.md"
 ```
+
+The runner default budget is intentionally conservative. Increase
+`HANDOFF_CLAUDE_MAX_BUDGET_USD` for live smoke tests when Claude Code needs a
+larger budget to start.
 
 Expected checks:
 
