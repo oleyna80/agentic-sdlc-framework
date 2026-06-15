@@ -16,6 +16,7 @@ Read Set listed there.
 
 Before any Edit/Write in a non-trivial Work Block, output:
 
+- **Final Outcome:** exact end state this Work Block must reach
 - **Skills:** checked / matched / used / skipped (from `.agent/ROSTER.md` + `.agent/skills/*/SKILL.md`)
 - **Subagent Topology:** classification + dispatch/skip decision + skip reason if applicable
 - **Side-effect class** + **DB action mode** (from `AGENTS.md`)

@@ -13,6 +13,11 @@
 ## Objective
 [What user or technical outcome does this Work Block produce?]
 
+## Final Outcome
+[What exact end state should be true when this Work Block is complete? Include
+the user-visible result, published/deployed state if relevant, verification
+evidence, and what must be left clean or documented.]
+
 ## Scope
 ### In Scope
 - [Item 1]

@@ -13,7 +13,7 @@ and predictable collaborators.
 
 **It is not:**
 - Waterfall — plans and architecture may evolve after each verified gate
-- "Vibe coding" — non-trivial work requires an approved Work Block, explicit scope, AC, verification tier, hard stops, and maintainability review
+- "Vibe coding" — non-trivial work requires an approved Work Block, explicit final outcome, scope, AC, verification tier, hard stops, and maintainability review
 
 ## Core Principles
 
