@@ -22,7 +22,7 @@
 | Critic skip | Before Stage 1 | Valid skip condition or Owner approval |
 | Hard Stop trigger | Any stage | Which Hard Stop + Owner decision |
 | Scope change | Any stage | What changed + why + re-approval status |
-| Stage outcome | After Stage 3 | Final verdict (READY/BLOCKED/ESCALATED) + residual risks |
+| Stage outcome | After Stage 3 | Final verdict (READY/BLOCKED/ESCALATED) + residual risks + critic value + retrospective lesson if any |
 
 ## What NOT to log
 

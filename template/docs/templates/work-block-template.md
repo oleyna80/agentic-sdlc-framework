@@ -88,8 +88,33 @@ and what must be left clean.]
 |---|---|---|---|---|
 | [time] | [stage] | [what happened] | [command, file, review, or artifact] | [status] |
 
-## Retrospective Notes
+## Closeout and Retrospective
+Complete this before the Work Block is considered closed. Keep this evidence
+based: record what happened, not private reasoning or unsupported claims.
+Use `none` or `not applicable` when there is no real signal; do not invent
+lessons to fill the form.
+
+### Result Summary
+- **Final Result:** [actual end state compared with Expected Final Result]
+- **Verification Evidence:** [commands, logs, reports, artifacts]
+- **Residual Risks:** [known gaps, deferred checks, assumptions]
+
+### Critic and Review Value
+- **Critic used:** [yes | no | fallback; agent/model if relevant]
+- **Critic verdict:** [APPROVE | SUPPLEMENT | RECONSIDER | SKIPPED]
+- **What the critic caught:** [specific useful findings, or "nothing material"]
+- **What the critic missed:** [only if discovered later]
+- **Skip/fallback reason:** [required if critic was skipped or unavailable]
+
+### Lessons Learned
 - **What worked:** [process/tooling/agent behavior worth preserving]
 - **What did not work:** [friction, missed context, weak gate, slow step]
-- **Framework updates to consider:** [template, hook, skill, doc, runner, memory]
+- **What not to repeat:** [concrete mistake or weak pattern to avoid]
+- **Evidence wording check:** [use "demonstrated" for one run, "validated"
+  for repeatable scripted checks; avoid "proved/guaranteed" unless
+  mathematically or formally justified]
+- **Framework updates made:** [template, hook, skill, doc, runner, memory]
+- **Framework updates to consider:** [future improvements not done in this WB]
+- **Reusable knowledge created:** [skill, checklist, report, memory entry, none
+  / not applicable]
 - **Follow-up Work Blocks:** [links or IDs]

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded Work Block closeout with an evidence-based retrospective gate,
+  critic value capture, and evidence wording rules.
 - Added a Live Handoff Smoke Work Block report demonstrating Codex-to-Claude
   Code runner execution on a clean scaffold with scope audit and
   external-team log.

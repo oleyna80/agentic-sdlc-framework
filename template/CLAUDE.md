@@ -25,6 +25,8 @@ Before any Edit/Write in a non-trivial Work Block, output:
 - **Side-effect class** + **DB action mode** (from `AGENTS.md`)
 - **Hard Stops in scope**
 - **Execution Log:** where decisions, checks, and evidence will be recorded
+- **Retrospective Plan:** what closeout evidence, critic value, and framework
+  lessons will be recorded before the Work Block is closed
 - **Write gate:** `READY` or `BLOCKED`
 
 If not `READY` → no edits, stage, commit, push, deploy, DB, env, or client
@@ -173,7 +175,12 @@ with read-only sandboxing, never-ask approvals, and MCP tool permission. Direct
 - New subagent topology (agent combination not used before in this project)
 - Cross-cutting concern (auth, logging, error handling, rate limiting)
 
-**When to skip critic:** trivial quick-fixes (typos, single-line changes, ≤2 files, no route/schema/API/security impact), documentation-only Work Blocks. All other skips require Owner approval.
+**When to skip critic:** trivial quick-fixes (typos, single-line changes, ≤2
+files, no route/schema/API/security impact) or routine documentation-only Work
+Blocks that do not change workflow, contracts, release posture, safety,
+governance, or 3+ files. If a documentation-only Work Block matches a critic
+trigger, critic is required unless the Owner explicitly approves the skip. All
+other skips require Owner approval.
 
 **Agent memory ROI:** `solution-architect` accumulates architectural patterns and integration points. `verifier` accumulates failure patterns, flaky tests, and contract-sensitive zones. `critic` accumulates orchestrator blind spots, chronically under-routed skills, and weak skip reason patterns. All three compound in value with each Work Block.
 

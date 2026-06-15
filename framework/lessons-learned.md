@@ -5,6 +5,19 @@
 
 ## What Worked
 
+### Work Block retrospectives preserve process gains
+
+When a Work Block exposes a repeatable failure pattern, record it before
+closeout instead of leaving it in the chat transcript. The closeout should
+capture what worked, what failed, what the critic caught, what wording was
+overclaimed, and whether the framework gained a reusable skill, hook, checklist,
+or template update.
+
+This is especially important for Codex as Orchestrator: the Owner should be able
+to audit not only the final artifact, but also whether the Orchestrator's
+decisions were independently challenged and what changed in the process as a
+result.
+
 ### Complementary blind spots are the primary value
 
 Claude critic is strong at process control: skip chains, weak skip reasons,
@@ -28,6 +41,12 @@ valuable after the primary verifier has already checked the obvious contract.
 The useful GPT reports cited concrete file/line evidence and tool results. The
 framework should treat GPT output as evidence for Control Tower to merge, not as
 a standalone acceptance decision.
+
+Use precise evidence wording:
+
+- `demonstrated` for one successful live run or manual exercise;
+- `validated` for repeatable scripted checks;
+- avoid `proved` or `guaranteed` unless the claim is formally justified.
 
 ## What Was Hard
 

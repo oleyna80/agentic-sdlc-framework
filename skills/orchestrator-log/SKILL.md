@@ -41,7 +41,9 @@ Control Tower writes to `memory_bank/orchestrator-log.md`:
 - **After critic skip** — log valid skip condition or explicit Owner approval
 - **On scope change** — log what changed + why + re-approval status
 - **On Hard Stop trigger** — log which Hard Stop + Owner decision
-- **After Stage 3 Closeout** — log final outcome (READY/BLOCKED/ESCALATED) + residual risks
+- **After Stage 3 Closeout** — log final outcome (READY/BLOCKED/ESCALATED),
+  residual risks, critic value, and any framework update produced by the
+  retrospective
 
 ### Write to review-log
 
@@ -61,7 +63,8 @@ verdict/findings into `review-log.md`.
 ## When to Skip
 
 - Trivial fixes (single-file, no logic change) — no decision trail needed
-- Documentation-only Work Blocks — nothing to audit
+- Routine documentation-only Work Blocks with no workflow, contract, release,
+  safety, or governance impact — nothing to audit
 - `orchestrator-log.md` and `review-log.md` are write-only for Control Tower;
   external Claude Code teams write only `external-team-log.md` when delegated
   through a handoff contract
@@ -74,7 +77,8 @@ verdict/findings into `review-log.md`.
 2. After critic returns or fallback completes: update row with critic mode/verdict
 3. On scope change or Hard Stop: add row immediately
 4. After merge protocol (if parallel agents used): add row with consolidation decision
-5. After Stage 3 Closeout: add row with final outcome
+5. After Stage 3 Closeout: add row with final outcome, critic value, residual
+   risks, and any follow-up framework update
 
 ### For review-log
 

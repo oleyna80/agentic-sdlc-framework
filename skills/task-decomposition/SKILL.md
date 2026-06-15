@@ -27,6 +27,9 @@ allowed-tools:
 6. Начинай Work Block с `Expected Final Result`: конечного состояния, которое Owner сможет проверить.
 7. Разделяй `Must Resolve Before Start` и `Can Resolve During Work`; второе не является BLOCK, если нет Hard Stop.
 8. Явно указывай, нужен ли Claude Code team, Codex/GPT critic/verifier, и почему.
+9. Для значимых Work Blocks заранее задай `Retrospective Plan`: какие evidence,
+   critic value, process misses и framework updates должны быть записаны в
+   closeout.
 
 ## Output
 `docs/tasklist/<ticket>.tasklist.md`
@@ -49,7 +52,7 @@ allowed-tools:
 - Execution mode
 - Subagent authorization
 - Execution log requirement
-- Retrospective notes requirement
+- Retrospective plan and closeout notes requirement
 
 For non-trivial work blocks, use `docs/templates/work-block-template.md`.
 

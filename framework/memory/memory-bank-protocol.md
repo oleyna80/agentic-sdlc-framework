@@ -22,7 +22,7 @@ For non-trivial work, read before planning edits:
 | `context.md` | Current focus, active WBs, next gate | After Stage 3 closeout |
 | `progress.md` | Rolling log: WHAT was done, status, verdict | After each verified closeout |
 | `decisions.md` | Architecture decisions + rationale | When a significant decision is made |
-| `orchestrator-log.md` | WHY decisions were made: tier, skips, topology, critic verdict, outcome | After Stage 0 (decisions) and Stage 3 (outcome) |
+| `orchestrator-log.md` | WHY decisions were made: tier, skips, topology, critic verdict, outcome, retrospective lessons | After Stage 0 (decisions) and Stage 3 (outcome/lessons) |
 | `review-log.md` | WHAT subagents found: agent, verdict, key findings, evidence | After each subagent returns |
 | `external-team-log.md` | HOW delegated external teams worked: accepted scope, actions, files, checks, risks | During and after external handoff sessions |
 
@@ -33,3 +33,6 @@ For non-trivial work, read before planning edits:
 - Never write private chain-of-thought; log decision/action summaries only
 - Memory bank is a cache, not a contract — docs/ beats memory_bank in conflicts
 - Keep entries concise — one line per decision, one line per progress entry
+- Retrospectives must stay evidence-based: record action summaries, critic
+  value, process misses, and reusable framework updates; never record private
+  chain-of-thought.

@@ -360,6 +360,8 @@ Before any Edit/Write in a non-trivial Work Block, output:
 - **Side-effect class** + **DB action mode** (from this file)
 - **Hard Stops in scope**
 - **Execution Log:** where decisions, checks, and evidence will be recorded
+- **Retrospective Plan:** what closeout evidence, critic value, and framework
+  lessons will be recorded before the Work Block is closed
 - **Write gate:** `READY` or `BLOCKED`
 
 If not `READY` → no edits, stage, commit, push, deploy, DB, env, or client
@@ -389,7 +391,11 @@ agent to independently review Control Tower decisions when:
 - 2+ skills were skipped in the same Work Block, OR
 - Work Block involves security, auth, payments, DB, deploy, or external providers.
 
-Skip for: trivial fixes (single-file, no logic change), documentation-only Work Blocks.
+Skip without Owner approval only for trivial fixes (single-file, no logic
+change) or routine documentation-only Work Blocks that do not change workflow,
+contracts, release posture, safety, governance, or 3+ files. If a
+documentation-only Work Block matches any trigger above, critic is required
+unless the Owner explicitly approves the skip.
 
 **Mandatory enforcement:** If ANY trigger above is active, critic becomes
 **mandatory** — Control Tower must spawn the critic agent before Stage 1.
