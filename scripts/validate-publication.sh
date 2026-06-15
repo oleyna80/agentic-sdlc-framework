@@ -74,6 +74,7 @@ for path in \
   "template/.claude/skills/README.md" \
   "template/.agent/critic-gate.md" \
   "template/.agent/verification-gate.md" \
+  "template/.codex/critic.md" \
   "template/.codex/write-gate.md" \
   "template/memory_bank/external-team-log.md" \
   "template/docs/plans/README.md" \

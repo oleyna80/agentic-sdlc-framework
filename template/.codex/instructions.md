@@ -25,7 +25,15 @@ DB authority, or Hard Stop authority.
 Before any non-trivial edit/write action, the first visible Work Block output
 must include `Stage 0 Routing Preflight` with Skill Routing Gate, Subagent
 Topology, side-effect class, DB action mode, Hard Stops, and
-`Write gate: READY` or `Write gate: BLOCKED`.
+`Write gate: READY` or `Write gate: BLOCKED`. It must also state the Codex
+Critic status: `required`, `ready`, `fallback`, or `skipped`.
+
+After Stage 0 and before Stage 1, run Stage 0.5 Codex Critic Review whenever
+`.codex/critic.md` mandatory triggers match. This is automatic under Work Block
+approval; do not wait for the Owner to ask for the critic separately. Preferred
+mode is a read-only native Codex subagent. If that is unavailable, run a
+same-session fallback critic pass and label it explicitly in `.codex/write-gate.md`,
+`memory_bank/orchestrator-log.md`, and `memory_bank/review-log.md`.
 
 ### When to spawn sub-agents
 
@@ -62,6 +70,7 @@ When spawning a sub-agent, always include:
 
 ```
 Stage 0 · Plan & Discover  →  Main thread (you)
+Stage 0.5 · Critic Review  →  Read-only Codex critic subagent or labeled fallback
 Stage 1 · Implement         →  Spawn sub-agent(s) per task from write-set
 Stage 2 · Verify            →  Spawn verifier agent OR run inline for Lite tier
 Stage 3 · Sync & Report     →  Main thread (you)
@@ -82,6 +91,11 @@ When delegating:
 4. Read the result file and logs.
 5. Accept, reject, or escalate based on evidence. Claude Code output is an
    external-team delivery, not automatic approval.
+
+When Codex is the mega-orchestrator for a handoff, record the handoff decision
+in `memory_bank/orchestrator-log.md`, read `memory_bank/external-team-log.md`
+if present, and run Stage 0.5 Codex Critic Review before accepting risky or
+multi-file external-team results.
 
 ### Verification tier routing
 
@@ -116,6 +130,12 @@ Read on session start (main thread):
 3. `memory_bank/decisions.md`
 
 Update only in Stage 3 (Sync & Report), after verification evidence exists.
+
+Audit logs are written inline during the Work Block:
+- `memory_bank/orchestrator-log.md` records Codex-Orchestrator decisions,
+  including critic skip reasons and responses to critic findings.
+- `memory_bank/review-log.md` records Codex critic, reviewer, verifier, and
+  external-team result summaries.
 
 ---
 

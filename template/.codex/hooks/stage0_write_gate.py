@@ -15,6 +15,13 @@ from typing import Any
 GATE_PATH = Path(".codex/write-gate.md")
 READY_RE = re.compile(r"^Status:\s*READY\s*$", re.IGNORECASE | re.MULTILINE)
 EXPIRES_RE = re.compile(r"^Expires:\s*(\d{4}-\d{2}-\d{2})\s*$", re.MULTILINE)
+CRITIC_RE = re.compile(r"^Codex Critic:\s*([A-Z_-]+)\s*$", re.IGNORECASE | re.MULTILINE)
+CRITIC_VERDICT_RE = re.compile(
+    r"^Critic Verdict:\s*(APPROVE|SUPPLEMENT|RECONSIDER)\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+CRITIC_SKIP_RE = re.compile(r"^Critic Skip Reason:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
+ORCH_RESPONSE_RE = re.compile(r"^Orchestrator Response:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
 PATCH_FILE_RE = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.MULTILINE)
 
 WRITE_SHELL_RE = re.compile(
@@ -112,6 +119,33 @@ def gate_ready(root: Path) -> tuple[bool, str]:
 
     if expires_on < dt.date.today():
         return False, f"{GATE_PATH} expired on {expires_on.isoformat()}"
+
+    critic = CRITIC_RE.search(text)
+    if not critic:
+        return False, f"{GATE_PATH} does not contain Codex Critic status"
+
+    critic_status = critic.group(1).upper()
+    if critic_status == "REQUIRED":
+        return False, f"{GATE_PATH} still has Codex Critic: REQUIRED"
+
+    verdict = CRITIC_VERDICT_RE.search(text)
+    if critic_status in {"READY", "FALLBACK"} and not verdict:
+        return False, f"{GATE_PATH} needs Critic Verdict: APPROVE, SUPPLEMENT, or RECONSIDER"
+
+    if verdict and verdict.group(1).upper() in {"SUPPLEMENT", "RECONSIDER"}:
+        response = ORCH_RESPONSE_RE.search(text)
+        response_text = response.group(1).strip() if response else ""
+        if response_text.upper() in {"", "N/A", "TBD", "-"}:
+            return False, f"{GATE_PATH} needs Orchestrator Response for {verdict.group(1).upper()}"
+
+    if critic_status == "SKIPPED":
+        skip = CRITIC_SKIP_RE.search(text)
+        skip_reason = skip.group(1).strip() if skip else ""
+        if skip_reason.upper() in {"", "N/A", "TBD", "-"}:
+            return False, f"{GATE_PATH} needs a concrete Critic Skip Reason"
+
+    if critic_status not in {"READY", "FALLBACK", "SKIPPED"}:
+        return False, f"{GATE_PATH} has invalid Codex Critic status: {critic_status}"
 
     return True, "ready"
 

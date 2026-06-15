@@ -71,6 +71,7 @@ for path in \
   ".claude/hooks/typecheck.sh" \
   ".claude/hooks/verification-gate.sh" \
   ".claude/skills/README.md" \
+  ".codex/critic.md" \
   ".codex/write-gate.md" \
   "docs/plans/README.md" \
   "docs/specs/README.md" \

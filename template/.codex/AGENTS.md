@@ -53,6 +53,25 @@ Subagent rules:
 - Do not launch Claude Code from a Codex subagent. The main Codex orchestrator
   owns external-team delegation through `handoff/`.
 
+Codex critic gate:
+- For non-trivial Work Blocks, run Stage 0.5 Codex Critic Review after Stage 0
+  and before Stage 1. Use `.codex/critic.md` and the installed
+  `.agent/skills/critic-review/SKILL.md` skill.
+- Owner approval of the Work Block authorizes the Codex-Orchestrator to launch
+  the critic automatically when the mandatory triggers in `.codex/critic.md`
+  match. Do not wait for a separate user request.
+- Preferred mode is a read-only native Codex subagent. If native subagents are
+  unavailable, run a same-session fallback critic pass and label it
+  `Codex Critic: FALLBACK` in `.codex/write-gate.md` and logs.
+- Critic findings go to `memory_bank/review-log.md`. Orchestrator decisions and
+  responses to critic findings go to `memory_bank/orchestrator-log.md`.
+- Skip only for valid skip conditions in `.codex/critic.md` or explicit Owner
+  approval, and record the skip reason in both `.codex/write-gate.md` and
+  `memory_bank/orchestrator-log.md`.
+- The critic is advisory. The Orchestrator owns final decisions, but every
+  SUPPLEMENT or RECONSIDER verdict requires an explicit logged response before
+  writes begin.
+
 Approval rules:
 - Any repository file change requires an approved scope.
 - Do not proceed with production/risky changes without explicit Owner approval.
@@ -79,6 +98,8 @@ Handoff rules:
 - Codex remains responsible for accepting, rejecting, or escalating the returned
   result. Claude Code's internal process is observable evidence, not automatic
   acceptance.
+- When Codex acts as mega-orchestrator for Claude Code handoff, Stage 0.5
+  Codex Critic Review is mandatory unless the Owner explicitly approves a skip.
 
 Small Task Path:
 - For trivial tasks, do not use the full Agentic Lifecycle.

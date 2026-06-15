@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added Codex-layer critic review and decision-log parity docs so Codex can run
+  as an independent Orchestrator with auditable critic feedback.
+- Added a Codex critic layer Work Block report with critic findings and
+  verification evidence.
 - Fixed publication validation private-marker scanning for fresh GitHub archive
   layouts.
 - Expanded the Work Block template with expected final result, done criteria,

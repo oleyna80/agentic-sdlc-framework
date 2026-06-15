@@ -15,8 +15,9 @@ multi-agent swarm work.
   `skills/` define roles, authority, hard stops, stage flow, scope control,
   reporting expectations, and reusable practices for any capable agent.
 - **Codex runtime support**: `.codex/` provides Codex-specific instructions,
-  config templates, subagent usage policy, and a Stage 0 write gate so Codex can
-  operate as an independent SDLC agent.
+  config templates, subagent usage policy, Stage 0 write gate, Codex critic
+  review contract, and decision logs so Codex can operate as an independent
+  SDLC agent without unchecked Orchestrator decisions.
 - **Reusable skill library**: portable skills for discovery, coding, review,
   verification, design, security, debugging, MCP tooling, and closeout.
 - **Claude Code runtime layer**: custom agents, hooks, settings, installed
@@ -48,7 +49,9 @@ The framework is intentionally layered:
 
 1. **Agentic SDLC core**: the portable process and authority model. Codex or any
    other capable agent can run this layer directly using the root `AGENTS.md`,
-   `.agent/`, `skills/`, `docs/`, and `memory_bank/`.
+   `.agent/`, `skills/`, `docs/`, and `memory_bank/`. In Codex mode, Stage 0
+   decisions are tracked in `memory_bank/orchestrator-log.md` and checked by
+   the Codex critic contract in `.codex/critic.md` when triggers match.
 2. **Inter-agent handoff**: `handoff/` coordinates Codex -> Claude Code
    delegation through task files, locks, logs, status files, and queue
    recovery. Codex remains the control tower unless a Work Block explicitly

@@ -30,23 +30,28 @@ Agentic SDLC is the core process, not a single tool's feature set.
 | Layer | Purpose | Primary files |
 |---|---|---|
 | Core SDLC | Runtime-neutral operating model for planning, implementation, review, verification, memory, and closeout | `AGENTS.md`, `.agent/`, `skills/`, `docs/`, `memory_bank/` |
-| Codex runtime | Codex-specific instructions, subagent policy, local config, and Stage 0 write gate for independent Codex operation | `.codex/` |
+| Codex runtime | Codex-specific instructions, subagent policy, local config, Stage 0 write gate, decision logs, and Codex critic review for independent Codex operation | `.codex/`, `memory_bank/orchestrator-log.md`, `memory_bank/review-log.md` |
 | Handoff | File-based dispatch between Codex control tower and Claude Code external team sessions | `handoff/` |
 | Claude Code runtime | Claude Code orchestrator/subagent team layer with hooks, MCP, per-agent memory, critic/verifier gates | `CLAUDE.md`, `.claude/` |
 
-Codex can run the core SDLC by itself. Claude Code is added when a Work Block
-benefits from its native team architecture: subagents, hooks, MCP integration,
-and independent critic/verifier workflows. The handoff layer connects the two
-without making either runtime the only valid executor.
+Codex can run the core SDLC by itself. In that mode it still has an observable
+decision trail: `memory_bank/orchestrator-log.md` records Orchestrator
+decisions, `memory_bank/review-log.md` records subagent and critic findings,
+and `.codex/critic.md` defines when a read-only Codex critic checks Stage 0
+before implementation. Claude Code is added when a Work Block benefits from
+its native team architecture: subagents, hooks, MCP integration, and independent
+critic/verifier workflows. The handoff layer connects the two without making
+either runtime the only valid executor.
 
 ## Stage Flow
 
 ```
 Standard:
   Plan & Discover (Control Tower)
-    └─→ Implement (Scoped Coder, per-task)
-          └─→ Verify (Verifier gate, tier-scoped)
-                └─→ Sync & Report (SSOT Sync + Owner report)
+    └─→ Critic Review (Stage 0.5, when triggered)
+          └─→ Implement (Scoped Coder, per-task)
+                └─→ Verify (Verifier gate, tier-scoped)
+                      └─→ Sync & Report (SSOT Sync + Owner report)
 
 Quick-fix (≤3 files, no route/schema/API/security):
   Implement (Lite checks) → Inline sync → Done
