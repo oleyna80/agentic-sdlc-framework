@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.1.0 - 2026-06-16
+
 - Added first-15-minutes onboarding docs that explain Codex-only, Claude Code
   team, and Codex-to-Claude Code swarm operating modes with smoke-test evidence.
 - Expanded Work Block closeout with an evidence-based retrospective gate,
