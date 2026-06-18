@@ -52,7 +52,7 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 | `SETUP.md` | normative | Installation and runtime mode setup guide. |
 | `PROJECT_MAP.md` | normative | Human-readable repository map. |
 | `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
-| `docs/` | mixed | Onboarding, profiles, policies, plans, and session bootstrap. |
+| `docs/` | mixed | Onboarding, profiles, policies, plans, templates, and session bootstrap. |
 | `template/AGENTS.md` | normative template | Primary generated-project operating contract. |
 | `template/` | normative template | Files copied into generated projects. |
 | `skills/` | normative library | Portable skill library copied into generated projects. |
@@ -64,6 +64,7 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 ## Generated, Log, and Local-Only Boundaries
 
 - `examples/**` are examples, not policy.
+- `docs/templates/**` are reusable framework coordination templates.
 - `docs/plans/**` are Work Block evidence and plans; the current approved plan
   matters more than older plans.
 - `handoff/logs/**`, `handoff/done/**`, `handoff/failed/**`, and runtime status

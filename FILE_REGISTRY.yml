@@ -162,6 +162,19 @@ entries:
     related:
       - template/docs/templates/work-block-template.md
 
+  docs/templates/project-agent-update-template.md:
+    role: project_agent_framework_update_template
+    status: normative
+    owner: orchestrator
+    update_when:
+      - framework to project feedback loop changes
+      - project agent update response contract changes
+      - synchronization boundaries change
+    related:
+      - template/docs/templates/project-agent-update-template.md
+      - docs/session-bootstrap.md
+      - framework/lessons-learned.md
+
   examples/**:
     role: scenario_guides
     status: example

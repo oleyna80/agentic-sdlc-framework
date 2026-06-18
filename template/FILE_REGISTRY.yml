@@ -91,6 +91,19 @@ entries:
       - docs/session-bootstrap.md
       - memory_bank/orchestrator-log.md
 
+  docs/templates/project-agent-update-template.md:
+    role: framework_update_intake_template
+    status: normative
+    owner: orchestrator
+    update_when:
+      - framework update intake process changes
+      - project feedback response contract changes
+      - synchronization boundaries change
+    related:
+      - docs/session-bootstrap.md
+      - PROJECT_MAP.md
+      - FILE_REGISTRY.yml
+
   scripts/bootstrap.sh:
     role: workflow_layer_health_check
     status: normative

@@ -55,6 +55,7 @@ Start with the smallest mode that can safely deliver the Work Block:
 
 - `docs/plans/**` and `docs/reports/**` are Work Block evidence and reports;
   the current approved plan matters more than older plans.
+- `docs/templates/**` are reusable coordination and Work Block templates.
 - `memory_bank/orchestrator-log.md`, `memory_bank/review-log.md`, and
   `memory_bank/external-team-log.md` are evidence logs, not current authority.
 - `.claude/agent-memory/**` is project-local agent memory unless deliberately
