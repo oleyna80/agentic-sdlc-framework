@@ -5,9 +5,9 @@ a controlled SDLC: plan, spec, implementation, review, and verification.
 
 The core SDLC contract is runtime-neutral. Codex, Claude Code, and other local
 agent runtimes can use the same workflow, authority model, memory bank, skills,
-and verification gates. This repository also ships a production-ready Claude
+and verification gates. This repository also ships a production-oriented Claude
 Code runtime layer and a file-based Codex -> Claude Code handoff layer for
-multi-agent swarm work.
+controlled multi-agent work.
 
 ## What This Gives You
 
@@ -84,6 +84,14 @@ git commit -m "Initial scaffold from Agentic SDLC Framework"
 The generated project receives a `.gitignore` copied from
 `template/project.gitignore`. By default it keeps local agent state private.
 
+If you are new to the framework, start with:
+
+- `docs/quickstart-minimal.md` for the smallest Codex-only path.
+- `docs/profiles.md` for choosing Minimal, Standard, Claude Code team, or
+  Codex -> Claude Code handoff mode.
+- `docs/mcp-tool-policy.md` before adding MCP servers, browser automation,
+  database clients, vendor CLIs, or external research tools.
+
 ## First 15 Minutes
 
 Use this path to confirm the scaffold is understandable before customizing it:
@@ -100,6 +108,7 @@ Use this path to confirm the scaffold is understandable before customizing it:
 
    | Mode | Use when | Start here |
    |---|---|---|
+   | Minimal Codex-only | You want the smallest useful path with no Claude Code, MCP, hooks, or handoff | `docs/quickstart-minimal.md` |
    | Codex-only SDLC | You want Codex or another agent to run the core workflow directly | `AGENTS.md`, `.codex/write-gate.md`, `.codex/critic.md` |
    | Claude Code team | You want Claude Code to act as its own orchestrator with agents, hooks, and memory | `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/` |
    | Codex -> Claude Code swarm | Codex should delegate scoped work to Claude Code as an external team | framework `handoff/README.md` |
@@ -140,6 +149,8 @@ agentic-sdlc-framework/
 ├── SETUP.md
 ├── bootstrap.sh
 ├── scripts/validate-publication.sh
+├── docs/                       # first-user onboarding and framework plans
+├── examples/                   # synthetic scenario guides
 ├── template/
 │   ├── project.gitignore        # copied to generated projects as .gitignore
 │   ├── AGENTS.md

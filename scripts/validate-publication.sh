@@ -44,6 +44,14 @@ for path in \
   "CHANGELOG.md" \
   "PUBLICATION_CHECKLIST.md" \
   "bootstrap.sh" \
+  "docs/quickstart-minimal.md" \
+  "docs/profiles.md" \
+  "docs/mcp-tool-policy.md" \
+  "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
+  "examples/README.md" \
+  "examples/codex-only-nextjs/README.md" \
+  "examples/codex-claude-reviewer/README.md" \
+  "examples/codex-claude-handoff-smoke/README.md" \
   "scripts/test-handoff-scope-audit.sh" \
   "template/project.gitignore" \
   "template/.agent/ROSTER.md" \

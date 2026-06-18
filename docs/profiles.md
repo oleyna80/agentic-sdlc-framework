@@ -1,0 +1,191 @@
+# Framework Profiles
+
+Start with the smallest profile that can safely deliver the Work Block. Upgrade
+only when the task needs the extra process, tools, or independent review.
+
+## Profile Summary
+
+| Profile | Use When | Main Files | Avoid Initially |
+|---|---|---|---|
+| Level 1 - Minimal Codex-only | One local agent needs scope, logs, review, and verification | `AGENTS.md`, `.codex/`, `memory_bank/`, core skills | Claude Code, MCP, handoff, hooks |
+| Level 2 - Standard Codex SDLC | Work needs full Work Blocks, reusable skills, and stronger closeout | Level 1 plus `.agent/`, `docs/`, selected `skills/` | External AI CLI delegation |
+| Level 3 - Claude Code Team Runtime | Claude Code should run as its own orchestrator with agents, hooks, memory, and provider config | `CLAUDE.md`, `.claude/`, `.mcp.json`, `.agent/` | Automated handoff until CC works locally |
+| Level 4 - Codex -> Claude Code Handoff | Codex should delegate a scoped Work Block to Claude Code as an external team | `handoff/`, handoff task template, `memory_bank/external-team-log.md` | Parallel swarms until single handoff is reliable |
+
+## Level 1 - Minimal Codex-only
+
+### Included
+
+```text
+AGENTS.md
+.codex/write-gate.md
+.codex/critic.md
+memory_bank/orchestrator-log.md
+memory_bank/review-log.md
+docs/templates/work-block-template.md
+.agent/skills/scoped-coder/
+.agent/skills/reviewer/
+.agent/skills/verifier/
+```
+
+### Expected Flow
+
+```text
+Stage 0 preflight -> scoped implementation -> reviewer/critic check ->
+verification -> closeout log
+```
+
+### Smoke Check
+
+```bash
+bash scripts/bootstrap.sh
+```
+
+Expected result: `Workflow layer: OK`.
+
+### Upgrade When
+
+- tasks repeatedly need specialized skills;
+- the project needs a reusable memory discipline;
+- Work Blocks need standard closeout and publication evidence.
+
+## Level 2 - Standard Codex SDLC
+
+### Included
+
+Everything in Level 1, plus:
+
+```text
+.agent/ROSTER.md
+.agent/workflows/
+.agent/skills/
+docs/plans/
+docs/specs/
+docs/reports/
+docs/tasklist/
+memory_bank/context.md
+memory_bank/progress.md
+memory_bank/decisions.md
+```
+
+### Expected Flow
+
+```text
+Plan -> Spec -> Implementation -> Review -> Verification -> Closeout
+```
+
+Codex can use its own subagents when available. The Orchestrator still remains
+accountable for scope, write-set, critic routing, and final evidence.
+
+### Smoke Check
+
+```bash
+git status --short --branch
+bash scripts/bootstrap.sh
+```
+
+### Upgrade When
+
+- a second agent/runtime should review or implement independently;
+- the Work Block benefits from Claude Code's native agents, hooks, or MCP
+  integrations.
+
+## Level 3 - Claude Code Team Runtime
+
+### Included
+
+Everything in Level 2, plus:
+
+```text
+CLAUDE.md
+.claude/settings.json
+.claude/agents/
+.claude/hooks/
+.claude/skills/
+.claude/agent-memory/
+.mcp.json
+```
+
+### Expected Flow
+
+Claude Code acts as its own project-local team. It can run an orchestrator,
+subagents, critic/verifier gates, and project-local memory. Agent definitions
+use `model: inherit`; provider and model routing come from the active Claude
+Code environment.
+
+### Smoke Check
+
+```bash
+claude --version
+bash scripts/bootstrap.sh
+```
+
+Then run a small read-only Claude Code task before allowing state-changing work.
+
+### Upgrade When
+
+- Codex should remain the control tower;
+- Claude Code should be called for a scoped Work Block and return a result/log
+  through files.
+
+## Level 4 - Codex -> Claude Code Handoff
+
+### Included
+
+Level 2 or Level 3 project files, plus framework-level or project-local:
+
+```text
+handoff/README.md
+handoff/runner/handoff-runner.sh
+handoff/templates/claude-team-task-template.md
+handoff/queue/
+handoff/active/
+handoff/done/
+handoff/failed/
+handoff/logs/
+memory_bank/external-team-log.md
+```
+
+### Expected Flow
+
+```text
+Codex writes task -> runner starts Claude Code -> Claude Code works as external
+team -> result/log written -> Codex reviews result -> closeout
+```
+
+### Smoke Check
+
+Use `skills/handoff-live-smoke/SKILL.md` and `handoff/README.md#smoke-task`.
+
+Expected result:
+
+- task reaches `handoff/done/`;
+- runner log exists;
+- scope audit passes;
+- `memory_bank/external-team-log.md` records the external team result.
+
+## Profile Selection Rules
+
+- Prefer Level 1 for the first real Work Block in a new project.
+- Use Level 2 when repeatable SDLC evidence matters.
+- Use Level 3 only after Claude Code CLI and provider configuration work in the
+  target shell.
+- Use Level 4 only after a local Claude Code task has succeeded and the
+  handoff runner has passed a smoke task.
+- Do not add a higher level because it is available. Add it because the Work
+  Block needs independent execution, better observability, or stronger review.
+
+## Publishing Agent State
+
+Generated projects are local-first. If a team wants to publish `.agent/`,
+`.codex/`, `.claude/agent-memory/`, or `memory_bank/`, review every file for:
+
+- secrets and provider credentials;
+- private client/project context;
+- raw transcripts;
+- local machine paths;
+- generated logs;
+- unreviewed agent conclusions.
+
+Publish only reusable governance and evidence that the team deliberately wants
+to share.
