@@ -356,11 +356,14 @@ tiers, and check suite.
 For non-trivial work, read these files before planning edits:
 
 1. `AGENTS.md` — operating contract, autonomy policy, hard stops, file authority
-2. `.agent/workflows/sdd-protocol.md` — stage flow, verification tiers, quick-fix rules
-3. `.agent/ROSTER.md` — agent/mode and skill routing
-4. `memory_bank/context.md` — current focus and next gate
-5. `memory_bank/progress.md` — rolling status log
-6. `memory_bank/decisions.md` — ADRs and durable decisions
+2. `PROJECT_MAP.md` — human-readable project structure and authority map
+3. `FILE_REGISTRY.yml` — machine-readable key file/path registry
+4. `docs/session-bootstrap.md` — session intake and impact-check procedure
+5. `.agent/workflows/sdd-protocol.md` — stage flow, verification tiers, quick-fix rules
+6. `.agent/ROSTER.md` — agent/mode and skill routing
+7. `memory_bank/context.md` — current focus and next gate
+8. `memory_bank/progress.md` — rolling status log
+9. `memory_bank/decisions.md` — ADRs and durable decisions
 
 For multi-Work-Block sessions or when resuming after interruption, also read:
 - `memory_bank/orchestrator-log.md` — why past decisions were made

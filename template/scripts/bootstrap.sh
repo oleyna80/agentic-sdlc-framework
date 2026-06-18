@@ -51,6 +51,8 @@ PROJECTCONFIG
 
 for path in \
   ".gitignore" \
+  "PROJECT_MAP.md" \
+  "FILE_REGISTRY.yml" \
   ".agent/ROSTER.md" \
   ".agent/critic-gate.md" \
   ".agent/verification-gate.md" \
@@ -73,6 +75,7 @@ for path in \
   ".claude/skills/README.md" \
   ".codex/critic.md" \
   ".codex/write-gate.md" \
+  "docs/session-bootstrap.md" \
   "docs/plans/README.md" \
   "docs/specs/README.md" \
   "docs/tasklist/README.md" \

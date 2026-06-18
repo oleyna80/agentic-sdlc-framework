@@ -3,6 +3,11 @@
 Start with the smallest profile that can safely deliver the Work Block. Upgrade
 only when the task needs the extra process, tools, or independent review.
 
+Before choosing a profile in a new session, read `PROJECT_MAP.md`,
+`FILE_REGISTRY.yml`, and `docs/session-bootstrap.md`. The map and registry
+explain the current project structure and authority boundaries; this profile
+guide explains how much of the framework to activate for the task.
+
 ## Profile Summary
 
 | Profile | Use When | Main Files | Avoid Initially |
@@ -166,6 +171,8 @@ Expected result:
 
 ## Profile Selection Rules
 
+- Run the session bootstrap first; do not select a higher profile from stale
+  memory alone.
 - Prefer Level 1 for the first real Work Block in a new project.
 - Use Level 2 when repeatable SDLC evidence matters.
 - Use Level 3 only after Claude Code CLI and provider configuration work in the

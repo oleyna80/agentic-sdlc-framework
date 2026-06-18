@@ -37,6 +37,8 @@ echo "==> Publication validation: $ROOT"
 for path in \
   "README.md" \
   "SETUP.md" \
+  "PROJECT_MAP.md" \
+  "FILE_REGISTRY.yml" \
   "LICENSE" \
   "THIRD_PARTY_NOTICES.md" \
   "CONTRIBUTING.md" \
@@ -46,14 +48,18 @@ for path in \
   "bootstrap.sh" \
   "docs/quickstart-minimal.md" \
   "docs/profiles.md" \
+  "docs/session-bootstrap.md" \
   "docs/mcp-tool-policy.md" \
   "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
+  "docs/plans/2026-06-18-framework-navigation-control-layer.md" \
   "examples/README.md" \
   "examples/codex-only-nextjs/README.md" \
   "examples/codex-claude-reviewer/README.md" \
   "examples/codex-claude-handoff-smoke/README.md" \
   "scripts/test-handoff-scope-audit.sh" \
   "template/project.gitignore" \
+  "template/PROJECT_MAP.md" \
+  "template/FILE_REGISTRY.yml" \
   "template/.agent/ROSTER.md" \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.agent/skills/README.md" \
@@ -85,6 +91,7 @@ for path in \
   "template/.codex/critic.md" \
   "template/.codex/write-gate.md" \
   "template/memory_bank/external-team-log.md" \
+  "template/docs/session-bootstrap.md" \
   "template/docs/plans/README.md" \
   "template/docs/specs/README.md" \
   "template/docs/tasklist/README.md" \

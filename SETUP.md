@@ -16,13 +16,26 @@ workflow layer by running `scripts/bootstrap.sh` inside the generated project.
 You can rerun `bash scripts/bootstrap.sh` later as a health check after moving
 or restoring the workspace.
 
+Before the first Work Block in a new session, orient with:
+
+```text
+AGENTS.md
+PROJECT_MAP.md
+FILE_REGISTRY.yml
+docs/session-bootstrap.md
+```
+
+`PROJECT_MAP.md` is the human-readable map. `FILE_REGISTRY.yml` is the
+machine-readable registry of important files and path patterns.
+
 ## Architecture Layers
 
 The scaffold has three separable layers:
 
-1. **Agentic SDLC core**: root `AGENTS.md`, `.agent/`, `skills/`, `docs/`, and
-   `memory_bank/`. Codex or another capable agent can run the SDLC directly
-   from this layer using its own tools, subagents, rules, and verification.
+1. **Agentic SDLC core**: generated project `AGENTS.md`, `.agent/`, `skills/`,
+   `docs/`, and `memory_bank/`. Codex or another capable agent can run the
+   SDLC directly from this layer using its own tools, subagents, rules, and
+   verification.
 2. **Codex <-> Claude Code handoff**: framework-level `handoff/` dispatcher for
    cases where Codex delegates a scoped Work Block to Claude Code as an
    independent external team.
@@ -204,8 +217,8 @@ mv /path/to/new-project/project.gitignore /path/to/new-project/.gitignore
 
 ### Step 2: Replace Placeholders
 
-Replace these placeholders in `.md`, `.json`, `.sh`, `.yaml`, `.toml`, and `.py`
-files:
+Replace these placeholders in `.md`, `.json`, `.sh`, `.yaml`, `.yml`, `.toml`,
+and `.py` files:
 
 | Placeholder | Description | Example |
 |---|---|---|

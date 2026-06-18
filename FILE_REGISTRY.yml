@@ -1,0 +1,266 @@
+# Machine-readable navigation registry for important files and path patterns.
+# It is intentionally selective: register authority-bearing files and major
+# repository zones, not every file.
+
+version: 1
+scope: framework_repository
+statuses:
+  normative: "source of truth or policy-bearing file"
+  template: "copied into generated projects"
+  reference: "background knowledge; does not override policy"
+  example: "illustrative scenario; not mandatory policy"
+  log: "evidence/history; not current authority"
+  derived: "generated or discovered from other sources"
+  local_state: "machine-local or runtime state; do not publish by default"
+
+authority_order:
+  - explicit_owner_instruction
+  - active_workspace_AGENTS.md
+  - approved_work_block_plan
+  - PROJECT_MAP.md
+  - FILE_REGISTRY.yml
+  - runtime_policy_files
+  - reference_docs_examples_logs_generated_artifacts
+
+entries:
+  template/AGENTS.md:
+    role: generated_project_agent_policy
+    status: template
+    owner: owner
+    update_when:
+      - role permissions change
+      - approval gates change
+      - stage workflow changes
+    related:
+      - PROJECT_MAP.md
+      - FILE_REGISTRY.yml
+      - template/PROJECT_MAP.md
+
+  README.md:
+    role: public_entrypoint
+    status: normative
+    owner: maintainer
+    update_when:
+      - public positioning changes
+      - new onboarding path is added
+      - top-level structure changes
+    related:
+      - SETUP.md
+      - docs/profiles.md
+      - PROJECT_MAP.md
+
+  SETUP.md:
+    role: setup_guide
+    status: normative
+    owner: maintainer
+    update_when:
+      - bootstrap flow changes
+      - operating mode setup changes
+      - required tools change
+    related:
+      - README.md
+      - docs/session-bootstrap.md
+      - docs/profiles.md
+
+  bootstrap.sh:
+    role: project_scaffold_installer
+    status: normative
+    owner: maintainer
+    update_when:
+      - template copy behavior changes
+      - placeholder replacement file types change
+      - core skill installation changes
+      - generated project verification changes
+    related:
+      - template/**
+      - scripts/validate-publication.sh
+      - SETUP.md
+
+  scripts/validate-publication.sh:
+    role: publication_safety_check
+    status: normative
+    owner: verifier
+    update_when:
+      - required public files change
+      - publication safety scan changes
+      - bootstrap smoke expectations change
+    related:
+      - bootstrap.sh
+      - template/scripts/bootstrap.sh
+      - PUBLICATION_CHECKLIST.md
+
+  PROJECT_MAP.md:
+    role: human_readable_repository_map
+    status: normative
+    owner: architect
+    update_when:
+      - top-level directories change
+      - authority model changes
+      - runtime layers change
+      - generated or local-only boundaries change
+    related:
+      - FILE_REGISTRY.yml
+      - docs/session-bootstrap.md
+
+  FILE_REGISTRY.yml:
+    role: machine_readable_navigation_registry
+    status: normative
+    owner: architect
+    update_when:
+      - key files or path patterns are added moved or removed
+      - file authority status changes
+      - update triggers change
+    related:
+      - PROJECT_MAP.md
+      - docs/session-bootstrap.md
+
+  docs/session-bootstrap.md:
+    role: new_session_intake_flow
+    status: normative
+    owner: architect
+    update_when:
+      - new-session read order changes
+      - git or diff preflight changes
+      - memory usage policy changes
+    related:
+      - PROJECT_MAP.md
+      - FILE_REGISTRY.yml
+      - template/docs/session-bootstrap.md
+
+  docs/profiles.md:
+    role: operating_profile_selector
+    status: normative
+    owner: architect
+    update_when:
+      - operating profiles change
+      - runtime layers change
+      - onboarding path changes
+    related:
+      - README.md
+      - SETUP.md
+      - docs/quickstart-minimal.md
+
+  docs/mcp-tool-policy.md:
+    role: tool_authority_policy
+    status: normative
+    owner: architect
+    update_when:
+      - MCP usage changes
+      - tool boundary policy changes
+      - external content handling changes
+    related:
+      - template/AGENTS.md
+      - SETUP.md
+      - template/.mcp.json
+
+  docs/plans/**:
+    role: work_block_plans_and_evidence
+    status: log
+    owner: orchestrator
+    update_when:
+      - a Work Block is created or closed
+    related:
+      - template/docs/templates/work-block-template.md
+
+  examples/**:
+    role: scenario_guides
+    status: example
+    owner: docs
+    update_when:
+      - examples no longer match current policy
+      - new onboarding scenario is added
+    related:
+      - docs/profiles.md
+      - README.md
+
+  template/**:
+    role: generated_project_source_template
+    status: template
+    owner: architect
+    update_when:
+      - generated project structure changes
+      - project-local policy changes
+      - bootstrap required files change
+    related:
+      - bootstrap.sh
+      - scripts/validate-publication.sh
+
+  template/PROJECT_MAP.md:
+    role: generated_project_human_map
+    status: template
+    owner: architect
+    update_when:
+      - generated project navigation changes
+      - root PROJECT_MAP.md changes in a way that affects generated projects
+    related:
+      - template/FILE_REGISTRY.yml
+      - template/docs/session-bootstrap.md
+
+  template/FILE_REGISTRY.yml:
+    role: generated_project_registry
+    status: template
+    owner: architect
+    update_when:
+      - generated project key paths change
+      - generated project authority statuses change
+    related:
+      - template/PROJECT_MAP.md
+      - template/docs/session-bootstrap.md
+
+  skills/**:
+    role: portable_skill_library
+    status: normative
+    owner: maintainer
+    update_when:
+      - core skill list changes
+      - skill convention changes
+      - bootstrap skill copy behavior changes
+    related:
+      - bootstrap.sh
+      - skills/SKILL-CONVENTION.md
+      - template/.agent/skills/README.md
+      - template/.claude/skills/README.md
+
+  handoff/**:
+    role: codex_claude_file_handoff_runtime
+    status: normative
+    owner: architect
+    update_when:
+      - runner flow changes
+      - scope audit changes
+      - queue status lifecycle changes
+      - handoff logs or result contract changes
+    related:
+      - handoff/README.md
+      - handoff/templates/claude-team-task-template.md
+      - skills/handoff-live-smoke/SKILL.md
+
+  framework/**:
+    role: reference_knowledge
+    status: reference
+    owner: maintainer
+    update_when:
+      - knowledge base changes
+      - lessons learned are promoted from Work Blocks
+    related:
+      - README.md
+      - SETUP.md
+
+  archive/**:
+    role: private_or_local_archive
+    status: local_state
+    owner: owner
+    update_when:
+      - never as part of public publication without explicit review
+    related:
+      - .gitignore
+
+  graphify-out/**:
+    role: future_generated_discovery_graph
+    status: derived
+    owner: tooling
+    update_when:
+      - generated by graph tooling if adopted later
+    related:
+      - PROJECT_MAP.md
+      - docs/session-bootstrap.md

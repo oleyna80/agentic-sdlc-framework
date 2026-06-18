@@ -11,7 +11,8 @@ controlled multi-agent work.
 
 ## What This Gives You
 
-- **Core SDLC layer**: `AGENTS.md`, `.agent/`, `memory_bank/`, `docs/`, and
+- **Core SDLC layer**: generated project `AGENTS.md`, `.agent/`,
+  `memory_bank/`, `docs/`, and
   `skills/` define roles, authority, hard stops, stage flow, scope control,
   reporting expectations, and reusable practices for any capable agent.
 - **Codex runtime support**: `.codex/` provides Codex-specific instructions,
@@ -48,8 +49,9 @@ controlled multi-agent work.
 The framework is intentionally layered:
 
 1. **Agentic SDLC core**: the portable process and authority model. Codex or any
-   other capable agent can run this layer directly using the root `AGENTS.md`,
-   `.agent/`, `skills/`, `docs/`, and `memory_bank/`. In Codex mode, Stage 0
+   other capable agent can run this layer directly using the generated
+   project's `AGENTS.md`, `.agent/`, `skills/`, `docs/`, and `memory_bank/`.
+   In Codex mode, Stage 0
    decisions are tracked in `memory_bank/orchestrator-log.md` and checked by
    the Codex critic contract in `.codex/critic.md` when triggers match.
 2. **Inter-agent handoff**: `handoff/` coordinates Codex -> Claude Code
@@ -86,6 +88,8 @@ The generated project receives a `.gitignore` copied from
 
 If you are new to the framework, start with:
 
+- `PROJECT_MAP.md` and `FILE_REGISTRY.yml` for repository orientation.
+- `docs/session-bootstrap.md` for the default new-session intake flow.
 - `docs/quickstart-minimal.md` for the smallest Codex-only path.
 - `docs/profiles.md` for choosing Minimal, Standard, Claude Code team, or
   Codex -> Claude Code handoff mode.
@@ -115,8 +119,11 @@ Use this path to confirm the scaffold is understandable before customizing it:
 
 3. **Open the operating contract.**
 
-   Read `AGENTS.md` first. It defines roles, Stage 0 preflight, write gates,
-   critic review, verification, hard stops, and closeout expectations.
+   Read `AGENTS.md` first, then `PROJECT_MAP.md`, `FILE_REGISTRY.yml`, and
+   `docs/session-bootstrap.md`. `AGENTS.md` defines roles, Stage 0 preflight,
+   write gates, critic review, verification, hard stops, and closeout
+   expectations. The map and registry explain which files are normative,
+   template, reference, example, log, derived, or local state.
 
 4. **Run one local health check.**
 
@@ -147,6 +154,8 @@ Use this path to confirm the scaffold is understandable before customizing it:
 agentic-sdlc-framework/
 ├── README.md
 ├── SETUP.md
+├── PROJECT_MAP.md              # human-readable repository navigation map
+├── FILE_REGISTRY.yml           # machine-readable key file/path registry
 ├── bootstrap.sh
 ├── scripts/validate-publication.sh
 ├── docs/                       # first-user onboarding and framework plans

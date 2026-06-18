@@ -34,7 +34,7 @@ fi
 
 # 2. Replace placeholders
 echo "==> Replacing placeholders..."
-find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o -name "*.yaml" -o -name "*.toml" -o -name "*.py" \) \
+find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o -name "*.yaml" -o -name "*.yml" -o -name "*.toml" -o -name "*.py" \) \
   -exec sed -i \
     -e "s/{{PROJECT_NAME}}/$PROJECT_NAME_ESC/g" \
     -e "s/{{PROJECT_SLUG}}/$PROJECT_SLUG_ESC/g" \
