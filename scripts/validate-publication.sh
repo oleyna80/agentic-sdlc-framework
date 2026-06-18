@@ -32,6 +32,28 @@ require_absent() {
   fi
 }
 
+require_line() {
+  local path="$1"
+  local pattern="$2"
+  if grep -qx -- "$pattern" "$ROOT/$path"; then
+    ok "$path contains standalone line: $pattern"
+  else
+    fail "$path missing standalone line: $pattern"
+  fi
+}
+
+require_min_lines() {
+  local path="$1"
+  local min_lines="$2"
+  local line_count
+  line_count="$(wc -l < "$ROOT/$path")"
+  if [ "$line_count" -ge "$min_lines" ]; then
+    ok "$path line count >= $min_lines"
+  else
+    fail "$path has $line_count lines; expected at least $min_lines"
+  fi
+}
+
 echo "==> Publication validation: $ROOT"
 
 for path in \
@@ -50,6 +72,7 @@ for path in \
   "docs/profiles.md" \
   "docs/session-bootstrap.md" \
   "docs/mcp-tool-policy.md" \
+  "docs/templates/project-agent-update-template.md" \
   "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
   "docs/plans/2026-06-18-framework-navigation-control-layer.md" \
   "examples/README.md" \
@@ -92,6 +115,7 @@ for path in \
   "template/.codex/write-gate.md" \
   "template/memory_bank/external-team-log.md" \
   "template/docs/session-bootstrap.md" \
+  "template/docs/templates/project-agent-update-template.md" \
   "template/docs/plans/README.md" \
   "template/docs/specs/README.md" \
   "template/docs/tasklist/README.md" \
@@ -131,10 +155,58 @@ fi
 
 require_absent "template/.gitignore"
 
-if grep -qx 'archive/' "$ROOT/.gitignore"; then
-  ok "archive/ is ignored"
+require_line ".gitignore" "archive/"
+require_line ".gitignore" "node_modules/"
+require_line ".gitignore" ".env"
+require_line "template/project.gitignore" ".agent/"
+require_line "template/project.gitignore" "memory_bank/"
+require_line "template/project.gitignore" ".claude/agent-memory/"
+require_line "template/project.gitignore" ".codex/"
+require_line "template/project.gitignore" "node_modules/"
+require_line "template/project.gitignore" ".env"
+
+for path in \
+  ".gitignore" \
+  "template/project.gitignore" \
+  "FILE_REGISTRY.yml" \
+  "template/FILE_REGISTRY.yml" \
+  "bootstrap.sh" \
+  "scripts/validate-publication.sh" \
+  "template/scripts/bootstrap.sh" \
+  "PROJECT_MAP.md" \
+  "docs/session-bootstrap.md" \
+  "docs/profiles.md" \
+  "docs/quickstart-minimal.md" \
+  "docs/mcp-tool-policy.md" \
+  "examples/README.md" \
+  "template/PROJECT_MAP.md" \
+  "template/docs/session-bootstrap.md"; do
+  require_min_lines "$path" 10
+done
+
+if command -v python3 >/dev/null 2>&1; then
+  python3 - "$ROOT/FILE_REGISTRY.yml" "$ROOT/template/FILE_REGISTRY.yml" <<'PY' || fail "YAML parse failed for FILE_REGISTRY.yml"
+import pathlib
+import sys
+
+try:
+    import yaml
+except ImportError as exc:
+    raise SystemExit("PyYAML is required for registry validation") from exc
+
+for path_arg in sys.argv[1:]:
+    path = pathlib.Path(path_arg)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit(f"{path} did not parse to a mapping")
+    for key in ("version", "scope", "entries"):
+        if key not in data:
+            raise SystemExit(f"{path} missing top-level key: {key}")
+print("YAML OK")
+PY
+  ok "FILE_REGISTRY.yml YAML parsing"
 else
-  fail "archive/ is not ignored in root .gitignore"
+  fail "python3 not found; cannot validate YAML registries"
 fi
 
 BYTECODE="$(
@@ -215,6 +287,14 @@ if [ -n "$SMOKE_BYTECODE" ]; then
 else
   ok "no bytecode copied into smoke project"
 fi
+
+for pattern in ".agent/" "memory_bank/" ".claude/agent-memory/" ".codex/" ".env"; do
+  if grep -qx -- "$pattern" "$SMOKE_DIR/.gitignore"; then
+    ok "smoke .gitignore contains standalone line: $pattern"
+  else
+    fail "smoke .gitignore missing standalone line: $pattern"
+  fi
+done
 
 rm -rf "$SMOKE_DIR"
 
