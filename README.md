@@ -19,6 +19,9 @@ controlled multi-agent work.
   config templates, subagent usage policy, Stage 0 write gate, Codex critic
   review contract, and decision logs so Codex can operate as an independent
   SDLC agent without unchecked Orchestrator decisions.
+- **Codex model-routing guidance**: optional profile guidance keeps Codex as
+  the mega-orchestrator/critic while cheaper or local models handle bounded
+  executor work only after smoke testing.
 - **Reusable skill library**: portable skills for discovery, coding, review,
   verification, design, security, debugging, MCP tooling, and closeout.
 - **Claude Code runtime layer**: custom agents, hooks, settings, installed
@@ -63,6 +66,11 @@ The framework is intentionally layered:
    and per-agent memory. Treat it as an external team with its own process and
    observable delivery log.
 
+Optional model-routing overlays may change which model backs Codex workers or
+critics, but they do not change the authority model. Real provider credentials,
+proxy URLs, and user-level Codex/Claude Code config stay outside this base
+framework.
+
 ## Quick Start
 
 From this repository:
@@ -93,6 +101,8 @@ If you are new to the framework, start with:
 - `docs/quickstart-minimal.md` for the smallest Codex-only path.
 - `docs/profiles.md` for choosing Minimal, Standard, Claude Code team, or
   Codex -> Claude Code handoff mode.
+- `framework/workflow/codex-model-routing.md` before adding optional Codex
+  multi-model profiles.
 - `docs/mcp-tool-policy.md` before adding MCP servers, browser automation,
   database clients, vendor CLIs, or external research tools.
 
@@ -116,6 +126,7 @@ Use this path to confirm the scaffold is understandable before customizing it:
    | Codex-only SDLC | You want Codex or another agent to run the core workflow directly | `AGENTS.md`, `.codex/write-gate.md`, `.codex/critic.md` |
    | Claude Code team | You want Claude Code to act as its own orchestrator with agents, hooks, and memory | `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/` |
    | Codex -> Claude Code swarm | Codex should delegate scoped work to Claude Code as an external team | framework `handoff/README.md` |
+   | Codex model routing | You want strong Codex reasoning plus cheaper/local executor profiles | `framework/workflow/codex-model-routing.md` |
 
 3. **Open the operating contract.**
 

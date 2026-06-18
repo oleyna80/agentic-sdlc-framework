@@ -135,10 +135,25 @@ entries:
       - operating profiles change
       - runtime layers change
       - onboarding path changes
+      - optional model routing overlays change
     related:
       - README.md
       - SETUP.md
       - docs/quickstart-minimal.md
+      - framework/workflow/codex-model-routing.md
+
+  framework/workflow/codex-model-routing.md:
+    role: codex_model_routing_policy
+    status: reference
+    owner: architect
+    update_when:
+      - Codex provider/profile guidance changes
+      - Codex critic or worker model-routing rules change
+      - optional local or cheaper model usage policy changes
+    related:
+      - docs/profiles.md
+      - template/.codex/config.toml.template
+      - template/.codex/critic.md
 
   docs/mcp-tool-policy.md:
     role: tool_authority_policy

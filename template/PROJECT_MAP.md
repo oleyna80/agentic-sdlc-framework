@@ -35,6 +35,10 @@ Start with the smallest mode that can safely deliver the Work Block:
   agents, hooks, skills, memory, and provider configuration.
 - **Codex -> Claude Code Handoff**: Codex delegates scoped work to Claude Code
   as an external team through file-based handoff.
+- **Codex model routing overlay**: optional user-level Codex profiles keep
+  strong models on orchestration/critic decisions and cheaper or local models
+  on bounded executor tasks. Real provider settings stay outside the generated
+  project unless the team deliberately adds private local config.
 
 ## Key Paths
 

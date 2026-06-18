@@ -16,6 +16,7 @@ guide explains how much of the framework to activate for the task.
 | Level 2 - Standard Codex SDLC | Work needs full Work Blocks, reusable skills, and stronger closeout | Level 1 plus `.agent/`, `docs/`, selected `skills/` | External AI CLI delegation |
 | Level 3 - Claude Code Team Runtime | Claude Code should run as its own orchestrator with agents, hooks, memory, and provider config | `CLAUDE.md`, `.claude/`, `.mcp.json`, `.agent/` | Automated handoff until CC works locally |
 | Level 4 - Codex -> Claude Code Handoff | Codex should delegate a scoped Work Block to Claude Code as an external team | `handoff/`, handoff task template, `memory_bank/external-team-log.md` | Parallel swarms until single handoff is reliable |
+| Advanced overlay - Codex model routing | Strong Codex reasoning should supervise cheaper executor models | User-level Codex profiles, optional custom agents, `framework/workflow/codex-model-routing.md` | Provider config in generated project templates |
 
 ## Level 1 - Minimal Codex-only
 
@@ -169,6 +170,49 @@ Expected result:
 - scope audit passes;
 - `memory_bank/external-team-log.md` records the external team result.
 
+## Advanced Overlay - Codex Model Routing
+
+This is not a separate runtime level. It is an optional overlay for users who
+want strong models only where they add clear value and cheaper models where the
+task is bounded execution.
+
+### Recommended Topology
+
+```text
+Codex mega-orchestrator
+  -> Codex critic for decision review
+  -> Claude Code teams for controlled implementation when needed
+```
+
+Use Codex for decomposition, architecture decisions, handoff acceptance, and
+critic review. Use Claude Code teams for scoped implementation when their hooks,
+logs, subagents, and project-local process make execution more controllable.
+
+### Configuration Boundary
+
+The base framework contains templates and policy only. Real provider settings,
+API keys, proxy URLs, and local model endpoints belong in the user's runtime
+configuration or the target project's private environment.
+
+Do not commit provider credentials, `.env` files, or user-level Codex/Claude
+Code runtime config into the framework.
+
+### Suggested Codex Profiles
+
+Keep real config in user-level Codex profiles such as:
+
+```text
+~/.codex/strong-review.config.toml
+~/.codex/cheap-worker.config.toml
+~/.codex/oss-local.config.toml
+```
+
+Use the strongest available model for Codex-Orchestrator decisions and Codex
+Critic review. Use cheaper or local models only after a smoke task proves they
+can handle the intended executor role.
+
+See `framework/workflow/codex-model-routing.md` for the detailed policy.
+
 ## Profile Selection Rules
 
 - Run the session bootstrap first; do not select a higher profile from stale
@@ -179,6 +223,8 @@ Expected result:
   target shell.
 - Use Level 4 only after a local Claude Code task has succeeded and the
   handoff runner has passed a smoke task.
+- Use Codex model routing only as an overlay. It must not weaken critic,
+  verification, write-gate, or secret-handling rules.
 - Do not add a higher level because it is available. Add it because the Work
   Block needs independent execution, better observability, or stronger review.
 

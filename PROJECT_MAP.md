@@ -42,6 +42,9 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
   agents, hooks, skills, memory, and provider configuration.
 - **Codex -> Claude Code Handoff**: Codex delegates scoped work to Claude Code
   as an external team through file-based handoff.
+- **Codex model routing overlay**: optional user-level Codex profiles keep
+  strong models on orchestration/critic decisions and cheaper or local models
+  on bounded executor tasks. It does not change the authority model.
 
 ## Key Paths
 
