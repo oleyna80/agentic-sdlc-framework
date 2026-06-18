@@ -172,6 +172,28 @@ Temporary specialization and tool availability never expand authority. A
 must not grant itself broader authority because it can run `psql`, `ssh`,
 `docker`, `curl`, MCP tools, or vendor CLIs.
 
+### Runtime Data Mutation Boundary
+
+Agents are planners and code authors, not trusted runtime executors for
+business data. In product/runtime flows, an agent may propose a structured
+action, draft a change, summarize data, or request a read-only view through an
+approved API. It must not directly write to a database, payment provider, order
+system, stock ledger, CRM, or production service.
+
+Runtime mutations must follow this boundary:
+
+1. Agent proposes an `ActionSpec` or equivalent structured request.
+2. Backend validates identity, scope, payload shape, and business invariants.
+3. Policy logic decides `deny`, `read-only`, `requires_approval`, or
+   `execute`.
+4. Risky mutations show a concrete diff/preview and collect user/admin
+   approval.
+5. Backend service/repository code executes the operation in the expected
+   transaction, idempotency, and audit-log context.
+
+Prompt instructions are not a security boundary. Tool availability and model
+capability do not authorize direct DB/API mutation.
+
 ### Hard Stops — require explicit Owner approval before proceeding
 
 | Condition | Why |

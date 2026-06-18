@@ -14,6 +14,10 @@
 
 ## What to log
 
+Append new summary rows below the table separator row (`|---|...|`) so the
+Markdown table remains valid. Keep detailed reports in dated sections below the
+guidance blocks or in `docs/reports/`.
+
 | Event | When | Content |
 |---|---|---|
 | Handoff start | At the beginning of delegated work | Team/mode, assigned objective, accepted scope |

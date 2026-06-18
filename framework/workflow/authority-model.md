@@ -20,6 +20,22 @@ An agent may only act when ALL four boundaries allow it:
 - Skill assignment (a skill routes work, doesn't grant permissions)
 - Model capability (a smarter model doesn't get more authority)
 
+## Runtime Action Boundary
+
+For business/runtime systems, an agent may plan or propose a data-changing
+operation, but the trusted backend must execute it. Direct agent writes to a DB,
+payment provider, order system, stock ledger, CRM, or production service are
+outside authority unless a separate emergency Work Block explicitly approves a
+human-supervised remediation path.
+
+Use this pattern for risky mutations:
+
+`Agent proposal -> structured ActionSpec -> policy gate -> approval if needed -> backend executor -> audit log`
+
+The audit trail should record the proposed action, policy decision, approval
+state, backend executor, verification evidence, and final result. Do not rely
+on private model reasoning as the audit artifact.
+
 ## Role Definitions
 
 | Role | Write Authority | Key Constraint |

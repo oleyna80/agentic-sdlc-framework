@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Expanded Work Block preflight, staging, and verification prompts with dirty
+  state capture, commit scope guards, canonical/scoped check contracts, and
+  frontend browser smoke notes.
+- Added `.playwright-cli/` to generated project ignore rules for local browser
+  automation artifacts.
+- Documented the runtime data mutation boundary: agents propose structured
+  actions, while trusted backend policy/executor code performs DB and business
+  mutations with approval and audit evidence.
+
 ## v0.1.0 - 2026-06-16
 
 - Added first-15-minutes onboarding docs that explain Codex-only, Claude Code

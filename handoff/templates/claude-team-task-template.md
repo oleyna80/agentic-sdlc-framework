@@ -9,6 +9,13 @@ allowed_scope:
   - tests/**
   - docs/**
   - memory_bank/external-team-log.md
+  # Include this block when Claude Code is expected to operate as a full
+  # independent team with its own orchestrator, critic, verifier, and memory.
+  - memory_bank/orchestrator-log.md
+  - memory_bank/review-log.md
+  - .agent/critic-gate.md
+  - .agent/verification-gate.md
+  - .claude/agent-memory/**
 forbidden_scope:
   - .env
   - .env.*
@@ -38,6 +45,12 @@ Do not include private chain-of-thought.
 
 Append or update a concise entry in `memory_bank/external-team-log.md` when
 that path is inside `allowed_scope`.
+
+Claude Code may also update its own internal process files when those paths are
+inside `allowed_scope`, for example `memory_bank/orchestrator-log.md`,
+`memory_bank/review-log.md`, `.agent/critic-gate.md`, and
+`.claude/agent-memory/**`. Treat those files as the internal audit trail of the
+external team, not as the final handoff report.
 
 The entry must summarize:
 - accepted objective and scope
