@@ -67,6 +67,7 @@ for path in \
   "SECURITY.md" \
   "CHANGELOG.md" \
   "PUBLICATION_CHECKLIST.md" \
+  ".claude/settings.json" \
   "bootstrap.sh" \
   "docs/quickstart-minimal.md" \
   "docs/profiles.md" \
@@ -75,6 +76,7 @@ for path in \
   "docs/templates/project-agent-update-template.md" \
   "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
   "docs/plans/2026-06-18-framework-navigation-control-layer.md" \
+  "docs/plans/2026-06-19-claude-code-plugin-profile.md" \
   "examples/README.md" \
   "examples/codex-only-nextjs/README.md" \
   "examples/codex-claude-reviewer/README.md" \
@@ -123,6 +125,7 @@ for path in \
   "framework/knowledge/README.md" \
   "framework/knowledge/claude-code-cli.md" \
   "framework/knowledge/claude-code-global-bootstrap.md" \
+  "framework/knowledge/claude-code-plugins.md" \
   "handoff/.gitignore" \
   "handoff/README.md" \
   "handoff/active/.gitkeep" \
@@ -205,8 +208,27 @@ for path_arg in sys.argv[1:]:
 print("YAML OK")
 PY
   ok "FILE_REGISTRY.yml YAML parsing"
+
+  python3 - "$ROOT/.claude/settings.json" <<'PY' || fail "Claude Code plugin allowlist validation failed"
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+expected = {
+    "frontend-design@claude-plugins-official": True,
+    "skill-creator@claude-plugins-official": True,
+}
+if data != {"enabledPlugins": expected}:
+    raise SystemExit(
+        f"{path} must contain only the approved enabledPlugins allowlist"
+    )
+print("Claude Code plugin allowlist OK")
+PY
+  ok "Claude Code plugin allowlist"
 else
-  fail "python3 not found; cannot validate YAML registries"
+  fail "python3 not found; cannot validate YAML registries or Claude Code plugin allowlist"
 fi
 
 BYTECODE="$(

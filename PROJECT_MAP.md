@@ -56,6 +56,7 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 | `PROJECT_MAP.md` | normative | Human-readable repository map. |
 | `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
 | `docs/` | mixed | Onboarding, profiles, policies, plans, templates, and session bootstrap. |
+| `.claude/settings.json` | normative runtime | Project-scoped Claude Code maintainer plugin profile; does not define generated-project defaults. |
 | `template/AGENTS.md` | normative template | Primary generated-project operating contract. |
 | `template/` | normative template | Files copied into generated projects. |
 | `skills/` | normative library | Portable skill library copied into generated projects. |
@@ -74,6 +75,8 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
   files are operational evidence, not authority.
 - `archive/**`, `.env*`, credentials, provider tokens, caches, build output,
   and local machine state must not become public framework content.
+- `.claude/settings.json` is publishable project policy; `.claude/plugins/**`
+  and other downloaded plugin state remain local-only.
 - Future graph/discovery outputs such as `graphify-out/**` should be treated as
   derived context only.
 

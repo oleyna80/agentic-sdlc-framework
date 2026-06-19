@@ -23,6 +23,30 @@ authority_order:
   - reference_docs_examples_logs_generated_artifacts
 
 entries:
+  .claude/settings.json:
+    role: framework_maintainer_claude_plugin_profile
+    status: normative
+    owner: maintainer
+    update_when:
+      - an approved Claude Code plugin changes
+      - plugin scope or compatibility policy changes
+      - project-level Claude Code configuration changes
+    related:
+      - framework/knowledge/claude-code-plugins.md
+      - framework/knowledge/claude-code-cli.md
+
+  framework/knowledge/claude-code-plugins.md:
+    role: claude_plugin_policy_and_audit
+    status: reference
+    owner: architect
+    update_when:
+      - a Claude Code plugin is evaluated
+      - approved plugin versions or sources change
+      - plugin review requirements change
+    related:
+      - .claude/settings.json
+      - framework/knowledge/claude-code-cli.md
+
   template/AGENTS.md:
     role: generated_project_agent_policy
     status: template
