@@ -56,6 +56,51 @@ Checked on 2026-06-19.
 | `context-mode@context-mode` | experimental context runtime | Keep disabled. It intercepts broad tool and lifecycle events and maintains local SQLite state, so hook ordering and audit behavior require an isolated compatibility test. |
 | `claude-mem` | experimental persistent-memory runtime | Keep disabled. It adds lifecycle hooks, a local worker service, storage, and provider configuration that overlap framework memory and observability. |
 
+## Installed Inventory Decisions
+
+The local Claude Code registry is machine-wide and can contain entries owned by
+other repositories. The following decisions apply to the framework profile;
+they do not authorize cleanup of user scope or another project's scope.
+
+Reviewed on 2026-06-19:
+
+| Plugin | Observed scope | Framework decision | Reason |
+|---|---|---|---|
+| `skill-creator` | framework project | keep enabled | Bounded skill-authoring capability; optional evaluation runtimes remain Owner-gated. |
+| `frontend-design` | framework project and pre-existing user/other-project entries | keep enabled for framework project | Focused design skill with no hooks, MCP server, or competing lifecycle. |
+| `codex` | user | do not enable; global cleanup is separate | Calls Codex CLI and can add a Stop review gate, conflicting with the framework's MCP-backed GPT critic/verifier contract and direct-CLI hard stop. |
+| `feature-dev` | user | do not enable | Introduces its own exploration, architecture, implementation, and review lifecycle. |
+| `code-simplifier` | user | do not enable | Proactive write-capable refactoring conflicts with one-Coder scope control and explicit review/fix stages. |
+| `security-guidance` | user | isolated profile only | Adds SessionStart, prompt, edit, commit, push, and Stop hooks; sends diffs to a configured model and defaults to an Anthropic model id that may not work through the current gateway. |
+| `session-report` | user | manual diagnostics only | Reads cross-project transcript history and writes an HTML artifact; useful for explicit cost/process analysis, not normal execution or canonical logging. |
+| `github` | user | project-specific only | Adds a broad remote MCP authority surface, including repository writes; enable only for a Work Block that needs GitHub operations. |
+| `pyright-lsp` | user | stack-specific only | Useful in Python projects, but not a generic framework runtime dependency. |
+| `code-review`, `commit-commands`, `typescript-lsp` | another project | out of scope | They are not installed for this repository. Do not change another project's plugin registry from this profile. |
+
+Disabled registry entries have no framework runtime effect. Do not remove them
+merely to make `claude plugin list` shorter: uninstalling user or foreign
+project entries changes state outside this repository. Perform such cleanup in
+a separate, explicitly global Work Block.
+
+## Candidate Scan
+
+The official marketplace contains many useful integrations, but usefulness is
+not sufficient for baseline activation. The baseline must remain portable,
+provider-neutral, and compatible with existing authority gates.
+
+| Candidate class | Decision | Adoption condition |
+|---|---|---|
+| `pr-review-toolkit`, `code-review`, external review services | optional review profile | Prove read-only behavior, bounded cost, and added value beyond Claude reviewer plus GPT critic. |
+| `security-guidance`, Semgrep, SonarQube | optional security profile | Test hook ordering, provider/model routing, diff disclosure, latency, and coexistence with critic and verification Stop hooks. |
+| `session-report` | manual observability profile | Owner explicitly requests cross-session analysis and approves transcript scope and generated report path. |
+| `typescript-lsp`, `pyright-lsp`, other LSP plugins | project stack profile | The target project uses the language and the required language server is available. |
+| GitHub, Playwright, Context7, provider or deployment MCP plugins | task-specific profile | A Work Block requires the external system and defines credentials, read/write authority, data boundary, and rollback. |
+| `claude-code-setup`, `claude-md-management`, memory/context plugins | do not add to baseline | They overlap framework onboarding, navigation, memory, or lifecycle ownership. Evaluate only against a demonstrated gap. |
+| `plugin-dev` | framework-development tool only | Add temporarily when this repository starts authoring a distributable Claude Code plugin. |
+
+No new plugin was promoted by the 2026-06-19 inventory audit. The two-plugin
+baseline is intentional, not an incomplete installation.
+
 Experimental plugins require a separate Work Block with an isolated test
 project, explicit hook-order analysis, data-retention review, rollback steps,
 and before/after evidence. Successful installation alone is not approval.
