@@ -35,6 +35,17 @@
 | Decision | Issue | Recommendation |
 |---|---|---|
 
+### Optional GPT Critic Merge
+
+> Complete this section only when the GPT critic trigger fires. This is Stage 0
+> critic evidence, not the Stage 2 -> 3 consolidation report.
+
+**GPT Critic Status:** NOT_REQUIRED / READY / DEGRADED / FAILED
+**Combined Assessment:** APPROVE / SUPPLEMENT / RECONSIDER
+
+| Finding | Source | Resolution |
+|---|---|---|
+
 ### Recommendations
 
 #### Must Address (blocking quality)

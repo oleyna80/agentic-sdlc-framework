@@ -16,3 +16,11 @@
 
 | ID | Task | Verdict | Date |
 |---|---|---|---|
+
+## Blocked
+
+| ID | Task | Verification Verdict | Blocker / Missing Evidence | Corrective Action |
+|---|---|---|---|---|
+
+Only tasks with verification verdict `READY` may move to Completed.
+`BLOCKED` and `UNVERIFIED` remain in Blocked after reporting-only closeout.

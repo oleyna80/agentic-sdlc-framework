@@ -53,7 +53,8 @@ Standard:
                 └─→ Verify (Verifier gate, tier-scoped)
                       └─→ Sync & Report (SSOT Sync + Owner report)
 
-Quick-fix (≤3 files, no route/schema/API/security):
+Quick-fix (at most 2 planned implementation files, excluding lifecycle evidence;
+no logic/route/schema/API/security/governance impact):
   Implement (Lite checks) → Inline sync → Done
 ```
 

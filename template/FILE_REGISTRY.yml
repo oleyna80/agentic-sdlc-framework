@@ -91,6 +91,28 @@ entries:
       - docs/session-bootstrap.md
       - memory_bank/orchestrator-log.md
 
+  docs/templates/verification-report-template.md:
+    role: verification_evidence_template
+    status: normative
+    owner: verifier
+    update_when:
+      - verification verdict schema changes
+      - evidence requirements change
+    related:
+      - .agent/verification-gate.md
+      - docs/templates/closeout-report-template.md
+
+  docs/templates/closeout-report-template.md:
+    role: closeout_classification_template
+    status: normative
+    owner: orchestrator
+    update_when:
+      - success or reporting-only closeout semantics change
+      - promotion restrictions change
+    related:
+      - .agent/workflows/sdd-protocol.md
+      - docs/templates/verification-report-template.md
+
   docs/templates/project-agent-update-template.md:
     role: framework_update_intake_template
     status: normative
@@ -142,6 +164,19 @@ entries:
     related:
       - AGENTS.md
       - .agent/workflows/sdd-protocol.md
+
+  .agent/workflows/sdd-protocol.md:
+    role: canonical_lifecycle_contract
+    status: normative
+    owner: architect
+    update_when:
+      - stage semantics change
+      - critic or verifier triggers change
+      - closeout classification changes
+    related:
+      - AGENTS.md
+      - .agent/critic-gate.md
+      - .agent/verification-gate.md
 
   .claude/**:
     role: claude_code_team_runtime

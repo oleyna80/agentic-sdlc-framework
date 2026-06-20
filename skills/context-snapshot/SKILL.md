@@ -31,7 +31,8 @@ Control Tower MUST create a snapshot when:
 
 Skip when:
 - Single subagent, sequential execution
-- Trivial Work Block (≤3 files, no parallelism)
+- Trivial Work Block (at most 2 planned implementation files, lifecycle
+  evidence excluded, no logic/route/schema/API/security/governance impact)
 
 ## When NOT to Use
 

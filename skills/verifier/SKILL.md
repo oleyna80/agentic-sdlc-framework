@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: "Pre-merge quality gate. Use to verify code is ready to ship: route contracts (status, Content-Type, body), TypeScript, tests, CSP/CSRF headers, schema alignment, secret leak scan. Issues structured READY or BLOCKED verdict with file:line evidence. Read-only. Для верификации, проверки перед мержем, инспекции кода, проверки роута."
+description: "Pre-merge quality gate. Use to verify code is ready to ship: route contracts (status, Content-Type, body), TypeScript, tests, CSP/CSRF headers, schema alignment, secret leak scan. Issues structured READY, BLOCKED, or UNVERIFIED verdict with evidence. Read-only. Для верификации, проверки перед мержем, инспекции кода, проверки роута."
 user-invocable: true
 argument-hint: "[verification tier: lite|standard|full] [target files or contract]"
 allowed-tools:
@@ -69,7 +69,7 @@ Hard Stop = останов, требуется Owner. Без одобрения 
 
 Уровень проверки задаётся Work Block. Verifier не выбирает уровень сам.
 
-### Lite (quick-fix, ≤3 files)
+### Lite (quick-fix, at most 2 planned implementation files; lifecycle evidence excluded)
 - [ ] Изменённые файлы соответствуют task description
 - [ ] Нет очевидных регрессий
 - [ ] Типы проходят, билд собирается
@@ -99,7 +99,8 @@ Standard +:
 0. **Сбор контекста:** `node .claude/skills/verifier/scripts/gather-context.mjs --json --tier <lite|standard|full>` — собирает git state (branch, SHA, changed files), Next.js routes (все + затронутые), и запускает проверки согласно tier (typecheck/lint для standard+, secret-scan для full). Используй JSON вывод как evidence.
 1. **Чтение контекста** — утверждённые AC, изменённые файлы, task description
 2. **Проверка** — прогон чеков соответствующего tier. Каждый: PASS/FAIL/BLOCKED/UNVERIFIED
-3. **Вердикт** — READY или BLOCKED. BLOCKED = конкретный чек + evidence
+3. **Вердикт** — READY, BLOCKED или UNVERIFIED. BLOCKED = failed check +
+   evidence; UNVERIFIED = required evidence unavailable
 4. **Доклад** — структурированный вердикт с evidence
 
 ## Obstacle Reporting
@@ -118,6 +119,10 @@ Standard +:
 
 **Правило:** UNVERIFIED ≠ PASS. Каждый UNVERIFIED — это пробел в верификации, который Control Tower должен осознанно принять или закрыть.
 
+`BLOCKED` или `UNVERIFIED` разрешают только reporting-only Stage 3. Они не
+разрешают merge, deploy, promotion, release readiness, успешное закрытие или
+статус задачи completed.
+
 ## Output Schema (JSON Schema)
 
 Для machine-валидации вывод Verifier должен соответствовать этой структуре:
@@ -128,7 +133,7 @@ Standard +:
   "type": "object",
   "required": ["verdict", "tier", "checks"],
   "properties": {
-    "verdict": { "type": "string", "enum": ["READY", "BLOCKED"] },
+    "verdict": { "type": "string", "enum": ["READY", "BLOCKED", "UNVERIFIED"] },
     "tier": { "type": "string", "enum": ["lite", "standard", "full"] },
     "checks": {
       "type": "array",
@@ -173,7 +178,7 @@ Standard +:
 ## Verifier Report
 
 **Tier:** <lite|standard|full>
-**Verdict:** READY / BLOCKED
+**Verdict:** READY / BLOCKED / UNVERIFIED
 
 ### Checks
 - [PASS/FAIL/BLOCKED] <check> — <evidence>

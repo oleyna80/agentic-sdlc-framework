@@ -18,7 +18,7 @@
 | codex-critic | APPROVE / SUPPLEMENT / RECONSIDER | Stage 0 scope, routing, topology, risk, verification critique |
 | critic | APPROVE / SUPPLEMENT / RECONSIDER | Scope issues, missed skills, weak skip reasons |
 | reviewer | HIGH / MEDIUM / LOW findings | Bug count, security issues, drift detected |
-| verifier | READY / BLOCKED | Failed checks, blockers |
+| verifier | READY / BLOCKED / UNVERIFIED | Failed checks, blockers, or missing evidence |
 | security-audit-triage | confirmed / partial / stale / rejected | P0/P1 fix scope |
 
 ## What NOT to log

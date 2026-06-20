@@ -84,11 +84,13 @@ status=$(field "Status")
 wb_id=$(field "Work Block")
 verification_tier=$(field "Verification Tier")
 new_domain=$(field "New Domain")
+sensitive_domains=$(field "Sensitive Domains")
 verifier_verdict=$(field "Claude Verifier Verdict")
 gpt_verifier_status=$(field "GPT Verifier Status")
 gpt_verifier_reason=$(field "GPT Verifier Reason")
 gpt_degraded_reason=$(field "GPT Verifier Degraded Reason")
 quick_fix=$(field "Quick-Fix")
+stage3_mode=$(field "Stage 3 Mode")
 
 [ -n "$wb_id" ] || deny "Verification gate: Work Block is required before closeout."
 
@@ -105,10 +107,25 @@ case "$new_domain" in
   PENDING|pending) deny "Verification gate: New Domain is PENDING. Classify domain status before closeout." ;;
   *) deny "Verification gate: invalid New Domain '${new_domain}'. Use true or false." ;;
 esac
+
+case "$sensitive_domains" in
+  none|NONE) ;;
+  PENDING|pending|"") deny "Verification gate: Sensitive Domains is ${sensitive_domains:-missing}. Use none or a comma-separated subset of auth,payments,db-schema,middleware." ;;
+  *)
+    IFS=',' read -r -a sensitive_domain_items <<< "$sensitive_domains"
+    for sensitive_domain in "${sensitive_domain_items[@]}"; do
+      sensitive_domain=$(printf '%s' "$sensitive_domain" | xargs)
+      case "$sensitive_domain" in
+        auth|payments|db-schema|middleware) gpt_verifier_required=1 ;;
+        *) deny "Verification gate: invalid Sensitive Domains value '${sensitive_domain}'. Use none or auth,payments,db-schema,middleware." ;;
+      esac
+    done
+    ;;
+esac
 case "$verifier_verdict" in
-  BLOCKED) gpt_verifier_required=1 ;;
+  BLOCKED|UNVERIFIED) gpt_verifier_required=1 ;;
   READY|PENDING|"") ;;
-  *) deny "Verification gate: invalid Claude Verifier Verdict '${verifier_verdict}'. Use READY, BLOCKED, or PENDING." ;;
+  *) deny "Verification gate: invalid Claude Verifier Verdict '${verifier_verdict}'. Use READY, BLOCKED, UNVERIFIED, or PENDING." ;;
 esac
 
 case "$gpt_verifier_status" in
@@ -134,9 +151,16 @@ case "$status" in
   READY)
     require_report_file "Verification Report" "verification READY"
     case "$verifier_verdict" in
-      READY|BLOCKED) ;;
+      READY)
+        [ "$stage3_mode" = "success-closeout" ] \
+          || deny "Verification gate: READY verdict requires Stage 3 Mode: success-closeout."
+        ;;
+      BLOCKED|UNVERIFIED)
+        [ "$stage3_mode" = "reporting-only" ] \
+          || deny "Verification gate: ${verifier_verdict} verdict requires Stage 3 Mode: reporting-only."
+        ;;
       PENDING|"") deny "Verification gate: Claude Verifier Verdict is ${verifier_verdict:-missing}. Record verifier verdict before closeout." ;;
-      *) deny "Verification gate: invalid Claude Verifier Verdict '${verifier_verdict}'. Use READY or BLOCKED." ;;
+      *) deny "Verification gate: invalid Claude Verifier Verdict '${verifier_verdict}'. Use READY, BLOCKED, or UNVERIFIED." ;;
     esac
     exit 0
     ;;
@@ -144,6 +168,11 @@ case "$status" in
   SKIPPED)
     [ "$quick_fix" = "true" ] \
       || deny "Verification gate: SKIPPED is only allowed when Quick-Fix is true."
+    [ "$verifier_verdict" = "READY" ] \
+      || deny "Verification gate: SKIPPED verifier dispatch still requires an inline READY verdict."
+    [ "$stage3_mode" = "success-closeout" ] \
+      || deny "Verification gate: inline READY verification requires Stage 3 Mode: success-closeout."
+    require_report_file "Verification Report" "inline verification READY"
     require_log_entry "verification: SKIPPED" "verification SKIPPED"
     exit 0
     ;;

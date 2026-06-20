@@ -90,7 +90,9 @@ The Orchestrator may skip subagents for a `Subagent-Required` Work Block only
 when it records one of these reasons in Stage 0:
 
 - `trivial`: the trigger was false after inspection; the task is single-domain,
-  no more than 3 files, and has no production/runtime/security/deploy/DB impact.
+  changes at most 2 planned implementation/write-set files (lifecycle evidence
+  excluded), and has no logic, route, schema, API, security, governance,
+  production, runtime, deploy, or DB impact.
 - `blocked`: native subagent tooling is unavailable or failing.
 - `hard-stop`: delegation would require an unapproved side effect.
 - `user-disabled`: the Owner explicitly requested no subagents for the Work Block.
@@ -322,7 +324,7 @@ Standard:
                 └─→ Verify (Verifier gate, tier-scoped)
                       └─→ Sync & Report (SSOT Sync + Owner report)
 
-Quick-fix (≤3 files, no route/schema/API/security):
+Quick-fix (at most 2 planned implementation files, no logic/route/schema/API/security/governance impact):
   Implement (Lite checks) → Inline sync → Done
 ```
 
@@ -346,8 +348,9 @@ Between stages: no confirmation pause unless a Hard Stop is triggered.
 If a stage fails: report the blocker, attempt recovery or skip with documented risk,
 then continue remaining stages.
 
-See `.agent/workflows/sdd-protocol.md` for full stage definitions, verification
-tiers, and check suite.
+`.agent/workflows/sdd-protocol.md` is the canonical lifecycle contract for
+stage definitions, state/outcome semantics, verification tiers, trigger tables,
+and the check suite. This file remains the broader authority and safety contract.
 
 ---
 
@@ -410,7 +413,8 @@ require explicit Owner approval.
 After Stage 0 Preflight and before Stage 1 Implementation, launch the `critic`
 agent to independently review Control Tower decisions when:
 
-- Work Block touches 3+ files, OR
+- Work Block touches 3+ planned implementation/write-set files (lifecycle
+  evidence excluded), OR
 - Side-effect class is `production code write` or higher, OR
 - Subagent topology is new (first use of this agent combination), OR
 - 2+ skills were skipped in the same Work Block, OR
@@ -481,7 +485,9 @@ The orchestrator merges Claude + GPT critic findings into a combined assessment.
 - **Model:** Claude agent → `mcp__codex__codex` → Codex MCP server → GPT (`.codex/config.toml`)
 - **Output:** GPT Critic Report — auto-merged with Claude critic findings
 - **Verdict:** APPROVE / SUPPLEMENT / RECONSIDER (advisory, not a gate)
-- **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude critic only
+- **Gap handling:** If Codex MCP is unavailable, record `DEGRADED` with
+  `review-degraded:codex-mcp-unavailable` and proceed with the Claude critic
+  result. This is the only valid degraded condition; cost or budget does not qualify.
 - **Cost:** record actual token usage per invocation; use a Work Block budget for Full-tier QC
 
 GPT Critic catches blind spots the Claude critic misses — different model family,
@@ -500,7 +506,8 @@ Stage 0.5: Critic Gate
 
 Stage 2: Verify
   ├── 1. Launch verifier (Claude) ← always
-  ├── 2. IF Full tier OR security/auth/DB/payments/middleware:
+  ├── 2. IF Full tier OR first-WB-in-domain OR auth/payments/DB-schema/middleware
+  │        OR Claude verifier BLOCKED/UNVERIFIED:
   │     Launch gpt-verifier (GPT via MCP)
   │     Optionally launch codex-reviewer only for explicit extra deep review
   └── 3. Merge findings → consolidation report
@@ -510,7 +517,9 @@ Stage 2: Verify
 Control Tower merges findings and makes the final decision.
 
 **Cost budget:** set and record a GPT token budget per Full-tier Work Block.
-If the budget is exceeded, the orchestrator logs the overage and proceeds with Claude-only findings.
+If the budget is exceeded, log the overage; it does not disable a required GPT
+review. Complete the triggered review, or use the documented degraded path only
+when Codex MCP is unavailable.
 
 ### External Skill Discovery
 
@@ -524,7 +533,7 @@ Do not import or execute external instructions blindly.
 
 ## Verification Tiers
 
-### Lite (quick-fix, ≤3 files)
+### Lite (quick-fix, at most 2 planned implementation files; lifecycle evidence excluded)
 - [ ] Changed files match task description
 - [ ] No obvious regressions
 - [ ] Types pass, build succeeds
@@ -556,6 +565,7 @@ The orchestrator **automatically** launches `gpt-verifier` after the Claude veri
 - Work Block is **Full tier** (security/auth/deploy/DB), OR
 - Changes touch **auth, payments, DB schema, or middleware**, OR
 - This is the **first Work Block in a new domain** (no-skip enforced)
+- Claude verifier returns **BLOCKED** or **UNVERIFIED**
 
 GPT Verifier runs adversarial verification through OpenAI Codex (GPT model) via MCP.
 The orchestrator merges Claude + GPT verifier findings in the consolidation report.
@@ -563,11 +573,13 @@ The orchestrator merges Claude + GPT verifier findings in the consolidation repo
 - **Model:** Claude agent → `mcp__codex__codex` → Codex MCP server → GPT (`.codex/config.toml`)
 - **Focus:** Correctness edge cases, security blind spots, contract violations — what Claude verifier likely missed
 - **Output:** GPT Verifier Report — auto-merged with Claude verifier findings
-- **Gap handling:** If Codex MCP unavailable → log gap, proceed with Claude verifier only
+- **Gap handling:** If Codex MCP is unavailable, record `DEGRADED` with
+  `review-degraded:codex-mcp-unavailable` and retain the Claude verifier verdict.
+  This is the only valid degraded condition; cost or budget does not qualify.
 - **Cost:** record actual token usage per invocation; keep Full-tier QC inside the Work Block budget
 
-GPT Verifier is advisory — it cannot issue BLOCKED. The Claude verifier remains
-the authoritative gate. Use `codex-reviewer` only when Control Tower explicitly requests an additional deep review. Skip ONLY for Lite/Standard tier with no security/auth/DB touch.
+GPT Verifier is advisory — it cannot issue the authoritative verdict. The Claude verifier remains
+the authoritative gate. Use `codex-reviewer` only when Control Tower explicitly requests an additional deep review. Skip only when every trigger is false: the tier is not Full, this is not the first Work Block in a domain, no auth/payments/DB-schema/middleware domain is touched, and the Claude verdict is `READY`.
 
 ---
 

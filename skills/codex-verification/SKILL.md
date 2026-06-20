@@ -32,15 +32,18 @@ read-only advisory reviewer/verifier by default.
 Control Tower MUST invoke this skill when:
 
 - Verification tier is **Full** (security/auth/deploy/DB Work Blocks)
-- Security-sensitive changes (per `AGENTS.md § Security Review Baseline`)
+- Changes touch **auth, payments, DB schema, or middleware**
 - First Work Block in a new domain (no-skip, critic mandatory)
-- After major refactoring — want a second opinion
-- Critic report shows SUPPLEMENT or RECONSIDER — double-check the fixes
+- Claude verifier verdict is **BLOCKED** or **UNVERIFIED**
+
+Control Tower MAY also invoke it after major refactoring or when another
+advisory opinion is useful.
 
 Skip when:
 - Codex is not installed or authenticated (log gap, proceed without)
-- Verification tier is Lite or Standard (Codex review is Full tier only)
-- Work Block is trivial (single-file, no logic change)
+- Verification tier is Lite or Standard only when no other mandatory trigger
+  matches
+- Work Block is trivial and no mandatory trigger matches
 
 ## Workflow
 
@@ -66,7 +69,7 @@ Skip when:
 ## Constraints
 
 - Codex output is **evidence, not acceptance** — Control Tower validates
-- Codex cannot issue BLOCKED — it's a reviewer, not a gate
+- Codex cannot issue the authoritative verdict — it is an advisory reviewer
 - If Codex is unavailable → log gap, proceed with Claude-only verification
 - Codex review adds time — use only for Full tier, not every WB
 - Codex findings may overlap with Claude findings → merge protocol deduplicates
@@ -74,6 +77,7 @@ Skip when:
   template MCP server also starts it with a read-only sandbox and never-ask
   approval policy.
 - Do not call `codex` through Bash; use the MCP tool only
+- Degraded Codex/GPT availability never upgrades a non-READY Claude verdict
 
 ## Handoff
 

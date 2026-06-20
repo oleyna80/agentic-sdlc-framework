@@ -38,7 +38,7 @@ Control Tower MUST run merge protocol when:
 
 - **2+ subagents completed** in the same Work Block (parallel dispatch)
 - **Workflow tool finished** all parallel/pipeline tasks
-- **Before Stage closeout** when parallel subagents were used
+- **At the Stage 2 to Stage 3 boundary** when parallel subagents were used
 
 Skip when:
 - Single subagent (no merge needed — use subagent output directly)
@@ -109,9 +109,11 @@ Key sections:
 
 ## Constraints
 
-- **Auto-proceed** if no conflicts and no BLOCKED verdicts
+- **Auto-proceed to success-closeout** only if there are no conflicts and every
+  authoritative verifier verdict is `READY`
 - **Hard stop** on unresolvable conflict — escalate to Control Tower, await decision
-- **Hard stop** on BLOCKED verdict — cannot proceed to closeout
+- **Hard stop** on successful closeout for `BLOCKED` or `UNVERIFIED`; Stage 3
+  may continue only in reporting-only mode
 - **Never discard findings** — even if accepted, document them
 - **Traceability** — every merged finding references its source agent(s)
 - Consolidation report is part of audit trail, never deleted
@@ -137,5 +139,6 @@ Key sections:
 
 - **Success condition:** consolidation report written, all findings deduplicated, conflicts resolved or escalated, logs updated
 - **Next:** SSOT Sync Closeout (if PROCEED) or corrective Work Block (if RERUN)
-- **Auto-proceed:** YES — if no conflicts and no BLOCKED verdicts
-- **Hard stop:** YES — on unresolvable conflict or BLOCKED verdict from verifier
+- **Auto-proceed:** YES — only if no conflicts and every authoritative verifier
+  verdict is `READY`
+- **Hard stop:** YES — on unresolvable conflict or any non-`READY` verifier verdict

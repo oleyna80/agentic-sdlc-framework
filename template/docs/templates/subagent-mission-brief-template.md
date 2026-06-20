@@ -56,6 +56,8 @@ Temporary specialization — narrows focus, does not expand authority.
 - [ ] Live DB migration
 - [ ] Credential rotation
 - [ ] Destructive git ops
+- [ ] Commit or push
+- [ ] Public release/publication
 - [ ] Client communications
 
 ## Required Checks / Verification Evidence

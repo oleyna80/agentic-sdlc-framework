@@ -35,14 +35,19 @@ allowed-tools:
 1. Сверить факт stage (что реально выполнено и проверено).
 2. Проверить acceptance evidence: subagent `DONE` не равен принятию результата;
    нужен scope/AC/checks verdict от Control Tower или Verifier.
-3. Обновить `progress.md` новой записью (done + notes + checks).
-4. Обновить `context.md` (current focus + next execution queue + date).
-5. Обновить `decisions.md` если в текущем stage принято архитектурное/runtime решение.
-6. Обновить delivery notes в tasklist.
-7. Прогнать `rg` на противоречивые старые формулировки.
-8. Для local-only ignored SSOT проверить, что Git их действительно игнорирует:
+3. Классифицировать closeout: `success-closeout` только для `READY`;
+   `reporting-only` для `BLOCKED` или `UNVERIFIED`.
+4. При reporting-only оставить задачу `blocked`, записать corrective action или
+   unresolved dependency и не использовать completed/release-ready/success
+   формулировки.
+5. Обновить `progress.md` новой записью (done + notes + checks).
+6. Обновить `context.md` (current focus + next execution queue + date).
+7. Обновить `decisions.md` если в текущем stage принято архитектурное/runtime решение.
+8. Обновить delivery notes в tasklist.
+9. Прогнать `rg` на противоречивые старые формулировки.
+10. Для local-only ignored SSOT проверить, что Git их действительно игнорирует:
    `git check-ignore -v <paths>`.
-9. Прямо проверить новые маркеры статуса/evidence через `rg -n` или `sed -n`,
+11. Прямо проверить новые маркеры статуса/evidence через `rg -n` или `sed -n`,
    потому что `git diff` может быть пустым для ignored files.
 
 ## Constraints
@@ -59,7 +64,7 @@ allowed-tools:
 - Residual risks
 
 ## Handoff
-- **Success condition**: memory_bank обновлён (context, progress, decisions при наличии ADR), tasklist обновлён, нет противоречий.
+- **Success condition**: memory_bank обновлён (context, progress, decisions при наличии ADR), tasklist обновлён, closeout mode соответствует verdict, нет противоречий.
 - **Next**: Control Tower (closeout report to Owner)
 - **Auto-proceed**: 🟢 YES
 - **Hard stop**: NO

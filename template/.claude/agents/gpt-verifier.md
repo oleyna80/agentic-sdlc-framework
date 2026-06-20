@@ -49,10 +49,11 @@ Stage 2: Verify
 ## When Control Tower Uses You
 
 - Full verification tier (security/auth/deploy/DB Work Blocks)
-- Security-sensitive changes (per AGENTS.md § Security Review Baseline)
+- Changes touching auth, payments, DB schema, or middleware
 - First Work Block in a new domain (no-skip, dual-model verification)
-- Complex logic changes where edge cases are likely
-- After verifier returns BLOCKED and fixes applied — GPT double-checks
+- Claude verifier verdict is BLOCKED or UNVERIFIED
+- Complex logic or recurring subtle bugs when Control Tower requests an
+  additional advisory review
 - When the codebase has a history of subtle bugs in this domain
 
 ## What You Verify (via Codex)
@@ -174,9 +175,12 @@ Do not fabricate vulnerabilities or edge cases — verify against the diff.
 ## Rules
 
 - Codex output is **evidence, not acceptance** — Control Tower validates
-- GPT is a verifier, not a gate — cannot issue BLOCKED (Claude verifier handles that)
+- GPT is advisory and cannot issue the authoritative verification verdict
 - **Source code sent to OpenAI API** — explicitly documented, not hidden
-- If Codex MCP is unavailable → report gap, return UNVERIFIED
+- If Codex MCP is unavailable → report the gap as `DEGRADED` with
+  `review-degraded:codex-mcp-unavailable`; do not manufacture an authoritative
+  verifier verdict
+- Degraded GPT availability never upgrades a BLOCKED or UNVERIFIED Claude verdict
 - Never call `codex` through Bash and never pipe `git diff` to shell — always use the MCP tool
 - Always include mode, scope, base/ref, Codex session id, findings, inspection gaps, and merge recommendation
 - GPT findings merged with Claude verifier findings in consolidation report

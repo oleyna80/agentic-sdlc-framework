@@ -75,7 +75,7 @@ These require **explicit Owner approval** before proceeding. No exceptions.
 
 After an Owner-approved plan is in place → execute the full agent stack
 **without pausing for intermediate confirmation**. Stop only for Hard Stops
-or a `BLOCKED` verifier verdict.
+or a non-`READY` verifier verdict (`BLOCKED` or `UNVERIFIED`).
 
 ---
 
@@ -146,9 +146,12 @@ Stage 2:   verifier (Claude) ──→ gpt-verifier (GPT via MCP) ──→ merg
                                └── codex-reviewer (optional extra deep review)
 ```
 
-GPT critic/verifier agents launch automatically when: Full tier, first WB in new domain, or
-Claude agent returns non-approve verdict. `codex-reviewer` is optional and only for explicit extra deep review. GPT output is advisory — Claude agents
-remain the authoritative gates. If Codex MCP unavailable → log gap, proceed.
+GPT critic/verifier agents launch automatically according to the canonical
+trigger tables in `.agent/workflows/sdd-protocol.md`. For GPT verification this
+includes Full tier, first WB in a new domain, auth/payments/DB-schema/middleware,
+or a Claude verdict of BLOCKED/UNVERIFIED. `codex-reviewer` is optional and only for explicit extra deep review. GPT output is advisory — Claude agents
+remain the authoritative gates. If Codex MCP is unavailable, record `DEGRADED`
+with `review-degraded:codex-mcp-unavailable`; the Claude verdict remains authoritative.
 
 **Setup (one-time):** Codex CLI + `codex login` + `.codex/config.toml` (model).
 Template `.mcp.json` and `.claude/settings.json` pre-configure the MCP server
@@ -162,8 +165,8 @@ with read-only sandboxing, never-ask approvals, and MCP tool permission. Direct
 2. `verifier` skill runs **before** implementation starts — confirms the research findings are real.
 3. Plan mode produces an approved plan file. Implementation does not start without approval.
 4. `critic` runs **after** Stage 0 Preflight, **before** Stage 1 — independently reviews Control Tower decisions. **Mandatory** when any critic trigger is active (see AGENTS.md). Skip requires Owner approval recorded in orchestrator-log.
-5. Implementation follows the plan. Stop only for Hard Stops or BLOCKED verifier verdict.
-6. `verifier` agent runs **after** implementation — issues READY/BLOCKED with evidence. Spawn as subagent when mandatory (see sdd-protocol.md Verifier Mode Decision Table). Use inline tsc only for 1-2 file, no-DB, no-auth changes.
+5. Implementation follows the plan. Stop promotion for Hard Stops or a non-READY verifier verdict.
+6. `verifier` agent runs **after** implementation — issues READY/BLOCKED/UNVERIFIED with evidence. Spawn as subagent when mandatory (see sdd-protocol.md Verifier Mode Decision Table). Use inline checks only for Quick-Fix eligible changes.
 
 **When to skip solution-architect:** solution-architect already covered this domain in a previous Work Block of the same project.
 
@@ -175,8 +178,9 @@ with read-only sandboxing, never-ask approvals, and MCP tool permission. Direct
 - New subagent topology (agent combination not used before in this project)
 - Cross-cutting concern (auth, logging, error handling, rate limiting)
 
-**When to skip critic:** trivial quick-fixes (typos, single-line changes, ≤2
-files, no route/schema/API/security impact) or routine documentation-only Work
+**When to skip critic:** trivial quick-fixes (typos or similarly bounded work,
+at most 2 planned implementation/write-set files with lifecycle evidence
+excluded, and no logic/route/schema/API/security/governance impact) or routine documentation-only Work
 Blocks that do not change workflow, contracts, release posture, safety,
 governance, or 3+ files. If a documentation-only Work Block matches a critic
 trigger, critic is required unless the Owner explicitly approves the skip. All

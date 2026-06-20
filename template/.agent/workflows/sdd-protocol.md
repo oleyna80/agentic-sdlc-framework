@@ -17,7 +17,19 @@ States:
 - **blocked** — dependency not met, Hard Stop triggered, or Owner approval needed
 - **ready** — dependencies cleared, write gate open, ready to execute
 - **in_progress** — currently executing
-- **completed** — all checks passed, artifacts written
+- **completed** — required stage work and evidence are complete; this does not
+  imply that verification passed
+
+Track these fields separately:
+
+- **Stage execution state:** `blocked | ready | in_progress | completed`
+- **Verification verdict:** `READY | BLOCKED | UNVERIFIED`
+- **Stage 3 mode:** `success-closeout | reporting-only`
+
+Only `READY` permits `success-closeout`. `BLOCKED` or `UNVERIFIED` permits
+Stage 3 reporting work only: the task remains blocked, corrective action or an
+unresolved dependency is recorded, and no promotion, merge, deploy,
+release-ready statement, successful closure, or completed task state is allowed.
 
 ---
 
@@ -36,9 +48,27 @@ States:
 3. **Subagent Topology** — classify `Subagent-Required` triggers, plan dispatch
 4. **Preflight** — output Stage 0 Preflight block: skills, subagent topology, side-effect class, DB mode, hard stops, write gate status
 5. **Research** — if needed, launch `solution-architect` for pre-implementation analysis
-6. **Critic Review** — launch `critic` agent to independently review Control Tower decisions (scope, skill routing, skip reasons, risk gaps). Required when: 3+ files touched, side-effect class ≥ production code write, new subagent topology, or 2+ skills skipped. Skip for trivial/documentation-only Work Blocks.
+6. **Critic Review** — launch `critic` agent to independently review Control Tower decisions (scope, skill routing, skip reasons, risk gaps) according to the trigger tables below.
 7. **GPT Critic Review** — launch `gpt-critic` after `critic` when the Work Block is Full tier, the first Work Block in a new domain, or the Claude critic returns SUPPLEMENT/RECONSIDER. If Codex MCP is unavailable, record `review-degraded:codex-mcp-unavailable` and continue with the Claude critic result.
 8. **Plan Approval** — produce plan, get Owner approval if non-trivial
+
+### Stage 0 Trigger Tables
+
+File-count triggers count planned implementation/write-set files only. Reports,
+logs, gates, and other lifecycle evidence artifacts are excluded.
+
+| Critic required when any condition matches | Skip rule |
+|---|---|
+| 3+ planned implementation files | Owner approval required to skip |
+| Side-effect class is production code write or higher | Owner approval required to skip |
+| New subagent topology | Owner approval required to skip |
+| 2+ matched skills are skipped | Owner approval required to skip |
+| Security, auth, payments, DB, deploy, or external provider work | Owner approval required to skip unless listed as no-skip |
+
+No-skip domains are first Work Blocks in authentication/authorization,
+payments/billing, database migration, a new service layer, and deploy or
+infrastructure. GPT critic is required for Full tier, first Work Block in a new
+domain, or Claude critic verdict `SUPPLEMENT`/`RECONSIDER`.
 
 ### Exit Conditions
 - Write gate: `READY`
@@ -99,10 +129,13 @@ verifier agent; cannot be replaced by inline tsc.
 | Side-effect class: live-infra / live-data | Spawn verifier agent + Full tier + `gpt-verifier` — **mandatory** |
 
 After the Claude verifier completes, launch `gpt-verifier` when the Work Block
-is Full tier, the first Work Block in a new domain, or the Claude verifier
-returns BLOCKED. If Codex MCP is unavailable, record
+is Full tier, the first Work Block in a new domain, changes touch auth,
+payments, DB schema, or middleware, or the Claude verifier returns `BLOCKED` or
+`UNVERIFIED`. Record those classifications in `Sensitive Domains` in the
+verification gate. If Codex MCP is unavailable, record
 `review-degraded:codex-mcp-unavailable` and continue with the Claude verifier
-verdict as authoritative.
+verdict as authoritative. Degraded GPT availability never upgrades a
+non-`READY` verdict.
 
 ### Activities
 
@@ -133,7 +166,7 @@ verdict as authoritative.
 - [ ] Consolidation: merge Verifier + Codex findings
 
 ### Exit Conditions
-- Verdict: `READY` or `BLOCKED`
+- Verdict: `READY`, `BLOCKED`, or `UNVERIFIED`
 - All blockers documented with file:line evidence
 - Verification report written to `docs/reports/`
 - GPT verifier second opinion completed or degraded reason recorded when its trigger matched
@@ -157,7 +190,7 @@ verdict as authoritative.
 1. **Collect** — gather all subagent reports from `docs/reports/` or direct outputs
 2. **Deduplicate** — group findings by `file:line`; same finding from multiple agents → one merged entry
 3. **Detect conflicts** — same file, different verdicts → apply conflict resolution rules:
-   - PASS vs ISSUES → ISSUES wins (conservative)
+   - READY vs ISSUES → ISSUES wins (conservative)
    - ISSUES vs BLOCKED → BLOCKED wins
    - Two different ISSUES on same file → both included
    - Unresolvable contradiction → escalate to Control Tower (hard stop)
@@ -179,18 +212,20 @@ verdict as authoritative.
 **Write authority:** `docs/reports/*`, `memory_bank/*`, `docs/tasklist/*`
 
 ### Entry Conditions
-- Verification complete (READY or BLOCKED with documented follow-ups)
+- Verification evidence complete with verdict `READY`, `BLOCKED`, or `UNVERIFIED`
 - If parallel agents were used: consolidation report written, conflicts resolved
 
 ### Activities
-1. **SSOT Sync** — update tasklist status, memory_bank context/progress/decisions
-2. **Crash Test Gate** — if routes changed: run local crash test
-3. **Closeout Report** — summarize: what was done, verification result, consolidation (if parallel), risks accepted, follow-ups
-4. **Owner Report** — present closeout summary
+1. **Classify closeout** — `success-closeout` only for `READY`; otherwise
+   `reporting-only`
+2. **SSOT Sync** — update tasklist status, memory_bank context/progress/decisions
+3. **Crash Test Gate** — if routes changed: run local crash test
+4. **Closeout Report** — summarize: what was done, verification result, consolidation (if parallel), risks accepted, follow-ups
+5. **Owner Report** — present closeout summary
 
 ### Exit Conditions
 - Memory bank updated
-- Tasklist updated
+- Tasklist updated; non-`READY` tasks remain blocked
 - Closeout report written
 - Owner notified
 
@@ -198,6 +233,8 @@ verdict as authoritative.
 
 ## Quick-Fix Path
 
-Skip Stages 0, 2, 3 for trivial changes: ≤3 files, no route/schema/API/security impact.
+Skip Stages 0, 2, 3 only for trivial changes: at most 2 planned
+implementation/write-set files, excluding lifecycle evidence, and no logic,
+route, schema, API, security, or governance impact.
 Flow: Implement (Lite self-check) → Inline sync → Done.
 Still applies: Hard Stops, secret scan, no scope expansion.

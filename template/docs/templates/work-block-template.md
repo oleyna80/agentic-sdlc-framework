@@ -11,6 +11,16 @@
 - **DB Action Mode:** [none | local_temp | live_readonly | live_migration_apply | runtime_app | emergency_remediation]
 - **Verification Tier:** [lite | standard | full]
 
+## Lifecycle State
+- **Current Stage:** [Stage 0 | Stage 1 | Stage 2 | Stage 3]
+- **Stage Execution State:** [blocked | ready | in_progress | completed]
+- **Write Gate:** [READY | BLOCKED]
+- **Owner Approval Evidence:** [message/reference | not required]
+- **Critic Gate:** [PENDING | READY | SKIPPED]
+- **Verification Gate:** [PENDING | READY | SKIPPED]
+- **Verification Verdict:** [PENDING | READY | BLOCKED | UNVERIFIED]
+- **Stage 3 Mode:** [pending | success-closeout | reporting-only]
+
 ## Objective
 [What user or technical outcome does this Work Block produce?]
 
@@ -68,6 +78,9 @@ and what must be left clean.]
 [Approved files/directories]
 ```
 
+For Quick-Fix classification, count planned implementation/write-set files
+only. Exclude lifecycle evidence such as reports, logs, and gate files.
+
 ## Navigation Impact
 - **Files added/moved/removed:** [none | list]
 - **PROJECT_MAP.md update needed:** [yes | no; why]
@@ -96,6 +109,8 @@ and what must be left clean.]
 - [ ] Live DB migration
 - [ ] Credential rotation
 - [ ] Destructive git ops
+- [ ] Commit or push
+- [ ] Public release/publication
 - [ ] Client communications
 
 ## Subagent Strategy
@@ -146,6 +161,8 @@ lessons to fill the form.
 
 ### Result Summary
 - **Final Result:** [actual end state compared with Expected Final Result]
+- **Closeout Classification:** [SUCCESS | REPORTING_ONLY]
+- **Task Status:** [completed only when verdict READY | blocked]
 - **Verification Evidence:** [commands, logs, reports, artifacts]
 - **Residual Risks:** [known gaps, deferred checks, assumptions]
 
@@ -170,3 +187,8 @@ lessons to fill the form.
 - **Navigation updates:** [PROJECT_MAP.md, FILE_REGISTRY.yml, session bootstrap,
   profile docs, none / not applicable]
 - **Follow-up Work Blocks:** [links or IDs]
+
+`SUCCESS` requires verification verdict `READY`. For `BLOCKED` or
+`UNVERIFIED`, use `REPORTING_ONLY`, keep the task blocked, record corrective
+action or an unresolved dependency, and do not claim promotion, merge, deploy,
+release readiness, successful closure, or completed task status.

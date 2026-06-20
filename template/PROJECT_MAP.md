@@ -49,9 +49,11 @@ Start with the smallest mode that can safely deliver the Work Block:
 | `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
 | `.codex/` | normative runtime | Codex write gate, critic contract, and hooks. |
 | `.agent/` | normative routing | Runtime-neutral roster, workflows, gates, and skills. |
+| `.agent/workflows/sdd-protocol.md` | normative | Canonical lifecycle contract and stage semantics. |
 | `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and memory. |
 | `memory_bank/` | mixed | Durable project context, decisions, logs, and external team reports. |
 | `docs/` | mixed | Plans, specs, tasklists, reports, templates, and references. |
+| `docs/templates/{verification-report,closeout-report}-template.md` | normative | Verification evidence and success/reporting-only closeout contracts. |
 | `scripts/` | project-specific | Bootstrap and project automation scripts. |
 | source directories | project-specific | Application or service code. See `AGENTS.md`. |
 

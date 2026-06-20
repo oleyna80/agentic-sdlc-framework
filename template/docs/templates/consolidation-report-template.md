@@ -8,7 +8,7 @@
 ## Consolidation Report — [Work Block ID]
 
 **Date:** [YYYY-MM-DD HH:MM]
-**Stage:** [Stage 1 / 2]
+**Boundary:** Stage 2 → Stage 3
 **Snapshot ref:** `memory_bank/snapshots/snapshot-[wb-id]-[stage]-[date].md`
 **Agents completed:** N of N
 **Conflict status:** NONE / RESOLVED / ESCALATED
@@ -17,7 +17,7 @@
 
 | Agent | Verdict | Completed | Key Findings | Report |
 |---|---|---|---|---|
-| verifier | PASS / BLOCKED | HH:MM | — | `docs/reports/verifier-wb-XXX.md` |
+| verifier | READY / BLOCKED / UNVERIFIED | HH:MM | — | `docs/reports/verifier-wb-XXX.md` |
 | reviewer | ISSUES / CLEAN | HH:MM | 3 findings | `docs/reports/reviewer-wb-XXX.md` |
 
 ### Merged Findings
@@ -37,7 +37,7 @@ Different verdicts on the same artifact.
 | `src/lib/validation.ts` | reviewer | ISSUES: type mismatch | verifier | PASS: types OK | **Resolved:** reviewer read stale version — verifier's snapshot is newer. Verdict: PASS. |
 
 **Conflict resolution rules applied:**
-- PASS vs ISSUES → ISSUES wins (conservative)
+- READY vs ISSUES → ISSUES wins (conservative)
 - ISSUES vs BLOCKED → BLOCKED wins
 - Two different ISSUES on same file → both included in merged findings
 - Unresolvable conflict → escalated to Control Tower
@@ -66,7 +66,7 @@ What is not closed in this Work Block — moves to backlog.
 
 ### Control Tower Decision
 
-**Decision:** PROCEED / ESCALATE / RERUN [agent]
+**Decision:** SUCCESS_CLOSEOUT / REPORTING_ONLY / RERUN [agent]
 
 **Rationale:**
 [Why this decision — 1-2 sentences]
@@ -77,3 +77,6 @@ What is not closed in this Work Block — moves to backlog.
 - [ ] `review-log.md` updated with all subagent results
 - [ ] Follow-up Work Blocks created in tasklist
 - [ ] Stage transition: [next stage]
+
+`SUCCESS_CLOSEOUT` requires authoritative verification verdict `READY`.
+`BLOCKED` or `UNVERIFIED` requires `REPORTING_ONLY`; the task remains blocked.

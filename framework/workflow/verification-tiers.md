@@ -18,7 +18,9 @@ Control Tower or Work Block specifies the tier. If unspecified — use Standard.
 
 ## Lite
 
-For trivial changes: ≤3 files, no route/schema/API/security impact.
+For trivial changes: at most 2 planned implementation/write-set files,
+excluding lifecycle evidence, with no logic, route, schema, API, security, or
+governance impact.
 
 - [ ] Changed files match task description
 - [ ] No obvious regressions

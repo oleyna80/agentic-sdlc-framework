@@ -77,11 +77,13 @@ for path in \
   "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
   "docs/plans/2026-06-18-framework-navigation-control-layer.md" \
   "docs/plans/2026-06-19-claude-code-plugin-profile.md" \
+  "docs/plans/2026-06-20-sdd-protocol-template-convergence.md" \
   "examples/README.md" \
   "examples/codex-only-nextjs/README.md" \
   "examples/codex-claude-reviewer/README.md" \
   "examples/codex-claude-handoff-smoke/README.md" \
   "scripts/test-handoff-scope-audit.sh" \
+  "scripts/test-sdd-contract.sh" \
   "template/project.gitignore" \
   "template/PROJECT_MAP.md" \
   "template/FILE_REGISTRY.yml" \
@@ -117,6 +119,11 @@ for path in \
   "template/.codex/write-gate.md" \
   "template/memory_bank/external-team-log.md" \
   "template/docs/session-bootstrap.md" \
+  "template/docs/templates/work-block-template.md" \
+  "template/docs/templates/tasklist-template.md" \
+  "template/docs/templates/consolidation-report-template.md" \
+  "template/docs/templates/verification-report-template.md" \
+  "template/docs/templates/closeout-report-template.md" \
   "template/docs/templates/project-agent-update-template.md" \
   "template/docs/plans/README.md" \
   "template/docs/specs/README.md" \
@@ -260,6 +267,7 @@ for script in \
   "$ROOT/bootstrap.sh" \
   "$ROOT/scripts/test-critic-gate.sh" \
   "$ROOT/scripts/test-handoff-scope-audit.sh" \
+  "$ROOT/scripts/test-sdd-contract.sh" \
   "$ROOT/template/scripts/bootstrap.sh" \
   "$ROOT/template/.claude/hooks/hard-stop.sh" \
   "$ROOT/template/.claude/hooks/typecheck.sh" \
@@ -277,6 +285,7 @@ ok "bash syntax checks completed"
 
 "$ROOT/scripts/test-critic-gate.sh" || fail "critic gate smoke tests failed"
 "$ROOT/scripts/test-handoff-scope-audit.sh" || fail "handoff scope audit smoke test failed"
+"$ROOT/scripts/test-sdd-contract.sh" || fail "SDD contract tests failed"
 
 if command -v python3 >/dev/null 2>&1; then
   python3 -B -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text())' "$ROOT/template/.codex/hooks/stage0_write_gate.py" || fail "Python syntax failed"

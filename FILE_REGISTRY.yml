@@ -60,6 +60,41 @@ entries:
       - FILE_REGISTRY.yml
       - template/PROJECT_MAP.md
 
+  template/.agent/workflows/sdd-protocol.md:
+    role: generated_project_canonical_lifecycle_contract
+    status: template
+    owner: architect
+    update_when:
+      - stage semantics change
+      - critic or verifier triggers change
+      - closeout classification changes
+    related:
+      - template/AGENTS.md
+      - template/.agent/critic-gate.md
+      - template/.agent/verification-gate.md
+
+  template/docs/templates/verification-report-template.md:
+    role: generated_project_verification_evidence_template
+    status: template
+    owner: verifier
+    update_when:
+      - verification verdict schema changes
+      - evidence requirements change
+    related:
+      - template/.agent/verification-gate.md
+      - template/docs/templates/closeout-report-template.md
+
+  template/docs/templates/closeout-report-template.md:
+    role: generated_project_closeout_classification_template
+    status: template
+    owner: orchestrator
+    update_when:
+      - success or reporting-only closeout semantics change
+      - promotion restrictions change
+    related:
+      - template/.agent/workflows/sdd-protocol.md
+      - template/docs/templates/verification-report-template.md
+
   README.md:
     role: public_entrypoint
     status: normative

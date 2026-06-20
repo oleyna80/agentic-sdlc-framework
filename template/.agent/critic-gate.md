@@ -12,6 +12,9 @@ GPT Critic Degraded Reason: [none]
 
 # Critic Gate
 
+Approved Write-Set:
+- [path/pattern]
+
 > Control Tower updates this file after Stage 0 Preflight.
 > The `critic-gate.sh` hook blocks Edit/Write until critic review,
 > subagent topology, GPT critic decision, and write-set are resolved.

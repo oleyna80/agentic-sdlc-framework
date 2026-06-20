@@ -67,12 +67,23 @@ write_verification_gate() {
   local verifier_verdict="$5"
   local gpt="$6"
   local quick_fix="${7:-false}"
+  local sensitive_domains="${8:-none}"
+  local stage3_mode="${9:-}"
+
+  if [ -z "$stage3_mode" ]; then
+    case "$verifier_verdict" in
+      READY) stage3_mode="success-closeout" ;;
+      BLOCKED|UNVERIFIED) stage3_mode="reporting-only" ;;
+      *) stage3_mode="PENDING" ;;
+    esac
+  fi
 
   cat > "$dir/.agent/verification-gate.md" <<EOF
 Status: $status
 Work Block: WB-smoke
 Verification Tier: $tier
 New Domain: $new_domain
+Sensitive Domains: $sensitive_domains
 Claude Verifier Verdict: $verifier_verdict
 Verification Report: docs/reports/verification-WB-smoke.md
 GPT Verifier Status: $gpt
@@ -80,6 +91,7 @@ GPT Verifier Reason: no GPT verifier trigger matched
 GPT Verifier Report: docs/reports/gpt-verifier-WB-smoke.md
 GPT Verifier Degraded Reason: none
 Quick-Fix: $quick_fix
+Stage 3 Mode: $stage3_mode
 EOF
 }
 
@@ -182,10 +194,29 @@ write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQU
 assert_verification_allowed_empty "$CASE_DIR"
 
 write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "NOT_REQUIRED"
+printf '| WB-smoke | gpt-budget: exceeded -- no authority to bypass trigger |\n' >> "$CASE_DIR/memory_bank/orchestrator-log.md"
 assert_verification_denied_contains "$CASE_DIR" "GPT verifier is required"
 
 write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "READY"
 assert_verification_allowed_empty "$CASE_DIR"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "auth"
+assert_verification_denied_contains "$CASE_DIR" "GPT verifier is required"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "READY" "false" "auth"
+assert_verification_allowed_empty "$CASE_DIR"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "unknown"
+assert_verification_denied_contains "$CASE_DIR" "invalid Sensitive Domains"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "UNVERIFIED" "NOT_REQUIRED"
+assert_verification_denied_contains "$CASE_DIR" "GPT verifier is required"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "UNVERIFIED" "READY"
+assert_verification_allowed_empty "$CASE_DIR"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "UNVERIFIED" "READY" "false" "none" "success-closeout"
+assert_verification_denied_contains "$CASE_DIR" "requires Stage 3 Mode: reporting-only"
 
 write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "DEGRADED"
 assert_verification_denied_contains "$CASE_DIR" "GPT verifier DEGRADED requires"
@@ -193,8 +224,18 @@ sed -i 's/GPT Verifier Degraded Reason: none/GPT Verifier Degraded Reason: revie
 printf '| WB-smoke | review-degraded:codex-mcp-unavailable |\n' >> "$CASE_DIR/memory_bank/orchestrator-log.md"
 assert_verification_allowed_empty "$CASE_DIR"
 
-write_verification_gate "$CASE_DIR" "SKIPPED" "lite" "false" "PENDING" "NOT_REQUIRED" "true"
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "BLOCKED" "DEGRADED"
+sed -i 's/GPT Verifier Degraded Reason: none/GPT Verifier Degraded Reason: review-degraded:codex-mcp-unavailable/' "$CASE_DIR/.agent/verification-gate.md"
+assert_verification_allowed_empty "$CASE_DIR"
+
+write_verification_gate "$CASE_DIR" "SKIPPED" "lite" "false" "READY" "NOT_REQUIRED" "true"
 printf '| WB-smoke | verification: SKIPPED -- Quick-Fix -- docs-only |\n' >> "$CASE_DIR/memory_bank/orchestrator-log.md"
 assert_verification_allowed_empty "$CASE_DIR"
+
+write_verification_gate "$CASE_DIR" "SKIPPED" "lite" "false" "UNVERIFIED" "READY" "true" "none" "success-closeout"
+assert_verification_denied_contains "$CASE_DIR" "still requires an inline READY verdict"
+
+write_verification_gate "$CASE_DIR" "SKIPPED" "lite" "false" "READY" "NOT_REQUIRED" "true" "none" "reporting-only"
+assert_verification_denied_contains "$CASE_DIR" "inline READY verification requires Stage 3 Mode: success-closeout"
 
 echo "OK: critic/verification gate smoke tests passed"

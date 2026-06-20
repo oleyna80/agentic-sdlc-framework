@@ -41,7 +41,8 @@ Control Tower writes to `memory_bank/orchestrator-log.md`:
 - **After critic skip** — log valid skip condition or explicit Owner approval
 - **On scope change** — log what changed + why + re-approval status
 - **On Hard Stop trigger** — log which Hard Stop + Owner decision
-- **After Stage 3 Closeout** — log final outcome (READY/BLOCKED/ESCALATED),
+- **After Stage 3 Closeout** — log verification verdict
+  (READY/BLOCKED/UNVERIFIED), closeout mode (success-closeout/reporting-only),
   residual risks, critic value, and any framework update produced by the
   retrospective
 
@@ -77,7 +78,8 @@ verdict/findings into `review-log.md`.
 2. After critic returns or fallback completes: update row with critic mode/verdict
 3. On scope change or Hard Stop: add row immediately
 4. After merge protocol (if parallel agents used): add row with consolidation decision
-5. After Stage 3 Closeout: add row with final outcome, critic value, residual
+5. After Stage 3 Closeout: add row with verification verdict, closeout mode,
+   critic value, residual
    risks, and any follow-up framework update
 
 ### For review-log

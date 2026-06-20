@@ -58,6 +58,8 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 | `docs/` | mixed | Onboarding, profiles, policies, plans, templates, and session bootstrap. |
 | `.claude/settings.json` | normative runtime | Project-scoped Claude Code maintainer plugin profile; does not define generated-project defaults. |
 | `template/AGENTS.md` | normative template | Primary generated-project operating contract. |
+| `template/.agent/workflows/sdd-protocol.md` | normative template | Canonical generated-project lifecycle contract and stage semantics. |
+| `template/docs/templates/{verification-report,closeout-report}-template.md` | normative template | Verification evidence and success/reporting-only closeout contracts. |
 | `template/` | normative template | Files copied into generated projects. |
 | `skills/` | normative library | Portable skill library copied into generated projects. |
 | `framework/` | reference | Background knowledge and lessons learned. |
