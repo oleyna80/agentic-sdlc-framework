@@ -119,6 +119,12 @@ The `.agent/`, `memory_bank/`, `.claude/agent-memory/` workflow layer is
 intentionally local-first. Do not remove these paths from `.gitignore` or
 publish them unless the Owner explicitly approves a public workflow-doc release.
 
+Durable engineering memory belongs in committed `docs/engineering-memory/`.
+Use it for decisions, source-of-truth chains, temporary exceptions, and
+reproducibility notes that should be clear to Codex, Claude Code, OpenCode,
+Antigravity, and future agents. Keep operational logs in `memory_bank/`; promote
+only reusable, evidence-backed knowledge during closeout.
+
 Run `scripts/bootstrap.sh` after cloning or restoring a workspace to verify that
 the local workflow layer required by the Session Start Read Set is present.
 Bootstrap is a preflight check; it does not install secrets, fetch private
@@ -363,13 +369,14 @@ For non-trivial work, read these files before planning edits:
 3. `FILE_REGISTRY.yml` — machine-readable key file/path registry
 4. `docs/session-bootstrap.md` — session intake and impact-check procedure
 5. `.agent/workflows/sdd-protocol.md` — stage flow, verification tiers, quick-fix rules
-6. `.agent/ROSTER.md` — agent/mode and skill routing
-7. `memory_bank/context.md` — current focus and next gate
-8. `memory_bank/progress.md` — rolling status log
-9. `memory_bank/decisions.md` — ADRs and durable decisions
+6. `docs/engineering-memory/` — durable project decisions and source-of-truth chains
+7. `.agent/ROSTER.md` — agent/mode and skill routing
+8. `memory_bank/context.md` — operational focus and next gate
+9. `memory_bank/progress.md` — rolling operational status log
+10. `memory_bank/decisions.md` — local decision notes pending promotion
 
 For multi-Work-Block sessions or when resuming after interruption, also read:
-- `memory_bank/orchestrator-log.md` — why past decisions were made
+- `memory_bank/orchestrator-log.md` — operational history and rationale notes
 - `memory_bank/review-log.md` — what past subagents found
 
 Read additional specs, plans, tasklists, skills, or code only when they are relevant
@@ -625,13 +632,16 @@ Full roster with skill assignments: `.agent/ROSTER.md`
 
 ## Memory Bank Protocol
 
-On every session start, read:
+On every non-trivial session start, read durable memory before operational logs:
 
-1. `memory_bank/context.md` — current focus, scope, next step
-2. `memory_bank/progress.md` — done / in-progress / next
-3. `memory_bank/decisions.md` — architecture decisions and rationale
+1. `docs/engineering-memory/` — durable decisions and source-of-truth chains
+2. `memory_bank/context.md` — current focus, scope, next step
+3. `memory_bank/progress.md` — done / in-progress / next
+4. `memory_bank/decisions.md` — local decision notes pending promotion
 
-Update memory bank only after implementation has verification evidence.
+Update `memory_bank/` only after implementation has verification evidence.
+Promote reusable, cross-session engineering knowledge to
+`docs/engineering-memory/` during closeout.
 
 ---
 
@@ -655,7 +665,8 @@ When sources of truth conflict, resolve in this order:
 2. `docs/plans/` — approved plans
 3. `docs/specs/` — specifications
 4. `docs/reports/` — verification and closeout reports
-5. `memory_bank/` — context, progress, decisions
+5. `docs/engineering-memory/` — durable engineering memory
+6. `memory_bank/` — operational context, progress, and local decision notes
 
 ---
 

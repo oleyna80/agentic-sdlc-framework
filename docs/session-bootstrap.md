@@ -14,9 +14,10 @@ or relying on stale memory.
 2. Read `PROJECT_MAP.md`.
 3. Read `FILE_REGISTRY.yml`.
 4. Read the current task, issue, or Work Block plan.
-5. Run `git status --short --branch`.
-6. Inspect relevant uncommitted diffs before proposing edits.
-7. Read only the target files and directly related files from the registry.
+5. Read relevant `docs/engineering-memory/` entries when the project has them.
+6. Run `git status --short --branch`.
+7. Inspect relevant uncommitted diffs before proposing edits.
+8. Read only the target files and directly related files from the registry.
 
 ## Required Preflight Questions
 
@@ -40,20 +41,23 @@ Use this order when sources disagree:
 2. Active workspace `AGENTS.md` when present.
 3. Approved Work Block plan and write-set.
 4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`.
-5. Runtime policy files and hooks.
-6. Reference docs, examples, logs, generated/discovery artifacts.
+5. Current `docs/engineering-memory/` entries.
+6. Runtime policy files and hooks.
+7. Reference docs, examples, logs, generated/discovery artifacts.
 
 If a generated/discovery artifact conflicts with a normative file, report the
 conflict and follow the normative file unless the Owner decides otherwise.
 
 ## Memory Use
 
-- Use durable memory and previous logs as hints, not proof.
+- Use `docs/engineering-memory/` as durable project memory, below current
+  task/spec/plan/report files and above operational logs.
+- Use runtime memory and previous logs as hints, not proof.
 - If a fact is cheap to verify from the repository, verify it.
 - Do not assume a previous session's plan, status, or command output is still
   current.
-- Record evidence in Work Block closeout rather than relying on conversation
-  history.
+- Record evidence in Work Block closeout and promote reusable knowledge to
+  `docs/engineering-memory/` instead of relying on conversation history.
 
 ## File Registry Use
 
@@ -76,6 +80,7 @@ When adding, moving, or removing important files, check:
 - `README.md`
 - `SETUP.md`
 - `docs/profiles.md`
+- `docs/engineering-memory/`
 - `scripts/validate-publication.sh`
 - generated project template files under `template/`
 

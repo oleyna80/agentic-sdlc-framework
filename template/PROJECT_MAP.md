@@ -16,9 +16,10 @@ When files conflict, use this order:
 2. `AGENTS.md` in this project.
 3. Approved Work Block plan and write-set.
 4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`.
-5. Runtime-specific policy files such as `.codex/critic.md`,
+5. Current `docs/engineering-memory/` entries.
+6. Runtime-specific policy files such as `.codex/critic.md`,
    `.codex/write-gate.md`, `.claude/settings.json`, hooks, and agent prompts.
-6. Reference docs, examples, logs, and generated/discovery artifacts.
+7. Reference docs, examples, logs, and generated/discovery artifacts.
 
 Generated or discovery artifacts may help locate information, but they do not
 override normative instructions, Owner decisions, or approved scope.
@@ -51,7 +52,8 @@ Start with the smallest mode that can safely deliver the Work Block:
 | `.agent/` | normative routing | Runtime-neutral roster, workflows, gates, and skills. |
 | `.agent/workflows/sdd-protocol.md` | normative | Canonical lifecycle contract and stage semantics. |
 | `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and memory. |
-| `memory_bank/` | mixed | Durable project context, decisions, logs, and external team reports. |
+| `docs/engineering-memory/` | normative | Durable project engineering memory for all agent runtimes. |
+| `memory_bank/` | mixed local | Operational context, decision summaries, logs, and external team reports. |
 | `docs/` | mixed | Plans, specs, tasklists, reports, templates, and references. |
 | `docs/templates/{verification-report,closeout-report}-template.md` | normative | Verification evidence and success/reporting-only closeout contracts. |
 | `scripts/` | project-specific | Bootstrap and project automation scripts. |
@@ -62,6 +64,8 @@ Start with the smallest mode that can safely deliver the Work Block:
 - `docs/plans/**` and `docs/reports/**` are Work Block evidence and reports;
   the current approved plan matters more than older plans.
 - `docs/templates/**` are reusable coordination and Work Block templates.
+- `docs/engineering-memory/**` is committed durable project memory; keep it
+  evidence-backed and secret-free.
 - `memory_bank/orchestrator-log.md`, `memory_bank/review-log.md`, and
   `memory_bank/external-team-log.md` are evidence logs, not current authority.
 - `.claude/agent-memory/**` is project-local agent memory unless deliberately
@@ -79,8 +83,9 @@ For project work, read in this order:
 3. `FILE_REGISTRY.yml`
 4. `docs/session-bootstrap.md`
 5. The current task or Work Block plan
-6. `git status --short --branch`
-7. Relevant diffs and target files
+6. Relevant `docs/engineering-memory/` entries
+7. `git status --short --branch`
+8. Relevant diffs and target files
 
 Do not assume memory from a previous session is current when repository files
 are cheap to verify.

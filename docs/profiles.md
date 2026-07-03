@@ -12,7 +12,7 @@ guide explains how much of the framework to activate for the task.
 
 | Profile | Use When | Main Files | Avoid Initially |
 |---|---|---|---|
-| Level 1 - Minimal Codex-only | One local agent needs scope, logs, review, and verification | `AGENTS.md`, `.codex/`, `memory_bank/`, core skills | Claude Code, MCP, handoff, hooks |
+| Level 1 - Minimal Codex-only | One local agent needs scope, logs, review, and verification | `AGENTS.md`, `.codex/`, `docs/engineering-memory/`, `memory_bank/`, core skills | Claude Code, MCP, handoff, hooks |
 | Level 2 - Standard Codex SDLC | Work needs full Work Blocks, reusable skills, and stronger closeout | Level 1 plus `.agent/`, `docs/`, selected `skills/` | External AI CLI delegation |
 | Level 3 - Claude Code Team Runtime | Claude Code should run as its own orchestrator with agents, hooks, memory, and provider config | `CLAUDE.md`, `.claude/`, `.mcp.json`, `.agent/` | Automated handoff until CC works locally |
 | Level 4 - Codex -> Claude Code Handoff | Codex should delegate a scoped Work Block to Claude Code as an external team | `handoff/`, handoff task template, `memory_bank/external-team-log.md` | Parallel swarms until single handoff is reliable |
@@ -26,6 +26,7 @@ guide explains how much of the framework to activate for the task.
 AGENTS.md
 .codex/write-gate.md
 .codex/critic.md
+docs/engineering-memory/README.md
 memory_bank/orchestrator-log.md
 memory_bank/review-log.md
 docs/templates/work-block-template.md
@@ -69,6 +70,7 @@ docs/plans/
 docs/specs/
 docs/reports/
 docs/tasklist/
+docs/engineering-memory/
 memory_bank/context.md
 memory_bank/progress.md
 memory_bank/decisions.md
@@ -217,6 +219,8 @@ See `framework/workflow/codex-model-routing.md` for the detailed policy.
 
 - Run the session bootstrap first; do not select a higher profile from stale
   memory alone.
+- Read relevant `docs/engineering-memory/` entries before treating
+  `memory_bank/` or runtime logs as project context.
 - Prefer Level 1 for the first real Work Block in a new project.
 - Use Level 2 when repeatable SDLC evidence matters.
 - Use Level 3 only after Claude Code CLI and provider configuration work in the

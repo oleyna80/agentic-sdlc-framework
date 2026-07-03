@@ -76,6 +76,11 @@ for path in \
   ".codex/critic.md" \
   ".codex/write-gate.md" \
   "docs/session-bootstrap.md" \
+  "docs/engineering-memory/README.md" \
+  "docs/engineering-memory/decision-record-template.md" \
+  "docs/engineering-memory/source-of-truth-chains.md" \
+  "docs/engineering-memory/temporary-decisions.md" \
+  "docs/engineering-memory/reproducibility-log.md" \
   "docs/plans/README.md" \
   "docs/specs/README.md" \
   "docs/tasklist/README.md" \

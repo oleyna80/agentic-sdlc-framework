@@ -4,7 +4,8 @@
 # Keep this filename inactive inside the framework repository so the
 # publishable template files are not hidden by nested gitignore rules.
 
-# Keep local workflow layer private by default
+# Keep local workflow layer private by default.
+# Committed durable engineering memory belongs in docs/engineering-memory/.
 .agent/
 memory_bank/
 .claude/agent-memory/

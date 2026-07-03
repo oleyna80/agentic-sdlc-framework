@@ -33,9 +33,9 @@ machine-readable registry of important files and path patterns.
 The scaffold has three separable layers:
 
 1. **Agentic SDLC core**: generated project `AGENTS.md`, `.agent/`, `skills/`,
-   `docs/`, and `memory_bank/`. Codex or another capable agent can run the
-   SDLC directly from this layer using its own tools, subagents, rules, and
-   verification.
+   `docs/`, `docs/engineering-memory/`, and `memory_bank/`. Codex or another
+   capable agent can run the SDLC directly from this layer using its own tools,
+   subagents, rules, and verification.
 2. **Codex <-> Claude Code handoff**: framework-level `handoff/` dispatcher for
    cases where Codex delegates a scoped Work Block to Claude Code as an
    independent external team.
@@ -63,6 +63,7 @@ docs/quickstart-minimal.md
 AGENTS.md
 .codex/write-gate.md
 .codex/critic.md
+docs/engineering-memory/README.md
 memory_bank/orchestrator-log.md
 memory_bank/review-log.md
 ```
@@ -86,6 +87,7 @@ AGENTS.md
 .agent/ROSTER.md
 .codex/write-gate.md
 .codex/critic.md
+docs/engineering-memory/README.md
 memory_bank/orchestrator-log.md
 memory_bank/review-log.md
 ```
@@ -224,7 +226,7 @@ and `.py` files:
 |---|---|---|
 | `{{PROJECT_NAME}}` | Project display name | `My Project` |
 | `{{PROJECT_SLUG}}` | Project slug for identifiers | `my-project` |
-| `{{PROJECT_ROOT}}` | Filesystem root path | `/home/user/my-project` |
+| `{{PROJECT_ROOT}}` | Filesystem root path | `$PROJECT_ROOT` |
 | `{{SOURCE_DIRS}}` | Source code directories | `src/*, app/*` |
 | `{{TECH_STACK}}` | Primary technology stack | `Next.js, PostgreSQL, Tailwind` |
 
@@ -378,6 +380,10 @@ Fill in `memory_bank/context.md` with current project focus.
 
 The generated scaffold also includes:
 
+- `docs/engineering-memory/README.md`
+- `docs/engineering-memory/source-of-truth-chains.md`
+- `docs/engineering-memory/temporary-decisions.md`
+- `docs/engineering-memory/reproducibility-log.md`
 - `memory_bank/progress.md`
 - `memory_bank/decisions.md`
 - `.claude/agent-memory/codex-reviewer/MEMORY.md`
@@ -389,8 +395,9 @@ The generated scaffold also includes:
 - `.claude/agent-memory/solution-architect/MEMORY.md`
 - `.claude/agent-memory/verifier/MEMORY.md`
 
-Keep memory evidence-backed and project-local unless the Owner explicitly
-approves publishing it.
+Keep committed `docs/engineering-memory/` evidence-backed and free of secrets.
+Keep `memory_bank/` and runtime agent memory project-local unless the Owner
+explicitly approves publishing it.
 
 ### Step 7: Verify
 

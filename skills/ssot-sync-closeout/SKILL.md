@@ -1,6 +1,6 @@
 ---
 name: ssot-sync-closeout
-description: Точечный post-stage sync в memory_bank и tasklist без переписывания истории.
+description: Точечный post-stage sync в docs, engineering memory, memory_bank и tasklist без переписывания истории.
 user-invocable: true
 allowed-tools:
   - Read
@@ -27,6 +27,7 @@ allowed-tools:
 
 ## Objective
 Поддерживать согласованность между:
+- `docs/engineering-memory/*`
 - `memory_bank/context.md`
 - `memory_bank/progress.md`
 - `docs/tasklist/*`
@@ -42,29 +43,39 @@ allowed-tools:
    формулировки.
 5. Обновить `progress.md` новой записью (done + notes + checks).
 6. Обновить `context.md` (current focus + next execution queue + date).
-7. Обновить `decisions.md` если в текущем stage принято архитектурное/runtime решение.
-8. Обновить delivery notes в tasklist.
-9. Прогнать `rg` на противоречивые старые формулировки.
-10. Для local-only ignored SSOT проверить, что Git их действительно игнорирует:
+7. Классифицировать reusable knowledge:
+   `promoted`, `operational-only`, или `not-applicable`.
+8. Если знание durable и cross-runtime, обновить `docs/engineering-memory/`;
+   если это только оперативный след, оставить в `memory_bank/` или reports.
+9. Обновить `decisions.md` если в текущем stage принято архитектурное/runtime решение.
+10. Обновить delivery notes в tasklist.
+11. Прогнать `rg` на противоречивые старые формулировки.
+12. Для local-only ignored SSOT проверить, что Git их действительно игнорирует:
    `git check-ignore -v <paths>`.
-11. Прямо проверить новые маркеры статуса/evidence через `rg -n` или `sed -n`,
+13. Прямо проверить новые маркеры статуса/evidence через `rg -n` или `sed -n`,
    потому что `git diff` может быть пустым для ignored files.
 
 ## Constraints
 - Historical entries не переписывать.
 - Если проверки не запускались — писать это явно.
 - Не добавлять ADR без реального архитектурного решения.
+- Не добавлять durable engineering memory без reusable evidence или clear
+  future-use trigger.
 - В closeout явно указать, являются ли SSOT-изменения local-only/ignored и
   попадут ли они в публичную историю Git.
 
 ## Output
 - 5-пунктовый stream summary
 - Список измененных SSOT файлов
+- Engineering memory classification: `promoted`, `operational-only`, or
+  `not-applicable`
 - Local-only/ignored статус SSOT файлов
 - Residual risks
 
 ## Handoff
-- **Success condition**: memory_bank обновлён (context, progress, decisions при наличии ADR), tasklist обновлён, closeout mode соответствует verdict, нет противоречий.
+- **Success condition**: engineering memory classification recorded,
+  memory_bank обновлён (context, progress, decisions при наличии ADR),
+  tasklist обновлён, closeout mode соответствует verdict, нет противоречий.
 - **Next**: Control Tower (closeout report to Owner)
 - **Auto-proceed**: 🟢 YES
 - **Hard stop**: NO

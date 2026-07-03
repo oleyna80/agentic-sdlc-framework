@@ -86,6 +86,7 @@ only. Exclude lifecycle evidence such as reports, logs, and gate files.
 - **PROJECT_MAP.md update needed:** [yes | no; why]
 - **FILE_REGISTRY.yml update needed:** [yes | no; why]
 - **Session bootstrap or profile docs update needed:** [yes | no; why]
+- **Engineering memory update needed:** [yes | no; why]
 - **Generated/derived/local-only boundary changed:** [yes | no; why]
 
 ## Commit / Stage Scope
@@ -184,6 +185,8 @@ lessons to fill the form.
 - **Framework updates to consider:** [future improvements not done in this WB]
 - **Reusable knowledge created:** [skill, checklist, report, memory entry, none
   / not applicable]
+- **Engineering memory classification:** [promoted | operational-only |
+  not-applicable; cite `docs/engineering-memory/*` when promoted]
 - **Navigation updates:** [PROJECT_MAP.md, FILE_REGISTRY.yml, session bootstrap,
   profile docs, none / not applicable]
 - **Follow-up Work Blocks:** [links or IDs]

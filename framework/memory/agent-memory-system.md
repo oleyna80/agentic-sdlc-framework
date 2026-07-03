@@ -1,4 +1,4 @@
-# Agent Memory System
+# Agent Runtime Memory System
 
 > Persistent, file-based memory for custom agents.
 > Builds institutional knowledge across Work Blocks.
@@ -60,6 +60,16 @@ Each memory gets a one-line entry in `MEMORY.md`:
 - Keep entries under ~150 characters
 - After 200 lines, older entries may be truncated
 
+## Boundary With Project Engineering Memory
+
+Agent memory is runtime-local. It helps a specific agent or reviewer remember
+preferences, failure patterns, and project signals, but it is not the portable
+project source of truth.
+
+Durable engineering knowledge that any future agent should inherit belongs in
+`docs/engineering-memory/`. Use `framework/memory/project-engineering-memory.md`
+for the promotion rules.
+
 ## What NOT to Save
 
 - Code patterns, architecture, file paths — derivable from current project state
@@ -67,6 +77,8 @@ Each memory gets a one-line entry in `MEMORY.md`:
 - Fix recipes — the fix is in the code; the commit has context
 - Anything in CLAUDE.md files
 - Ephemeral task details from a single run
+- Durable architecture or workflow decisions that should be visible to all
+  runtimes — promote those to `docs/engineering-memory/`
 
 ## Before Recommending from Memory
 

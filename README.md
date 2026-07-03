@@ -32,8 +32,12 @@ controlled multi-agent work.
 - **Project-neutral routing layer**: `.agent/` keeps roster, workflows, and skill
   routing readable by runtimes that do not use Claude Code's native skill
   directory.
-- **Memory starters**: `memory_bank/` plus per-agent memory files for durable,
-  evidence-backed project context.
+- **Engineering memory layer**: committed `docs/engineering-memory/` keeps
+  durable, evidence-backed decisions, source-of-truth chains, temporary
+  exceptions, and reproducibility notes that any agent runtime can read.
+- **Operational memory starters**: `memory_bank/` plus per-agent memory files
+  keep current focus, progress, decision logs, review logs, and runtime-local
+  memory.
 - **Publication hygiene**: validation script, third-party notices, security
   policy, and a private archive exclusion boundary.
 
@@ -131,10 +135,12 @@ Use this path to confirm the scaffold is understandable before customizing it:
 3. **Open the operating contract.**
 
    Read `AGENTS.md` first, then `PROJECT_MAP.md`, `FILE_REGISTRY.yml`, and
-   `docs/session-bootstrap.md`. `AGENTS.md` defines roles, Stage 0 preflight,
-   write gates, critic review, verification, hard stops, and closeout
-   expectations. The map and registry explain which files are normative,
-   template, reference, example, log, derived, or local state.
+   `docs/session-bootstrap.md`. Then read relevant
+   `docs/engineering-memory/` entries before operational logs. `AGENTS.md`
+   defines roles, Stage 0 preflight, write gates, critic review, verification,
+   hard stops, and closeout expectations. The map and registry explain which
+   files are normative, template, reference, example, log, derived, or local
+   state.
 
 4. **Run one local health check.**
 
@@ -148,6 +154,8 @@ Use this path to confirm the scaffold is understandable before customizing it:
 
 5. **Know where evidence goes.**
 
+   - `docs/engineering-memory/`: durable decisions, source-of-truth chains,
+     temporary exceptions, and reproducibility notes
    - `memory_bank/orchestrator-log.md`: why the orchestrator made decisions
    - `memory_bank/review-log.md`: what critics/reviewers/verifiers found
    - `memory_bank/external-team-log.md`: how delegated Claude Code teams worked
@@ -179,7 +187,7 @@ agentic-sdlc-framework/
 │   ├── .claude/                 # Claude Code runtime team layer
 │   ├── .codex/                  # Codex runtime config, instructions, write gate
 │   ├── memory_bank/
-│   ├── docs/{plans,reports,specs,tasklist,templates,reference}/
+│   ├── docs/{engineering-memory,plans,reports,specs,tasklist,templates,reference}/
 │   └── scripts/
 ├── framework/                   # reference documentation
 ├── skills/                      # portable skill library

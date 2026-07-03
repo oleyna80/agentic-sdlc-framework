@@ -10,13 +10,17 @@ When sources of truth conflict, resolve in this order:
 2. **`docs/plans/`** — approved plans
 3. **`docs/specs/`** — specifications
 4. **`docs/reports/`** — verification and closeout reports
-5. **`memory_bank/`** — context, progress, decisions (lowest priority)
+5. **`docs/engineering-memory/`** — durable project engineering memory
+6. **`memory_bank/`** — operational context, progress, and logs
 
 ## Rules
 
 - Tasklist beats plan: if a task says "changed approach", the plan is stale
 - Plan beats spec: if the plan revised the spec, the plan is current
-- Memory bank is a cache, not a contract: always verify against docs/
+- Engineering memory preserves durable context, but current approved task,
+  plan, spec, or report files still beat it
+- Memory bank is operational context, not a contract: always verify against
+  docs/
 - Update higher-priority sources before lower ones when resolving conflicts
 
 ## When to Update
@@ -24,4 +28,6 @@ When sources of truth conflict, resolve in this order:
 - **Tasklist:** After every Stage 3 (Sync & Report)
 - **Plans:** When the approach changes during implementation
 - **Specs:** When requirements change
+- **Engineering memory:** When reusable project knowledge should survive beyond
+  operational logs
 - **Memory bank:** After verified closeouts only

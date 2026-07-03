@@ -9,7 +9,8 @@ This repository provides a project-agnostic Agentic SDLC scaffold with three
 separable layers:
 
 1. **Core SDLC layer**: runtime-neutral process, authority model, skills,
-   memory bank conventions, Work Blocks, review, and verification.
+   engineering memory, operational memory bank conventions, Work Blocks,
+   review, and verification.
 2. **Inter-agent handoff layer**: file-based Codex -> Claude Code delegation
    with runner scripts, queue directories, logs, and scope audit.
 3. **Claude Code team runtime layer**: Claude Code-specific agents, hooks,
@@ -45,6 +46,10 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 - **Codex model routing overlay**: optional user-level Codex profiles keep
   strong models on orchestration/critic decisions and cheaper or local models
   on bounded executor tasks. It does not change the authority model.
+- **OpenCode runtime spike**: optional experimental lane for evaluating
+  OpenCode as an alternate worker/reviewer runtime. It is reference knowledge
+  only until a project Work Block explicitly approves installation, provider
+  auth, permissions, and verification.
 
 ## Key Paths
 
@@ -56,13 +61,16 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 | `PROJECT_MAP.md` | normative | Human-readable repository map. |
 | `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
 | `docs/` | mixed | Onboarding, profiles, policies, plans, templates, and session bootstrap. |
+| `framework/memory/project-engineering-memory.md` | reference | Durable engineering memory rules for generated projects. |
 | `.claude/settings.json` | normative runtime | Project-scoped Claude Code maintainer plugin profile; does not define generated-project defaults. |
 | `template/AGENTS.md` | normative template | Primary generated-project operating contract. |
+| `template/docs/engineering-memory/` | normative template | Committed project engineering memory starter files. |
 | `template/.agent/workflows/sdd-protocol.md` | normative template | Canonical generated-project lifecycle contract and stage semantics. |
 | `template/docs/templates/{verification-report,closeout-report}-template.md` | normative template | Verification evidence and success/reporting-only closeout contracts. |
 | `template/` | normative template | Files copied into generated projects. |
 | `skills/` | normative library | Portable skill library copied into generated projects. |
 | `framework/` | reference | Background knowledge and lessons learned. |
+| `framework/knowledge/` | reference | Runtime knowledge for Claude Code, Codex routing, OpenCode experiments, plugins, and external agent tools. |
 | `handoff/` | normative runtime | Handoff runner, queues, templates, and logs policy. |
 | `examples/` | example | Synthetic scenario guides, not mandatory process. |
 | `archive/` | local/private | Ignored material; not part of public publication. |
@@ -71,6 +79,8 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 
 - `examples/**` are examples, not policy.
 - `docs/templates/**` are reusable framework coordination templates.
+- Generated `docs/engineering-memory/**` is committed durable project memory;
+  keep it evidence-backed and secret-free.
 - `docs/plans/**` are Work Block evidence and plans; the current approved plan
   matters more than older plans.
 - `handoff/logs/**`, `handoff/done/**`, `handoff/failed/**`, and runtime status
@@ -91,8 +101,9 @@ For framework repository work, read in this order:
 3. `FILE_REGISTRY.yml`
 4. `docs/session-bootstrap.md`
 5. The current task or Work Block plan
-6. `git status --short --branch`
-7. Relevant diffs and target files
+6. Relevant engineering memory entries
+7. `git status --short --branch`
+8. Relevant diffs and target files
 
 Do not assume memory from a previous session is current when repository files
 are cheap to verify.

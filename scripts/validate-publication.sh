@@ -125,6 +125,11 @@ for path in \
   "template/docs/templates/verification-report-template.md" \
   "template/docs/templates/closeout-report-template.md" \
   "template/docs/templates/project-agent-update-template.md" \
+  "template/docs/engineering-memory/README.md" \
+  "template/docs/engineering-memory/decision-record-template.md" \
+  "template/docs/engineering-memory/source-of-truth-chains.md" \
+  "template/docs/engineering-memory/temporary-decisions.md" \
+  "template/docs/engineering-memory/reproducibility-log.md" \
   "template/docs/plans/README.md" \
   "template/docs/specs/README.md" \
   "template/docs/tasklist/README.md" \
@@ -133,6 +138,8 @@ for path in \
   "framework/knowledge/claude-code-cli.md" \
   "framework/knowledge/claude-code-global-bootstrap.md" \
   "framework/knowledge/claude-code-plugins.md" \
+  "framework/knowledge/opencode-runtime.md" \
+  "framework/memory/project-engineering-memory.md" \
   "handoff/.gitignore" \
   "handoff/README.md" \
   "handoff/active/.gitkeep" \
@@ -186,10 +193,12 @@ for path in \
   "PROJECT_MAP.md" \
   "docs/session-bootstrap.md" \
   "docs/profiles.md" \
+  "framework/memory/project-engineering-memory.md" \
   "docs/quickstart-minimal.md" \
   "docs/mcp-tool-policy.md" \
   "examples/README.md" \
   "template/PROJECT_MAP.md" \
+  "template/docs/engineering-memory/README.md" \
   "template/docs/session-bootstrap.md"; do
   require_min_lines "$path" 10
 done
@@ -250,17 +259,72 @@ else
   ok "no Python bytecode/cache files in public paths"
 fi
 
-PRIVATE_MARKERS='azursystech|choushop|178\.156\.212\.10|/home/dmitrii|oleyna80|home-dmitrii'
+PRIVATE_MARKERS='azursystech|choushop|178\.156\.212\.10|/home/dmitrii|/home/azur|oleyna80|home-dmitrii'
 if command -v rg >/dev/null 2>&1; then
-  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" -g '!.git/**' -g '!archive/**' -g '!**/scripts/validate-publication.sh' || true)"
+  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" \
+    -g '!.git/**' \
+    -g '!archive/**' \
+    -g '!handoff/active/**' \
+    -g '!handoff/done/**' \
+    -g '!handoff/failed/**' \
+    -g '!handoff/logs/**' \
+    -g '!handoff/parallel/**' \
+    -g '!handoff/queue/**' \
+    -g '!handoff/runtime/**' \
+    -g '!**/scripts/validate-publication.sh' || true)"
 else
-  PRIVATE_HITS="$(grep -RInE --exclude-dir=.git --exclude-dir=archive --exclude=validate-publication.sh "$PRIVATE_MARKERS" "$ROOT" || true)"
+  PRIVATE_HITS="$(grep -RInE \
+    --exclude-dir=.git \
+    --exclude-dir=archive \
+    --exclude-dir=active \
+    --exclude-dir=done \
+    --exclude-dir=failed \
+    --exclude-dir=logs \
+    --exclude-dir=parallel \
+    --exclude-dir=queue \
+    --exclude-dir=runtime \
+    --exclude=validate-publication.sh \
+    "$PRIVATE_MARKERS" "$ROOT" || true)"
 fi
 if [ -n "$PRIVATE_HITS" ]; then
   echo "$PRIVATE_HITS"
   fail "private project markers found in public paths"
 else
   ok "no known private project markers in public paths"
+fi
+
+ABSOLUTE_HOME_MARKERS='/(home|Users)/[A-Za-z0-9._-]+/'
+if command -v rg >/dev/null 2>&1; then
+  ABSOLUTE_HOME_HITS="$(rg --hidden --no-ignore -n "$ABSOLUTE_HOME_MARKERS" "$ROOT" \
+    -g '!.git/**' \
+    -g '!archive/**' \
+    -g '!handoff/active/**' \
+    -g '!handoff/done/**' \
+    -g '!handoff/failed/**' \
+    -g '!handoff/logs/**' \
+    -g '!handoff/parallel/**' \
+    -g '!handoff/queue/**' \
+    -g '!handoff/runtime/**' \
+    -g '!**/scripts/validate-publication.sh' || true)"
+else
+  ABSOLUTE_HOME_HITS="$(grep -RInE \
+    --exclude-dir=.git \
+    --exclude-dir=archive \
+    --exclude-dir=active \
+    --exclude-dir=done \
+    --exclude-dir=failed \
+    --exclude-dir=logs \
+    --exclude-dir=parallel \
+    --exclude-dir=queue \
+    --exclude-dir=runtime \
+    --exclude=validate-publication.sh \
+    "$ABSOLUTE_HOME_MARKERS" "$ROOT" || true)"
+fi
+if [ -n "$ABSOLUTE_HOME_HITS" ]; then
+  echo "$ABSOLUTE_HOME_HITS"
+  fail "user-specific absolute home paths found in public paths"
+else
+  ok "no user-specific absolute home paths in public paths"
 fi
 
 for script in \

@@ -14,6 +14,11 @@
 ### Evidence
 - [checks, reports, logs, artifacts]
 
+### Engineering Memory
+- **Classification:** [promoted | operational-only | not-applicable]
+- **Entries Updated:** [docs/engineering-memory/* | none]
+- **Reason:** [why reusable knowledge was or was not promoted]
+
 ### Residual Risk
 - [none | unresolved risk]
 

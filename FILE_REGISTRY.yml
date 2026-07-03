@@ -19,6 +19,7 @@ authority_order:
   - approved_work_block_plan
   - PROJECT_MAP.md
   - FILE_REGISTRY.yml
+  - project_engineering_memory
   - runtime_policy_files
   - reference_docs_examples_logs_generated_artifacts
 
@@ -46,6 +47,19 @@ entries:
     related:
       - .claude/settings.json
       - framework/knowledge/claude-code-cli.md
+
+  framework/knowledge/opencode-runtime.md:
+    role: opencode_runtime_research
+    status: reference
+    owner: architect
+    update_when:
+      - OpenCode installation or CLI behavior is verified
+      - OpenCode agents, permissions, or provider routing are evaluated
+      - OpenCode is considered for a project Work Block or runtime profile
+    related:
+      - framework/workflow/codex-model-routing.md
+      - framework/knowledge/claude-code-cli.md
+      - docs/profiles.md
 
   template/AGENTS.md:
     role: generated_project_agent_policy
@@ -94,6 +108,19 @@ entries:
     related:
       - template/.agent/workflows/sdd-protocol.md
       - template/docs/templates/verification-report-template.md
+
+  template/docs/engineering-memory/**:
+    role: generated_project_engineering_memory_starters
+    status: template
+    owner: architect
+    update_when:
+      - durable memory starter files change
+      - source-of-truth chain guidance changes
+      - temporary decision or reproducibility templates change
+    related:
+      - framework/memory/project-engineering-memory.md
+      - template/docs/session-bootstrap.md
+      - template/FILE_REGISTRY.yml
 
   README.md:
     role: public_entrypoint
@@ -200,6 +227,20 @@ entries:
       - SETUP.md
       - docs/quickstart-minimal.md
       - framework/workflow/codex-model-routing.md
+
+  framework/memory/project-engineering-memory.md:
+    role: project_engineering_memory_policy
+    status: reference
+    owner: architect
+    update_when:
+      - durable memory promotion rules change
+      - generated project memory boundaries change
+      - cross-runtime memory guidance changes
+    related:
+      - framework/memory/memory-bank-protocol.md
+      - framework/memory/agent-memory-system.md
+      - framework/workflow/ssot-hierarchy.md
+      - template/docs/engineering-memory/README.md
 
   framework/workflow/codex-model-routing.md:
     role: codex_model_routing_policy

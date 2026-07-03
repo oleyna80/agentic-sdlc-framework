@@ -25,6 +25,7 @@ authority_order:
   - approved_work_block_plan
   - PROJECT_MAP.md
   - FILE_REGISTRY.yml
+  - docs_engineering_memory
   - runtime_policy_files
   - reference_docs_examples_logs_generated_artifacts
 
@@ -78,6 +79,20 @@ entries:
     related:
       - PROJECT_MAP.md
       - FILE_REGISTRY.yml
+
+  docs/engineering-memory/**:
+    role: durable_project_engineering_memory
+    status: normative
+    owner: architect
+    update_when:
+      - durable engineering decision is accepted
+      - source-of-truth chain changes
+      - temporary decision is added reviewed or retired
+      - reproducibility procedure changes
+    related:
+      - docs/session-bootstrap.md
+      - docs/templates/work-block-template.md
+      - memory_bank/decisions.md
 
   docs/templates/work-block-template.md:
     role: work_block_template
@@ -193,13 +208,14 @@ entries:
       - memory_bank/external-team-log.md
 
   memory_bank/context.md:
-    role: durable_project_context
-    status: normative
+    role: operational_project_context
+    status: log
     owner: orchestrator
     update_when:
       - project focus changes
-      - durable context is learned and verified
+      - active Work Block or next gate changes
     related:
+      - docs/engineering-memory/**
       - memory_bank/progress.md
       - memory_bank/decisions.md
 

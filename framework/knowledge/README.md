@@ -11,6 +11,8 @@ patterns.
 | Claude Code CLI | `claude-code-cli.md` | Treat Claude Code as an external delivery team: CLI modes, settings, subagents, hooks, plugins, observability, and safety notes. |
 | Claude Code global bootstrap | `claude-code-global-bootstrap.md` | User-level setup for provider env, global agents, portable hooks, and project-local gate boundaries. |
 | Claude Code plugin profile | `claude-code-plugins.md` | Approved project plugins, compatibility decisions, installation scope, and review checklist. |
+| Codex model routing | `../workflow/codex-model-routing.md` | Keep Codex as the strong-model orchestrator/critic while cheaper or local workers remain optional runtime overlays. |
+| OpenCode runtime | `opencode-runtime.md` | Experimental OpenCode CLI/agent runtime notes, installation checks, and boundaries relative to Codex and Claude Code. |
 
 ## Update Rules
 
