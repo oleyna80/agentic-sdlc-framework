@@ -209,6 +209,18 @@ from WSL or Git Bash.
 
 The framework keeps skills in `skills/<name>/`.
 
+`skills/catalog.yml` is the metadata-only navigation index. It groups skills
+into planning, design, implementation, review and verification, security, and
+DevOps/integration domains without loading their bodies into an agent context.
+Use it to select a small set of skills for a project or Work Block.
+
+This repository is intended to become the GitHub source for the shared library.
+Consumer projects should eventually commit only `.agent/skills.lock.yml` with
+an immutable source revision and selected names; their resolved cache stays
+local and ignored. Keep project-specific skills in the project until they are
+ready for deliberate promotion. The future Obsidian knowledge vault is a
+separate, relevance-loaded layer rather than a skill directory.
+
 Bootstrap installs the core set into both:
 
 - `.agent/skills/<name>/` for project-neutral routing and tool-agnostic review

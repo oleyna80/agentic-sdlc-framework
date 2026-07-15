@@ -68,7 +68,7 @@ Use `docs/profiles.md` to choose the smallest sufficient mode:
 | `template/.agent/workflows/sdd-protocol.md` | normative template | Canonical generated-project lifecycle contract and stage semantics. |
 | `template/docs/templates/{verification-report,closeout-report}-template.md` | normative template | Verification evidence and success/reporting-only closeout contracts. |
 | `template/` | normative template | Files copied into generated projects. |
-| `skills/` | normative library | Portable skill library copied into generated projects. |
+| `skills/` | normative library | Portable skill library; `skills/catalog.yml` is the metadata-only domain index. |
 | `framework/` | reference | Background knowledge and lessons learned. |
 | `framework/knowledge/` | reference | Runtime knowledge for Claude Code, Codex routing, OpenCode experiments, plugins, and external agent tools. |
 | `handoff/` | normative runtime | Handoff runner, queues, templates, and logs policy. |

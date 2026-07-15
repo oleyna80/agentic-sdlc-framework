@@ -135,6 +135,31 @@ entries:
       - docs/profiles.md
       - PROJECT_MAP.md
 
+  skills/catalog.yml:
+    role: shared_skill_library_navigation_index
+    status: normative
+    owner: architect
+    update_when:
+      - a skill is added, promoted, renamed, or removed
+      - domain classification changes
+      - consumer lock or cache policy changes
+    related:
+      - skills/SKILL-CONVENTION.md
+      - README.md
+      - bootstrap.sh
+
+  skills/SKILL-CONVENTION.md:
+    role: portable_skill_directory_and_consumer_contract
+    status: normative
+    owner: architect
+    update_when:
+      - skill directory layout changes
+      - progressive disclosure policy changes
+      - shared-library consumer policy changes
+    related:
+      - skills/catalog.yml
+      - README.md
+
   SETUP.md:
     role: setup_guide
     status: normative

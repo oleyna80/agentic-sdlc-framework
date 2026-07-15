@@ -58,6 +58,7 @@ echo "==> Publication validation: $ROOT"
 
 for path in \
   "README.md" \
+  "skills/catalog.yml" \
   "SETUP.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml" \
@@ -224,6 +225,48 @@ for path_arg in sys.argv[1:]:
 print("YAML OK")
 PY
   ok "FILE_REGISTRY.yml YAML parsing"
+
+  python3 - "$ROOT/skills/catalog.yml" "$ROOT/skills" <<'PY' || fail "skill catalog validation failed"
+import pathlib
+import sys
+
+try:
+    import yaml
+except ImportError as exc:
+    raise SystemExit("PyYAML is required for catalog validation") from exc
+
+catalog_path = pathlib.Path(sys.argv[1])
+skills_root = pathlib.Path(sys.argv[2])
+data = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
+
+if not isinstance(data, dict):
+    raise SystemExit("catalog did not parse to a mapping")
+
+for key in ("schema_version", "library_role", "selection_policy", "domains", "consumer_contract"):
+    if key not in data:
+        raise SystemExit(f"catalog missing top-level key: {key}")
+
+catalogued = []
+for domain, definition in data["domains"].items():
+    if not isinstance(definition, dict) or not isinstance(definition.get("skills"), list):
+        raise SystemExit(f"catalog domain {domain!r} has no skills list")
+    catalogued.extend(definition["skills"])
+
+if len(catalogued) != len(set(catalogued)):
+    raise SystemExit("catalog contains duplicate skill names")
+
+actual = {
+    path.parent.name
+    for path in skills_root.glob("*/SKILL.md")
+}
+if set(catalogued) != actual:
+    missing = sorted(actual - set(catalogued))
+    unknown = sorted(set(catalogued) - actual)
+    raise SystemExit(f"catalog mismatch: missing={missing}, unknown={unknown}")
+
+print("skill catalog YAML and coverage OK")
+PY
+  ok "skills/catalog.yml YAML parsing and coverage"
 
   python3 - "$ROOT/.claude/settings.json" <<'PY' || fail "Claude Code plugin allowlist validation failed"
 import json

@@ -11,6 +11,19 @@ Both locations use the same directory shape. The structure enables progressive
 disclosure: only `SKILL.md` loads into context by default; subdirectories are
 loaded on demand.
 
+## Library Source and Consumer Selection
+
+This repository is the source library. Its `catalog.yml` classifies skills for
+discovery only; it must never cause all skills in a category to load.
+
+Consumer projects should commit a small `.agent/skills.lock.yml` that names a
+source repository, an immutable revision (resolved commit SHA), and the exact
+skills they need. A local, ignored `.agent/.skill-cache/` is rebuilt from that
+lock. Do not store copied common skill bodies in consumer repositories.
+
+Project-specific skills may remain local. Promote one into this library only
+after its trigger, owner, validation, and reuse boundary are clear.
+
 ## Directory Layout
 
 ```
