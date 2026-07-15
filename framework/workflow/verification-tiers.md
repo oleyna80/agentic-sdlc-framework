@@ -63,3 +63,25 @@ Security, auth, deploy, DB, or payment Work Blocks. Extends Standard.
 | READY | All tier checks passed | Merge, deploy, closeout |
 | BLOCKED | One or more checks failed | Fix issues, re-verify |
 | UNVERIFIED | Check could not be executed | Control Tower resolves blocker |
+
+---
+
+## Verifier Isolation
+
+Role policy is not a technical boundary: a native subagent can inherit the
+parent process, credentials, network access, and filesystem permissions. Choose
+and record the required isolation before implementation, then record the
+actual isolation and launch evidence in the verification report and gate.
+
+| Condition | Minimum isolation | Formal closeout |
+|---|---|---|
+| Lite, non-sensitive quick-fix | `same-session-degraded` | Inline verification is allowed |
+| Standard, non-sensitive work | `same-session-degraded` | Inline verification is allowed; use an independent root when stronger evidence is needed |
+| Full tier or auth, payments, DB schema, middleware, hooks, runtime configuration | `independent-readonly-root` | Separate top-level read-only verifier after freezing the diff |
+| Credentials, live data, deploy, external-provider mutation | `os-isolated` | Separate OS user, container, or equivalent with read-only source and no production credentials |
+
+`independent-readonly-root` is a separate top-level verifier with a read-only
+filesystem/write policy. It does not prove credential or network isolation.
+`os-isolated` is required when those boundaries matter. A gate can validate a
+declared level and evidence path; it cannot prove the isolation claim, so the
+verification report must name the launch mechanism and residual limits.

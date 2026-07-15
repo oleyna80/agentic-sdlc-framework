@@ -34,8 +34,14 @@ Temporary specialization — narrows focus, does not expand authority.
 - [ ] `memory_bank/snapshots/snapshot-[wb-id]-[stage]-[date].md` (if parallel dispatch — frozen system state)
 
 ## Allowed Tools / MCP
-- Read, Bash, LSP, Grep, Glob, WebFetch, WebSearch
+- Least privilege only: [exact tools required]
 - MCP: [list relevant MCP servers]
+
+## Effective Runtime Policy
+- Parent live sandbox / approval policy: [effective value]
+- Agent profile defaults: [model, reasoning, sandbox]
+- Technical isolation required: [no | independent-readonly-root | os-isolated]
+- Isolation evidence / residual limits: [launch mechanism and what it does not isolate]
 
 ## Approved Write-Set
 ```

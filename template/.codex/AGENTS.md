@@ -38,7 +38,7 @@ Core rules:
 Role rules:
 - Orchestrator plans, assigns scoped subagents, consolidates findings, identifies risks, and proposes next actions.
 - Reviewer is read-only and must not modify files.
-- Verifier is read-only unless explicitly approved to make documentation-only verification updates.
+- Verifier is read-only unless explicitly approved to make documentation-only verification updates. Only Verifier issues the formal `READY` or `BLOCKED` gate verdict.
 - Coder may modify only files within the approved scope.
 - Only one Coder may modify repository files during an implementation stage.
 - Subagents are read-only by default unless explicitly approved for write-capable work.
@@ -47,7 +47,11 @@ Subagent rules:
 - The Orchestrator may assign read-only scoped subagents within an approved objective.
 - Each subagent assignment must define: role, scope, out of scope, expected output, file-change permission.
 - If native subagent/fork workflow is limited or unavailable, use scoped explorer tasks as fallback.
-- Subagents inherit default session settings unless explicitly overridden.
+- Subagents inherit the parent session's effective sandbox and approval policy.
+  A role profile can express intended defaults, but it is not a technical
+  read-only boundary. For formal isolated verification, use a separate
+  top-level read-only root or OS-isolated environment as required by the
+  verification gate.
 - Codex subagents are first-class participants in the Codex runtime. They do
   not make Claude Code mandatory.
 - Do not launch Claude Code from a Codex subagent. The main Codex orchestrator

@@ -84,8 +84,11 @@ status=$(field "Status")
 wb_id=$(field "Work Block")
 verification_tier=$(field "Verification Tier")
 new_domain=$(field "New Domain")
-sensitive_domains=$(field "Sensitive Domains")
+sensitive_domains=$(field "Sensitive Domains" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
 verifier_verdict=$(field "Claude Verifier Verdict")
+verifier=$(field "Verifier")
+required_verifier_isolation=$(field "Required Verifier Isolation" | tr '[:upper:]' '[:lower:]')
+verifier_isolation=$(field "Verifier Isolation" | tr '[:upper:]' '[:lower:]')
 gpt_verifier_status=$(field "GPT Verifier Status")
 gpt_verifier_reason=$(field "GPT Verifier Reason")
 gpt_degraded_reason=$(field "GPT Verifier Degraded Reason")
@@ -93,6 +96,57 @@ quick_fix=$(field "Quick-Fix")
 stage3_mode=$(field "Stage 3 Mode")
 
 [ -n "$wb_id" ] || deny "Verification gate: Work Block is required before closeout."
+
+isolation_rank() {
+  case "$1" in
+    same-session-degraded) printf '1' ;;
+    independent-readonly-root) printf '2' ;;
+    os-isolated) printf '3' ;;
+    *) return 1 ;;
+  esac
+}
+
+require_verifier_isolation() {
+  local required_rank actual_rank
+
+  required_rank=$(isolation_rank "$required_verifier_isolation") \
+    || deny "Verification gate: Required Verifier Isolation is ${required_verifier_isolation:-missing}. Use same-session-degraded, independent-readonly-root, or os-isolated."
+  actual_rank=$(isolation_rank "$verifier_isolation") \
+    || deny "Verification gate: Verifier Isolation is ${verifier_isolation:-missing}. Use same-session-degraded, independent-readonly-root, or os-isolated."
+  [ "$actual_rank" -ge "$required_rank" ] \
+    || deny "Verification gate: Verifier Isolation (${verifier_isolation}) is below Required Verifier Isolation (${required_verifier_isolation})."
+
+  case "$verifier" in
+    subagent)
+      [ "$actual_rank" -ge 2 ] \
+        || deny "Verification gate: same-session native subagent verification is advisory and cannot close READY. Use an independent readonly root or OS isolation."
+      ;;
+    ct-inline)
+      [ "$sensitive_domains" = "none" ] \
+        || deny "Verification gate: ct-inline is only allowed for Sensitive Domains: none."
+      [ "$verifier_isolation" = "same-session-degraded" ] \
+        || deny "Verification gate: ct-inline must record Verifier Isolation: same-session-degraded."
+      ;;
+    PENDING|pending|"["*|"") deny "Verification gate: Verifier is ${verifier:-missing}. Set Verifier: subagent or ct-inline before closeout." ;;
+    *) deny "Verification gate: invalid Verifier '${verifier}'. Use subagent or ct-inline." ;;
+  esac
+
+  if [ "$verification_tier" = "full" ] || [ "$verification_tier" = "FULL" ]; then
+    [ "$actual_rank" -ge 2 ] \
+      || deny "Verification gate: Full tier requires at least independent-readonly-root verifier isolation."
+  fi
+
+  case ",$sensitive_domains," in
+    *,credentials,*|*,live-data,*|*,deploy,*|*,external-provider,*)
+      [ "$actual_rank" -ge 3 ] \
+        || deny "Verification gate: Sensitive Domains (${sensitive_domains}) require os-isolated verifier isolation."
+      ;;
+    *,auth,*|*,payments,*|*,db-schema,*|*,middleware,*|*,hooks,*|*,runtime-config,*)
+      [ "$actual_rank" -ge 2 ] \
+        || deny "Verification gate: Sensitive Domains (${sensitive_domains}) require at least independent-readonly-root verifier isolation."
+      ;;
+  esac
+}
 
 gpt_verifier_required=0
 case "$verification_tier" in
@@ -110,14 +164,14 @@ esac
 
 case "$sensitive_domains" in
   none|NONE) ;;
-  PENDING|pending|"") deny "Verification gate: Sensitive Domains is ${sensitive_domains:-missing}. Use none or a comma-separated subset of auth,payments,db-schema,middleware." ;;
+  PENDING|pending|"") deny "Verification gate: Sensitive Domains is ${sensitive_domains:-missing}. Use none or a comma-separated subset of auth,payments,db-schema,middleware,hooks,runtime-config,deploy,credentials,live-data,external-provider." ;;
   *)
     IFS=',' read -r -a sensitive_domain_items <<< "$sensitive_domains"
     for sensitive_domain in "${sensitive_domain_items[@]}"; do
       sensitive_domain=$(printf '%s' "$sensitive_domain" | xargs)
       case "$sensitive_domain" in
-        auth|payments|db-schema|middleware) gpt_verifier_required=1 ;;
-        *) deny "Verification gate: invalid Sensitive Domains value '${sensitive_domain}'. Use none or auth,payments,db-schema,middleware." ;;
+        auth|payments|db-schema|middleware|hooks|runtime-config|deploy|credentials|live-data|external-provider) gpt_verifier_required=1 ;;
+        *) deny "Verification gate: invalid Sensitive Domains value '${sensitive_domain}'. Use none or auth,payments,db-schema,middleware,hooks,runtime-config,deploy,credentials,live-data,external-provider." ;;
       esac
     done
     ;;
@@ -150,6 +204,7 @@ esac
 case "$status" in
   READY)
     require_report_file "Verification Report" "verification READY"
+    require_verifier_isolation
     case "$verifier_verdict" in
       READY)
         [ "$stage3_mode" = "success-closeout" ] \
@@ -172,6 +227,7 @@ case "$status" in
       || deny "Verification gate: SKIPPED verifier dispatch still requires an inline READY verdict."
     [ "$stage3_mode" = "success-closeout" ] \
       || deny "Verification gate: inline READY verification requires Stage 3 Mode: success-closeout."
+    require_verifier_isolation
     require_report_file "Verification Report" "inline verification READY"
     require_log_entry "verification: SKIPPED" "verification SKIPPED"
     exit 0

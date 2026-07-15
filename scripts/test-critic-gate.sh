@@ -69,6 +69,9 @@ write_verification_gate() {
   local quick_fix="${7:-false}"
   local sensitive_domains="${8:-none}"
   local stage3_mode="${9:-}"
+  local verifier="${10:-ct-inline}"
+  local required_isolation="${11:-same-session-degraded}"
+  local actual_isolation="${12:-same-session-degraded}"
 
   if [ -z "$stage3_mode" ]; then
     case "$verifier_verdict" in
@@ -86,6 +89,9 @@ New Domain: $new_domain
 Sensitive Domains: $sensitive_domains
 Claude Verifier Verdict: $verifier_verdict
 Verification Report: docs/reports/verification-WB-smoke.md
+Verifier: $verifier
+Required Verifier Isolation: $required_isolation
+Verifier Isolation: $actual_isolation
 GPT Verifier Status: $gpt
 GPT Verifier Reason: no GPT verifier trigger matched
 GPT Verifier Report: docs/reports/gpt-verifier-WB-smoke.md
@@ -193,17 +199,23 @@ assert_verification_denied_contains "$CASE_DIR" "status is PENDING"
 write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED"
 assert_verification_allowed_empty "$CASE_DIR"
 
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "none" "" "subagent"
+assert_verification_denied_contains "$CASE_DIR" "same-session native subagent verification is advisory"
+
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "none" "" "subagent" "independent-readonly-root" "same-session-degraded"
+assert_verification_denied_contains "$CASE_DIR" "below Required Verifier Isolation"
+
 write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "NOT_REQUIRED"
 printf '| WB-smoke | gpt-budget: exceeded -- no authority to bypass trigger |\n' >> "$CASE_DIR/memory_bank/orchestrator-log.md"
 assert_verification_denied_contains "$CASE_DIR" "GPT verifier is required"
 
-write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "READY"
+write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "READY" "false" "none" "" "subagent" "independent-readonly-root" "independent-readonly-root"
 assert_verification_allowed_empty "$CASE_DIR"
 
 write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "auth"
 assert_verification_denied_contains "$CASE_DIR" "GPT verifier is required"
 
-write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "READY" "false" "auth"
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "READY" "false" "auth" "" "subagent" "independent-readonly-root" "independent-readonly-root"
 assert_verification_allowed_empty "$CASE_DIR"
 
 write_verification_gate "$CASE_DIR" "READY" "standard" "false" "READY" "NOT_REQUIRED" "false" "unknown"
@@ -218,13 +230,13 @@ assert_verification_allowed_empty "$CASE_DIR"
 write_verification_gate "$CASE_DIR" "READY" "standard" "false" "UNVERIFIED" "READY" "false" "none" "success-closeout"
 assert_verification_denied_contains "$CASE_DIR" "requires Stage 3 Mode: reporting-only"
 
-write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "DEGRADED"
+write_verification_gate "$CASE_DIR" "READY" "full" "false" "READY" "DEGRADED" "false" "none" "" "subagent" "independent-readonly-root" "independent-readonly-root"
 assert_verification_denied_contains "$CASE_DIR" "GPT verifier DEGRADED requires"
 sed -i 's/GPT Verifier Degraded Reason: none/GPT Verifier Degraded Reason: review-degraded:codex-mcp-unavailable/' "$CASE_DIR/.agent/verification-gate.md"
 printf '| WB-smoke | review-degraded:codex-mcp-unavailable |\n' >> "$CASE_DIR/memory_bank/orchestrator-log.md"
 assert_verification_allowed_empty "$CASE_DIR"
 
-write_verification_gate "$CASE_DIR" "READY" "standard" "false" "BLOCKED" "DEGRADED"
+write_verification_gate "$CASE_DIR" "READY" "standard" "false" "BLOCKED" "DEGRADED" "false" "none" "" "subagent" "independent-readonly-root" "independent-readonly-root"
 sed -i 's/GPT Verifier Degraded Reason: none/GPT Verifier Degraded Reason: review-degraded:codex-mcp-unavailable/' "$CASE_DIR/.agent/verification-gate.md"
 assert_verification_allowed_empty "$CASE_DIR"
 

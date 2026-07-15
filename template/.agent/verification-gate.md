@@ -5,6 +5,9 @@ New Domain: PENDING
 Sensitive Domains: PENDING
 Claude Verifier Verdict: PENDING
 Verification Report: [docs/reports/verification-[wb-id].md]
+Verifier: PENDING
+Required Verifier Isolation: PENDING
+Verifier Isolation: PENDING
 GPT Verifier Status: PENDING
 GPT Verifier Reason: [why NOT_REQUIRED, READY, or DEGRADED]
 GPT Verifier Report: [docs/reports/gpt-verifier-[wb-id].md]
@@ -16,7 +19,7 @@ Stage 3 Mode: PENDING
 
 > Control Tower updates this file before final closeout. Use
 > `Sensitive Domains: none` or a comma-separated subset of
-> `auth,payments,db-schema,middleware`.
+> `auth,payments,db-schema,middleware,hooks,runtime-config,deploy,credentials,live-data,external-provider`.
 > The `verification-gate.sh` Stop hook blocks final response until
 > verification and GPT verifier decisions are resolved.
 
@@ -43,6 +46,22 @@ audit.
 verification. It requires `Verification Report` to point to an existing
 non-empty file under `docs/reports/`. `Claude Verifier Verdict` must be
 `READY`, `BLOCKED`, or `UNVERIFIED`.
+
+## Verifier and Isolation
+
+Set `Verifier` to `ct-inline` for same-session inline verification or
+`subagent` for a separate verifier. Record both fields using this ordered
+vocabulary:
+
+`same-session-degraded` < `independent-readonly-root` < `os-isolated`.
+
+`ct-inline` is allowed only for `Sensitive Domains: none` and must use
+`same-session-degraded`. A `subagent` formal `READY` must use at least
+`independent-readonly-root`; same-session subagent feedback is advisory.
+Full-tier and sensitive work require at least `independent-readonly-root`.
+`credentials`, `live-data`, `deploy`, and `external-provider` require
+`os-isolated`. The report must name the launch mechanism and residual limits:
+the hook validates fields, not the process, credential, or network boundary.
 
 ## GPT Verifier Status
 

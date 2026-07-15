@@ -128,6 +128,25 @@ verifier agent; cannot be replaced by inline tsc.
 | Parallel dispatch results (merge step) | Spawn verifier agent — **mandatory** |
 | Side-effect class: live-infra / live-data | Spawn verifier agent + Full tier + `gpt-verifier` — **mandatory** |
 
+### Verifier Isolation Decision
+
+Choose the required verifier isolation before implementation. A native
+same-session verifier is useful advisory evidence, but it inherits the parent
+runtime and does not establish an independent technical boundary.
+
+| Condition | Required Verifier Isolation | Formal closeout mode |
+|---|---|---|
+| Lite, non-sensitive quick-fix | `same-session-degraded` | `ct-inline` is allowed with `Sensitive Domains: none` |
+| Standard, non-sensitive work | `same-session-degraded` or higher | Inline evidence is allowed; use a separate root when independent evidence is needed |
+| Full tier or auth, payments, DB schema, middleware, hooks, runtime configuration | `independent-readonly-root` | Separate top-level read-only verifier after the diff is frozen |
+| Credentials, live data, deploy, external-provider mutation | `os-isolated` | Separate OS user, container, or equivalent with read-only source and no production credentials |
+
+`independent-readonly-root` proves only a separate read-only execution boundary;
+it is not credential or network isolation. `os-isolated` is required when that
+stronger boundary matters. The gate validates declared levels and ordering, not
+the runtime claim itself. Record the launch mechanism and residual limits in the
+verification report.
+
 After the Claude verifier completes, launch `gpt-verifier` when the Work Block
 is Full tier, the first Work Block in a new domain, changes touch auth,
 payments, DB schema, or middleware, or the Claude verifier returns `BLOCKED` or
@@ -170,7 +189,7 @@ non-`READY` verdict.
 - All blockers documented with file:line evidence
 - Verification report written to `docs/reports/`
 - GPT verifier second opinion completed or degraded reason recorded when its trigger matched
-- `.agent/verification-gate.md` records evidence-backed verifier/GPT verifier status before closeout
+- `.agent/verification-gate.md` records evidence-backed verifier/GPT verifier status, required isolation, actual isolation, and launch evidence before closeout
 
 ---
 
