@@ -31,6 +31,23 @@ domains:
       - taste-skill
       - theme-factory
 
+  media_production:
+    description: Direction, generation, rights control, review, delivery, and web integration for AI-produced video and motion assets.
+    skills:
+      - media-production-orchestrator
+      - media-art-director
+      - video-creative-brief
+      - short-video-scriptwriter
+      - storyboard-director
+      - cinematography-director
+      - video-prompt-engineer
+      - video-provider-router
+      - media-rights-compliance
+      - video-generator
+      - video-quality-control
+      - video-postproduction
+      - web-video-integration
+
   implementation:
     description: Scoped code changes, debugging, and merge preparation.
     skills:
