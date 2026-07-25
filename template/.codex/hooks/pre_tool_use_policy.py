@@ -1,113 +1,110 @@
 #!/usr/bin/env python3
-"""Fail-closed Codex PreToolUse guard for Work Block scope and Hard Stops.
+"""Fail-closed Codex PreToolUse guard for Work Block writes.
 
-The hook is a project guardrail, not an OS security boundary. It reads one Codex
-hook event from stdin and returns the official PreToolUse decision shape.
+Standard-library only. This is a project guardrail, not an OS security boundary.
 """
-
 from __future__ import annotations
 
+import datetime as dt
 import fnmatch
 import json
 import os
-import posixpath
+from pathlib import Path, PurePosixPath
 import re
 import shlex
 import subprocess
 import sys
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Iterable
 
-DEFAULT_COORDINATION_WRITE_SET = [
+GATE_PATH = Path(".agent/active-work-block.json")
+DEFAULT_COORDINATION = [
     ".agent/active-work-block.json",
     ".agent/critic-gate.md",
     ".agent/verification-gate.md",
     ".codex/write-gate.md",
-    "docs/architecture/drafts/**",
-    "docs/specs/**",
     "docs/plans/**",
+    "docs/specs/**",
     "docs/tasklist/**",
     "docs/reports/**",
+    "docs/architecture/drafts/**",
     "memory_bank/**",
 ]
-
-READ_ONLY_BASH = re.compile(
-    r"^\s*(?:"
-    r"pwd|ls(?:\s|$)|find(?:\s|$)|rg(?:\s|$)|grep(?:\s|$)|cat(?:\s|$)|"
-    r"head(?:\s|$)|tail(?:\s|$)|wc(?:\s|$)|stat(?:\s|$)|file(?:\s|$)|"
-    r"sed\s+-n(?:\s|$)|"
-    r"git\s+(?:status|diff|show|log|grep|rev-parse|branch\s+--show-current)(?:\s|$)|"
-    r"pytest(?:\s|$)|python(?:3)?\s+-m\s+(?:pytest|compileall)(?:\s|$)|"
-    r"npm\s+(?:test|run\s+(?:test|lint|build|typecheck))(?:\s|$)|"
-    r"npx\s+(?:tsc|vitest|eslint)(?:\s|$)|"
-    r"bash\s+scripts/(?:test|validate)[^\s]*(?:\s|$)"
-    r")",
-    re.IGNORECASE,
+PATCH_PATHS = re.compile(
+    r"^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s+(.+?)\s*$", re.M
 )
-
-OPAQUE_MUTATION = re.compile(
-    r"(?:^|[;&|]\s*)(?:touch|mkdir|cp|mv|rm|install|ln|truncate|chmod|chown)\b|"
-    r"\bsed\s+-i\b|\bperl\s+-pi\b|\btee\b|(?:^|[^<])>{1,2}\s*[^&]|"
-    r"\bnpm\s+(?:install|ci|publish)\b|\bpnpm\s+(?:install|publish)\b|"
-    r"\byarn\s+(?:install|publish)\b|\bpip\s+install\b",
-    re.IGNORECASE,
+PATCH_MOVES = re.compile(r"^\*\*\*\s+Move to:\s+(.+?)\s*$", re.M)
+DIFF_PATHS = re.compile(r"^\+\+\+\s+(?:b/)?(.+?)\s*$", re.M)
+REDIRECTS = re.compile(r"(?<![<])(?:^|[^>])>{1,2}\s*([^\s;&|]+)")
+MUTATING = re.compile(
+    r"(^|[;&|]\s*)(rm|rmdir|mv|cp|install|touch|mkdir|ln|chmod|chown|"
+    r"truncate|sed\s+-[^;\n]*i|perl\s+-[^;\n]*i|tee|"
+    r"git\s+(add|commit|push|reset|clean|checkout|restore|mv|rm)|"
+    r"npm\s+(install|uninstall|update|ci)|pnpm\s+(install|add|remove|update)|"
+    r"yarn\s+(install|add|remove|upgrade)|pip3?\s+install|"
+    r"poetry\s+(add|remove|install|update)|cargo\s+(add|remove|install|update)|"
+    r"go\s+get|docker\s+(build|push|compose\s+(up|down))|"
+    r"kubectl\s+(apply|delete|patch|replace|scale|rollout|set)|"
+    r"terraform\s+(apply|destroy|import)|systemctl\s+(restart|stop|start|enable|disable)|"
+    r"service\s+\S+\s+(restart|stop|start))(\s|$)",
+    re.I,
 )
-
-DANGEROUS_RULES: list[tuple[str, re.Pattern[str], str]] = [
-    ("git commit", re.compile(r"\bgit\s+commit\b", re.I), "git_commit"),
-    ("git push", re.compile(r"\bgit\s+push\b", re.I), "git_push"),
+DANGEROUS = [
+    (re.compile(r"\bgit\s+commit\b", re.I), "git_commit", "git commit"),
+    (re.compile(r"\bgit\s+push\b", re.I), "git_push", "git push"),
     (
-        "default branch push",
-        re.compile(r"\bgit\s+push\b[^\n]*(?:\bmain\b|\bmaster\b)", re.I),
-        "default_branch_push",
-    ),
-    (
-        "destructive operation",
         re.compile(
-            r"\bgit\s+reset\s+--hard\b|\bgit\s+clean\s+-[^\s]*f|"
-            r"\brm\s+-[^\s]*r[^\s]*f|\bmkfs\b|\bdrop\s+(?:database|table)\b",
+            r"\b(git\s+reset\s+--hard|git\s+clean|rm\s+-[^;\n]*r|"
+            r"terraform\s+destroy|kubectl\s+delete|DROP\s+(DATABASE|TABLE))\b",
             re.I,
         ),
         "destructive",
+        "destructive operation",
     ),
     (
-        "live infrastructure operation",
         re.compile(
-            r"\bdocker\s+push\b|\bkubectl\s+(?:apply|delete|rollout|scale)\b|"
-            r"\bterraform\s+(?:apply|destroy)\b|\bsystemctl\s+(?:restart|stop|start)\b|"
-            r"\bservice\s+\S+\s+(?:restart|stop|start)\b|\bscp\b|\bssh\b",
+            r"\b(docker\s+push|kubectl\s+(apply|patch|replace|scale|rollout|set)|"
+            r"terraform\s+apply|systemctl\s+(restart|stop|start)|"
+            r"service\s+\S+\s+(restart|stop|start)|scp|rsync[^\n]*:)\b",
             re.I,
         ),
         "live_infra",
+        "live infrastructure operation",
     ),
     (
-        "live data operation",
         re.compile(
-            r"\bprisma\s+migrate\s+deploy\b|\bsequelize\s+db:migrate\b|"
-            r"\b(?:psql|mysql|mongosh)\b[^\n]*(?:insert|update|delete|alter|drop|create)\b",
+            r"\b(psql|mysql|mongosh|redis-cli)\b[^\n]*\b"
+            r"(DELETE|UPDATE|INSERT|ALTER|DROP|TRUNCATE|CREATE)\b",
             re.I,
         ),
         "live_data",
+        "direct data mutation",
     ),
     (
-        "credential or secret operation",
         re.compile(
-            r"\bgh\s+secret\s+(?:set|delete)\b|\bkubectl\s+create\s+secret\b|"
-            r"\b(?:export|set)\s+[A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|API_KEY)\s*=",
+            r"(^|[\s/])(\.env([.][\w.-]+)?|credentials|secrets)([\s/]|$)|"
+            r"\b(rotate|revoke)\b[^\n]*(token|secret|key|credential)",
             re.I,
         ),
         "credentials",
+        "credential or secret access/mutation",
     ),
     (
-        "client communication",
-        re.compile(r"\b(?:sendmail|mailx|twilio|postmark|resend)\b", re.I),
+        re.compile(
+            r"\b(sendmail|mailx|twilio|sendgrid)\b|"
+            r"\bcurl\b[^\n]*(messages|email|sms|notifications)[^\n]*"
+            r"(-X\s*(POST|PUT|PATCH)|--data)",
+            re.I,
+        ),
         "client_communications",
+        "client-facing communication",
     ),
 ]
 
 
-def deny(reason: str) -> int:
+class Denied(Exception):
+    pass
+
+
+def block(reason):
     print(
         json.dumps(
             {
@@ -116,276 +113,301 @@ def deny(reason: str) -> int:
                     "permissionDecision": "deny",
                     "permissionDecisionReason": reason,
                 }
-            }
+            },
+            ensure_ascii=False,
         )
     )
-    return 0
+    raise SystemExit(0)
 
 
-def allow(additional_context: str | None = None) -> int:
-    if additional_context:
-        print(
-            json.dumps(
-                {
-                    "hookSpecificOutput": {
-                        "hookEventName": "PreToolUse",
-                        "permissionDecision": "allow",
-                        "additionalContext": additional_context,
-                    }
-                }
-            )
-        )
-    return 0
+def read_event():
+    try:
+        event = json.load(sys.stdin)
+    except (json.JSONDecodeError, OSError) as exc:
+        block(f"Cannot parse PreToolUse input: {exc}")
+    if not isinstance(event, dict):
+        block("PreToolUse input must be a JSON object.")
+    return event
 
 
-def find_repo_root(cwd: Path) -> Path:
+def root_from(cwd):
+    start = Path(str(cwd or os.getcwd())).resolve()
+    for root in (start, *start.parents):
+        if (root / GATE_PATH).is_file():
+            return root
+    block(f"Cannot find {GATE_PATH.as_posix()} from {start}.")
+
+
+def load_gate(root):
+    try:
+        gate = json.loads((root / GATE_PATH).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        block(f"Invalid {GATE_PATH.as_posix()}: {exc}")
+    if not isinstance(gate, dict):
+        block("Active Work Block gate must be a JSON object.")
+    return gate
+
+
+def git(root, *args):
     try:
         result = subprocess.run(
-            ["git", "-C", str(cwd), "rev-parse", "--show-toplevel"],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=3,
+            ["git", *args], cwd=root, check=True, capture_output=True,
+            text=True, timeout=3
         )
-        return Path(result.stdout.strip()).resolve()
-    except (OSError, subprocess.SubprocessError):
-        current = cwd.resolve()
-        for candidate in (current, *current.parents):
-            if (candidate / ".git").exists() or (candidate / ".agent").exists():
-                return candidate
-        return current
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise Denied(f"Cannot inspect git state: {exc}")
+    return result.stdout.strip()
 
 
-def load_gate(root: Path) -> tuple[dict[str, Any] | None, str | None]:
-    path = root / ".agent" / "active-work-block.json"
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return None, f"Missing machine-readable Work Block gate: {path}"
-    except (OSError, json.JSONDecodeError) as exc:
-        return None, f"Invalid machine-readable Work Block gate: {exc}"
-    if not isinstance(data, dict) or data.get("schema_version") != 1:
-        return None, "Unsupported or invalid active Work Block gate schema."
-    return data, None
-
-
-def normalize_path(raw: str) -> str | None:
-    value = raw.strip().strip('"\'').replace("\\", "/")
-    if value.startswith("a/") or value.startswith("b/"):
+def normalize(raw, root):
+    value = raw.strip().strip("\"'")
+    if value in {"/dev/null", "dev/null"}:
+        return ""
+    if value.startswith(("a/", "b/")):
         value = value[2:]
-    while value.startswith("./"):
-        value = value[2:]
-    if not value or value == "/dev/null" or value.startswith("/"):
-        return None
-    normalized = posixpath.normpath(value)
-    if normalized in (".", "..") or normalized.startswith("../"):
-        return None
-    return normalized
+    path = Path(value)
+    if path.is_absolute():
+        try:
+            path = path.resolve().relative_to(root)
+        except (ValueError, OSError) as exc:
+            raise Denied(f"Path is outside repository: {raw}") from exc
+    pure = PurePosixPath(path.as_posix())
+    if ".." in pure.parts:
+        raise Denied(f"Path escapes repository: {raw}")
+    value = pure.as_posix().lstrip("./")
+    if not value or value == ".":
+        raise Denied(f"Cannot resolve repository path: {raw}")
+    return value
 
 
-def parse_patch_targets(command: str) -> list[str]:
-    targets: list[str] = []
-    patterns = [
-        re.compile(r"^\*\*\* (?:Add|Update|Delete|Move to) File:\s*(.+?)\s*$"),
-        re.compile(r"^\+\+\+\s+(?:b/)?(.+?)\s*$"),
-    ]
-    for line in command.splitlines():
-        for pattern in patterns:
-            match = pattern.match(line)
-            if not match:
-                continue
-            path = normalize_path(match.group(1))
-            if path and path not in targets:
-                targets.append(path)
-            break
-    return targets
-
-
-def path_matches(path: str, patterns: Iterable[str]) -> bool:
-    for raw_pattern in patterns:
-        if not isinstance(raw_pattern, str):
-            continue
-        pattern = raw_pattern.strip().replace("\\", "/")
-        while pattern.startswith("./"):
-            pattern = pattern[2:]
+def matches(path, patterns):
+    path = path.rstrip("/")
+    for raw in patterns:
+        pattern = str(raw).strip().replace("\\", "/").lstrip("./")
         if not pattern:
             continue
         if pattern.endswith("/**"):
             prefix = pattern[:-3].rstrip("/")
             if path == prefix or path.startswith(prefix + "/"):
                 return True
-        if fnmatch.fnmatchcase(path, pattern):
+        if path == pattern.rstrip("/") or fnmatch.fnmatchcase(path, pattern):
             return True
     return False
 
 
-def gate_ready(gate: dict[str, Any], root: Path) -> tuple[bool, str]:
-    work_block_id = str(gate.get("work_block_id") or "").strip()
-    if not work_block_id or work_block_id.upper() == "TBD":
-        return False, "Work Block ID is missing."
-
-    spec = gate.get("specification")
-    if not isinstance(spec, dict):
-        return False, "Specification metadata is missing."
-    if not str(spec.get("path") or "").strip() or not str(spec.get("revision") or "").strip():
-        return False, "Specification path and revision must be recorded before source writes."
-
-    write_gate = gate.get("write_gate")
-    if not isinstance(write_gate, dict) or str(write_gate.get("status") or "").upper() != "READY":
-        return False, "Write gate is not READY."
-
-    expires_at = write_gate.get("expires_at")
-    if not isinstance(expires_at, str) or not expires_at.strip():
-        return False, "Write gate expiry is missing."
-    try:
-        expiry = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
-        if expiry.tzinfo is None:
-            expiry = expiry.replace(tzinfo=timezone.utc)
-    except ValueError:
-        return False, "Write gate expiry is invalid."
-    if expiry <= datetime.now(timezone.utc):
-        return False, "Write gate has expired."
-
-    critic = gate.get("critic")
-    if not isinstance(critic, dict):
-        return False, "Critic state is missing."
-    if bool(critic.get("required", True)):
-        status = str(critic.get("status") or "").upper()
-        verdict = str(critic.get("verdict") or "").upper()
-        if status in {"READY", "FALLBACK"} and verdict in {"APPROVE", "SUPPLEMENT"}:
-            pass
-        elif status == "SKIPPED" and str(critic.get("skip_reason") or "").strip():
-            pass
-        else:
-            return False, "Required Critic state is unresolved or blocking."
-
-    write_set = gate.get("write_set")
-    if not isinstance(write_set, list) or not any(isinstance(item, str) and item.strip() for item in write_set):
-        return False, "Approved write-set is empty."
-
-    base_commit = str(gate.get("base_commit") or "").strip()
-    if base_commit:
-        try:
-            result = subprocess.run(
-                ["git", "-C", str(root), "rev-parse", "HEAD"],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=3,
-            )
-            if result.stdout.strip() != base_commit:
-                return False, "Repository HEAD no longer matches the Work Block base commit."
-        except (OSError, subprocess.SubprocessError):
-            return False, "Unable to verify the Work Block base commit."
-
-    return True, "READY"
+def coordination(gate):
+    values = gate.get("coordination_write_set")
+    if isinstance(values, list) and any(str(v).strip() for v in values):
+        return [str(v) for v in values if str(v).strip()]
+    return DEFAULT_COORDINATION
 
 
-def check_patch(command: str, gate: dict[str, Any] | None, gate_error: str | None, root: Path) -> int:
-    targets = parse_patch_targets(command)
-    if not targets:
-        return deny("Unable to determine apply_patch target paths; use an explicit standard patch.")
-
-    coordination = DEFAULT_COORDINATION_WRITE_SET
-    if gate and isinstance(gate.get("coordination_write_set"), list):
-        coordination = list(gate["coordination_write_set"])
-
-    source_targets = [path for path in targets if not path_matches(path, coordination)]
-    if not source_targets:
-        return allow("Coordination-only patch allowed while the source gate remains independent.")
-
-    if gate is None:
-        return deny(gate_error or "Active Work Block gate is unavailable.")
-    ready, reason = gate_ready(gate, root)
-    if not ready:
-        return deny(reason)
-
-    write_set = gate.get("write_set", [])
-    outside = [path for path in source_targets if not path_matches(path, write_set)]
+def require_scope(paths, patterns, label):
+    outside = [path for path in paths if not matches(path, patterns)]
     if outside:
-        return deny("Patch targets outside the approved write-set: " + ", ".join(outside))
-    return allow()
-
-
-def hard_stop_approval(gate: dict[str, Any] | None, key: str) -> bool:
-    approvals = gate.get("hard_stop_approvals") if isinstance(gate, dict) else None
-    return bool(isinstance(approvals, dict) and approvals.get(key) is True)
-
-
-def check_bash(command: str, gate: dict[str, Any] | None, gate_error: str | None, root: Path) -> int:
-    stripped = command.strip()
-    if not stripped:
-        return allow()
-    if READ_ONLY_BASH.match(stripped) and not OPAQUE_MUTATION.search(stripped):
-        return allow()
-
-    matched_rules: list[tuple[str, str]] = []
-    for label, pattern, approval_key in DANGEROUS_RULES:
-        if pattern.search(stripped):
-            matched_rules.append((label, approval_key))
-    for label, approval_key in matched_rules:
-        if not hard_stop_approval(gate, approval_key):
-            return deny(f"{label} requires explicit Owner approval recorded as {approval_key}.")
-
-    if matched_rules:
-        if gate is None:
-            return deny(gate_error or "Active Work Block gate is unavailable.")
-        ready, reason = gate_ready(gate, root)
-        return allow() if ready else deny(reason)
-
-    if re.match(r"^\s*git\s+add\b", stripped, re.I):
-        if gate is None:
-            return deny(gate_error or "Active Work Block gate is unavailable.")
-        ready, reason = gate_ready(gate, root)
-        if not ready:
-            return deny(reason)
-        try:
-            tokens = shlex.split(stripped)
-        except ValueError:
-            return deny("Unable to parse git add command safely.")
-        paths = [normalize_path(token) for token in tokens[2:] if not token.startswith("-")]
-        paths = [path for path in paths if path]
-        if not paths:
-            return deny("Use explicit scoped paths with git add; broad staging is blocked.")
-        outside = [path for path in paths if not path_matches(path, gate.get("write_set", []))]
-        if outside:
-            return deny("git add targets outside the approved write-set: " + ", ".join(outside))
-        return allow()
-
-    if OPAQUE_MUTATION.search(stripped):
-        return deny(
-            "Opaque mutating Bash is blocked because target scope cannot be verified. "
-            "Use apply_patch or a simpler explicit command covered by the Work Block gate."
+        raise Denied(
+            f"{label} outside approved scope: {', '.join(outside)}. "
+            "Update the Work Block write-set before retrying."
         )
 
-    # Unknown commands are allowed only when they are not recognized as writes or Hard Stops.
-    # Hooks are guardrails, so sandbox/approval policy still applies independently.
-    return allow()
 
-
-def main() -> int:
+def expiry(value):
+    if not isinstance(value, str) or not value.strip():
+        raise Denied("write_gate.expires_at must be a non-empty timestamp.")
     try:
-        event = json.load(sys.stdin)
-    except json.JSONDecodeError as exc:
-        print(f"Invalid hook input: {exc}", file=sys.stderr)
-        return 2
-    if not isinstance(event, dict):
-        print("Invalid hook input: expected object", file=sys.stderr)
-        return 2
+        parsed = dt.datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise Denied(f"Invalid write_gate.expires_at: {exc}") from exc
+    if parsed.tzinfo is None:
+        raise Denied("write_gate.expires_at must include a timezone.")
+    return parsed.astimezone(dt.timezone.utc)
 
-    cwd = Path(str(event.get("cwd") or os.getcwd()))
-    root = find_repo_root(cwd)
-    gate, gate_error = load_gate(root)
-    tool_name = str(event.get("tool_name") or "")
-    tool_input = event.get("tool_input")
-    command = str(tool_input.get("command") or "") if isinstance(tool_input, dict) else ""
 
-    if tool_name in {"apply_patch", "Edit", "Write"}:
-        return check_patch(command, gate, gate_error, root)
-    if tool_name == "Bash":
-        return check_bash(command, gate, gate_error, root)
-    return allow()
+def validate_source_gate(gate, root):
+    if gate.get("schema_version") != 1:
+        raise Denied("Unsupported active Work Block schema_version.")
+    if not str(gate.get("work_block_id") or "").strip():
+        raise Denied("Active Work Block requires work_block_id.")
+    write_gate = gate.get("write_gate")
+    if not isinstance(write_gate, dict) or write_gate.get("status") != "READY":
+        raise Denied("Source writes require write_gate.status=READY.")
+    exp = expiry(write_gate.get("expires_at"))
+    if dt.datetime.now(dt.timezone.utc) >= exp:
+        raise Denied(f"Write gate expired at {exp.isoformat()}.")
+    spec = gate.get("specification")
+    if not isinstance(spec, dict) or not str(spec.get("path") or "").strip():
+        raise Denied("Active Work Block requires specification.path.")
+    if not str(spec.get("revision") or "").strip():
+        raise Denied("Active Work Block requires specification.revision.")
+    base = str(gate.get("base_commit") or "").strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", base):
+        raise Denied("Active Work Block requires a valid base_commit SHA.")
+    head = git(root, "rev-parse", "HEAD")
+    if not head.startswith(base) and not base.startswith(head):
+        raise Denied(f"Stale gate: HEAD {head[:12]} != base_commit {base[:12]}.")
+    critic = gate.get("critic")
+    if not isinstance(critic, dict):
+        raise Denied("Active Work Block requires critic state.")
+    if critic.get("required") is True:
+        status, verdict = critic.get("status"), critic.get("verdict")
+        if status not in {"READY", "DEGRADED", "FALLBACK", "SKIPPED"}:
+            raise Denied("Required Critic state is unresolved.")
+        if status in {"READY", "DEGRADED", "FALLBACK"} and verdict not in {"APPROVE", "SUPPLEMENT"}:
+            raise Denied("Required Critic verdict must be APPROVE or SUPPLEMENT.")
+        if status == "SKIPPED" and not str(critic.get("skip_reason") or "").strip():
+            raise Denied("Skipped Critic requires skip_reason.")
+    write_set = gate.get("write_set")
+    if not isinstance(write_set, list) or not any(str(v).strip() for v in write_set):
+        raise Denied("Active Work Block requires a non-empty write_set.")
+    return [str(v) for v in write_set if str(v).strip()]
+
+
+def patch_paths(command, root):
+    raw = PATCH_PATHS.findall(command) + PATCH_MOVES.findall(command) + DIFF_PATHS.findall(command)
+    paths = []
+    for value in raw:
+        path = normalize(value, root)
+        if path and path not in paths:
+            paths.append(path)
+    if not paths:
+        raise Denied(
+            "apply_patch did not expose target paths; use the standard "
+            "'*** Update/Add/Delete File:' format."
+        )
+    return paths
+
+
+def check_paths(paths, gate, root):
+    coordination_paths = coordination(gate)
+    source = [path for path in paths if not matches(path, coordination_paths)]
+    if not source:
+        require_scope(paths, coordination_paths, "Coordination write")
+        return
+    require_scope(source, validate_source_gate(gate, root), "Source write")
+
+
+def approved(gate, key):
+    values = gate.get("hard_stop_approvals")
+    return isinstance(values, dict) and values.get(key) is True
+
+
+def dangerous(command, gate, root):
+    found = set()
+    for pattern, key, label in DANGEROUS:
+        if pattern.search(command):
+            found.add(key)
+            if not approved(gate, key):
+                raise Denied(
+                    f"{label} requires hard_stop_approvals.{key}=true and "
+                    "recorded Owner approval."
+                )
+    if "git_push" in found:
+        explicit = re.search(
+            r"\bgit\s+push\b[^\n]*(\bmain\b|\bmaster\b|\bHEAD:(main|master)\b)",
+            command, re.I
+        )
+        implicit = not re.search(r"\bgit\s+push\b\s+\S+\s+\S+", command, re.I)
+        if implicit and git(root, "branch", "--show-current") not in {"main", "master"}:
+            implicit = False
+        if (explicit or implicit) and not approved(gate, "default_branch_push"):
+            raise Denied(
+                "Default-branch push requires "
+                "hard_stop_approvals.default_branch_push=true."
+            )
+    return found
+
+
+def shell_paths(command, root):
+    paths = []
+    for match in REDIRECTS.finditer(command):
+        path = normalize(match.group(1), root)
+        if path not in paths:
+            paths.append(path)
+    if re.search(r";|&&|\|\||(?<!\|)\|(?!\|)", command):
+        raise Denied(
+            "Complex mutating Bash cannot be scoped safely; split the command "
+            "or use apply_patch."
+        )
+    try:
+        tokens = shlex.split(command, posix=True)
+    except ValueError as exc:
+        raise Denied(f"Cannot parse mutating Bash: {exc}") from exc
+    if not tokens:
+        return paths
+    name = Path(tokens[0]).name
+    args = [v for v in tokens[1:] if not v.startswith("-")]
+    targets = []
+    if name in {"touch", "mkdir", "rm", "rmdir", "chmod", "chown", "truncate"}:
+        targets = args
+    elif name in {"mv", "install", "ln"}:
+        targets = args
+    elif name == "cp" and args:
+        targets = [args[-1]]
+    elif name == "tee":
+        targets = args
+    elif name in {"sed", "perl"}:
+        targets = [v for v in args if not v.startswith(("s/", "s|"))]
+    elif name == "git" and args and args[0] in {"add", "mv", "rm", "restore", "checkout"}:
+        targets = args[1:]
+    elif name in {"npm", "pnpm", "yarn", "pip", "pip3", "poetry", "cargo", "go"}:
+        raise Denied(
+            "Dependency commands have broad implicit writes; use a separately "
+            "approved workflow."
+        )
+    for raw in targets:
+        if raw in {".", "./"} or raw.startswith(("$", "`")) or any(c in raw for c in "*?[]{}"):
+            raise Denied(f"Write target cannot be scoped safely: {raw}")
+        path = normalize(raw, root)
+        if path not in paths:
+            paths.append(path)
+    if not paths:
+        raise Denied(
+            "Mutating Bash did not expose explicit target paths; use apply_patch "
+            "or a simpler command."
+        )
+    return paths
+
+
+def check_bash(event, gate, root):
+    value = event.get("tool_input")
+    command = value.get("command") if isinstance(value, dict) else None
+    if not isinstance(command, str):
+        raise Denied("Bash input is missing tool_input.command.")
+    found = dangerous(command, gate, root)
+    if "git_push" in found or found.intersection({"live_infra", "live_data", "client_communications"}):
+        return
+    if "git_commit" in found:
+        write_set = validate_source_gate(gate, root)
+        staged = [v for v in git(root, "diff", "--cached", "--name-only", "--diff-filter=ACMRD").splitlines() if v]
+        if not staged:
+            raise Denied("git commit has no staged paths to validate.")
+        require_scope(
+            [v for v in staged if not matches(v, coordination(gate))],
+            write_set,
+            "Staged commit",
+        )
+        return
+    if MUTATING.search(command) or REDIRECTS.search(command):
+        check_paths(shell_paths(command, root), gate, root)
+
+
+def main():
+    event = read_event()
+    root = root_from(event.get("cwd"))
+    gate = load_gate(root)
+    tool = str(event.get("tool_name") or "")
+    try:
+        if tool == "Bash":
+            check_bash(event, gate, root)
+        else:
+            value = event.get("tool_input")
+            command = value.get("command") if isinstance(value, dict) else None
+            if not isinstance(command, str):
+                raise Denied(f"Unsupported write tool shape for {tool}; use apply_patch.")
+            check_paths(patch_paths(command, root), gate, root)
+    except Denied as exc:
+        block(str(exc))
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
