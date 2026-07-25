@@ -42,9 +42,9 @@ jobs:
 
           paths = [
               Path("scripts/test-codex-adapter.py"),
+              Path("scripts/test-codex-hard-stops.py"),
               Path("template/.codex/hooks/pre_tool_use_policy.py"),
               Path("template/.codex/hooks/subagent_context.py"),
-              Path("template/.codex/hooks/stage0_write_gate.py"),
           ]
           for path in paths:
               compile(path.read_text(encoding="utf-8"), str(path), "exec")
@@ -57,7 +57,9 @@ jobs:
       - name: Validate Codex adapter gates
         id: codex_adapter
         continue-on-error: true
-        run: python scripts/test-codex-adapter.py > codex-adapter-test.log 2>&1
+        run: |
+          python scripts/test-codex-adapter.py > codex-adapter-test.log 2>&1
+          python scripts/test-codex-hard-stops.py >> codex-adapter-test.log 2>&1
 
       - name: Upload Codex adapter failure log
         if: steps.codex_adapter.outcome == 'failure'
