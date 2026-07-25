@@ -10,6 +10,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_TEST = ROOT / "scripts/test-codex-adapter.py"
+HARD_STOP = ROOT / "template/.codex/hooks/hard_stop_policy.py"
 
 spec = importlib.util.spec_from_file_location("codex_adapter_test", BASE_TEST)
 if spec is None or spec.loader is None:
@@ -40,44 +41,44 @@ def main() -> int:
         module.git(repo, "commit", "-qm", "baseline")
         module.write_gate(repo)
 
-        push_command = "git " + "push origin feature"
+        push_command = "git push origin feature"
         module.assert_denied(
             "unapproved push",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", push_command)),
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
             "git_push",
         )
         set_approvals(repo, git_push=True)
         module.assert_allowed(
             "approved feature push",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", push_command)),
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
         )
 
-        default_push = "git " + "push origin main"
+        default_push = "git push origin main"
         module.assert_denied(
             "default branch push",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", default_push)),
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", default_push)),
             "default_branch_push",
         )
 
-        secret_read = "cat " + ".env"
+        secret_read = "cat .env"
         module.assert_denied(
             "secret access",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", secret_read)),
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", secret_read)),
             "credentials",
         )
 
-        destructive = "r" + "m -rf src"
-        module.assert_denied(
-            "destructive command",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", destructive)),
-            "destructive",
-        )
+        for command in ("rm -r src", "rm -rf src", "rm -fr src", "rm --recursive src"):
+            module.assert_denied(
+                f"destructive command {command}",
+                module.decision(HARD_STOP, repo, module.event(repo, "Bash", command)),
+                "destructive",
+            )
 
         expired = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=1)).isoformat()
         module.write_gate(repo, expires=expired)
         module.assert_denied(
-            "expired gate before approved mutation",
-            module.decision(module.PRE_TOOL, repo, module.event(repo, "Bash", push_command)),
+            "unapproved mutation remains blocked with expired gate",
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
             "git_push",
         )
 
