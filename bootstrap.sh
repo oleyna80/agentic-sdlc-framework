@@ -9,7 +9,7 @@ PROJECT_NAME="${2:-My Project}"
 PROJECT_SLUG="${3:-$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')}"
 
 escape_sed_replacement() {
-  printf '%s' "$1" | sed -e 's/[\/&\\]/\\&/g'
+  printf '%s' "$1" | sed -e 's/[\/&\]/\&/g'
 }
 
 PROJECT_NAME_ESC="$(escape_sed_replacement "$PROJECT_NAME")"
@@ -32,13 +32,14 @@ if [ -f "$TARGET_DIR/project.gitignore" ]; then
   mv "$TARGET_DIR/project.gitignore" "$TARGET_DIR/.gitignore"
 fi
 
-# 2. Install the runtime-neutral control plane and adapter documentation.
-# Copy directory contents rather than directory nodes so the operation remains
-# structurally safe if a future installer permits partial/resume scaffolding.
-echo "==> Installing governance and runtime adapter documentation..."
-mkdir -p "$TARGET_DIR/governance" "$TARGET_DIR/runtimes"
+# 2. Install control-plane, runtime, and integration documentation.
+# Copy directory contents rather than directory nodes so a future resume-safe
+# installer cannot create governance/governance or similar nested paths.
+echo "==> Installing governance, runtime, and integration adapters..."
+mkdir -p "$TARGET_DIR/governance" "$TARGET_DIR/runtimes" "$TARGET_DIR/integrations"
 cp -r "$FRAMEWORK_DIR/governance/." "$TARGET_DIR/governance/"
 cp -r "$FRAMEWORK_DIR/runtimes/." "$TARGET_DIR/runtimes/"
+cp -r "$FRAMEWORK_DIR/integrations/." "$TARGET_DIR/integrations/"
 
 # 3. Replace project placeholders across the scaffold and copied contracts.
 echo "==> Replacing placeholders..."
@@ -51,7 +52,7 @@ find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o 
     -e "s/{{TECH_STACK}}/to be defined/g" \
     {} +
 
-# 4. Copy default portable skills.
+# 4. Copy the default portable skill baseline.
 echo "==> Copying core skills..."
 CORE_SKILLS="architecture-discovery technical-discovery task-decomposition project-estimation scoped-coder verifier reviewer spec-drift-audit systematic-debugging webapp-testing memory-bank-manager ssot-sync-closeout subagent-mission-brief agent-operations-review output-skill scoped-commit-guard shell-context-guard orchestrator-log context-snapshot merge-protocol critic-review codex-verification handoff-live-smoke security-audit-triage security-verification-gate"
 mkdir -p "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills"
@@ -70,7 +71,8 @@ find "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills" -name "SKILL.md" -
     {} + 2>/dev/null || true
 
 # 6. Make runtime hooks and project scripts executable.
-chmod +x "$TARGET_DIR/.claude/hooks/"*.sh 2>/dev/null || true
+chmod +x "$TARGET_DIR/.agent/hooks/"*.py 2>/dev/null || true
+chmod +x "$TARGET_DIR/.claude/hooks/"*.sh "$TARGET_DIR/.claude/hooks/"*.py 2>/dev/null || true
 chmod +x "$TARGET_DIR/.codex/hooks/"*.py 2>/dev/null || true
 chmod +x "$TARGET_DIR/scripts/"*.sh 2>/dev/null || true
 
@@ -91,7 +93,7 @@ echo "Then customize:"
 echo "  1. Read AGENTS.md and select a governance profile in the first Work Block"
 echo "  2. Confirm the active runtime adapter and capability snapshot"
 echo "  3. Review source-directory and technology placeholders"
-echo "  4. Configure approved MCP servers or runtime plugins without committing secrets"
-echo "  5. Review and trust project-local Codex hooks before relying on them"
+echo "  4. Keep plugins, MCP servers, and external runtimes disabled until admitted"
+echo "  5. Review and smoke-test project-local hooks and permission files"
 echo "  6. Add project-specific security and verification commands"
 echo "  7. Keep operational memory local; promote only durable evidence-backed knowledge"
