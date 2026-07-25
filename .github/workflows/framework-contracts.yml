@@ -30,31 +30,71 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check PyYAML
 
-      - name: Check syntax
+      - name: Check syntax and parse configuration
         run: |
           bash -n bootstrap.sh
           bash -n scripts/test-sdd-contract.sh
           bash -n scripts/validate-governance.sh
           bash -n scripts/validate-publication.sh
           bash -n template/scripts/bootstrap.sh
+          bash -n template/.claude/hooks/critic-gate.sh
+          bash -n template/.claude/hooks/hard-stop.sh
+          bash -n template/.claude/hooks/typecheck.sh
+          bash -n template/.claude/hooks/verification-gate.sh
           python - <<'PY'
+          import json
           from pathlib import Path
 
-          paths = [
+          python_paths = [
               Path("scripts/test-codex-adapter.py"),
               Path("scripts/test-codex-hard-stops.py"),
+              Path("scripts/test-integration-contracts.py"),
+              Path("template/.agent/hooks/hard_stop_policy.py"),
+              Path("template/.claude/hooks/work_block_gate.py"),
+              Path("template/.claude/hooks/assurance_gate.py"),
               Path("template/.codex/hooks/hard_stop_policy.py"),
               Path("template/.codex/hooks/pre_tool_use_policy.py"),
               Path("template/.codex/hooks/stage0_write_gate.py"),
               Path("template/.codex/hooks/subagent_context.py"),
           ]
-          for path in paths:
+          for path in python_paths:
               compile(path.read_text(encoding="utf-8"), str(path), "exec")
               print(f"syntax OK: {path}")
+
+          for path in (
+              Path("template/.claude/settings.json"),
+              Path("template/.mcp.json"),
+              Path("template/.agent/active-work-block.json"),
+              Path("template/opencode.json"),
+          ):
+              value = json.loads(path.read_text(encoding="utf-8"))
+              if not isinstance(value, dict):
+                  raise SystemExit(f"{path} must parse to an object")
+              print(f"JSON OK: {path}")
           PY
 
       - name: Validate runtime-neutral SDLC contracts
         run: bash scripts/test-sdd-contract.sh
+
+      - name: Validate integration adapters
+        id: integration_adapters
+        continue-on-error: true
+        run: python scripts/test-integration-contracts.py > "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
+
+      - name: Upload integration adapter failure log
+        if: steps.integration_adapters.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-adapter-failure
+          path: ${{ runner.temp }}/integration-adapter-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce integration adapter result
+        if: steps.integration_adapters.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/integration-adapter-test.log"
+          exit 1
 
       - name: Validate Codex adapter gates
         id: codex_adapter
@@ -98,7 +138,7 @@ jobs:
       - name: Enforce publication validation result
         if: steps.publication.outcome == 'failure'
         run: |
-          tail -n 200 "$RUNNER_TEMP/publication-validation.log"
+          tail -n 250 "$RUNNER_TEMP/publication-validation.log"
           exit 1
 
       - name: Bootstrap disposable generated project
@@ -109,10 +149,20 @@ jobs:
           test -f "$target/governance/authority.md"
           test -f "$target/governance/lifecycle.md"
           test -f "$target/runtimes/codex/README.md"
+          test -f "$target/runtimes/claude-code/README.md"
+          test -f "$target/runtimes/opencode/README.md"
           test -f "$target/runtimes/generic/README.md"
+          test -f "$target/integrations/README.md"
+          test -f "$target/integrations/claude-code-codex-plugin/README.md"
+          test -f "$target/integrations/mcp/README.md"
+          test -f "$target/integrations/file-handoff/README.md"
+          test -f "$target/docs/templates/integration-admission-template.md"
           test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
           test -f "$target/docs/templates/spec-drift-report-template.md"
           test -f "$target/.agent/active-work-block.json"
+          test -f "$target/.agent/hooks/hard_stop_policy.py"
+          test -f "$target/.claude/hooks/work_block_gate.py"
+          test -f "$target/.claude/hooks/assurance_gate.py"
           test -f "$target/.codex/hooks.json"
           test -f "$target/.codex/agents/architect.toml"
           test -f "$target/.codex/agents/critic.toml"
@@ -123,6 +173,33 @@ jobs:
           test -f "$target/.codex/hooks/pre_tool_use_policy.py"
           test -f "$target/.codex/hooks/stage0_write_gate.py"
           test -f "$target/.codex/hooks/subagent_context.py"
+          test -f "$target/opencode.json"
+          test -f "$target/.opencode/agents/architect.md"
+          test -f "$target/.opencode/agents/critic.md"
+          test -f "$target/.opencode/agents/coder.md"
+          test -f "$target/.opencode/agents/reviewer.md"
+          test -f "$target/.opencode/agents/verifier.md"
+          test ! -e "$target/.claude/agents/gpt-critic.md"
+          test ! -e "$target/.claude/agents/gpt-verifier.md"
+          test ! -e "$target/.claude/agents/codex-reviewer.md"
+          python - "$target" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          root = pathlib.Path(sys.argv[1])
+          assert json.loads((root / ".mcp.json").read_text()) == {"mcpServers": {}}
+          claude = json.loads((root / ".claude/settings.json").read_text())
+          assert "enabledMcpjsonServers" not in claude
+          assert set(claude["agents"]) == {
+              "solution-architect", "critic", "reviewer", "scoped-coder", "verifier"
+          }
+          opencode = json.loads((root / "opencode.json").read_text())
+          assert opencode["mcp"] == {}
+          assert opencode["plugin"] == []
+          assert opencode["permission"]["external_directory"] == "deny"
+          print("generated integration configuration OK")
+          PY
           grep -q "Contract Smoke" "$target/AGENTS.md"
           grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
           rm -rf "$target"
