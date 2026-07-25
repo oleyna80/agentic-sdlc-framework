@@ -12,6 +12,9 @@ permission:
     "git show*": allow
     "git commit*": deny
     "git push*": deny
+    "git reset --hard*": deny
+    "git clean*": deny
+    "rm *": deny
   task: deny
   external_directory: deny
   webfetch: ask
@@ -31,6 +34,7 @@ Rules:
 
 - execute safe, scoped checks only;
 - do not install dependencies or mutate live systems/data;
+- do not commit, push, delete files, or run destructive Git;
 - do not treat a check that did not run as pass;
 - separate pre-existing failures from regressions introduced by the diff;
 - record commands, outcomes, environment, inspected areas, and artifacts;
