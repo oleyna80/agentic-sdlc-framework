@@ -57,6 +57,7 @@ for path in \
   "runtimes/opencode/README.md" \
   "runtimes/generic/README.md" \
   ".agent/ROSTER.md" \
+  ".agent/active-work-block.json" \
   ".agent/critic-gate.md" \
   ".agent/verification-gate.md" \
   ".agent/workflows/sdd-protocol.md" \
@@ -77,8 +78,17 @@ for path in \
   ".claude/hooks/typecheck.sh" \
   ".claude/hooks/verification-gate.sh" \
   ".claude/skills/README.md" \
+  ".codex/config.toml.template" \
   ".codex/critic.md" \
   ".codex/write-gate.md" \
+  ".codex/hooks.json" \
+  ".codex/agents/architect.toml" \
+  ".codex/agents/critic.toml" \
+  ".codex/agents/coder.toml" \
+  ".codex/agents/reviewer.toml" \
+  ".codex/agents/verifier.toml" \
+  ".codex/hooks/pre_tool_use_policy.py" \
+  ".codex/hooks/subagent_context.py" \
   "docs/session-bootstrap.md" \
   "docs/engineering-memory/README.md" \
   "docs/engineering-memory/decision-record-template.md" \
