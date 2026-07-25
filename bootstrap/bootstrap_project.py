@@ -477,7 +477,9 @@ def main() -> int:
 
         requested_profile = str(args.profile).strip()
         state = resolve_profile_state(catalog, requested_profile)
-        target = Path(str(args.target_dir)).expanduser().resolve()
+        raw_target = Path(str(args.target_dir)).expanduser()
+        target = raw_target if raw_target.is_absolute() else Path.cwd() / raw_target
+        target = Path(os.path.abspath(target))
         project_name = str(args.project_name)
         project_slug = str(
             args.project_slug
