@@ -26,6 +26,13 @@ def set_approvals(repo: Path, **values: bool) -> None:
     path.write_text(json.dumps(gate, indent=2) + "\n", encoding="utf-8")
 
 
+def set_gate_status(repo: Path, status: str) -> None:
+    path = repo / ".agent/active-work-block.json"
+    gate = json.loads(path.read_text(encoding="utf-8"))
+    gate["write_gate"]["status"] = status
+    path.write_text(json.dumps(gate, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="codex-hard-stops-") as temp:
         repo = Path(temp)
@@ -53,12 +60,23 @@ def main() -> int:
             module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
         )
 
-        default_push = "git push origin main"
+        for command in (
+            "git push origin main",
+            "git push origin HEAD:refs/heads/main",
+        ):
+            module.assert_denied(
+                f"default branch push {command}",
+                module.decision(HARD_STOP, repo, module.event(repo, "Bash", command)),
+                "default_branch_push",
+            )
+
+        module.git(repo, "branch", "-m", "main")
         module.assert_denied(
-            "default branch push",
-            module.decision(HARD_STOP, repo, module.event(repo, "Bash", default_push)),
+            "standalone HEAD from default branch",
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", "git push origin HEAD")),
             "default_branch_push",
         )
+        module.git(repo, "branch", "-m", "feature")
 
         secret_read = "cat .env"
         module.assert_denied(
@@ -67,19 +85,40 @@ def main() -> int:
             "credentials",
         )
 
-        for command in ("rm -r src", "rm -rf src", "rm -fr src", "rm --recursive src"):
+        for command in (
+            "rm -r src",
+            "rm -rf src",
+            "rm -fr src",
+            "rm --recursive src",
+            "echo inspected\nrm -rf src",
+        ):
             module.assert_denied(
-                f"destructive command {command}",
+                f"destructive command {command!r}",
                 module.decision(HARD_STOP, repo, module.event(repo, "Bash", command)),
                 "destructive",
             )
 
+        # Approvals are valid only inside an active, non-expired Work Block gate.
+        module.write_gate(repo)
+        set_approvals(repo, git_push=True)
         expired = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=1)).isoformat()
-        module.write_gate(repo, expires=expired)
+        path = repo / ".agent/active-work-block.json"
+        gate = json.loads(path.read_text(encoding="utf-8"))
+        gate["write_gate"]["expires_at"] = expired
+        path.write_text(json.dumps(gate, indent=2) + "\n", encoding="utf-8")
         module.assert_denied(
-            "unapproved mutation remains blocked with expired gate",
+            "approved push with expired approval window",
             module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
-            "git_push",
+            "expired",
+        )
+
+        module.write_gate(repo)
+        set_approvals(repo, git_push=True)
+        set_gate_status(repo, "BLOCKED")
+        module.assert_denied(
+            "approved push with blocked Work Block gate",
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
+            "write_gate.status=READY",
         )
 
     print("Codex Hard Stop fixtures: OK")
