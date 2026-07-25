@@ -1,8 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
-# repository zones. Keep this selective: register contracts and boundaries, not
-# every file.
+# repository zones. Register contracts and boundaries, not every file.
 
-version: 3
+version: 4
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -38,6 +37,16 @@ role_dimensions:
     - specialization
     - isolation_level
     - tool_availability
+
+migration_state:
+  completed_work_blocks:
+    - docs/plans/wb-001-runtime-neutral-control-plane.md
+    - docs/plans/wb-002-runtime-neutral-template-convergence.md
+    - docs/plans/wb-003-codex-native-agents-and-gates.md
+  active_work_block: null
+  planned:
+    - WB-004 integration adapter normalization
+    - WB-005 profile-aware bootstrap and cross-runtime conformance
 
 entries:
   governance/**:
@@ -81,7 +90,10 @@ entries:
     role: codex_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/.codex/**, framework/workflow/codex-model-routing.md]
+    related:
+      - template/.codex/**
+      - template/.agent/active-work-block.json
+      - scripts/test-codex-adapter.py
 
   runtimes/claude-code/**:
     role: claude_code_runtime_adapter
@@ -112,6 +124,7 @@ entries:
     related:
       - docs/plans/wb-001-runtime-neutral-control-plane.md
       - docs/plans/wb-002-runtime-neutral-template-convergence.md
+      - docs/plans/wb-003-codex-native-agents-and-gates.md
       - governance/**
       - runtimes/**
 
@@ -124,23 +137,28 @@ entries:
     role: completed_architecture_foundation_work_block
     status: log
     owner: orchestrator
-    related: [docs/plans/wb-002-runtime-neutral-template-convergence.md]
 
   docs/plans/wb-002-runtime-neutral-template-convergence.md:
-    role: active_portable_contract_migration_work_block
+    role: completed_portable_contract_migration_work_block
     status: log
     owner: orchestrator
-    related:
-      - template/AGENTS.md
-      - template/.agent/workflows/sdd-protocol.md
-      - scripts/test-sdd-contract.sh
-      - .github/workflows/framework-contracts.yml
 
   docs/plans/wb-002-normalize-portable-sdlc-contracts.md:
     role: superseded_work_block_compatibility_alias
     status: reference
     owner: orchestrator
     related: [docs/plans/wb-002-runtime-neutral-template-convergence.md]
+
+  docs/plans/wb-003-codex-native-agents-and-gates.md:
+    role: completed_codex_native_adapter_work_block
+    status: log
+    owner: orchestrator
+    related:
+      - runtimes/codex/README.md
+      - template/.codex/**
+      - template/.agent/active-work-block.json
+      - scripts/test-codex-adapter.py
+      - .github/workflows/framework-contracts.yml
 
   README.md:
     role: public_entrypoint
@@ -189,6 +207,11 @@ entries:
     status: normative
     owner: verifier
 
+  scripts/test-codex-adapter.py:
+    role: codex_agent_hook_and_gate_fixture_test
+    status: normative
+    owner: verifier
+
   scripts/validate-governance.sh:
     role: governance_structure_validation
     status: normative
@@ -200,7 +223,7 @@ entries:
     owner: verifier
 
   .github/workflows/framework-contracts.yml:
-    role: framework_contract_and_bootstrap_smoke_ci
+    role: framework_contract_adapter_and_bootstrap_ci
     status: evidence
     owner: verifier
 
@@ -229,6 +252,14 @@ entries:
     status: template
     owner: architect
 
+  template/.agent/active-work-block.json:
+    role: generated_project_machine_readable_work_block_gate
+    status: template
+    owner: orchestrator
+    related:
+      - template/.codex/hooks/pre_tool_use_policy.py
+      - template/.codex/hooks/subagent_context.py
+
   template/docs/session-bootstrap.md:
     role: generated_project_progressive_session_intake
     status: template
@@ -249,8 +280,38 @@ entries:
     status: template
     owner: verifier
 
+  template/.codex/config.toml.template:
+    role: codex_project_configuration_template
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/agents/**:
+    role: codex_project_scoped_logical_role_agents
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/hooks.json:
+    role: codex_project_hook_registration
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/hooks/pre_tool_use_policy.py:
+    role: codex_fail_closed_write_and_hard_stop_guard
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/hooks/subagent_context.py:
+    role: codex_bounded_subagent_work_block_context
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/write-gate.md:
+    role: codex_human_readable_gate_compatibility_view
+    status: runtime_adapter
+    owner: maintainer
+
   template/.codex/**:
-    role: current_codex_runtime_compatibility_layer
+    role: codex_runtime_adapter_implementation
     status: runtime_adapter
     owner: maintainer
 
