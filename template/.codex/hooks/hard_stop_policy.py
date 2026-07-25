@@ -7,6 +7,7 @@ to authorize ordinary source edits.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 from pathlib import Path
@@ -114,6 +115,29 @@ def load_gate(root: Path) -> dict:
     return gate
 
 
+def approval_window_ready(gate: dict) -> None:
+    if gate.get("schema_version") != 1:
+        deny("Hard Stop approval requires active-work-block schema_version=1.")
+    if not str(gate.get("work_block_id") or "").strip():
+        deny("Hard Stop approval requires a non-empty work_block_id.")
+
+    write_gate = gate.get("write_gate")
+    if not isinstance(write_gate, dict) or write_gate.get("status") != "READY":
+        deny("Hard Stop approval requires write_gate.status=READY.")
+
+    raw_expiry = write_gate.get("expires_at")
+    if not isinstance(raw_expiry, str) or not raw_expiry.strip():
+        deny("Hard Stop approval requires a timezone-aware write_gate.expires_at.")
+    try:
+        expiry = dt.datetime.fromisoformat(raw_expiry.strip().replace("Z", "+00:00"))
+    except ValueError as exc:
+        deny(f"Invalid write_gate.expires_at for Hard Stop approval: {exc}")
+    if expiry.tzinfo is None:
+        deny("Hard Stop approval expiry must include a timezone.")
+    if dt.datetime.now(dt.timezone.utc) >= expiry.astimezone(dt.timezone.utc):
+        deny(f"Hard Stop approval window expired at {expiry.isoformat()}.")
+
+
 def approved(gate: dict, key: str) -> bool:
     approvals = gate.get("hard_stop_approvals")
     return isinstance(approvals, dict) and approvals.get(key) is True
@@ -136,7 +160,7 @@ def current_branch(root: Path) -> str:
 
 def recursive_rm(command: str) -> bool:
     """Detect rm recursive flags including -r, -rf, -fr and --recursive."""
-    for match in re.finditer(r"(?:^|[;&|]\s*)rm\s+([^;&|\n]+)", command, re.I):
+    for match in re.finditer(r"(?:^|[;&|\n]\s*)rm\s+([^;&|\n]+)", command, re.I):
         try:
             tokens = shlex.split(match.group(1), posix=True)
         except ValueError:
@@ -152,11 +176,48 @@ def recursive_rm(command: str) -> bool:
 
 
 def require_approval(gate: dict, key: str, label: str) -> None:
+    approval_window_ready(gate)
     if not approved(gate, key):
         deny(
             f"{label} requires hard_stop_approvals.{key}=true and "
             "recorded Owner approval."
         )
+
+
+def push_segments(command: str) -> list[str]:
+    return [
+        match.group(1).strip()
+        for match in re.finditer(
+            r"(?:^|[;&|\n]\s*)git\s+push\b([^;&|\n]*)",
+            command,
+            re.I,
+        )
+    ]
+
+
+def pushes_default_branch(command: str, root: Path) -> bool:
+    branch = current_branch(root)
+    for segment in push_segments(command):
+        if re.search(
+            r"(?:^|\s)(?:HEAD:)?(?:refs/heads/)?(?:main|master)(?:\s|$)",
+            segment,
+            re.I,
+        ):
+            return True
+        if branch in {"main", "master"} and re.search(r"(?:^|\s)HEAD(?:\s|$)", segment):
+            return True
+
+        try:
+            tokens = shlex.split(segment, posix=True)
+        except ValueError:
+            return branch in {"main", "master"}
+
+        # With no clear refspec, Git pushes the current branch according to its
+        # configured push mode. Be conservative on the default branch.
+        positional = [token for token in tokens if not token.startswith("-")]
+        if branch in {"main", "master"} and len(positional) <= 1:
+            return True
+    return False
 
 
 def check_command(command: str, gate: dict, root: Path) -> None:
@@ -169,20 +230,12 @@ def check_command(command: str, gate: dict, root: Path) -> None:
             found.add(key)
             require_approval(gate, key, label)
 
-    if "git_push" in found:
-        explicit_default = re.search(
-            r"\bgit\s+push\b[^\n]*(\bmain\b|\bmaster\b|\bHEAD:(main|master)\b)",
-            command,
-            re.I,
+    if "git_push" in found and pushes_default_branch(command, root):
+        require_approval(
+            gate,
+            "default_branch_push",
+            "default-branch push",
         )
-        explicit_ref = re.search(r"\bgit\s+push\b\s+\S+\s+\S+", command, re.I)
-        implicit_default = not explicit_ref and current_branch(root) in {"main", "master"}
-        if explicit_default or implicit_default:
-            require_approval(
-                gate,
-                "default_branch_push",
-                "default-branch push",
-            )
 
 
 def main() -> None:
