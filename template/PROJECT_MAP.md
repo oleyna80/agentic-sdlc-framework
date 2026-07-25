@@ -1,74 +1,103 @@
 # Project Map
 
-This file is the first human-readable map for `{{PROJECT_NAME}}`.
-It explains authority, major repository zones, and what an agent should read next.
+First human-readable map for `{{PROJECT_NAME}}`. It explains authority, major
+repository zones, and what an agent should read next.
 
-## Purpose
+## Architecture
 
-`{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane.
+`{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane with four
+separable layers:
 
-The project separates:
+1. **Governance Core** — authority, lifecycle, artifacts, risk gates, evidence,
+   capability negotiation, and closeout.
+2. **Portable workflow** — specifications, architecture decisions, Work Blocks,
+   plans, tasks, reports, skills, and memory.
+3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic, or another
+   approved execution runtime.
+4. **Integration adapters** — optional plugins, MCP servers, external runtime
+   CLIs, hosted tools, and audited file transport.
 
-1. **Governance core** — authority, lifecycle, artifacts, risk gates, evidence, and closeout.
-2. **Portable project workflow** — Work Blocks, specifications, plans, reports, skills, and memory.
-3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic agents, plugins, MCP, and handoff mechanisms.
-4. **Project implementation** — application source, tests, infrastructure, and documentation.
-
-Runtime or model selection never changes governance authority.
+Runtime, model, or integration selection never changes governance authority.
 
 ## Authority Order
 
-When project artifacts conflict, resolve in this order:
+When artifacts conflict:
 
 1. current Owner instruction or approved change request;
-2. approved specification;
-3. accepted architecture decisions and external contracts;
-4. approved implementation plan;
-5. active tasklist;
-6. `AGENTS.md` and the runtime-neutral governance contract for process/authority questions;
-7. review, verification, drift, and closeout reports;
+2. `AGENTS.md` and Governance Core for authority/process questions;
+3. approved specification and acceptance criteria;
+4. accepted architecture decisions and external contracts;
+5. approved implementation plan and write-set;
+6. active tasklist;
+7. review, verification, drift, integration, and closeout evidence;
 8. durable engineering memory;
-9. runtime-specific policy and configuration;
-10. operational logs, generated outputs, examples, and external reference material.
+9. runtime/integration policy, operational logs, generated output, and external
+   reference material.
 
-For agent behavior and permissions, `AGENTS.md` and `governance/` are normative.
-For product behavior, the approved specification is normative.
-Plans and tasklists are derived and must not silently override the specification.
+For product behavior, the approved specification is normative. Plans, tasklists,
+runtime configs, integrations, and generated output must not silently override
+it.
 
 ## Profiles
 
 Each Work Block selects independently:
 
-- **Governance profile:** Advisory, Controlled, Managed, Assured, or Distributed.
-- **Runtime profile:** Codex, Claude Code, OpenCode, generic, or another approved adapter.
-- **Integration profile:** none, official plugin, MCP, file-based handoff, or manual handoff.
-- **Model class:** strong reasoning, balanced engineering, fast read-only, local executor, or project-defined.
-- **Isolation level:** same context through OS-isolated, as actually used.
+- **Governance profile:** Advisory, Controlled, Managed, Assured, Distributed.
+- **Runtime profile:** Codex, Claude Code, OpenCode, generic, or another adapter.
+- **Integration profile:** none, admitted official plugin, MCP, file handoff,
+  hosted connector, direct CLI, or manual exchange.
+- **Model class:** strong reasoning, balanced engineering, fast read-only,
+  local executor, or project-defined.
+- **Isolation:** actual boundary from same context to OS-isolated.
 
-See `docs/profiles.md` and `runtimes/`.
+See `docs/profiles.md`, `runtimes/`, and `integrations/`.
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
-| `AGENTS.md` | normative | Compact project operating contract and entry point. |
-| `governance/` | normative | Runtime-neutral authority, lifecycle, artifact, and capability contracts. |
-| `.agent/workflows/sdd-protocol.md` | normative | Canonical generated-project stage and gate semantics. |
-| `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, and isolation guidance. |
-| `docs/specs/` | normative product/technical | Approved requirements and observable contracts. |
-| `docs/architecture/` or accepted decision paths | normative architecture | Accepted architecture constraints and decisions. |
-| `docs/plans/` | derived/log | Approved implementation plans and Work Block evidence. |
-| `docs/tasklist/` | derived | Active task decomposition derived from specifications and plans. |
-| `docs/reports/` | evidence | Critic, review, verification, drift, consolidation, and closeout reports. |
-| `docs/engineering-memory/` | durable reference | Evidence-backed decisions, source-of-truth chains, exceptions, and reproducibility. |
-| `docs/templates/` | normative templates | Portable Work Block and report contracts. |
-| `memory_bank/` | operational/local | Current focus, progress, decisions pending promotion, and agent delivery logs. |
-| `runtimes/` | adapter documentation | Capability and fallback guidance for supported runtimes. |
-| `.codex/` | runtime-specific | Codex configuration, agents, hooks, and compatibility policy. |
-| `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and local memory. |
-| `.mcp.json` | integration-specific | Approved MCP server configuration; no secrets. |
-| `scripts/` | project-specific | Bootstrap, verification, and automation scripts. |
-| source/test directories | project-specific | Implementation controlled by approved Work Block write-sets. |
+| `AGENTS.md` | normative | Compact project operating contract |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifact, and capability contracts |
+| `.agent/workflows/sdd-protocol.md` | normative | Define / Execute / Assure / Close semantics |
+| `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, isolation |
+| `.agent/active-work-block.json` | operational gate | Specification, Git baseline, write-set, Hard Stops, integrations, assurance, closeout |
+| `.agent/hooks/` | shared runtime policy | Provider-neutral consequential-action guards |
+| `docs/specs/` | normative | Approved product and technical behavior |
+| `docs/architecture/` | normative | Accepted architecture decisions and contracts |
+| `docs/plans/` | derived/log | Approved plans and Work Blocks |
+| `docs/tasklist/` | derived | Active task decomposition |
+| `docs/reports/` | evidence | Critic, review, verification, drift, integration, and closeout evidence |
+| `docs/engineering-memory/` | durable reference | Evidence-backed reusable decisions and reproducibility |
+| `docs/templates/` | normative templates | Work Block, reports, and integration admission |
+| `memory_bank/` | operational/local | Current focus, progress, pending decisions, runtime/team logs |
+| `runtimes/` | runtime adapters | Capability, activation, limitation, and fallback guidance |
+| `integrations/` | integration adapters | Optional bridge/tool/transport admission guidance |
+| `.codex/` | Codex adapter | Project agents, config, hooks, and wrappers |
+| `CLAUDE.md` / `.claude/` | Claude Code adapter | Runtime entry point, logical agents, hooks, skills, memory |
+| `opencode.json` / `.opencode/` | OpenCode adapter | Instructions, permissions, and logical-role subagents |
+| `.mcp.json` | inert integration config | Empty until an MCP server is admitted |
+| `scripts/` | project-specific | Bootstrap, verification, and automation |
+| source/test directories | source | Controlled by approved Work Block write-sets |
+
+## Safe Integration Defaults
+
+Generated projects start with:
+
+- empty `.mcp.json`;
+- no enabled plugin or external runtime bridge;
+- empty OpenCode `mcp` and `plugin` collections;
+- no provider-named authority agents;
+- denied secret paths and external-directory access where supported;
+- external runtime CLI calls requiring active Work Block integration approval;
+- no handoff watcher or service auto-start.
+
+Before activation, create:
+
+`docs/templates/integration-admission-template.md`
+
+The admission record identifies capabilities, exact tools, authority, data and
+secret boundaries, side effects, Hard Stops, evidence, version, failure/recovery,
+and disable procedure.
 
 ## Core Lifecycle
 
@@ -86,22 +115,24 @@ Close
   SSOT sync -> engineering memory -> closeout report
 ```
 
-The lifecycle requires functions, not a fixed number of agents.
+The lifecycle requires functions, not a fixed number of agents. Runtime-specific
+agent names and integrations are bindings to these functions.
 
 ## Generated, Derived, and Local Boundaries
 
-- `docs/specs/**` and accepted architecture decisions are normative.
-- `docs/plans/**` and `docs/tasklist/**` are derived from approved intent.
-- `docs/reports/**` are evidence; they do not silently redefine requirements.
-- `docs/engineering-memory/**` is durable and committed only when evidence-backed and secret-free.
-- `memory_bank/**` is operational context and may remain local.
-- `.claude/agent-memory/**`, runtime caches, provider config, and local IDE state are local by default.
-- `.env*`, tokens, credentials, private keys, live data, and private client context must not be committed.
-- Generated build/discovery outputs are derived and lower authority than current source and approved contracts.
+- specifications and accepted architecture decisions are normative;
+- plans and tasklists are derived;
+- reports are evidence, not requirement authority;
+- engineering memory is durable only when evidence-backed and secret-free;
+- `memory_bank/**` and runtime memory are operational/local by default;
+- plugins, downloaded packages, provider auth, MCP credentials, handoff runtime
+  state, browser sessions, and local IDE state are local;
+- `.env*`, tokens, cookies, credentials, keys, live data, and private customer
+  context must not be committed;
+- generated build/discovery output has lower authority than current source and
+  approved contracts.
 
 ## New-Session Read Strategy
-
-Use progressive disclosure.
 
 Always for non-trivial work:
 
@@ -113,23 +144,23 @@ Always for non-trivial work:
 
 Read conditionally:
 
-- `governance/*` for authority/lifecycle/artifact questions;
-- `.agent/workflows/sdd-protocol.md` for detailed stage semantics;
-- `.agent/ROSTER.md` for routing;
-- the active runtime adapter;
-- relevant skills;
-- relevant engineering memory;
-- operational logs when resuming interrupted work.
+- relevant Governance Core contract;
+- detailed SDLC protocol and role/skill roster;
+- selected runtime adapter;
+- selected integration adapter and admission record;
+- relevant skills and engineering memory;
+- operational logs when resuming work.
 
-Do not load every registry, skill, runtime document, and memory log by default.
+Do not load every registry, skill, runtime, integration, and memory file by
+default.
 
 ## Map Maintenance
 
 Update this file and `FILE_REGISTRY.yml` when a change:
 
 - adds, moves, or removes a major directory;
-- changes authority or SSOT order;
-- changes lifecycle gates or role authority;
+- changes authority or source-of-truth order;
+- changes lifecycle, integration, gate, or role semantics;
 - adds or retires a runtime/integration adapter;
-- changes normative, derived, evidence, or local-only boundaries;
+- changes normative, derived, evidence, generated, or local boundaries;
 - changes the generated-project baseline.
