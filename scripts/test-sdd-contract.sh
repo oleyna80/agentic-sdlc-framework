@@ -63,6 +63,11 @@ for path in \
   "governance/artifacts.md" \
   "governance/runtime-capabilities.md" \
   "integrations/README.md" \
+  "bootstrap/profiles.json" \
+  "bootstrap/bootstrap_project.py" \
+  "docs/bootstrap-profiles.md" \
+  "scripts/test-bootstrap-profiles.py" \
+  "scripts/test-runtime-conformance.py" \
   "template/AGENTS.md" \
   "template/CLAUDE.md" \
   "template/.agent/ROSTER.md" \
@@ -74,6 +79,7 @@ for path in \
   "template/docs/templates/work-block-template.md" \
   "template/docs/templates/spec-drift-report-template.md" \
   "template/docs/templates/integration-admission-template.md" \
+  "template/scripts/validate-installation-profile.py" \
   "skills/spec-drift-audit/SKILL.md"; do
   require_file "$path"
 done
@@ -143,23 +149,24 @@ done
 require_contains "template/docs/templates/spec-drift-report-template.md" 'Alignment Matrix'
 require_contains "skills/catalog.yml" 'spec-drift-audit'
 
-# Bootstrap delivers governance, runtimes, integrations, and complete gate bundles.
-require_contains "bootstrap.sh" 'cp -r.*governance.*TARGET_DIR/governance'
-require_contains "bootstrap.sh" 'cp -r.*runtimes.*TARGET_DIR/runtimes'
-require_contains "bootstrap.sh" 'cp -r.*integrations.*TARGET_DIR/integrations'
-require_contains "bootstrap.sh" 'CORE_SKILLS=.*spec-drift-audit'
-for pattern in \
-  'governance/authority.md' \
-  'runtimes/generic/README.md' \
-  'integrations/README.md' \
-  'spec-drift-audit/SKILL.md' \
-  '.agent/hooks/hard_stop_policy.py' \
-  '.claude/hooks/work_block_gate.py' \
-  '.claude/hooks/assurance_gate.py' \
-  'opencode.json' \
-  '.opencode/agents/verifier.md'; do
-  require_contains "template/scripts/bootstrap.sh" "$pattern"
+# Installation composition is manifest-driven and independent from authority.
+require_contains "bootstrap.sh" 'bootstrap/bootstrap_project.py'
+require_contains "bootstrap/bootstrap_project.py" 'bootstrap/profiles.json'
+require_contains "bootstrap/bootstrap_project.py" 'validate_catalog'
+require_contains "bootstrap/bootstrap_project.py" '.agent/bootstrap-profile.json'
+require_contains "bootstrap/bootstrap_project.py" 'Installation composition does not grant Work Block authority'
+require_contains "bootstrap/profiles.json" '"default_profile": "multi-runtime"'
+for profile in core codex claude-code opencode multi-runtime; do
+  require_contains "bootstrap/profiles.json" "\"$profile\""
 done
+require_contains "bootstrap/profiles.json" '"minimal": "core"'
+require_contains "bootstrap/profiles.json" '"full": "multi-runtime"'
+require_contains "template/scripts/bootstrap.sh" 'validate-installation-profile.py'
+require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
+require_contains "template/scripts/validate-installation-profile.py" 'required_paths'
+require_contains "template/scripts/validate-installation-profile.py" 'forbidden_paths'
+require_contains "docs/bootstrap-profiles.md" 'Installation profiles control'
+require_contains "docs/bootstrap-profiles.md" 'does not grant'
 
 # Machine-readable gate is provider-neutral and exposes integration/assurance state.
 require_contains "template/.agent/active-work-block.json" '"integrations"'
@@ -190,4 +197,4 @@ for path in \
   require_absent_pattern "$path" 'Plan & Discover|Stage 2: Verify|Codex mega-orchestrator'
 done
 
-echo "OK: runtime-neutral SDLC protocol and direct consumers satisfy the contract checks"
+echo "OK: runtime-neutral SDLC protocol and profile-aware direct consumers satisfy the contract checks"
