@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Bootstrap verification: ensure required workflow and governance paths exist.
+# Bootstrap verification: ensure required governance, runtime, and integration paths exist.
 # Run after cloning or restoring a generated workspace.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MISSING=0
 
-echo "==> Bootstrap: verifying workflow layer at $ROOT"
+echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
 
 # Projects may use memory_bank/ (framework default) or memory-bank/ (legacy).
 MEMORY_DIR="memory_bank"
@@ -44,6 +44,7 @@ PROJECTCONFIG
 for path in \
   ".gitignore" \
   "AGENTS.md" \
+  "CLAUDE.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml" \
   "governance/README.md" \
@@ -56,23 +57,32 @@ for path in \
   "runtimes/claude-code/README.md" \
   "runtimes/opencode/README.md" \
   "runtimes/generic/README.md" \
+  "integrations/README.md" \
+  "integrations/claude-code-codex-plugin/README.md" \
+  "integrations/mcp/README.md" \
+  "integrations/file-handoff/README.md" \
   ".agent/ROSTER.md" \
   ".agent/active-work-block.json" \
   ".agent/critic-gate.md" \
   ".agent/verification-gate.md" \
+  ".agent/hooks/hard_stop_policy.py" \
   ".agent/workflows/sdd-protocol.md" \
   ".agent/skills/README.md" \
   ".agent/skills/spec-drift-audit/SKILL.md" \
   ".mcp.json" \
   ".claude/settings.json" \
-  ".claude/agent-memory/codex-reviewer/MEMORY.md" \
   ".claude/agent-memory/critic/MEMORY.md" \
-  ".claude/agent-memory/gpt-critic/MEMORY.md" \
-  ".claude/agent-memory/gpt-verifier/MEMORY.md" \
   ".claude/agent-memory/reviewer/MEMORY.md" \
   ".claude/agent-memory/scoped-coder/MEMORY.md" \
   ".claude/agent-memory/solution-architect/MEMORY.md" \
   ".claude/agent-memory/verifier/MEMORY.md" \
+  ".claude/agents/solution-architect.md" \
+  ".claude/agents/critic.md" \
+  ".claude/agents/scoped-coder.md" \
+  ".claude/agents/reviewer.md" \
+  ".claude/agents/verifier.md" \
+  ".claude/hooks/work_block_gate.py" \
+  ".claude/hooks/assurance_gate.py" \
   ".claude/hooks/critic-gate.sh" \
   ".claude/hooks/hard-stop.sh" \
   ".claude/hooks/typecheck.sh" \
@@ -91,6 +101,12 @@ for path in \
   ".codex/hooks/pre_tool_use_policy.py" \
   ".codex/hooks/stage0_write_gate.py" \
   ".codex/hooks/subagent_context.py" \
+  "opencode.json" \
+  ".opencode/agents/architect.md" \
+  ".opencode/agents/critic.md" \
+  ".opencode/agents/coder.md" \
+  ".opencode/agents/reviewer.md" \
+  ".opencode/agents/verifier.md" \
   "docs/session-bootstrap.md" \
   "docs/engineering-memory/README.md" \
   "docs/engineering-memory/decision-record-template.md" \
@@ -103,6 +119,7 @@ for path in \
   "docs/reports/README.md" \
   "docs/templates/work-block-template.md" \
   "docs/templates/spec-drift-report-template.md" \
+  "docs/templates/integration-admission-template.md" \
   "$MEMORY_DIR/context.md" \
   "$MEMORY_DIR/progress.md" \
   "$MEMORY_DIR/decisions.md" \
@@ -118,12 +135,28 @@ for path in \
   fi
 done
 
+# Provider-named compatibility agents are intentionally absent from new projects.
+for path in \
+  ".claude/agents/gpt-critic.md" \
+  ".claude/agents/gpt-verifier.md" \
+  ".claude/agents/codex-reviewer.md" \
+  ".claude/agent-memory/gpt-critic/MEMORY.md" \
+  ".claude/agent-memory/gpt-verifier/MEMORY.md" \
+  ".claude/agent-memory/codex-reviewer/MEMORY.md"; do
+  if [ -e "$ROOT/$path" ]; then
+    echo "  UNEXPECTED: $path"
+    MISSING=1
+  else
+    echo "  OK absent: $path"
+  fi
+done
+
 if [ "$MISSING" -eq 1 ]; then
-  echo "==> Workflow layer incomplete — review missing files above."
+  echo "==> Agentic SDLC layer incomplete — review paths above."
   exit 1
 fi
 
-echo "==> Workflow layer: OK"
+echo "==> Agentic SDLC layer: OK"
 
 echo ""
 echo "==> Dev environment checks..."

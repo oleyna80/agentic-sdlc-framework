@@ -82,7 +82,7 @@ def main() -> int:
         module.assert_denied(
             "stale push approval after HEAD change",
             module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
-            "Stale Hard Stop gate",
+            "Stale approval",
         )
         module.write_gate(repo)
         set_approvals(repo, git_push=True)
@@ -108,10 +108,9 @@ def main() -> int:
         )
         module.git(repo, "branch", "-m", "feature")
 
-        secret_read = "cat .env"
         module.assert_denied(
             "secret access",
-            module.decision(HARD_STOP, repo, module.event(repo, "Bash", secret_read)),
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", "cat .env")),
             "credentials",
         )
 

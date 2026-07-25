@@ -107,6 +107,7 @@ implementation files when applying Quick-Fix and trigger thresholds.
 - [ ] Live DB migration or live-data mutation
 - [ ] Credential/token/secret change
 - [ ] Destructive git/filesystem/database operation
+- [ ] Commit or push
 - [ ] Push to default branch
 - [ ] Public release/publication
 - [ ] Client/user communication
@@ -119,18 +120,44 @@ For each checked item, record approval state and evidence.
 
 - **Primary Runtime:** [codex | claude-code | opencode | generic | other]
 - **Runtime Adapter:** [path/reference]
+- **Runtime Version:** [observed version | unknown]
 - **Native Subagents:** [available | unavailable | unknown]
 - **Separate Sessions:** [available | unavailable | unknown]
 - **Worktrees / Isolated Roots:** [available | unavailable | unknown]
 - **Hooks / Tool Guards:** [available | unavailable | unknown]
 - **Sandbox / Permission Controls:** [description]
-- **MCP / Plugin / External Tools:** [list or none]
+- **MCP / Plugin / External Tools:** [available inventory or none]
 - **Known Limitations:** [list]
 - **Capability Evidence:** [version/config/smoke/reference]
 
+## Integration Profile and Admission
+
+- **Integration Profile:** [none | official plugin | MCP | file handoff | hosted connector | direct runtime CLI | manual handoff]
+- **Approved Integration IDs:** [none | stable IDs matching machine Work Block]
+- **Admission Records:** [none | paths based on integration-admission-template.md]
+- **Logical Functions Served:** [none | Critic/Reviewer/etc.]
+- **From / To Boundary:** [runtime/service endpoints]
+- **Exact Tools / Actions:** [none | list]
+- **Authority:** [read-only | approved write-set | reports only | other]
+- **Data Sent Externally:** [none | exact content boundary]
+- **Secret / Authentication Source:** [none | local runtime/keychain/env name, no values]
+- **Network / External Directory Boundary:** [deny/ask/approved endpoints or paths]
+- **Timeout / Cancellation / Retry:** [behavior]
+- **Disable / Recovery Procedure:** [steps]
+- **Integration Smoke Evidence:** [not required for none | path/result]
+
+Rules:
+
+- generated projects default to `none`;
+- availability does not imply permission;
+- every automated non-`none` integration requires an admission record;
+- external runtime CLI IDs and admission paths must also be present in
+  `.agent/active-work-block.json`;
+- integration access does not expand the bound logical role or write-set.
+
 ## Function Bindings
 
-| Function | Logical Role | Runtime | Model Class | Actual Model | Isolation | Authority | Adapter / Launch Evidence |
+| Function | Logical Role | Runtime | Model Class | Actual Model | Isolation | Authority | Adapter / Integration / Launch Evidence |
 |---|---|---|---|---|---|---|---|
 | Orchestration | Orchestrator | [runtime] | [strong_reasoning/balanced/etc.] | [optional] | [level] | workflow | [reference] |
 | Architecture | Architect | [runtime] | [class] | [optional] | [level] | read-only/drafts | [reference] |
@@ -141,13 +168,13 @@ For each checked item, record approval state and evidence.
 | Drift Audit | Reviewer/Verifier specialization | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
 
 Use `not required` for functions legitimately skipped by profile and triggers.
-Model names do not define roles or authority.
+Model/provider/integration names do not define roles or authority.
 
 ## Degraded / Fallback Plan
 
 - **Missing capability:** [none | capability]
 - **Preferred execution:** [method]
-- **Fallback:** [same-context/separate-session/manual/other]
+- **Fallback:** [same-context | separate-session | alternate runtime | manual | other]
 - **Degraded label:** [none | exact label]
 - **Residual limitation:** [what independence/evidence is not established]
 - **Follow-up required:** [yes/no]
@@ -175,20 +202,20 @@ Model names do not define roles or authority.
 ### Critic
 
 - **Required:** [yes/no; trigger]
-- **Inputs:** [spec/plan/risk/topology]
+- **Inputs:** [spec/plan/risk/topology/integration admissions]
 - **Expected report:** [path]
 
 ### Independent Review
 
 - **Required:** [yes/no; trigger]
 - **Frozen diff:** [reference]
-- **Review dimensions:** [correctness/security/architecture/maintainability/etc.]
+- **Review dimensions:** [correctness/security/architecture/maintainability/integration boundaries/etc.]
 - **Expected report:** [path]
 
 ### Technical Verification
 
 - **Canonical checks:** [exact commands/flows]
-- **Runtime/browser/API smoke:** [required/optional/not applicable]
+- **Runtime/browser/API/integration smoke:** [required/optional/not applicable]
 - **Positive and negative cases:** [list]
 - **Evidence expected:** [logs/screenshots/report/artifacts]
 - **Allowed fallback checks:** [narrower checks and residual risk]
@@ -208,6 +235,7 @@ Model names do not define roles or authority.
 - **FILE_REGISTRY update:** [yes/no; why]
 - **Specification update:** [yes/no; approval state]
 - **Architecture decision update:** [yes/no; path]
+- **Runtime / integration adapter update:** [yes/no; paths]
 - **User/engineering documentation update:** [yes/no; paths]
 - **Engineering memory candidate:** [yes/no; classification]
 - **Generated/local boundary change:** [yes/no; why]
@@ -221,9 +249,9 @@ Model names do not define roles or authority.
 
 ## Execution Log
 
-| Time | Stage | Function | Action / Decision | Evidence | Status |
-|---|---|---|---|---|---|
-| [time] | [stage] | [function] | [action] | [reference] | [status] |
+| Time | Stage | Function | Runtime / Integration | Action / Decision | Evidence | Status |
+|---|---|---|---|---|---|---|
+| [time] | [stage] | [function] | [runtime/integration] | [action] | [reference] | [status] |
 
 ## Closeout
 
@@ -235,6 +263,7 @@ Model names do not define roles or authority.
 - **Review Verdict:** [verdict/path]
 - **Verification Verdict:** [verdict/path]
 - **Drift Verdict:** [verdict/path]
+- **Integration Evidence:** [none | admission/smoke/result paths]
 - **Residual Risks:** [list]
 - **Inspection Gaps:** [list]
 
@@ -243,7 +272,7 @@ Model names do not define roles or authority.
 - **Specification changed:** [no | approved change path/revision]
 - **Architecture decisions synchronized:** [yes/no/not applicable]
 - **Plan/tasklist synchronized:** [yes/no]
-- **Documentation synchronized:** [yes/no]
+- **Runtime/integration documentation synchronized:** [yes/no/not applicable]
 - **Reports linked:** [paths]
 
 ### Knowledge and Retrospective
