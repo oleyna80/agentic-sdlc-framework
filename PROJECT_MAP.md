@@ -86,7 +86,11 @@ Completed architecture foundation:
 
 - `docs/plans/wb-001-runtime-neutral-control-plane.md`
 
-Active Work Block:
+Canonical active Work Block:
+
+- `docs/plans/wb-002-runtime-neutral-template-convergence.md`
+
+Compatibility alias only:
 
 - `docs/plans/wb-002-normalize-portable-sdlc-contracts.md`
 
@@ -98,7 +102,7 @@ WB-002 has migrated the generated-project contracts to:
 - separate Critic, Reviewer, Verifier, and Specification Drift functions;
 - governance/runtime/integration/model separation;
 - portable governance and runtime documentation installed by bootstrap;
-- structural checks in GitHub Actions.
+- structural and disposable-scaffold checks in GitHub Actions.
 
 Remaining planned Work Blocks:
 
