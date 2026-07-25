@@ -1,35 +1,69 @@
 # Framework Profiles
 
-Profiles describe separate dimensions. They must not collapse governance,
-runtime, integration, model, and isolation into one vendor-specific preset.
+The framework separates **installation composition** from **Work Block control**.
+Do not collapse these dimensions into one vendor-specific preset.
 
-For each Work Block select:
+A generated project has one recorded installation profile:
+
+```yaml
+installation_profile: codex
+```
+
+Each Work Block then selects independently:
 
 ```yaml
 governance_profile: Managed
 runtime_profile: codex
 integration_profile: none
 model_class: balanced_engineering
-isolation: separate-subagent
+isolation: separate_subagent
 ```
 
-A higher-risk Work Block might use:
+Installation determines which project-local runtime surfaces and skills were
+copied. Governance determines required control and evidence. Runtime determines
+who executes a logical function. Integration determines an admitted external
+bridge/tool/transport. Model and isolation record actual execution.
 
-```yaml
-governance_profile: Assured
-runtime_profile: claude-code
-integration_profile: claude-code-codex-plugin
-model_class: strong_reasoning
-isolation: separate-runtime-same-machine-same-checkout
-```
+## 1. Installation Profiles
 
-The Governance Core remains unchanged.
+Source of truth: `bootstrap/profiles.json`.
 
-## 1. Governance Profiles
+Detailed guide: `docs/bootstrap-profiles.md`.
+
+| Installation profile | Project-local implementation surfaces | Default use |
+|---|---|---|
+| `core` | none; generic guidance only | smallest runtime-neutral scaffold |
+| `codex` | `.codex/` | Codex-primary project |
+| `claude-code` | `CLAUDE.md`, `.claude/` | Claude Code-primary project |
+| `opencode` | `opencode.json`, `.opencode/` | OpenCode-primary project after smoke |
+| `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default and mixed-runtime evaluation |
+
+Aliases:
+
+- `minimal`, `generic` → `core`;
+- `full` → `multi-runtime`.
+
+Rules:
+
+- installation profile is chosen at scaffold time;
+- `.agent/bootstrap-profile.json` records the resolved result;
+- installed files do not grant Work Block authority;
+- runtime documentation may exist even when its executable surface is absent;
+- installed runtime files do not prove the CLI, auth, provider, hooks, sandbox,
+  or isolation actually work;
+- changing installation composition is a deliberate migration, not an automatic
+  reaction to a Work Block runtime choice;
+- no profile activates plugins, MCP servers, external runtime calls, credentials,
+  watchers, or services.
+
+## 2. Governance Profiles
+
+Governance profiles describe how much control and assurance a Work Block needs.
+They are independent from installation and runtime choice.
 
 ### Advisory
 
-Use for research, explanation, architecture discussion, read-only audit, and
+Use for read-only research, architecture discussion, explanation, audit, or
 decision support without repository mutation.
 
 Required:
@@ -38,11 +72,7 @@ Required:
 - inspected sources;
 - assumptions and inspection gaps;
 - no write authority;
-- no external or live mutation.
-
-```text
-Intake -> inspect -> analyze -> report
-```
+- no external/live mutation.
 
 ### Controlled
 
@@ -66,7 +96,8 @@ Default for non-trivial product and engineering work.
 
 Required:
 
-- approved specification/revision and architecture baseline;
+- approved specification and revision;
+- accepted architecture baseline;
 - implementation plan and task decomposition;
 - Critic when triggered;
 - one Coder per write-set;
@@ -78,87 +109,83 @@ Required:
 Define -> Critic -> Execute -> Review -> Verify -> Close
 ```
 
-Use native subagents when available, but preserve functions through separate
-passes/sessions/runtimes when unavailable.
-
 ### Assured
 
-Use when failure cost or ambiguity is materially higher, commonly for:
+Use when failure cost or ambiguity is materially higher, including:
 
 - authentication/authorization;
 - payments, orders, stock, CRM, or consequential mutations;
-- DB schemas/migrations;
-- webhooks and external providers;
-- deployment, infrastructure, runtime configuration, security headers;
+- DB schemas and migrations;
+- webhooks/external providers;
+- deployment, infrastructure, runtime configuration, or security headers;
 - sensitive data or credentials;
-- major architecture or public contract changes.
+- major architecture or public API changes.
 
 Managed controls plus:
 
-- stronger Critic/Reviewer/Verifier isolation;
-- threat or abuse analysis where relevant;
-- Full-tier verification;
+- stronger Reviewer/Verifier isolation;
+- threat/abuse analysis where relevant;
+- Full verification tier;
 - Specification Drift Audit;
-- runtime/integration evidence;
+- runtime evidence when accessible;
 - explicit degraded-mode handling;
 - residual risk and recovery evidence.
 
 ### Distributed
 
-Use when work is split across runtimes, machines, worktrees, users, or teams.
+Use when work is deliberately split across multiple runtimes, machines,
+worktrees, or teams.
 
 Assured controls plus:
 
-- portable handoff contract;
+- explicit handoff contract;
 - capability snapshot for every participant;
-- integration admission for every automated bridge/transport;
-- non-overlapping write-sets and separate roots/worktrees for parallel writers;
-- durable queue/status/recovery where needed;
-- consolidation report and assurance of the merged result;
-- one accountable Orchestrator.
+- non-overlapping write-sets;
+- separate roots/worktrees for parallel writers;
+- durable queue/status/recovery when needed;
+- consolidation report;
+- assurance of the merged result;
+- one Orchestrator accountable for closure.
 
-Distributed is not “more agents by default.” Use it only when independence,
-parallelism, recovery, or auditability justifies the overhead.
+Distributed does not mean “use more agents by default.”
 
-## 2. Runtime Profiles
+## 3. Runtime Profiles
 
-Runtime profiles map logical functions to an execution system.
+Runtime profiles describe how logical functions execute. Select from installed
+or otherwise explicitly approved runtime capability.
 
 ### Codex
 
-Adapter: `runtimes/codex/`
+Adapter: `runtimes/codex/`.
 
-Generated baseline includes project-scoped logical-role agents, machine-readable
-write gates, shared Hard Stops, and Codex-specific wrappers. Concrete models,
-provider settings, auth, and private MCP configuration remain user-local.
+Project-local surface exists only in `codex` or `multi-runtime` installation
+profiles. Native subagents/custom agents may bind logical roles, but model or
+agent names do not redefine authority.
 
 ### Claude Code
 
-Adapter: `runtimes/claude-code/`
+Adapter: `runtimes/claude-code/`.
 
-Generated baseline includes logical-role agents, machine-readable source-write
-and assurance hooks, skills, and operational memory. No provider-named authority
-agents or external integrations are enabled by default.
+Project-local surface exists only in `claude-code` or `multi-runtime` profiles.
+`.claude/agents`, hooks, skills, and memory are runtime mechanics mapped to the
+logical roles and gates.
 
 ### OpenCode
 
-Adapter: `runtimes/opencode/`
+Adapter: `runtimes/opencode/`.
 
-Generated baseline includes `opencode.json` and logical-role project subagents.
-It denies secret paths/external directories, requires approval for edits/Bash/
-web/MCP, denies commit/push/destructive commands, and starts with empty plugin
-and MCP collections.
-
-Use for Managed/Assured work only after a target-environment capability and
-denied-action smoke.
+Project-local surface exists only in `opencode` or `multi-runtime` profiles.
+Use after a target-environment smoke establishes provider, agent, permission,
+tool, and denied-action behavior. Static configuration is not OS isolation.
 
 ### Generic / Sequential
 
-Adapter: `runtimes/generic/`
+Adapter: `runtimes/generic/`.
 
-Use for an IDE assistant, manual CLI, local model, or runtime without subagents.
-Perform required functions as separate documented passes or sessions and record
-reduced independence honestly.
+Available as guidance in every installation profile. Use for an IDE assistant,
+manual CLI session, local model, or runtime without native subagents. Required
+functions run as separate documented passes/sessions; degraded independence is
+recorded honestly.
 
 ### Custom Runtime
 
@@ -167,174 +194,127 @@ A custom adapter declares:
 - supported logical functions;
 - read/write and side-effect controls;
 - isolation mechanisms;
-- hooks/permissions/enforcement;
-- skills, tools, plugins, and MCP capabilities;
-- secret/data/network boundaries;
-- known limitations and fallback;
-- capability evidence and version.
+- hooks/enforcement;
+- skills/tools/integrations;
+- limitations and fallback;
+- capability evidence.
 
-## 3. Integration Profiles
+## 4. Integration Profiles
 
-Integrations connect runtimes, tools, services, or transports. They do not define
-roles or governance.
-
-Every non-`none` automated integration requires:
-
-- admission record based on
-  `docs/templates/integration-admission-template.md`;
-- active Work Block binding to a logical function;
-- exact authority, tools, scope, data/secret boundary, Hard Stops, evidence,
-  failure/recovery, and disable procedure;
-- target-environment smoke.
+Integrations connect runtimes or external tools. They do not define governance
+or become active because a configuration file is installed.
 
 ### None
 
-Default. One runtime performs the Work Block without an automated external
-bridge. Manual reading of public documentation is not an integration profile.
+One runtime performs the Work Block without an external bridge.
 
-### Claude Code Codex Plugin
+### Official Plugin
 
-ID: `claude-code-codex-plugin`
-
-Adapter: `integrations/claude-code-codex-plugin/`
-
-Preferred optional route when Claude Code invokes the official local Codex
-plugin for review, adversarial review, or bounded delegation. It is a separate
-runtime on the same machine/checkout/auth environment unless stronger isolation
-is established.
+Use a maintained official integration only after admission covers exact
+capability, scope, data, credentials, side effects, recovery, and evidence.
 
 ### MCP
 
-ID: project-defined server/tool ID.
+Use for structured tool/runtime access when the exact server and tool names,
+authority, credentials, data boundary, side effects, and output contract are
+understood. An installed empty `.mcp.json` is not admission.
 
-Adapter: `integrations/mcp/`
+### File-Based Handoff
 
-Use only after exact server/tool admission. `.mcp.json` starts empty. Grant
-individual tools, not the whole server, and keep credentials outside committed
-configuration.
+Use `handoff/` when durable queueing, crash recovery, cross-machine execution,
+formal scope audit, or observable delivery logs justify the overhead.
 
-Codex MCP is a compatibility route, not the default Claude Code/Codex bridge.
+### Direct Runtime CLI
 
-### File Handoff
-
-ID: `file-handoff` plus transport implementation.
-
-Adapter: `integrations/file-handoff/` and `handoff/`.
-
-Use when durable queueing, recovery, cross-machine execution, formal scope audit,
-or an observable delivery log is needed. Use the runtime-neutral task envelope.
-The existing Claude Code runner is a compatibility implementation.
-
-### Hosted Connector / Tool
-
-ID: project-defined.
-
-Use for GitHub, issue trackers, browsers, documentation systems, monitoring, and
-other connected services. Admit exact actions. Read-only access does not imply
-write/send/deploy permission.
-
-### Direct Runtime CLI / Process
-
-IDs used by the shared gate include:
-
-- `codex-cli`;
-- `opencode-cli`;
-- `claude-code-cli`.
-
-Use only as an explicit integration. The active Work Block must list the ID and
-admission record. Child-runtime writes require their own Coder authority and
-write-set.
+Launching `codex`, `claude`, or `opencode` as a child process is an integration.
+It requires an active/fresh Work Block, matching integration ID, and concrete
+admission-evidence path. It does not grant child write authority.
 
 ### Manual Handoff
 
-No automated integration process. Use a portable task and result artifact with
-Work Block ID, logical function, scope, authority, acceptance criteria, evidence,
-and actual runtime/isolation.
+Use a portable task/result artifact when automation is unavailable. Preserve
+Work Block ID, scope, write-set, authority, acceptance criteria, evidence, and
+actual runtime/isolation.
 
-## 4. Model Routing Overlay
+## 5. Model Routing Overlay
 
-Portable model classes:
+Use portable model classes:
 
 - `strong_reasoning` — architecture, ambiguity, Critic, high-risk decisions;
 - `balanced_engineering` — implementation, review, verification;
 - `fast_readonly` — discovery, classification, documentation sync;
-- `local_executor` — bounded work after capability smoke.
+- `local_executor` — bounded work after smoke testing.
 
-Concrete model/provider names belong in private runtime configuration or
-execution evidence. A stronger model does not grant authority; a cheaper model
-does not remove assurance requirements.
+Concrete model names belong in runtime/user configuration or execution evidence.
+A stronger model does not grant broader authority; a cheaper model does not
+remove assurance requirements.
 
-Record requested class, actual runtime/model when observable, effort setting,
-fallback, limitations, and budget posture.
+Record requested class, actual runtime/model when observable, effort/reasoning,
+fallback, quality limitations, and budget posture.
 
-## 5. Selection Matrix
+## 6. Isolation Levels
 
-| Work characteristic | Governance | Runtime | Integration |
-|---|---|---|---|
-| Read-only discussion | Advisory | Any capable runtime | None |
-| Small isolated fix | Controlled | Runtime with safe write boundary | None |
-| Normal product feature | Managed | Codex, Claude Code, OpenCode, generic | None or admitted tool |
-| Auth/DB/payment/deploy/security | Assured | Runtime supporting stronger evidence/isolation | Admitted second runtime/tool when useful |
-| Independent frontend/backend work | Distributed | Multiple roots/worktrees/runtimes | Native coordination or file handoff |
-| Cross-machine durable delegation | Distributed | Mixed | File handoff |
-| Claude Code needs Codex review | Managed/Assured | Claude Code | Official Codex plugin preferred |
-| Structured external tool access | Risk-based | Any supporting runtime | MCP/hosted connector after admission |
-
-## 6. Selection Rules
-
-- Start with the smallest governance profile that can safely prove the objective.
-- Increase governance because of risk/evidence, not available agent count.
-- Inspect actual runtime capabilities before selection.
-- Keep integration profile `none` unless an external bridge/tool/transport adds
-  necessary value.
-- Prefer native capability, then official integration, reviewed MCP, audited
-  handoff, manual exchange, and only then exceptional direct process bridges.
-- Availability does not imply permission.
-- Missing preferred capability produces a recorded fallback, not a missing
-  function.
-- Never describe same-context or same-checkout work as stronger isolation than it
-  is.
-- Reassess profiles when scope, risk, version, configuration, or tool inventory
-  changes.
-
-## 7. Generated Project Baseline
+Record the actual boundary, not the desired label:
 
 ```text
-AGENTS.md
-CLAUDE.md
-opencode.json
-governance/
-runtimes/
-integrations/
-.agent/
-.codex/
-.claude/
-.opencode/
-.mcp.json
-docs/specs/
-docs/plans/
-docs/reports/
-docs/engineering-memory/
-docs/templates/
-memory_bank/
+same_context
+separate_subagent
+separate_session
+separate_worktree
+separate_runtime
+os_isolated
 ```
 
-Runtime-specific directories may coexist. External integrations remain inert
-until admitted. Projects may deliberately remove unused adapters, but must not
-treat a runtime configuration as authority-bearing core policy.
+Different model names in one context are not independent assurance. Sensitive
+credentials/live data/deploy verification may require OS isolation.
 
-## 8. Publishing Agent and Integration State
+## 7. Selection Matrix
 
-Before publishing, review:
+| Work characteristic | Installation | Governance | Runtime | Integration |
+|---|---|---|---|---|
+| Read-only discussion | any/core | Advisory | any capable runtime | none |
+| Small isolated fix | core or one runtime | Controlled | one safe runtime | none |
+| Normal product feature | one runtime or multi | Managed | capable installed/approved runtime | optional |
+| Auth/DB/payment/deploy/security | suitable runtime surface | Assured | stronger isolation/evidence | admitted only if needed |
+| Parallel independent work | multi or approved external runtimes | Distributed | multiple isolated roots/runtimes | handoff/native coordination |
+| Cross-machine durable delegation | any documented scaffold | Distributed | mixed | file handoff |
 
-- credentials, auth, provider and MCP configuration;
-- private client/user context and live identifiers;
-- raw transcripts or hidden reasoning;
-- local paths and external-directory grants;
-- downloaded plugins/packages, logs, caches, and handoff runtime state;
-- unverified runtime/integration conclusions;
-- data sent to external providers or services;
-- auto-approval and write/send/deploy permissions.
+## 8. Selection Rules
 
-Publish reusable governance, adapter contracts, and evidence only after
-deliberate review.
+- Start with the smallest installation profile needed for expected project use.
+- Start each Work Block with the smallest governance profile that can safely
+  prove the objective.
+- Increase governance because of risk/evidence needs, not because more runtimes
+  are installed.
+- Select a runtime after checking both installation state and actual capability.
+- Prefer native or official integrations when they satisfy the admitted contract.
+- Use file handoff only when durability/recovery justify it.
+- Keep provider credentials and private runtime configuration outside the public
+  framework.
+- A missing preferred capability produces a recorded fallback, not a missing
+  logical function.
+- Never describe same-context review as independent.
+- Reassess profiles when scope or risk changes.
+
+## 9. Generated Project Evidence
+
+Every generated project contains common portable contracts plus:
+
+```text
+.agent/bootstrap-profile.json
+scripts/validate-installation-profile.py
+```
+
+Run:
+
+```bash
+bash scripts/bootstrap.sh
+```
+
+This checks selected required paths and known unselected paths. It does not prove
+live runtime authentication, network access, plugin installation, or OS
+isolation.
+
+Runtime-specific directories may coexist only when selected by installation
+profile or deliberately migrated later. Their presence is implementation
+availability, not authority.
