@@ -1,248 +1,314 @@
 # Framework Profiles
 
-Start with the smallest profile that can safely deliver the Work Block. Upgrade
-only when the task needs the extra process, tools, or independent review.
+Profiles now describe **how much governance is required**, not which vendor or
+agent runtime must be used.
 
-Before choosing a profile in a new session, read `PROJECT_MAP.md`,
-`FILE_REGISTRY.yml`, and `docs/session-bootstrap.md`. The map and registry
-explain the current project structure and authority boundaries; this profile
-guide explains how much of the framework to activate for the task.
+Choose three independent settings for each Work Block:
 
-## Profile Summary
+```yaml
+governance_profile: Managed
+runtime_profile: codex-native
+integration_profile: none
+```
 
-| Profile | Use When | Main Files | Avoid Initially |
+A different Work Block might use:
+
+```yaml
+governance_profile: Assured
+runtime_profile: claude-code
+integration_profile: codex-plugin
+```
+
+The governance contract remains the same.
+
+## 1. Governance Profiles
+
+### Advisory
+
+Use for:
+
+- research;
+- architecture discussion;
+- code explanation;
+- read-only audit or recommendations;
+- decision support without repository mutation.
+
+Required controls:
+
+- objective and scope;
+- inspected sources;
+- assumptions and inspection gaps;
+- no write authority;
+- no external or live mutation.
+
+Typical flow:
+
+```text
+Intake -> inspect -> analyze -> report
+```
+
+### Controlled
+
+Use for small, bounded, low-risk changes.
+
+Required controls:
+
+- explicit objective and write-set;
+- one Coder;
+- side-effect and Hard Stop classification;
+- targeted review and checks;
+- rollback path;
+- closeout summary.
+
+Typical flow:
+
+```text
+Define scope -> Execute -> targeted assurance -> Close
+```
+
+Upgrade when behavior, contracts, architecture, security, runtime, or multiple
+domains are affected.
+
+### Managed
+
+Default for non-trivial product and engineering work.
+
+Required controls:
+
+- approved specification and revision;
+- accepted architecture baseline;
+- implementation plan and task decomposition;
+- Critic when triggered;
+- one Coder per write-set;
+- independent Reviewer;
+- Verifier with reproducible evidence;
+- durable reports and SSOT synchronization.
+
+Typical flow:
+
+```text
+Define -> Critic -> Execute -> Review -> Verify -> Close
+```
+
+Use native subagents when available, but preserve the functions through separate
+passes or sessions when they are not.
+
+### Assured
+
+Use when failure cost or ambiguity is materially higher.
+
+Triggers commonly include:
+
+- authentication or authorization;
+- payments, orders, stock, CRM, or consequential mutations;
+- DB schemas and migrations;
+- webhooks and external providers;
+- deployment, infrastructure, runtime configuration, or security headers;
+- sensitive data or credentials;
+- major architecture changes;
+- public APIs and durable contracts.
+
+Managed controls plus:
+
+- stronger Reviewer/Verifier isolation;
+- threat or abuse analysis where relevant;
+- Full-tier verification;
+- Specification Drift Audit;
+- runtime evidence when accessible;
+- explicit degraded-mode handling;
+- residual risk and recovery evidence.
+
+Typical flow:
+
+```text
+Define -> independent Critic -> Execute -> independent Review
+       -> Full Verification -> Drift Audit -> Close
+```
+
+### Distributed
+
+Use when work is split across multiple runtimes, machines, worktrees, or teams.
+
+Assured controls plus:
+
+- explicit handoff contract;
+- runtime capability snapshot for every participant;
+- non-overlapping write-sets;
+- separate worktrees for parallel writers;
+- durable queue/status/recovery when needed;
+- consolidation report;
+- assurance of the merged result;
+- one Orchestrator accountable for final closure.
+
+Distributed does not mean "use more agents by default." Use it only when
+parallelism, independent execution, recovery, or formal auditability provides a
+clear benefit.
+
+## 2. Runtime Profiles
+
+Runtime profiles describe how logical functions are executed.
+
+### Codex Native
+
+Adapter: `runtimes/codex/`
+
+Use when Codex provides the primary orchestration, coding, review, or verification
+runtime. Native subagents and custom agents may execute logical roles, but model
+or agent names do not redefine authority.
+
+Project-specific `.codex/` configuration may add hooks, agents, MCP servers, and
+sandbox settings. Keep credentials and user-level provider settings private.
+
+### Claude Code
+
+Adapter: `runtimes/claude-code/`
+
+Use when Claude Code provides the primary runtime or an external implementation
+team. Existing `.claude/agents`, hooks, skills, and memory are runtime mechanics.
+They must map to the logical roles and gates in the governance core.
+
+### OpenCode
+
+Adapter: `runtimes/opencode/`
+
+Use after a capability smoke check establishes available agents, providers,
+permissions, tools, and isolation. Do not assume feature parity with another
+runtime.
+
+### Generic / Sequential
+
+Adapter: `runtimes/generic/`
+
+Use for an IDE assistant, manual CLI session, local model, or runtime without
+native subagents. Required functions are performed as separate documented passes
+or sessions. Record degraded independence honestly.
+
+### Custom Runtime
+
+A custom adapter must declare:
+
+- supported functions;
+- read/write and side-effect controls;
+- isolation mechanisms;
+- hooks or enforcement;
+- skills/tools/integrations;
+- known limitations;
+- fallback behavior;
+- capability evidence.
+
+## 3. Integration Profiles
+
+Integrations connect runtimes or external tools. They do not define governance.
+
+### None
+
+One runtime performs the Work Block.
+
+### Official Plugin
+
+Use an official integration when it provides the required capability, scope,
+observability, and recovery. Examples include one agent runtime invoking another
+through a maintained plugin.
+
+### MCP
+
+Use MCP for structured tool or runtime access when the server's authority,
+credentials, side effects, and output contract are understood.
+
+### File-Based Handoff
+
+Use the existing `handoff/` layer when durable queueing, crash recovery,
+cross-machine execution, formal scope audit, or an observable delivery log is
+required.
+
+### Manual Handoff
+
+Use a portable task file and result report when no automated transport is
+available. Preserve Work Block ID, scope, write-set, authority, acceptance
+criteria, evidence, and actual runtime/isolation.
+
+## 4. Model Routing Overlay
+
+Model routing is separate from governance and runtime choice.
+
+Use logical model classes in portable artifacts:
+
+- `strong_reasoning` — architecture, ambiguity, critic, high-risk decisions;
+- `balanced_engineering` — implementation, review, verification;
+- `fast_readonly` — discovery, classification, documentation sync;
+- `local_executor` — bounded work after smoke testing.
+
+Concrete model names belong in runtime configuration or Work Block execution
+evidence. A stronger model does not grant broader authority. A cheaper model does
+not remove required review or verification.
+
+Record:
+
+- requested model class;
+- actual runtime and model when observable;
+- reasoning/effort setting when relevant;
+- fallback used;
+- quality limitations;
+- budget posture.
+
+## 5. Selection Matrix
+
+| Work characteristic | Governance | Runtime | Integration |
 |---|---|---|---|
-| Level 1 - Minimal Codex-only | One local agent needs scope, logs, review, and verification | `AGENTS.md`, `.codex/`, `docs/engineering-memory/`, `memory_bank/`, core skills | Claude Code, MCP, handoff, hooks |
-| Level 2 - Standard Codex SDLC | Work needs full Work Blocks, reusable skills, and stronger closeout | Level 1 plus `.agent/`, `docs/`, selected `skills/` | External AI CLI delegation |
-| Level 3 - Claude Code Team Runtime | Claude Code should run as its own orchestrator with agents, hooks, memory, and provider config | `CLAUDE.md`, `.claude/`, `.mcp.json`, `.agent/` | Automated handoff until CC works locally |
-| Level 4 - Codex -> Claude Code Handoff | Codex should delegate a scoped Work Block to Claude Code as an external team | `handoff/`, handoff task template, `memory_bank/external-team-log.md` | Parallel swarms until single handoff is reliable |
-| Advanced overlay - Codex model routing | Strong Codex reasoning should supervise cheaper executor models | User-level Codex profiles, optional custom agents, `framework/workflow/codex-model-routing.md` | Provider config in generated project templates |
+| Read-only discussion | Advisory | Any capable runtime | None |
+| Small isolated fix | Controlled | Any runtime with safe write scope | None |
+| Normal product feature | Managed | Codex, Claude Code, OpenCode, or generic | Optional |
+| Auth/DB/payment/deploy/security | Assured | Runtime supporting stronger isolation and evidence | Optional second runtime/plugin |
+| Independent frontend/backend work | Distributed | Multiple worktrees/runtimes | Handoff or native coordination |
+| Cross-machine durable delegation | Distributed | Mixed | File-based handoff |
 
-## Level 1 - Minimal Codex-only
+## 6. Selection Rules
 
-### Included
+- Start with the smallest profile that can safely deliver the objective.
+- Increase governance because of risk and evidence needs, not because more agents
+  are available.
+- Select a runtime after inspecting actual capabilities.
+- Prefer native or official integrations when they satisfy the contract.
+- Use file-based handoff when durability and recovery justify the overhead.
+- Keep provider credentials and private runtime configuration outside the public framework.
+- A missing preferred capability produces a recorded fallback, not a missing function.
+- Never describe same-context review as independent.
+- Reassess the profile when scope or risk changes.
+
+## 7. Generated Project Baseline
+
+A generated project should contain:
 
 ```text
 AGENTS.md
-.codex/write-gate.md
-.codex/critic.md
-docs/engineering-memory/README.md
-memory_bank/orchestrator-log.md
-memory_bank/review-log.md
-docs/templates/work-block-template.md
-.agent/skills/scoped-coder/
-.agent/skills/reviewer/
-.agent/skills/verifier/
-```
-
-### Expected Flow
-
-```text
-Stage 0 preflight -> scoped implementation -> reviewer/critic check ->
-verification -> closeout log
-```
-
-### Smoke Check
-
-```bash
-bash scripts/bootstrap.sh
-```
-
-Expected result: `Workflow layer: OK`.
-
-### Upgrade When
-
-- tasks repeatedly need specialized skills;
-- the project needs a reusable memory discipline;
-- Work Blocks need standard closeout and publication evidence.
-
-## Level 2 - Standard Codex SDLC
-
-### Included
-
-Everything in Level 1, plus:
-
-```text
+governance/
+runtimes/
 .agent/ROSTER.md
-.agent/workflows/
-.agent/skills/
-docs/plans/
+.agent/workflows/sdd-protocol.md
 docs/specs/
+docs/plans/
 docs/reports/
-docs/tasklist/
 docs/engineering-memory/
-memory_bank/context.md
-memory_bank/progress.md
-memory_bank/decisions.md
+docs/templates/work-block-template.md
+docs/templates/spec-drift-report-template.md
+memory_bank/
 ```
 
-### Expected Flow
+Runtime-specific directories such as `.codex/` and `.claude/` are adapters and
+may coexist. Projects should customize or remove unused adapters deliberately,
+not treat them as authority-bearing core policy.
 
-```text
-Plan -> Spec -> Implementation -> Review -> Verification -> Closeout
-```
+## 8. Publishing Agent State
 
-Codex can use its own subagents when available. The Orchestrator still remains
-accountable for scope, write-set, critic routing, and final evidence.
+Generated projects are local-first. Before publishing agent/runtime state,
+review for:
 
-### Smoke Check
-
-```bash
-git status --short --branch
-bash scripts/bootstrap.sh
-```
-
-### Upgrade When
-
-- a second agent/runtime should review or implement independently;
-- the Work Block benefits from Claude Code's native agents, hooks, or MCP
-  integrations.
-
-## Level 3 - Claude Code Team Runtime
-
-### Included
-
-Everything in Level 2, plus:
-
-```text
-CLAUDE.md
-.claude/settings.json
-.claude/agents/
-.claude/hooks/
-.claude/skills/
-.claude/agent-memory/
-.mcp.json
-```
-
-### Expected Flow
-
-Claude Code acts as its own project-local team. It can run an orchestrator,
-subagents, critic/verifier gates, and project-local memory. Agent definitions
-use `model: inherit`; provider and model routing come from the active Claude
-Code environment.
-
-### Smoke Check
-
-```bash
-claude --version
-bash scripts/bootstrap.sh
-```
-
-Then run a small read-only Claude Code task before allowing state-changing work.
-
-### Upgrade When
-
-- Codex should remain the control tower;
-- Claude Code should be called for a scoped Work Block and return a result/log
-  through files.
-
-## Level 4 - Codex -> Claude Code Handoff
-
-### Included
-
-Level 2 or Level 3 project files, plus framework-level or project-local:
-
-```text
-handoff/README.md
-handoff/runner/handoff-runner.sh
-handoff/templates/claude-team-task-template.md
-handoff/queue/
-handoff/active/
-handoff/done/
-handoff/failed/
-handoff/logs/
-memory_bank/external-team-log.md
-```
-
-### Expected Flow
-
-```text
-Codex writes task -> runner starts Claude Code -> Claude Code works as external
-team -> result/log written -> Codex reviews result -> closeout
-```
-
-### Smoke Check
-
-Use `skills/handoff-live-smoke/SKILL.md` and `handoff/README.md#smoke-task`.
-
-Expected result:
-
-- task reaches `handoff/done/`;
-- runner log exists;
-- scope audit passes;
-- `memory_bank/external-team-log.md` records the external team result.
-
-## Advanced Overlay - Codex Model Routing
-
-This is not a separate runtime level. It is an optional overlay for users who
-want strong models only where they add clear value and cheaper models where the
-task is bounded execution.
-
-### Recommended Topology
-
-```text
-Codex mega-orchestrator
-  -> Codex critic for decision review
-  -> Claude Code teams for controlled implementation when needed
-```
-
-Use Codex for decomposition, architecture decisions, handoff acceptance, and
-critic review. Use Claude Code teams for scoped implementation when their hooks,
-logs, subagents, and project-local process make execution more controllable.
-
-### Configuration Boundary
-
-The base framework contains templates and policy only. Real provider settings,
-API keys, proxy URLs, and local model endpoints belong in the user's runtime
-configuration or the target project's private environment.
-
-Do not commit provider credentials, `.env` files, or user-level Codex/Claude
-Code runtime config into the framework.
-
-### Suggested Codex Profiles
-
-Keep real config in user-level Codex profiles such as:
-
-```text
-~/.codex/strong-review.config.toml
-~/.codex/cheap-worker.config.toml
-~/.codex/oss-local.config.toml
-```
-
-Use the strongest available model for Codex-Orchestrator decisions and Codex
-Critic review. Use cheaper or local models only after a smoke task proves they
-can handle the intended executor role.
-
-See `framework/workflow/codex-model-routing.md` for the detailed policy.
-
-## Profile Selection Rules
-
-- Run the session bootstrap first; do not select a higher profile from stale
-  memory alone.
-- Read relevant `docs/engineering-memory/` entries before treating
-  `memory_bank/` or runtime logs as project context.
-- Prefer Level 1 for the first real Work Block in a new project.
-- Use Level 2 when repeatable SDLC evidence matters.
-- Use Level 3 only after Claude Code CLI and provider configuration work in the
-  target shell.
-- Use Level 4 only after a local Claude Code task has succeeded and the
-  handoff runner has passed a smoke task.
-- Use Codex model routing only as an overlay. It must not weaken critic,
-  verification, write-gate, or secret-handling rules.
-- Do not add a higher level because it is available. Add it because the Work
-  Block needs independent execution, better observability, or stronger review.
-
-## Publishing Agent State
-
-Generated projects are local-first. If a team wants to publish `.agent/`,
-`.codex/`, `.claude/agent-memory/`, or `memory_bank/`, review every file for:
-
-- secrets and provider credentials;
-- private client/project context;
-- raw transcripts;
+- credentials and provider configuration;
+- private client or user context;
+- raw transcripts or hidden reasoning;
 - local machine paths;
-- generated logs;
-- unreviewed agent conclusions.
+- generated logs and caches;
+- unverified conclusions;
+- live data or operational identifiers.
 
-Publish only reusable governance and evidence that the team deliberately wants
-to share.
+Publish reusable governance, adapters, and evidence only after deliberate review.
