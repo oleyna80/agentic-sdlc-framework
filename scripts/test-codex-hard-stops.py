@@ -77,6 +77,16 @@ def main() -> int:
             module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
         )
 
+        # A commit changes HEAD and invalidates the previous push approval window.
+        module.git(repo, "commit", "--allow-empty", "-qm", "advance-head")
+        module.assert_denied(
+            "stale push approval after HEAD change",
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
+            "Stale Hard Stop gate",
+        )
+        module.write_gate(repo)
+        set_approvals(repo, git_push=True)
+
         for command in (
             "git push origin main",
             "git push origin +main",
