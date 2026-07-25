@@ -159,8 +159,13 @@ def current_branch(root: Path) -> str:
 
 
 def recursive_rm(command: str) -> bool:
-    """Detect rm recursive flags including -r, -rf, -fr and --recursive."""
-    for match in re.finditer(r"(?:^|[;&|\n]\s*)rm\s+([^;&|\n]+)", command, re.I):
+    """Detect recursive rm flags, including common sudo/command/env prefixes."""
+    prefix = r"(?:(?:sudo|command|env)\s+)?"
+    for match in re.finditer(
+        rf"(?:^|[;&|\n]\s*){prefix}rm\s+([^;&|\n]+)",
+        command,
+        re.I,
+    ):
         try:
             tokens = shlex.split(match.group(1), posix=True)
         except ValueError:
@@ -199,7 +204,7 @@ def pushes_default_branch(command: str, root: Path) -> bool:
     branch = current_branch(root)
     for segment in push_segments(command):
         if re.search(
-            r"(?:^|\s)(?:HEAD:)?(?:refs/heads/)?(?:main|master)(?:\s|$)",
+            r"(?:^|\s)[+:]?(?:HEAD:)?(?:refs/heads/)?(?:main|master)(?:\s|$)",
             segment,
             re.I,
         ):
