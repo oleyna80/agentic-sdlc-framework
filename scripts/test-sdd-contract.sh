@@ -94,6 +94,11 @@ require_contains "template/.agent/workflows/sdd-protocol.md" 'Drift gate:.*READY
 require_contains "template/docs/templates/work-block-template.md" 'Governance Profile:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Specification:'
 require_contains "template/docs/templates/work-block-template.md" 'Runtime Capability Snapshot'
+require_contains "template/docs/templates/work-block-template.md" 'Integration Profile and Admission'
+require_contains "template/docs/templates/work-block-template.md" 'Approved Integration IDs:'
+require_contains "template/docs/templates/work-block-template.md" 'Admission Records:'
+require_contains "template/docs/templates/work-block-template.md" 'Data Sent Externally:'
+require_contains "template/docs/templates/work-block-template.md" 'Integration Smoke Evidence:'
 require_contains "template/docs/templates/work-block-template.md" 'Function Bindings'
 require_contains "template/docs/templates/work-block-template.md" 'Review Gate:'
 require_contains "template/docs/templates/work-block-template.md" 'Verification Verdict:'
@@ -158,6 +163,8 @@ done
 
 # Machine-readable gate is provider-neutral and exposes integration/assurance state.
 require_contains "template/.agent/active-work-block.json" '"integrations"'
+require_contains "template/.agent/active-work-block.json" '"approved"'
+require_contains "template/.agent/active-work-block.json" '"admission_records"'
 require_contains "template/.agent/active-work-block.json" '"assurance"'
 require_contains "template/.agent/active-work-block.json" '"review"'
 require_contains "template/.agent/active-work-block.json" '"verification"'
