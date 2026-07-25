@@ -175,12 +175,17 @@ def approved(gate: dict, key: str) -> bool:
     return isinstance(approvals, dict) and approvals.get(key) is True
 
 
-def approved_integration(gate: dict, integration_id: str) -> bool:
+def integration_state(gate: dict, integration_id: str) -> tuple[bool, bool]:
     integrations = gate.get("integrations")
     if not isinstance(integrations, dict):
-        return False
+        return False, False
     allowed = integrations.get("approved")
-    return isinstance(allowed, list) and integration_id in allowed
+    records = integrations.get("admission_records")
+    approved_id = isinstance(allowed, list) and integration_id in allowed
+    has_record = isinstance(records, list) and any(
+        isinstance(value, str) and value.strip() for value in records
+    )
+    return approved_id, has_record
 
 
 def current_branch(root: Path) -> str:
@@ -223,10 +228,16 @@ def require_approval(gate: dict, key: str, label: str, root: Path) -> None:
 def require_integration(gate: dict, integration_id: str, root: Path) -> None:
     approval_window_ready(gate)
     require_fresh_base(gate, root)
-    if not approved_integration(gate, integration_id):
+    approved_id, has_record = integration_state(gate, integration_id)
+    if not approved_id:
         deny(
-            f"External runtime invocation requires integrations.approved to "
-            f"contain {integration_id!r} and an admission record."
+            "External runtime invocation requires integrations.approved to "
+            f"contain {integration_id!r}."
+        )
+    if not has_record:
+        deny(
+            "External runtime invocation requires at least one concrete "
+            "integrations.admission_records evidence path."
         )
 
 
