@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 6
+version: 7
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -11,7 +11,7 @@ statuses:
   runtime_adapter: "runtime-specific implementation; cannot override governance"
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
   reference: "background knowledge; does not override policy"
-  evidence: "review, verification, drift, CI, or closeout evidence"
+  evidence: "review, verification, drift, CI, integration, or closeout evidence"
   log: "active or historical Work Block state; not general policy"
   example: "illustrative scenario; never mandatory policy"
   generated: "derived output; verify against current source"
@@ -24,7 +24,7 @@ artifact_authority_order:
   - accepted_architecture_decisions_and_external_contracts
   - approved_implementation_plan_and_write_set
   - active_task_decomposition
-  - review_verification_drift_and_closeout_evidence
+  - review_verification_drift_integration_and_closeout_evidence
   - durable_engineering_memory
   - runtime_integration_operational_logs_generated_context_and_examples
 
@@ -45,7 +45,8 @@ migration_state:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
     - docs/plans/wb-002-runtime-neutral-template-convergence.md
     - docs/plans/wb-003-codex-native-agents-and-gates.md
-  active_work_block: docs/plans/wb-004-integration-adapter-normalization.md
+    - docs/plans/wb-004-integration-adapter-normalization.md
+  active_work_block: null
   planned:
     - WB-005 profile-aware bootstrap and cross-runtime conformance
 
@@ -174,7 +175,7 @@ entries:
     owner: orchestrator
 
   docs/plans/wb-004-integration-adapter-normalization.md:
-    role: active_integration_adapter_normalization_work_block
+    role: completed_integration_adapter_normalization_work_block
     status: log
     owner: orchestrator
     related: [integrations/**, runtimes/claude-code/**, runtimes/opencode/**, handoff/**]
@@ -184,13 +185,23 @@ entries:
     status: evidence
     owner: verifier
 
+  docs/reports/reviews/pr-3-final-review.md:
+    role: wb_001_through_wb_003_final_review
+    status: evidence
+    owner: reviewer
+
+  docs/reports/reviews/pr-4-final-review.md:
+    role: wb_004_final_review
+    status: evidence
+    owner: reviewer
+
   README.md:
     role: public_entrypoint
     status: normative
     owner: maintainer
 
   SETUP.md:
-    role: setup_guide
+    role: setup_and_safe_activation_guide
     status: normative
     owner: maintainer
 
@@ -209,6 +220,11 @@ entries:
     role: governance_runtime_integration_and_model_profile_selector
     status: normative
     owner: architect
+
+  docs/quickstart-minimal.md:
+    role: single_runtime_no_integration_quickstart
+    status: normative
+    owner: maintainer
 
   docs/session-bootstrap.md:
     role: framework_repository_progressive_intake
@@ -233,6 +249,11 @@ entries:
 
   scripts/test-integration-contracts.py:
     role: runtime_integration_static_and_executable_fixture_test
+    status: normative
+    owner: verifier
+
+  scripts/test-integration-admission-evidence.py:
+    role: external_runtime_admission_evidence_regression_fixture
     status: normative
     owner: verifier
 
@@ -307,20 +328,10 @@ entries:
     status: template
     owner: maintainer
 
-  template/docs/session-bootstrap.md:
-    role: generated_project_progressive_session_intake
-    status: template
-    owner: architect
-
   template/docs/templates/work-block-template.md:
-    role: generated_project_portable_work_block_contract
+    role: generated_project_portable_work_block_and_integration_binding_contract
     status: template
     owner: orchestrator
-
-  template/docs/templates/spec-drift-report-template.md:
-    role: generated_project_specification_drift_report
-    status: template
-    owner: reviewer
 
   template/docs/templates/integration-admission-template.md:
     role: generated_project_integration_admission_contract
@@ -394,6 +405,11 @@ entries:
 
   handoff/templates/runtime-task-template.md:
     role: portable_runtime_neutral_task_envelope
+    status: integration_adapter
+    owner: orchestrator
+
+  handoff/templates/claude-team-task-template.md:
+    role: claude_runner_compatibility_task_specialization
     status: integration_adapter
     owner: orchestrator
 
