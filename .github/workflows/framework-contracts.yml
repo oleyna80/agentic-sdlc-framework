@@ -48,11 +48,13 @@ jobs:
           python_paths = [
               Path("bootstrap/bootstrap_project.py"),
               Path("scripts/test-bootstrap-profiles.py"),
+              Path("scripts/test-profile-restore.py"),
               Path("scripts/test-runtime-conformance.py"),
               Path("scripts/test-codex-adapter.py"),
               Path("scripts/test-codex-hard-stops.py"),
               Path("scripts/test-integration-contracts.py"),
               Path("scripts/test-integration-admission-evidence.py"),
+              Path("scripts/validate_publication.py"),
               Path("template/scripts/validate-installation-profile.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
               Path("template/.claude/hooks/work_block_gate.py"),
@@ -71,6 +73,7 @@ jobs:
               Path("template/.claude/settings.json"),
               Path("template/.mcp.json"),
               Path("template/.agent/active-work-block.json"),
+              Path("template/.agent/active-work-block.default.json"),
               Path("template/opencode.json"),
           ):
               value = json.loads(path.read_text(encoding="utf-8"))
@@ -86,7 +89,11 @@ jobs:
         id: profile_conformance
         continue-on-error: true
         run: |
+          empty_git_config="$RUNNER_TEMP/empty-gitconfig"
+          : > "$empty_git_config"
+          export GIT_CONFIG_GLOBAL="$empty_git_config"
           python scripts/test-bootstrap-profiles.py > "$RUNNER_TEMP/profile-conformance.log" 2>&1
+          python scripts/test-profile-restore.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
           python scripts/test-runtime-conformance.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
 
       - name: Upload profile conformance failure log
@@ -177,6 +184,8 @@ jobs:
           ./bootstrap.sh --profile multi-runtime "$target" "Contract Smoke" contract-smoke
           test -f "$target/AGENTS.md"
           test -f "$target/.agent/bootstrap-profile.json"
+          test -f "$target/.agent/active-work-block.default.json"
+          test -f "$target/.agent/active-work-block.json"
           test -f "$target/scripts/validate-installation-profile.py"
           test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
           test -f "$target/.agent/hooks/hard_stop_policy.py"
@@ -190,9 +199,13 @@ jobs:
 
           root = pathlib.Path(sys.argv[1])
           profile = json.loads((root / ".agent/bootstrap-profile.json").read_text())
+          default_gate = json.loads((root / ".agent/active-work-block.default.json").read_text())
+          active_gate = json.loads((root / ".agent/active-work-block.json").read_text())
           assert profile["resolved_profile"] == "multi-runtime"
           assert set(profile["runtimes"]) == {"generic", "codex", "claude-code", "opencode"}
           assert profile["integrations"] == ["mcp-config"]
+          assert default_gate == active_gate
+          assert active_gate["write_gate"]["status"] == "BLOCKED"
           assert json.loads((root / ".mcp.json").read_text()) == {"mcpServers": {}}
           print("generated default installation profile OK")
           PY
