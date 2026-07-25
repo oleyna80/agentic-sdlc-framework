@@ -1,0 +1,128 @@
+name: Framework Contracts
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "agent/**"
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Check syntax
+        run: |
+          bash -n bootstrap.sh
+          bash -n scripts/test-sdd-contract.sh
+          bash -n scripts/validate-governance.sh
+          bash -n scripts/validate-publication.sh
+          bash -n template/scripts/bootstrap.sh
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path("scripts/test-codex-adapter.py"),
+              Path("scripts/test-codex-hard-stops.py"),
+              Path("template/.codex/hooks/hard_stop_policy.py"),
+              Path("template/.codex/hooks/pre_tool_use_policy.py"),
+              Path("template/.codex/hooks/stage0_write_gate.py"),
+              Path("template/.codex/hooks/subagent_context.py"),
+          ]
+          for path in paths:
+              compile(path.read_text(encoding="utf-8"), str(path), "exec")
+              print(f"syntax OK: {path}")
+          PY
+
+      - name: Validate runtime-neutral SDLC contracts
+        run: bash scripts/test-sdd-contract.sh
+
+      - name: Validate Codex adapter gates
+        id: codex_adapter
+        continue-on-error: true
+        run: |
+          python scripts/test-codex-adapter.py > "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+          python scripts/test-codex-hard-stops.py >> "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+
+      - name: Upload Codex adapter failure log
+        if: steps.codex_adapter.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-adapter-failure
+          path: ${{ runner.temp }}/codex-adapter-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce Codex adapter result
+        if: steps.codex_adapter.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/codex-adapter-test.log"
+          exit 1
+
+      - name: Validate governance structure
+        run: bash scripts/validate-governance.sh
+
+      - name: Validate publication scaffold
+        id: publication
+        continue-on-error: true
+        run: bash scripts/validate-publication.sh > "$RUNNER_TEMP/publication-validation.log" 2>&1
+
+      - name: Upload publication validation failure log
+        if: steps.publication.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-validation-failure
+          path: ${{ runner.temp }}/publication-validation.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce publication validation result
+        if: steps.publication.outcome == 'failure'
+        run: |
+          tail -n 200 "$RUNNER_TEMP/publication-validation.log"
+          exit 1
+
+      - name: Bootstrap disposable generated project
+        run: |
+          target="$(mktemp -d)"
+          ./bootstrap.sh "$target" "Contract Smoke" contract-smoke
+          test -f "$target/AGENTS.md"
+          test -f "$target/governance/authority.md"
+          test -f "$target/governance/lifecycle.md"
+          test -f "$target/runtimes/codex/README.md"
+          test -f "$target/runtimes/generic/README.md"
+          test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
+          test -f "$target/docs/templates/spec-drift-report-template.md"
+          test -f "$target/.agent/active-work-block.json"
+          test -f "$target/.codex/hooks.json"
+          test -f "$target/.codex/agents/architect.toml"
+          test -f "$target/.codex/agents/critic.toml"
+          test -f "$target/.codex/agents/coder.toml"
+          test -f "$target/.codex/agents/reviewer.toml"
+          test -f "$target/.codex/agents/verifier.toml"
+          test -f "$target/.codex/hooks/hard_stop_policy.py"
+          test -f "$target/.codex/hooks/pre_tool_use_policy.py"
+          test -f "$target/.codex/hooks/stage0_write_gate.py"
+          test -f "$target/.codex/hooks/subagent_context.py"
+          grep -q "Contract Smoke" "$target/AGENTS.md"
+          grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
+          rm -rf "$target"

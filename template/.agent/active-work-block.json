@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "work_block_id": "",
+  "governance_profile": "Controlled",
+  "specification": {
+    "path": "",
+    "revision": ""
+  },
+  "base_commit": "",
+  "write_gate": {
+    "status": "BLOCKED",
+    "opened_at": null,
+    "expires_at": null
+  },
+  "critic": {
+    "required": true,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "report": "",
+    "skip_reason": ""
+  },
+  "write_set": [],
+  "coordination_write_set": [
+    ".agent/active-work-block.json",
+    ".agent/critic-gate.md",
+    ".agent/verification-gate.md",
+    "docs/plans/**",
+    "docs/specs/**",
+    "docs/tasklist/**",
+    "docs/reports/**",
+    "docs/architecture/drafts/**",
+    "memory_bank/**"
+  ],
+  "hard_stop_approvals": {
+    "git_commit": false,
+    "git_push": false,
+    "default_branch_push": false,
+    "destructive": false,
+    "live_infra": false,
+    "live_data": false,
+    "credentials": false,
+    "client_communications": false
+  }
+}
