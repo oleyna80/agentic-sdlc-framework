@@ -87,7 +87,9 @@ for path in \
   ".codex/agents/coder.toml" \
   ".codex/agents/reviewer.toml" \
   ".codex/agents/verifier.toml" \
+  ".codex/hooks/hard_stop_policy.py" \
   ".codex/hooks/pre_tool_use_policy.py" \
+  ".codex/hooks/stage0_write_gate.py" \
   ".codex/hooks/subagent_context.py" \
   "docs/session-bootstrap.md" \
   "docs/engineering-memory/README.md" \
