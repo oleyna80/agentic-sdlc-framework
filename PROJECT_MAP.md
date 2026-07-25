@@ -43,6 +43,7 @@ model. They do not override it.
 | `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded-mode guidance |
 | `docs/architecture/decisions/` | normative decisions | Accepted architecture decisions and review triggers |
 | `docs/plans/` | evidence/log | Work Blocks and migration closeout evidence |
+| `docs/reports/reviews/` | assurance evidence | Independent and final review reports for framework changes |
 | `README.md` | normative | Public overview and first entry point |
 | `SETUP.md` | normative | Installation and runtime setup guide |
 | `PROJECT_MAP.md` | normative | Human-readable repository navigation |
@@ -51,11 +52,12 @@ model. They do not override it.
 | `template/AGENTS.md` | template | Runtime-neutral generated-project operating contract |
 | `template/.agent/workflows/sdd-protocol.md` | template | Define / Execute / Assure / Close lifecycle |
 | `template/.agent/active-work-block.json` | template gate | Executable, fail-closed Work Block state for supporting runtimes |
-| `template/.codex/` | Codex adapter | Custom agents, config, hooks, compatibility guidance, and write guardrails |
+| `template/.codex/` | Codex adapter | Custom agents, layered hooks, config, compatibility guidance, and write guardrails |
 | `template/.claude/` | Claude Code adapter | Existing agents, hooks, skills, settings, and memory pending WB-004 normalization |
 | `skills/` | normative library | Portable skill source and metadata catalog |
 | `scripts/test-sdd-contract.sh` | contract test | Portable SDLC drift detection |
-| `scripts/test-codex-adapter.py` | adapter test | Codex TOML/JSON parsing and executable gate fixtures |
+| `scripts/test-codex-adapter.py` | adapter test | Codex TOML/JSON parsing and executable write-gate fixtures |
+| `scripts/test-codex-hard-stops.py` | adapter test | Consequential-operation, approval-window, refspec, and stale-gate fixtures |
 | `scripts/validate-governance.sh` | contract test | Governance structure validation |
 | `.github/workflows/framework-contracts.yml` | CI evidence | Contract, publication, adapter, and disposable-scaffold checks |
 | `handoff/` | integration adapter | Audited file-based cross-runtime handoff and recovery |
@@ -67,7 +69,7 @@ model. They do not override it.
 
 | Runtime | Path | Current status |
 |---|---|---|
-| Codex | `runtimes/codex/` | Native custom-agent and executable-gate baseline implemented and CI-validated |
+| Codex | `runtimes/codex/` | Native custom-agent, layered executable-gate, and Hard Stop baseline implemented and CI-validated |
 | Claude Code | `runtimes/claude-code/` | Existing implementation retained pending explicit adapter/integration normalization |
 | OpenCode | `runtimes/opencode/` | Experimental until target-environment smoke tests pass |
 | Generic sequential agent | `runtimes/generic/` | Portable fallback with no native orchestration assumptions |
@@ -85,8 +87,11 @@ Completed:
    - logical roles, specification-first SSOT, portable lifecycle, Review,
      Verification, Drift, profiles, progressive bootstrap, and contract CI.
 3. `docs/plans/wb-003-codex-native-agents-and-gates.md`
-   - Codex custom agents, machine-readable Work Block gate, `PreToolUse`,
-     `SubagentStart`, fixture tests, and generated-project smoke validation.
+   - Codex custom agents, machine-readable Work Block gate, layered
+     `PreToolUse`, `SubagentStart`, fixture tests, and generated-project smoke.
+4. `docs/reports/reviews/pr-3-final-review.md`
+   - final consistency, security, bootstrap, and runtime-portability review of
+     the combined WB-001 through WB-003 migration.
 
 Compatibility alias:
 
@@ -98,8 +103,9 @@ Planned as separate review scopes:
    explicit integration adapters.
 2. WB-005 — profile-aware bootstrap and cross-runtime conformance tests.
 
-There is no active implementation Work Block after WB-003 closeout. The current
-PR remains draft for human review of the combined WB-001 through WB-003 release.
+There is no active implementation Work Block after final-review closeout. PR #3
+may move from draft to human review after its final documentation head passes the
+Framework Contracts workflow.
 
 ## Boundaries
 
@@ -109,6 +115,7 @@ PR remains draft for human review of the combined WB-001 through WB-003 release.
 - `docs/architecture/decisions/**` is normative when accepted.
 - `docs/plans/**` records current or historical Work Blocks; only an explicitly
   active approved plan controls implementation scope.
+- `docs/reports/**` is evidence; it cannot silently rewrite normative intent.
 - `docs/engineering-memory/**` contains durable evidence-backed knowledge.
 - `memory_bank/**` and runtime agent memory are operational state.
 - `framework/**` is reference unless deliberately promoted.
