@@ -16,7 +16,7 @@ env:
 jobs:
   contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -46,10 +46,16 @@ jobs:
           from pathlib import Path
 
           python_paths = [
+              Path("bootstrap/bootstrap_project.py"),
+              Path("scripts/test-bootstrap-profiles.py"),
+              Path("scripts/test-profile-restore.py"),
+              Path("scripts/test-runtime-conformance.py"),
               Path("scripts/test-codex-adapter.py"),
               Path("scripts/test-codex-hard-stops.py"),
               Path("scripts/test-integration-contracts.py"),
               Path("scripts/test-integration-admission-evidence.py"),
+              Path("scripts/validate_publication.py"),
+              Path("template/scripts/validate-installation-profile.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
               Path("template/.claude/hooks/work_block_gate.py"),
               Path("template/.claude/hooks/assurance_gate.py"),
@@ -63,9 +69,11 @@ jobs:
               print(f"syntax OK: {path}")
 
           for path in (
+              Path("bootstrap/profiles.json"),
               Path("template/.claude/settings.json"),
               Path("template/.mcp.json"),
               Path("template/.agent/active-work-block.json"),
+              Path("template/.agent/active-work-block.default.json"),
               Path("template/opencode.json"),
           ):
               value = json.loads(path.read_text(encoding="utf-8"))
@@ -76,6 +84,33 @@ jobs:
 
       - name: Validate runtime-neutral SDLC contracts
         run: bash scripts/test-sdd-contract.sh
+
+      - name: Validate installation profiles and runtime conformance
+        id: profile_conformance
+        continue-on-error: true
+        run: |
+          empty_git_config="$RUNNER_TEMP/empty-gitconfig"
+          : > "$empty_git_config"
+          export GIT_CONFIG_GLOBAL="$empty_git_config"
+          export GIT_CONFIG_NOSYSTEM=1
+          python scripts/test-bootstrap-profiles.py > "$RUNNER_TEMP/profile-conformance.log" 2>&1
+          python scripts/test-profile-restore.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
+          python scripts/test-runtime-conformance.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
+
+      - name: Upload profile conformance failure log
+        if: steps.profile_conformance.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-conformance-failure
+          path: ${{ runner.temp }}/profile-conformance.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce profile conformance result
+        if: steps.profile_conformance.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/profile-conformance.log"
+          exit 1
 
       - name: Validate integration adapters
         id: integration_adapters
@@ -141,70 +176,39 @@ jobs:
       - name: Enforce publication validation result
         if: steps.publication.outcome == 'failure'
         run: |
-          tail -n 250 "$RUNNER_TEMP/publication-validation.log"
+          tail -n 300 "$RUNNER_TEMP/publication-validation.log"
           exit 1
 
-      - name: Bootstrap disposable generated project
+      - name: Bootstrap disposable default generated project
         run: |
           target="$(mktemp -d)"
-          ./bootstrap.sh "$target" "Contract Smoke" contract-smoke
+          ./bootstrap.sh --profile multi-runtime "$target" "Contract Smoke" contract-smoke
           test -f "$target/AGENTS.md"
-          test -f "$target/governance/authority.md"
-          test -f "$target/governance/lifecycle.md"
-          test -f "$target/runtimes/codex/README.md"
-          test -f "$target/runtimes/claude-code/README.md"
-          test -f "$target/runtimes/opencode/README.md"
-          test -f "$target/runtimes/generic/README.md"
-          test -f "$target/integrations/README.md"
-          test -f "$target/integrations/claude-code-codex-plugin/README.md"
-          test -f "$target/integrations/mcp/README.md"
-          test -f "$target/integrations/file-handoff/README.md"
-          test -f "$target/docs/templates/integration-admission-template.md"
-          test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
-          test -f "$target/docs/templates/spec-drift-report-template.md"
+          test -f "$target/.agent/bootstrap-profile.json"
+          test -f "$target/.agent/active-work-block.default.json"
           test -f "$target/.agent/active-work-block.json"
+          test -f "$target/scripts/validate-installation-profile.py"
+          test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
           test -f "$target/.agent/hooks/hard_stop_policy.py"
           test -f "$target/.claude/hooks/work_block_gate.py"
-          test -f "$target/.claude/hooks/assurance_gate.py"
           test -f "$target/.codex/hooks.json"
-          test -f "$target/.codex/agents/architect.toml"
-          test -f "$target/.codex/agents/critic.toml"
-          test -f "$target/.codex/agents/coder.toml"
-          test -f "$target/.codex/agents/reviewer.toml"
-          test -f "$target/.codex/agents/verifier.toml"
-          test -f "$target/.codex/hooks/hard_stop_policy.py"
-          test -f "$target/.codex/hooks/pre_tool_use_policy.py"
-          test -f "$target/.codex/hooks/stage0_write_gate.py"
-          test -f "$target/.codex/hooks/subagent_context.py"
           test -f "$target/opencode.json"
-          test -f "$target/.opencode/agents/architect.md"
-          test -f "$target/.opencode/agents/critic.md"
-          test -f "$target/.opencode/agents/coder.md"
-          test -f "$target/.opencode/agents/reviewer.md"
-          test -f "$target/.opencode/agents/verifier.md"
-          test ! -e "$target/.claude/agents/gpt-critic.md"
-          test ! -e "$target/.claude/agents/gpt-verifier.md"
-          test ! -e "$target/.claude/agents/codex-reviewer.md"
           python - "$target" <<'PY'
           import json
           import pathlib
           import sys
 
           root = pathlib.Path(sys.argv[1])
+          profile = json.loads((root / ".agent/bootstrap-profile.json").read_text())
+          default_gate = json.loads((root / ".agent/active-work-block.default.json").read_text())
+          active_gate = json.loads((root / ".agent/active-work-block.json").read_text())
+          assert profile["resolved_profile"] == "multi-runtime"
+          assert set(profile["runtimes"]) == {"generic", "codex", "claude-code", "opencode"}
+          assert profile["integrations"] == ["mcp-config"]
+          assert default_gate == active_gate
+          assert active_gate["write_gate"]["status"] == "BLOCKED"
           assert json.loads((root / ".mcp.json").read_text()) == {"mcpServers": {}}
-          claude = json.loads((root / ".claude/settings.json").read_text())
-          assert "enabledMcpjsonServers" not in claude
-          assert set(claude["agents"]) == {
-              "solution-architect", "critic", "reviewer", "scoped-coder", "verifier"
-          }
-          opencode = json.loads((root / "opencode.json").read_text())
-          assert opencode["mcp"] == {}
-          assert opencode["plugin"] == []
-          assert opencode["permission"]["external_directory"] == "deny"
-          machine_gate = json.loads((root / ".agent/active-work-block.json").read_text())
-          assert machine_gate["integrations"] == {"approved": [], "admission_records": []}
-          assert set(machine_gate["assurance"]) == {"review", "verification", "drift"}
-          print("generated integration configuration OK")
+          print("generated default installation profile OK")
           PY
           grep -q "Contract Smoke" "$target/AGENTS.md"
           grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"

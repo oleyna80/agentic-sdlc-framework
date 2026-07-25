@@ -1,35 +1,96 @@
 # Agentic SDLC Framework Setup
 
-Setup guide for humans and agents creating a project from the runtime-neutral
+Setup guide for humans and agents creating projects from the runtime-neutral
 framework.
 
 ## Quick Start
 
+List installation profiles:
+
+```bash
+./bootstrap.sh --list-profiles
+```
+
+Create the backward-compatible complete scaffold:
+
 ```bash
 ./bootstrap.sh /path/to/new-project "My Project" my-project
+```
+
+Create a lean runtime-neutral scaffold:
+
+```bash
+./bootstrap.sh --profile core /path/to/new-project "My Project" my-project
+```
+
+Create a single-runtime scaffold:
+
+```bash
+./bootstrap.sh --profile codex /path/to/new-project "My Project" my-project
+```
+
+Then:
+
+```bash
 cd /path/to/new-project
 git init
 git add -A
 git commit -m "Initial scaffold from Agentic SDLC Framework"
 ```
 
+The default profile is `multi-runtime`, preserving the previous maximum
+scaffold. Aliases: `minimal`/`generic` → `core`; `full` → `multi-runtime`.
+
+## What Bootstrap Does
+
 The installer:
 
-- copies the generated-project template;
-- installs Governance Core, runtime adapters, and integration documentation;
-- installs the default portable skill baseline;
+- validates `bootstrap/profiles.json` before target mutation;
+- rejects unknown profiles, unsafe paths, missing components/skills, and non-empty
+  targets;
+- copies the common portable template and Governance Core;
+- keeps runtime/integration documentation available in every project;
+- prunes unselected runtime implementation surfaces;
+- installs the selected skill sets and runtime mirrors;
+- writes `.agent/bootstrap-profile.json`;
 - replaces placeholders using literal character-safe replacement;
-- makes project hooks/scripts executable;
-- runs the generated-project health check.
+- makes installed hooks/scripts executable;
+- runs the generated-project profile-aware health check.
 
 It does **not** install or authenticate Codex, Claude Code, OpenCode, plugins,
-MCP servers, providers, browsers, watchers, or services.
+MCP servers, providers, browsers, watchers, or services. Installation
+composition does not grant Work Block authority or integration admission.
 
-Rerun the health check after moving or restoring the project:
+Rerun the generated health check after moving or restoring a project:
 
 ```bash
 bash scripts/bootstrap.sh
 ```
+
+## Installation Profiles
+
+Source: `bootstrap/profiles.json`.
+
+Guide: `docs/bootstrap-profiles.md`.
+
+| Profile | Project-local implementation surfaces |
+|---|---|
+| `core` | none; generic runtime guidance only |
+| `codex` | `.codex/` |
+| `claude-code` | `CLAUDE.md`, `.claude/` |
+| `opencode` | `opencode.json`, `.opencode/` |
+| `multi-runtime` | all bundled runtime surfaces plus empty `.mcp.json` |
+
+Every generated project contains:
+
+```text
+.agent/bootstrap-profile.json
+scripts/validate-installation-profile.py
+```
+
+The profile state records selected components, runtimes, skills, required paths,
+and known unselected paths. It is generated installation evidence, not an
+approval file.
 
 ## Architecture Layers
 
@@ -38,13 +99,14 @@ The generated project separates:
 1. **Governance Core** — `AGENTS.md` and `governance/` define authority,
    lifecycle, artifacts, capabilities, Hard Stops, and closeout.
 2. **Portable workflow** — `.agent/`, specifications, plans, tasks, reports,
-   skills, and memory coordinate the work.
-3. **Runtime adapters** — Codex, Claude Code, OpenCode, or generic execution
-   mechanics under `runtimes/` and runtime-specific project files.
+   selected skills, and memory coordinate the work.
+3. **Runtime adapters** — documentation under `runtimes/`; project-local runtime
+   surfaces only when selected by installation profile.
 4. **Integration adapters** — optional plugins, MCP, external runtime CLIs,
    hosted tools, and audited file transport under `integrations/`.
 
-Runtime/model/integration choice never changes logical role authority.
+Installation/runtime/model/integration choice never changes logical role
+authority.
 
 ## First Session
 
@@ -52,6 +114,7 @@ Read progressively:
 
 ```text
 AGENTS.md
+.agent/bootstrap-profile.json
 active Work Block, when present
 approved specification and architecture decisions
 PROJECT_MAP.md / FILE_REGISTRY.yml when navigation is needed
@@ -59,28 +122,32 @@ selected runtime adapter
 selected integration adapter only when required
 ```
 
+Do not treat a deliberately unselected runtime surface as missing/corrupt state.
 Do not load every skill, runtime, integration, and memory file by default.
 
-## Select Profiles
+## Select Work Block Profiles
 
-Use `docs/profiles.md` and record independent selections:
+Installation profile is already recorded. For each Work Block use
+`docs/profiles.md` and select independently:
 
 ```yaml
 governance_profile: Managed
 runtime_profile: codex
 integration_profile: none
 model_class: balanced_engineering
-isolation: separate-subagent
+isolation: separate_subagent
 ```
 
-Start with the smallest sufficient governance profile and `integration_profile:
-none`. Add an external bridge/tool/transport only when it provides necessary
-value and has an admission record.
+Start with the smallest sufficient governance profile and
+`integration_profile: none`. A runtime may be documented but not installed; a
+surface may be installed but unavailable because CLI/auth/config is missing.
+Record actual capability evidence.
 
 ## Runtime Setup
 
 ### Codex
 
+Project-local Codex files exist in `codex` and `multi-runtime` installations.
 Read:
 
 ```text
@@ -95,15 +162,16 @@ Activation:
 1. install/authenticate Codex outside the repository;
 2. review project hooks and agent files;
 3. copy `.codex/config.toml.template` to `.codex/config.toml` only when desired;
-4. create/populate `.agent/active-work-block.json`;
-5. run safe adapter fixtures or a read-only smoke;
+4. populate `.agent/active-work-block.json`;
+5. run safe adapter fixtures/read-only smoke;
 6. trust project hooks deliberately.
 
 Concrete model/provider/auth settings remain user-local.
 
 ### Claude Code
 
-Read:
+Project-local Claude files exist in `claude-code` and `multi-runtime`
+installations. Read:
 
 ```text
 CLAUDE.md
@@ -113,23 +181,15 @@ runtimes/claude-code/README.md
 .claude/hooks/
 ```
 
-The generated default includes only logical-role agents:
-
-- `solution-architect`;
-- `critic`;
-- `scoped-coder`;
-- `reviewer`;
-- `verifier`.
-
-Provider-named `gpt-critic`, `gpt-verifier`, and `codex-reviewer` agents are not
-installed. Claude hooks read the same machine Work Block as Codex for source
-writes, Hard Stops, Review, Verification, Drift, and closeout.
-
-No MCP server or plugin is enabled automatically.
+The baseline contains logical-role agents only: Architect, Critic, Coder,
+Reviewer, Verifier. Provider-named authority agents and pre-authorized MCP tools
+are absent. Claude hooks use the shared machine Work Block for source writes,
+Hard Stops, Review, Verification, Drift, and closeout.
 
 ### OpenCode
 
-Read:
+Project-local OpenCode files exist in `opencode` and `multi-runtime`
+installations. Read:
 
 ```text
 runtimes/opencode/README.md
@@ -141,43 +201,29 @@ The baseline:
 
 - denies common secret paths and external directories;
 - requires approval for edits, Bash, web, task delegation, and MCP;
-- denies commit, push, destructive Git, and `rm`;
-- includes five logical-role subagents;
+- explicitly denies commit, push, reset-hard, clean, and `rm` for every role;
+- limits implementation writes to the logical Coder;
 - starts with empty `mcp` and `plugin` collections;
-- does not pin a provider/model.
+- does not pin provider/model.
 
-Run a target-environment smoke before Managed or higher-governance work. Confirm
-that read-only agents cannot edit and that commit/push/secret/external-directory
-access remains denied.
+Run a target-environment smoke before Managed or higher-governance work.
 
 ### Generic / Sequential Runtime
 
-Read `runtimes/generic/README.md`. Perform required logical functions as separate
-documented passes/sessions and record reduced independence honestly.
+Generic guidance is always present under `runtimes/generic/`. Use it for a global
+CLI, IDE agent, local model, or manual session without project-local runtime
+configuration. Perform required logical functions as separate documented passes
+and record reduced independence honestly.
 
 ## Integration Admission
 
-Generated projects start with no active external integrations:
+No installation profile activates an external integration. `multi-runtime`
+installs an empty `.mcp.json` only as an inert configuration surface.
 
-```json
-{
-  "mcpServers": {}
-}
-```
+Before enabling a plugin, MCP server, external runtime CLI, hosted connector, or
+file runner:
 
-OpenCode also starts with:
-
-```json
-{
-  "mcp": {},
-  "plugin": []
-}
-```
-
-Before enabling any plugin, MCP server, external runtime CLI, hosted connector,
-or file runner:
-
-1. copy/fill `docs/templates/integration-admission-template.md`;
+1. fill `docs/templates/integration-admission-template.md`;
 2. identify exact logical functions and tools;
 3. record authority, paths, network, external-directory, data, and secret
    boundaries;
@@ -185,52 +231,11 @@ or file runner:
 5. record authentication source without values;
 6. define timeout, cancellation, retry, recovery, logging, and disable procedure;
 7. run allowed and denied smoke fixtures;
-8. add the integration ID and admission-evidence path to the active Work Block.
+8. add integration ID and admission-evidence path to the active Work Block.
 
-### Claude Code → Codex
-
-Preferred order:
-
-1. official Codex plugin for Claude Code;
-2. reviewed Codex MCP server/tool;
-3. audited file handoff;
-4. manual artifact exchange;
-5. direct `codex` process only as an explicitly admitted exception.
-
-See:
-
-```text
-integrations/claude-code-codex-plugin/README.md
-integrations/mcp/README.md
-integrations/file-handoff/README.md
-```
-
-The official plugin uses the local Codex runtime, authentication, configuration,
-machine, and checkout. Record the actual boundary; do not claim OS isolation.
-
-### MCP
-
-`.mcp.json` is empty by default. Add only reviewed, credential-free
-configuration; grant exact tools rather than the whole server. Keep tokens,
-passwords, cookies, keys, connection strings, and personal paths outside
-committed files.
-
-External MCP content is untrusted input and cannot override project authority.
-
-### File Handoff
-
-Use the runtime-neutral envelope:
-
-```text
-handoff/templates/runtime-task-template.md
-```
-
-The existing `handoff-runner.sh` invokes Claude Code and is a compatibility
-transport. It does not define the public protocol and is not started
-automatically.
-
-Enable a watcher or user service only after reviewing identity, environment,
-project roots, scope audit, concurrency, logs/retention, shutdown, and uninstall.
+Direct `codex`, `claude`, or `opencode` child-process invocation is an
+integration and requires the same admission. Admission does not grant child
+write authority.
 
 ## Work Block Setup
 
@@ -246,20 +251,19 @@ Record:
 - approved specification/revision and architecture baseline;
 - scope, out-of-scope, write-set, and Git baseline;
 - side-effect/data modes and Hard Stops;
-- runtime capability snapshot;
-- logical function bindings and actual isolation;
-- integration profile/admission records, or `none`;
+- actual runtime capability and isolation;
+- logical function bindings;
+- integration profile/admission records or `none`;
 - implementation and assurance plan;
 - evidence/report paths;
 - write gate and closeout state.
 
-`.agent/active-work-block.json` is the executable gate for supporting runtimes.
-Generated state begins blocked, with empty integration approvals and pending
-assurance.
+`.agent/active-work-block.json` is the executable authority/gate state. Do not
+confuse it with `.agent/bootstrap-profile.json`, which only records installation.
 
 ## Smoke Checks
 
-### Generated-project health
+### Generated-project installation health
 
 ```bash
 bash scripts/bootstrap.sh
@@ -268,19 +272,18 @@ bash scripts/bootstrap.sh
 Expected:
 
 ```text
+Installation profile: OK (...)
 Agentic SDLC layer: OK
 ```
 
-Warnings about project dependencies or `DATABASE_URL` are normal when not
-applicable.
-
 ### Framework contracts
-
-From the framework repository:
 
 ```bash
 bash scripts/test-sdd-contract.sh
+python scripts/test-bootstrap-profiles.py
+python scripts/test-runtime-conformance.py
 python scripts/test-integration-contracts.py
+python scripts/test-integration-admission-evidence.py
 python scripts/test-codex-adapter.py
 python scripts/test-codex-hard-stops.py
 bash scripts/validate-governance.sh
@@ -289,69 +292,61 @@ bash scripts/validate-publication.sh
 
 ### Runtime smoke
 
-For each selected runtime prove, in a disposable project:
+For each selected runtime prove in a disposable project:
 
-- instructions and logical agents load;
-- source writes remain blocked without a valid Work Block;
+- instructions/logical agents load;
+- source writes remain blocked without valid Work Block state;
 - in-scope write can proceed when approved;
 - out-of-scope write is denied;
+- read-only roles cannot change implementation source;
+- consequential Git/filesystem actions remain denied or Owner-gated;
 - secret/external-directory access is denied where supported;
 - Review/Verification output includes evidence and actual isolation;
 - runtime version and limitations are recorded.
 
+Static conformance tests compare semantics; they do not prove live runtime or OS
+isolation.
+
 ### Integration smoke
 
-For each admitted integration prove:
-
-- only intended tools/actions are visible;
-- denied tools remain denied;
-- no committed credentials are required;
-- a harmless denied-write fixture fails;
-- timeout/cancel/recovery is understood;
-- result identifies integration, runtime, revision, scope, gaps, and evidence.
+For each admitted integration prove exact allowed/denied tools, no committed
+credentials, harmless denied-write failure, timeout/cancel/recovery, and result
+identity/revision/scope/evidence.
 
 Do not run paid/live smoke automatically during bootstrap or CI.
 
+## Changing an Existing Project's Installation Composition
+
+Bootstrap refuses non-empty targets. It is not an in-place upgrader.
+
+To change composition:
+
+1. review `bootstrap/profiles.json` and the target profile;
+2. create a migration Work Block with explicit file additions/removals;
+3. compare a disposable generated project against the existing project;
+4. copy/remove only approved runtime surfaces and skills;
+5. regenerate `.agent/bootstrap-profile.json` consistently;
+6. run `scripts/validate-installation-profile.py`;
+7. smoke the newly installed runtime;
+8. review and verify the migration diff.
+
+Do not rerun framework bootstrap against a populated project.
+
 ## Manual Installation
 
-Manual copying is supported, but `bootstrap.sh` is preferred because it preserves
-character-safe placeholders and validates the complete delivery manifest.
-
-When copying manually, include:
-
-```text
-template/.
-governance/.
-runtimes/.
-integrations/.
-selected skills
-```
-
-Then replace placeholders literally in text files:
-
-| Placeholder | Meaning |
-|---|---|
-| `{{PROJECT_NAME}}` | display name |
-| `{{PROJECT_SLUG}}` | stable project identifier |
-| `{{PROJECT_ROOT}}` | absolute project root |
-| `{{SOURCE_DIRS}}` | source path patterns |
-| `{{TECH_STACK}}` | project technology summary |
-
-Make hooks/scripts executable and run `bash scripts/bootstrap.sh`.
+Manual copying is supported, but profile-aware bootstrap is preferred. If
+copying manually, use the profile catalog as the composition contract, copy the
+common portable files plus selected component paths/skills, create consistent
+bootstrap profile state, replace placeholders literally, and run the generated
+validator.
 
 ## Publication and Local State
 
-Before committing/publishing runtime or integration state, inspect:
-
-- `.agent/`, `.codex/`, `.claude/agent-memory/`, `.opencode/`;
-- `memory_bank/` and handoff runtime/log directories;
-- provider and plugin configuration;
-- MCP endpoints/arguments/environment names;
-- local absolute paths;
-- downloaded packages and generated output;
-- raw transcripts or hidden reasoning;
-- customer/personal/live data;
-- permissions that write, send, deploy, or mutate data.
+Before committing/publishing runtime or integration state, inspect `.agent/`,
+`.codex/`, `.claude/agent-memory/`, `.opencode/`, `memory_bank/`, handoff state,
+provider/plugin config, MCP endpoints/arguments/environment names, local paths,
+downloaded packages, generated output, transcripts, personal/live data, and
+permissions that write/send/deploy/mutate.
 
 Never commit secret values.
 
@@ -359,6 +354,7 @@ Never commit secret values.
 
 - `README.md`
 - `PROJECT_MAP.md`
+- `docs/bootstrap-profiles.md`
 - `docs/profiles.md`
 - `docs/mcp-tool-policy.md`
 - `governance/README.md`

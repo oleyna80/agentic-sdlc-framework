@@ -4,9 +4,16 @@
 # Keep this filename inactive inside the framework repository so the
 # publishable template files are not hidden by nested gitignore rules.
 
-# Keep local workflow layer private by default.
-# Committed durable engineering memory belongs in docs/engineering-memory/.
-.agent/
+# Portable governance/runtime contracts are committed by default. The generated
+# ignore file contains no blanket `.agent/`, `.codex/`, `.claude/`, or
+# `.opencode/` rule. Test environments isolate user/global excludes separately.
+
+# Ignore only operational, private, generated, or user-local state.
+.agent/active-work-block.json
+.agent/critic-gate.md
+.agent/verification-gate.md
+.agent/project-config.md
+
 memory_bank/
 .claude/agent-memory/
 .claude/backups/
@@ -15,8 +22,11 @@ memory_bank/
 .claude/shell-snapshots/
 .claude/.last-cleanup
 
-# Keep Codex layer private by default
-.codex/
+# User-local Codex activation and cache/state.
+.codex/config.toml
+.codex/cache/
+.codex/logs/
+.codex/runtime/
 .codexignore
 .agentsignore
 

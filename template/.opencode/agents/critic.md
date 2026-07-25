@@ -10,6 +10,11 @@ permission:
     "git diff*": allow
     "git log*": allow
     "git show*": allow
+    "git commit*": deny
+    "git push*": deny
+    "git reset --hard*": deny
+    "git clean*": deny
+    "rm *": deny
   task: deny
   external_directory: deny
   webfetch: ask
@@ -33,6 +38,9 @@ Remain read-only. Challenge:
 - skipped skills or assurance functions;
 - Hard Stops and data/secret boundaries;
 - verification that cannot prove the acceptance criteria.
+
+Do not commit, push, delete files, run destructive Git, or mutate project/runtime
+state.
 
 Return evidence-backed findings and one verdict:
 
