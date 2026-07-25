@@ -1,0 +1,31 @@
+{
+  "description": "Project-local Codex guardrails for the Agentic SDLC write gate, write-set scope, and subagent context.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch|Edit|Write)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/pre_tool_use_policy.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking Work Block gate and write scope"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/subagent_context.py\"",
+            "timeout": 5,
+            "statusMessage": "Loading Work Block authority for subagent"
+          }
+        ]
+      }
+    ]
+  }
+}
