@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Cross-runtime semantic conformance checks for bundled adapter baselines."""
+"""Cross-runtime semantic conformance checks for bundled adapter baselines.
+
+Runtime syntax differs. Conformance therefore compares implementation/source
+write authority separately from limited report, draft, or runtime-local memory
+writes.
+"""
 from __future__ import annotations
 
 import json
@@ -16,7 +21,7 @@ except ImportError as exc:  # pragma: no cover - CI installs PyYAML
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "template"
 ROLES = ("architect", "critic", "coder", "reviewer", "verifier")
-READ_ONLY_ROLES = {"architect", "critic", "reviewer", "verifier"}
+NON_IMPLEMENTATION_ROLES = {"architect", "critic", "reviewer", "verifier"}
 CLAUDE_FILES = {
     "architect": "solution-architect.md",
     "critic": "critic.md",
@@ -59,11 +64,33 @@ def codex_contract() -> dict[str, dict[str, Any]]:
             assert ".agent/active-work-block.json" in instructions
             assert "write-set" in instructions
         result[role] = {
-            "can_write": role == "coder",
+            "implementation_write": role == "coder",
+            "limited_artifact_write": False,
             "model_posture": "unbound",
             "authority_source": "AGENTS.md",
         }
     return result
+
+
+def claude_limited_write_boundary(role: str, body: str, path: Path) -> bool:
+    """Validate write tools on a non-Coder are limited to evidence/draft/memory."""
+    lower = body.lower()
+    assert "read-only" in lower, f"Claude non-Coder lacks read-only declaration: {path}"
+    assert re.search(
+        r"do\s+not\s+(?:write|change|edit)|forbidden|any edit/write",
+        lower,
+    ), f"Claude non-Coder lacks explicit implementation-write prohibition: {path}"
+
+    if role in {"architect", "critic"}:
+        assert ".claude/agent-memory/" in body
+        assert re.search(r"only\s+.*memory\.md|memory\.md\s+only", lower)
+    elif role == "verifier":
+        assert "docs/reports" in body
+        assert ".claude/agent-memory/verifier/MEMORY.md" in body
+        assert re.search(r"edit/write production code|change tested code", lower)
+    else:
+        raise AssertionError(f"unexpected limited-write role {role}: {path}")
+    return True
 
 
 def claude_contract() -> dict[str, dict[str, Any]]:
@@ -73,18 +100,29 @@ def claude_contract() -> dict[str, dict[str, Any]]:
         meta, body = frontmatter(path)
         assert meta.get("model") == "inherit"
         tools = as_text(meta.get("tools", ""))
-        can_write = "Write" in tools or "Edit" in tools or "MultiEdit" in tools
-        assert can_write == (role == "coder"), f"Claude write authority drift: {path}"
-        assert "AGENTS.md" in body or "Agentic SDLC" in body
+        raw_write_tool = any(token in tools for token in ("Write", "Edit", "MultiEdit"))
+
         if role == "coder":
+            assert raw_write_tool, f"Claude Coder lacks a write-capable tool: {path}"
             assert "write-set" in body
+            implementation_write = True
+            limited_artifact_write = False
         else:
-            assert "read-only" in as_text(meta.get("description", "")).lower() or role in {
-                "architect",
-                "critic",
-            }
+            implementation_write = False
+            limited_artifact_write = (
+                claude_limited_write_boundary(role, body, path)
+                if raw_write_tool
+                else False
+            )
+            if not raw_write_tool:
+                assert "read-only" in (
+                    as_text(meta.get("description", "")) + body
+                ).lower()
+
+        assert "AGENTS.md" in body or "Agentic SDLC" in body
         result[role] = {
-            "can_write": can_write,
+            "implementation_write": implementation_write,
+            "limited_artifact_write": limited_artifact_write,
             "model_posture": "inherit",
             "authority_source": "AGENTS.md",
         }
@@ -92,7 +130,6 @@ def claude_contract() -> dict[str, dict[str, Any]]:
     settings = json.loads(
         (TEMPLATE / ".claude/settings.json").read_text(encoding="utf-8")
     )
-    assert set(settings["agents"]) == set(CLAUDE_FILES.values()) | set() or True
     assert set(settings["agents"]) == {
         "solution-architect",
         "critic",
@@ -135,7 +172,8 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
             assert "write-set" in body
             assert "write gate" in body.lower()
         result[role] = {
-            "can_write": role == "coder",
+            "implementation_write": role == "coder",
+            "limited_artifact_write": False,
             "model_posture": "unbound",
             "authority_source": "AGENTS.md",
         }
@@ -179,9 +217,11 @@ def shared_gate_contract() -> None:
 def compare_semantics(contracts: dict[str, dict[str, dict[str, Any]]]) -> None:
     for runtime, roles in contracts.items():
         assert set(roles) == set(ROLES), f"{runtime} role set drifted"
-        for role in READ_ONLY_ROLES:
-            assert roles[role]["can_write"] is False
-        assert roles["coder"]["can_write"] is True
+        for role in NON_IMPLEMENTATION_ROLES:
+            assert roles[role]["implementation_write"] is False, (
+                f"{runtime} grants implementation write to {role}"
+            )
+        assert roles["coder"]["implementation_write"] is True
         assert all(value["authority_source"] == "AGENTS.md" for value in roles.values())
 
 
