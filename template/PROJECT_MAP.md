@@ -1,100 +1,135 @@
 # Project Map
 
-This file is the first human-authored map for `{{PROJECT_NAME}}`. It helps
-humans and agents orient before reading the full project.
+This file is the first human-readable map for `{{PROJECT_NAME}}`.
+It explains authority, major repository zones, and what an agent should read next.
 
 ## Purpose
 
-`{{PROJECT_NAME}}` uses the Agentic SDLC scaffold to run scoped Work Blocks with
-explicit roles, approved write-sets, review, verification, and durable logs.
+`{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane.
 
-## Authority Model
+The project separates:
 
-When files conflict, use this order:
+1. **Governance core** — authority, lifecycle, artifacts, risk gates, evidence, and closeout.
+2. **Portable project workflow** — Work Blocks, specifications, plans, reports, skills, and memory.
+3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic agents, plugins, MCP, and handoff mechanisms.
+4. **Project implementation** — application source, tests, infrastructure, and documentation.
 
-1. Explicit Owner instruction for the current task.
-2. `AGENTS.md` in this project.
-3. Approved Work Block plan and write-set.
-4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`.
-5. Current `docs/engineering-memory/` entries.
-6. Runtime-specific policy files such as `.codex/critic.md`,
-   `.codex/write-gate.md`, `.claude/settings.json`, hooks, and agent prompts.
-7. Reference docs, examples, logs, and generated/discovery artifacts.
+Runtime or model selection never changes governance authority.
 
-Generated or discovery artifacts may help locate information, but they do not
-override normative instructions, Owner decisions, or approved scope.
+## Authority Order
 
-## Operating Modes
+When project artifacts conflict, resolve in this order:
 
-Start with the smallest mode that can safely deliver the Work Block:
+1. current Owner instruction or approved change request;
+2. approved specification;
+3. accepted architecture decisions and external contracts;
+4. approved implementation plan;
+5. active tasklist;
+6. `AGENTS.md` and the runtime-neutral governance contract for process/authority questions;
+7. review, verification, drift, and closeout reports;
+8. durable engineering memory;
+9. runtime-specific policy and configuration;
+10. operational logs, generated outputs, examples, and external reference material.
 
-- **Minimal Codex-only**: one local agent, scope control, logs, review,
-  verification, no Claude Code, no MCP, no handoff.
-- **Standard Codex SDLC**: full Work Block flow with reusable skills and
-  stronger closeout evidence.
-- **Claude Code Team Runtime**: Claude Code acts as its own local team with
-  agents, hooks, skills, memory, and provider configuration.
-- **Codex -> Claude Code Handoff**: Codex delegates scoped work to Claude Code
-  as an external team through file-based handoff.
-- **Codex model routing overlay**: optional user-level Codex profiles keep
-  strong models on orchestration/critic decisions and cheaper or local models
-  on bounded executor tasks. Real provider settings stay outside the generated
-  project unless the team deliberately adds private local config.
+For agent behavior and permissions, `AGENTS.md` and `governance/` are normative.
+For product behavior, the approved specification is normative.
+Plans and tasklists are derived and must not silently override the specification.
+
+## Profiles
+
+Each Work Block selects independently:
+
+- **Governance profile:** Advisory, Controlled, Managed, Assured, or Distributed.
+- **Runtime profile:** Codex, Claude Code, OpenCode, generic, or another approved adapter.
+- **Integration profile:** none, official plugin, MCP, file-based handoff, or manual handoff.
+- **Model class:** strong reasoning, balanced engineering, fast read-only, local executor, or project-defined.
+- **Isolation level:** same context through OS-isolated, as actually used.
+
+See `docs/profiles.md` and `runtimes/`.
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
-| `AGENTS.md` | normative | Root operating rules for agents in this project. |
-| `PROJECT_MAP.md` | normative | Human-readable project map. |
-| `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
-| `.codex/` | normative runtime | Codex write gate, critic contract, and hooks. |
-| `.agent/` | normative routing | Runtime-neutral roster, workflows, gates, and skills. |
-| `.agent/workflows/sdd-protocol.md` | normative | Canonical lifecycle contract and stage semantics. |
-| `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and memory. |
-| `docs/engineering-memory/` | normative | Durable project engineering memory for all agent runtimes. |
-| `memory_bank/` | mixed local | Operational context, decision summaries, logs, and external team reports. |
-| `docs/` | mixed | Plans, specs, tasklists, reports, templates, and references. |
-| `docs/templates/{verification-report,closeout-report}-template.md` | normative | Verification evidence and success/reporting-only closeout contracts. |
-| `scripts/` | project-specific | Bootstrap and project automation scripts. |
-| source directories | project-specific | Application or service code. See `AGENTS.md`. |
+| `AGENTS.md` | normative | Compact project operating contract and entry point. |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifact, and capability contracts. |
+| `.agent/workflows/sdd-protocol.md` | normative | Canonical generated-project stage and gate semantics. |
+| `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, and isolation guidance. |
+| `docs/specs/` | normative product/technical | Approved requirements and observable contracts. |
+| `docs/architecture/` or accepted decision paths | normative architecture | Accepted architecture constraints and decisions. |
+| `docs/plans/` | derived/log | Approved implementation plans and Work Block evidence. |
+| `docs/tasklist/` | derived | Active task decomposition derived from specifications and plans. |
+| `docs/reports/` | evidence | Critic, review, verification, drift, consolidation, and closeout reports. |
+| `docs/engineering-memory/` | durable reference | Evidence-backed decisions, source-of-truth chains, exceptions, and reproducibility. |
+| `docs/templates/` | normative templates | Portable Work Block and report contracts. |
+| `memory_bank/` | operational/local | Current focus, progress, decisions pending promotion, and agent delivery logs. |
+| `runtimes/` | adapter documentation | Capability and fallback guidance for supported runtimes. |
+| `.codex/` | runtime-specific | Codex configuration, agents, hooks, and compatibility policy. |
+| `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and local memory. |
+| `.mcp.json` | integration-specific | Approved MCP server configuration; no secrets. |
+| `scripts/` | project-specific | Bootstrap, verification, and automation scripts. |
+| source/test directories | project-specific | Implementation controlled by approved Work Block write-sets. |
 
-## Generated, Log, and Local-Only Boundaries
+## Core Lifecycle
 
-- `docs/plans/**` and `docs/reports/**` are Work Block evidence and reports;
-  the current approved plan matters more than older plans.
-- `docs/templates/**` are reusable coordination and Work Block templates.
-- `docs/engineering-memory/**` is committed durable project memory; keep it
-  evidence-backed and secret-free.
-- `memory_bank/orchestrator-log.md`, `memory_bank/review-log.md`, and
-  `memory_bank/external-team-log.md` are evidence logs, not current authority.
-- `.claude/agent-memory/**` is project-local agent memory unless deliberately
-  reviewed for publication.
-- `.env*`, credentials, provider tokens, caches, build output, and local
-  machine state must not be committed.
-- Future graph/discovery outputs should be treated as derived context only.
+```text
+Define
+  discovery -> architecture -> specification -> plan -> critic
 
-## New-Session Bootstrap
+Execute
+  scoped implementation -> self-check -> frozen diff
 
-For project work, read in this order:
+Assure
+  independent review -> technical verification -> specification drift audit
 
-1. `AGENTS.md`
-2. `PROJECT_MAP.md`
-3. `FILE_REGISTRY.yml`
-4. `docs/session-bootstrap.md`
-5. The current task or Work Block plan
-6. Relevant `docs/engineering-memory/` entries
-7. `git status --short --branch`
-8. Relevant diffs and target files
+Close
+  SSOT sync -> engineering memory -> closeout report
+```
 
-Do not assume memory from a previous session is current when repository files
-are cheap to verify.
+The lifecycle requires functions, not a fixed number of agents.
+
+## Generated, Derived, and Local Boundaries
+
+- `docs/specs/**` and accepted architecture decisions are normative.
+- `docs/plans/**` and `docs/tasklist/**` are derived from approved intent.
+- `docs/reports/**` are evidence; they do not silently redefine requirements.
+- `docs/engineering-memory/**` is durable and committed only when evidence-backed and secret-free.
+- `memory_bank/**` is operational context and may remain local.
+- `.claude/agent-memory/**`, runtime caches, provider config, and local IDE state are local by default.
+- `.env*`, tokens, credentials, private keys, live data, and private client context must not be committed.
+- Generated build/discovery outputs are derived and lower authority than current source and approved contracts.
+
+## New-Session Read Strategy
+
+Use progressive disclosure.
+
+Always for non-trivial work:
+
+1. `AGENTS.md`;
+2. active Work Block;
+3. active specification and revision;
+4. relevant architecture decisions;
+5. repository status and current diff.
+
+Read conditionally:
+
+- `governance/*` for authority/lifecycle/artifact questions;
+- `.agent/workflows/sdd-protocol.md` for detailed stage semantics;
+- `.agent/ROSTER.md` for routing;
+- the active runtime adapter;
+- relevant skills;
+- relevant engineering memory;
+- operational logs when resuming interrupted work.
+
+Do not load every registry, skill, runtime document, and memory log by default.
 
 ## Map Maintenance
 
 Update this file and `FILE_REGISTRY.yml` when a change:
 
 - adds, moves, or removes a major directory;
-- changes authority, write gates, review gates, or verification gates;
-- changes generated/local-only boundaries;
-- adds a new runtime layer, profile, or project-specific governance rule.
+- changes authority or SSOT order;
+- changes lifecycle gates or role authority;
+- adds or retires a runtime/integration adapter;
+- changes normative, derived, evidence, or local-only boundaries;
+- changes the generated-project baseline.
