@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import copy
 import json
-import py_compile
 import subprocess
 import sys
 import tempfile
@@ -25,6 +24,11 @@ def fail(message: str) -> None:
     raise AssertionError(message)
 
 
+def syntax_check(path: Path) -> None:
+    source = path.read_text(encoding="utf-8")
+    compile(source, str(path), "exec")
+
+
 def run_hook(script: Path, cwd: Path, event: dict[str, Any]) -> tuple[int, dict[str, Any] | None, str]:
     result = subprocess.run(
         [sys.executable, str(script)],
@@ -33,6 +37,7 @@ def run_hook(script: Path, cwd: Path, event: dict[str, Any]) -> tuple[int, dict[
         capture_output=True,
         cwd=cwd,
         timeout=10,
+        env={**dict(__import__("os").environ), "PYTHONDONTWRITEBYTECODE": "1"},
     )
     output = result.stdout.strip()
     parsed = json.loads(output) if output else None
@@ -43,18 +48,14 @@ def decision(payload: dict[str, Any] | None) -> str:
     if not payload:
         return "allow"
     specific = payload.get("hookSpecificOutput")
-    if not isinstance(specific, dict):
-        return "unknown"
-    return str(specific.get("permissionDecision") or "allow")
+    return str(specific.get("permissionDecision") or "allow") if isinstance(specific, dict) else "unknown"
 
 
 def reason(payload: dict[str, Any] | None) -> str:
     if not payload:
         return ""
     specific = payload.get("hookSpecificOutput")
-    if not isinstance(specific, dict):
-        return ""
-    return str(specific.get("permissionDecisionReason") or "")
+    return str(specific.get("permissionDecisionReason") or "") if isinstance(specific, dict) else ""
 
 
 def assert_allowed(label: str, result: tuple[int, dict[str, Any] | None, str]) -> None:
@@ -80,10 +81,7 @@ def ready_gate() -> dict[str, Any]:
         "schema_version": 1,
         "work_block_id": "wb-fixture",
         "governance_profile": "Assured",
-        "specification": {
-            "path": "docs/specs/fixture.md",
-            "revision": "spec-fixture-v1",
-        },
+        "specification": {"path": "docs/specs/fixture.md", "revision": "spec-fixture-v1"},
         "base_commit": "",
         "write_gate": {
             "status": "READY",
@@ -140,14 +138,7 @@ def event(tool_name: str, command: str, cwd: Path) -> dict[str, Any]:
 
 def patch(path: str) -> str:
     return "\n".join(
-        [
-            "*** Begin Patch",
-            f"*** Update File: {path}",
-            "@@",
-            "-old",
-            "+new",
-            "*** End Patch",
-        ]
+        ["*** Begin Patch", f"*** Update File: {path}", "@@", "-old", "+new", "*** End Patch"]
     )
 
 
@@ -155,7 +146,7 @@ def validate_static_files() -> None:
     for script in (PRE_TOOL, SUBAGENT):
         if not script.is_file():
             fail(f"missing hook script: {script}")
-        py_compile.compile(str(script), doraise=True)
+        syntax_check(script)
 
     hooks = json.loads((TEMPLATE / ".codex" / "hooks.json").read_text(encoding="utf-8"))
     if set(hooks.get("hooks", {})) != {"PreToolUse", "SubagentStart"}:
@@ -175,11 +166,9 @@ def validate_static_files() -> None:
             if not str(data.get(key) or "").strip():
                 fail(f"{path} missing required key {key}")
         actual.add(str(data["name"]))
-        if data["name"] == "coder":
-            if data.get("sandbox_mode") != "workspace-write":
-                fail("coder must default to workspace-write")
-        elif data.get("sandbox_mode") != "read-only":
-            fail(f"{data['name']} must default to read-only")
+        expected_sandbox = "workspace-write" if data["name"] == "coder" else "read-only"
+        if data.get("sandbox_mode") != expected_sandbox:
+            fail(f"{data['name']} must default to {expected_sandbox}")
     if actual != expected:
         fail(f"custom agent set mismatch: expected={sorted(expected)} actual={sorted(actual)}")
 
@@ -192,17 +181,12 @@ def validate_pre_tool_fixtures() -> None:
     with tempfile.TemporaryDirectory(prefix="codex-adapter-") as tmp:
         root = Path(tmp)
         (root / ".git").mkdir()
-
         gate = ready_gate()
         write_gate(root, gate)
 
         assert_allowed("read-only Bash", run_hook(PRE_TOOL, root, event("Bash", "git status --short", root)))
         assert_allowed("in-scope patch", run_hook(PRE_TOOL, root, event("apply_patch", patch("src/app.py"), root)))
-        assert_denied(
-            "out-of-scope patch",
-            run_hook(PRE_TOOL, root, event("apply_patch", patch("config/prod.yml"), root)),
-            "outside",
-        )
+        assert_denied("out-of-scope patch", run_hook(PRE_TOOL, root, event("apply_patch", patch("config/prod.yml"), root)), "outside")
         assert_allowed("explicit scoped git add", run_hook(PRE_TOOL, root, event("Bash", "git add src/app.py", root)))
         assert_denied("broad git add", run_hook(PRE_TOOL, root, event("Bash", "git add -A", root)), "explicit")
         assert_denied("opaque mutation", run_hook(PRE_TOOL, root, event("Bash", "mkdir -p src/new", root)), "opaque")
@@ -218,10 +202,7 @@ def validate_pre_tool_fixtures() -> None:
         blocked["write_gate"]["status"] = "BLOCKED"
         write_gate(root, blocked)
         assert_denied("blocked source patch", run_hook(PRE_TOOL, root, event("apply_patch", patch("src/app.py"), root)), "not READY")
-        assert_allowed(
-            "blocked coordination patch",
-            run_hook(PRE_TOOL, root, event("apply_patch", patch("docs/specs/fixture.md"), root)),
-        )
+        assert_allowed("blocked coordination patch", run_hook(PRE_TOOL, root, event("apply_patch", patch("docs/specs/fixture.md"), root)))
 
         expired = copy.deepcopy(gate)
         expired["write_gate"]["expires_at"] = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
@@ -244,8 +225,7 @@ def validate_subagent_context() -> None:
     with tempfile.TemporaryDirectory(prefix="codex-subagent-") as tmp:
         root = Path(tmp)
         (root / ".git").mkdir()
-        gate = ready_gate()
-        write_gate(root, gate)
+        write_gate(root, ready_gate())
         start_event = {
             "session_id": "fixture-session",
             "turn_id": "fixture-turn",
@@ -268,6 +248,7 @@ def validate_subagent_context() -> None:
 
 
 def main() -> int:
+    syntax_check(Path(__file__))
     validate_static_files()
     validate_pre_tool_fixtures()
     validate_subagent_context()
