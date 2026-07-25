@@ -36,12 +36,17 @@ create broader authority.
 │   ├── reviewer.toml
 │   └── verifier.toml
 └── hooks/
+    ├── hard_stop_policy.py
     ├── pre_tool_use_policy.py
+    ├── stage0_write_gate.py
     └── subagent_context.py
 
 .agent/
 └── active-work-block.json
 ```
+
+`stage0_write_gate.py` is a deprecated compatibility shim that delegates to
+`pre_tool_use_policy.py`. New configurations use `.codex/hooks.json` directly.
 
 `config.toml.template` is not activated automatically. Copy it to
 `.codex/config.toml` after reviewing project-local settings.
@@ -71,9 +76,20 @@ private/user configuration or a deliberately validated project baseline.
 
 Project hooks are declared only in `.codex/hooks.json`:
 
-- `PreToolUse` runs `pre_tool_use_policy.py` for Bash and edit/apply-patch paths.
+- `PreToolUse` runs `hard_stop_policy.py` for consequential Bash operations;
+- `PreToolUse` also runs `pre_tool_use_policy.py` for write-gate and write-set
+  enforcement across Bash and edit/apply-patch paths;
 - `SubagentStart` runs `subagent_context.py` to add bounded Work Block authority
   to the spawned agent context.
+
+The two `PreToolUse` policies are intentionally layered:
+
+1. Hard Stop policy checks explicit Owner approvals and their active time window.
+2. Write policy checks specification, Critic state, gate expiry, Git baseline,
+   and target paths.
+
+A command must pass every matching hook. Approval by one layer does not bypass
+the other.
 
 Codex loads project-local hooks only for trusted projects. New or modified
 non-managed hooks must be reviewed and trusted in Codex before they run. Inspect
@@ -106,24 +122,34 @@ logs.
 The gate becomes stale after `HEAD` changes. Renew it deliberately before
 additional source writes.
 
-## Bash Policy
+## Hard Stop and Bash Policy
 
-The hook permits ordinary read-only commands and inspects supported mutation
-classes.
+Ordinary read-only commands pass without opening a source gate. Supported
+consequential operations require both a short-lived active Work Block gate and
+the corresponding explicit approval flag.
 
-It:
+The Hard Stop layer covers selected Bash forms for:
+
+- commit and push;
+- default-branch push, including explicit default refs and `HEAD` from a default
+  branch;
+- recursive removal and other destructive operations;
+- live infrastructure and live-data mutations;
+- credential or secret access/mutation;
+- client-facing communications.
+
+The write/scope layer additionally:
 
 - denies source writes while the gate is blocked, invalid, expired, or stale;
 - denies patches outside the approved write-set;
 - denies dynamic, globbed, repository-wide, or compound mutations that cannot be
   scoped safely;
 - validates staged paths before an approved commit;
-- requires separate approvals for commit, push, default-branch push,
-  destructive operations, live infrastructure, live data, credentials, and
-  client communications;
-- allows approved feature-branch push only after the relevant approval is
-  recorded;
 - recommends `apply_patch` or small explicit commands for inspectable writes.
+
+Hard Stop approvals expire with `write_gate.expires_at` and are invalid while the
+write gate is `BLOCKED`. Renewing the gate or changing the Work Block must be a
+deliberate coordination update.
 
 Dependency-manager commands have broad implicit writes and require a separately
 reviewed workflow rather than automatic scope inference.
@@ -155,6 +181,10 @@ sandbox and approval overrides when spawning a child. Therefore:
   stronger independence is required;
 - treat hooks as guardrails, not a complete enforcement or security boundary.
 
+Tool hooks do not cover every possible hosted or specialized execution path.
+MCP and other consequential tools need their own reviewed policy, permissions,
+and evidence rather than an assumption that Bash matching protects them.
+
 Use parallel subagents primarily for independent read-heavy tasks. Parallel
 writers require separate worktrees, non-overlapping write-sets, consolidation,
 and assurance of the merged result.
@@ -180,6 +210,7 @@ Framework CI runs:
 
 ```bash
 python scripts/test-codex-adapter.py
+python scripts/test-codex-hard-stops.py
 bash scripts/test-sdd-contract.sh
 bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
