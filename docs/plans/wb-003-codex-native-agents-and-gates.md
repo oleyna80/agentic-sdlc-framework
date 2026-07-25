@@ -2,8 +2,9 @@
 
 ## Status
 
-- **Stage:** Define
-- **State:** in_progress
+- **Stage:** Close
+- **State:** completed
+- **Closeout:** success
 - **Branch:** `agent/runtime-neutral-control-plane`
 - **Governance profile:** Assured
 - **Side-effect class:** public repository change
@@ -16,19 +17,23 @@ Turn the Codex adapter from policy-only documentation into an executable,
 project-scoped runtime integration while preserving the runtime-neutral
 Governance Core.
 
-## Expected Final Result
+## Delivered Result
 
-A generated project includes:
+A generated project now includes:
 
 - project-scoped Codex custom agents for Architect, Critic, Coder, Reviewer, and
   Verifier;
-- current `[agents]` configuration instead of the legacy `multi_agent = true`;
-- project-local Codex hooks discovered from `.codex/hooks.json`;
-- a machine-readable active Work Block gate;
-- fail-closed checks for source writes, write-set scope, gate expiry, critic
-  state, and dangerous Bash actions;
-- SubagentStart context that communicates role, Work Block, scope, and authority;
-- contract tests and CI checks for the Codex adapter.
+- current `[agents]` configuration instead of legacy `multi_agent = true`;
+- project-local hooks declared in `.codex/hooks.json`;
+- a machine-readable, fail-closed active Work Block gate;
+- `PreToolUse` enforcement for source-write readiness, expiry, Critic state,
+  write-set scope, inspectable patch targets, scoped staging, and selected Hard
+  Stop operations;
+- `SubagentStart` context carrying bounded role, Work Block, specification,
+  write-set, gate, and authority information;
+- deterministic Codex-adapter fixture tests and disposable scaffold validation;
+- a human-readable compatibility view that no longer acts as the write-gate
+  source of truth.
 
 ## Normative Inputs
 
@@ -39,27 +44,9 @@ A generated project includes:
 - `template/.agent/workflows/sdd-protocol.md`
 - `runtimes/codex/README.md`
 
-## Current Codex Runtime Facts
-
-- Project-scoped custom agents are standalone TOML files under
-  `.codex/agents/`.
-- Multi-agent settings use `[agents]`; `agents.enabled` defaults to true.
-- Custom agents require `name`, `description`, and `developer_instructions` and
-  may override normal session keys such as model, reasoning effort, sandbox,
-  MCP, and skills.
-- Project hooks may be declared in `.codex/hooks.json` or inline config, but one
-  representation per layer is preferred.
-- `PreToolUse` can inspect and deny Bash, `apply_patch`, MCP, and other local
-  function tools.
-- Project-local hooks require project trust and explicit hook review.
-- Hooks are guardrails, not a complete security boundary.
-- Subagents inherit live permission/sandbox overrides from the parent turn, so
-  agent-file sandbox defaults must not be treated as absolute isolation.
-
-## In Scope
+## Implemented Paths
 
 ```text
-docs/plans/wb-003-codex-native-agents-and-gates.md
 runtimes/codex/README.md
 template/.codex/config.toml.template
 template/.codex/hooks.json
@@ -73,90 +60,109 @@ template/.codex/hooks/subagent_context.py
 template/.agent/active-work-block.json
 template/.codex/write-gate.md
 template/scripts/bootstrap.sh
-bootstrap.sh
 scripts/test-codex-adapter.py
-scripts/test-sdd-contract.sh
 .github/workflows/framework-contracts.yml
-PROJECT_MAP.md
-FILE_REGISTRY.yml
-template/PROJECT_MAP.md
-template/FILE_REGISTRY.yml
-scripts/validate-publication.sh
 ```
 
-## Out of Scope
+Related navigation, registry, publication, and portable-contract files were
+updated where required.
 
-- hardcoding provider credentials or user-level provider settings;
-- pinning a single concrete model family in the public scaffold;
-- claiming hooks provide OS-level security isolation;
-- removing existing Claude Code hooks or agents;
-- final plugin/MCP/file-handoff normalization;
-- enforcing live DB, deploy, payment, or client mutations solely through project
-  hooks;
-- enabling unrestricted parallel writers.
+## Gate Contract
 
-## Gate Design
+`.agent/active-work-block.json` is the executable gate input. The generated
+state is intentionally `BLOCKED`.
 
-The machine-readable gate is `.agent/active-work-block.json`.
+Source writes require:
 
-A source write is allowed only when:
+- supported gate schema;
+- non-empty Work Block ID;
+- approved specification path and revision;
+- `write_gate.status: READY`;
+- valid, future, timezone-aware expiry;
+- resolved required Critic state;
+- non-empty approved write-set;
+- every source target inside that write-set;
+- current `HEAD` matching `base_commit` when a base commit is recorded.
 
-- gate schema is valid;
-- `write_gate.status` is `READY`;
-- Work Block ID is present;
-- gate has not expired;
-- current `HEAD` matches the recorded base commit when a base commit is set;
-- specification path and revision are recorded;
-- required Critic state is resolved;
-- every target path is inside the approved write-set.
+Before READY, only the explicit coordination write-set is permitted so Define
+and evidence artifacts can be prepared.
 
-Before the source gate opens, writes remain allowed only to explicit coordination
-paths needed to prepare specifications, plans, gate state, and reports.
+The hook also denies unsupported opaque mutations and selected public, live,
+credential, communication, and destructive Bash operations unless their
+matching Hard Stop approval is recorded.
 
-The hook also denies dangerous public/live/destructive Bash operations unless the
-matching Hard Stop approval is recorded. Complex mutating Bash commands that
-cannot be scoped safely are denied with guidance to use `apply_patch` or a
-simpler explicit command.
+## Custom Agent Contract
 
-## Custom Agent Design
-
-- Main Codex thread performs Orchestrator function.
-- Architect, Critic, Reviewer, and Verifier are read-only by default.
-- Coder uses workspace-write but remains limited by the Work Block write-set and
-  hooks.
-- Agent files omit concrete model names; local/user config may supply models.
-- Reasoning effort may be suggested per function without changing authority.
-- Agent output contracts point to the portable Work Block and report templates.
+- The main Codex thread performs the Orchestrator function.
+- Architect, Critic, Reviewer, and Verifier default to `read-only`.
+- Coder defaults to `workspace-write`, but the Work Block gate and write-set
+  remain authoritative.
+- Public agent templates do not pin concrete models.
+- Model routing remains user/private runtime configuration.
+- Agent sandbox defaults are defense in depth; live parent overrides and actual
+  isolation must still be recorded.
 
 ## Acceptance Criteria
 
-- [ ] Legacy top-level `multi_agent = true` is removed.
-- [ ] `[agents]` uses current Codex keys.
-- [ ] Five project-scoped custom agents parse as TOML and expose logical roles.
-- [ ] Hooks JSON parses and registers PreToolUse plus SubagentStart.
-- [ ] Hook scripts use Python standard library only.
-- [ ] Source writes are denied while gate is blocked, stale, expired, invalid, or
-      outside the write-set.
-- [ ] Approved in-scope `apply_patch` is allowed by fixtures.
-- [ ] Preflight coordination writes remain possible while source gate is blocked.
-- [ ] Dangerous Bash fixtures are denied without matching Hard Stop approval.
-- [ ] Read-only Bash fixtures remain allowed.
-- [ ] Subagent context reports Work Block, role, write-set, and authority without
-      exposing secrets or hidden reasoning.
-- [ ] Existing runtime-neutral and publication tests remain green.
-- [ ] Disposable generated-project bootstrap includes and validates all Codex
+- [x] Legacy top-level `multi_agent = true` is removed.
+- [x] `[agents]` uses current Codex keys.
+- [x] Five project-scoped custom agents parse as TOML and expose logical roles.
+- [x] Hooks JSON parses and registers `PreToolUse` plus `SubagentStart`.
+- [x] Hook scripts use the Python standard library only.
+- [x] Source writes are denied while the gate is blocked, expired, invalid,
+      unresolved, or outside the write-set.
+- [x] Approved in-scope `apply_patch` is allowed by fixtures.
+- [x] Coordination writes remain possible while the source gate is blocked.
+- [x] Dangerous Bash fixtures are denied without matching Hard Stop approval.
+- [x] Read-only Bash fixtures remain allowed.
+- [x] Subagent context reports Work Block, role, write-set, gate, and authority
+      without exposing secrets or hidden reasoning.
+- [x] Existing runtime-neutral, governance, and publication tests remain green.
+- [x] Disposable generated-project bootstrap includes and validates all Codex
       adapter files.
 
-## Verification Plan
+## Verification Evidence
 
-- parse TOML with Python `tomllib`;
-- parse hooks/gate JSON with Python standard library;
-- fixture-test PreToolUse decisions for blocked/ready/expired/out-of-scope and
-  dangerous-command cases;
-- fixture-test SubagentStart context;
-- run shell syntax and Python compile checks;
-- run all existing governance, SDLC, publication, and bootstrap smoke checks;
-- keep PR draft until the full CI snapshot passes.
+Current Framework Contracts CI completed successfully and included:
+
+```text
+Check syntax                              PASS
+Validate runtime-neutral SDLC contracts  PASS
+Validate Codex adapter gates              PASS
+Validate governance structure            PASS
+Validate publication scaffold            PASS
+Bootstrap disposable generated project   PASS
+```
+
+The Codex fixture suite covers:
+
+- blocked and ready gates;
+- expired gates;
+- missing specification metadata;
+- unresolved Critic state;
+- in-scope and out-of-scope patches;
+- coordination-only patches;
+- explicit and broad staging;
+- opaque mutation denial;
+- Git push and destructive-operation approvals;
+- bounded SubagentStart context.
+
+## Residual Limits
+
+- Project hooks are guardrails, not OS-level security isolation.
+- Project-local hooks require project trust and human inspection.
+- Parent session permission/sandbox overrides can affect spawned agents.
+- Unknown or complex mutation commands may still require stricter runtime or OS
+  policy outside this project hook.
+- No live infrastructure, data, credential, payment, or client mutation is
+  authorized solely by these hooks.
+- Concrete model routing remains unvalidated project/user configuration.
+
+## Closeout
+
+WB-003 is complete. The PR remains draft for human review of the combined
+WB-001 through WB-003 architectural release. Additional integration migration
+should be delivered separately to keep review scope bounded.
 
 ## Follow-up
 
