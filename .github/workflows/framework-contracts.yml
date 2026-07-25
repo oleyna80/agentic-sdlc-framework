@@ -43,6 +43,7 @@ jobs:
           paths = [
               Path("scripts/test-codex-adapter.py"),
               Path("scripts/test-codex-hard-stops.py"),
+              Path("template/.codex/hooks/hard_stop_policy.py"),
               Path("template/.codex/hooks/pre_tool_use_policy.py"),
               Path("template/.codex/hooks/subagent_context.py"),
           ]
@@ -117,6 +118,7 @@ jobs:
           test -f "$target/.codex/agents/coder.toml"
           test -f "$target/.codex/agents/reviewer.toml"
           test -f "$target/.codex/agents/verifier.toml"
+          test -f "$target/.codex/hooks/hard_stop_policy.py"
           test -f "$target/.codex/hooks/pre_tool_use_policy.py"
           test -f "$target/.codex/hooks/subagent_context.py"
           grep -q "Contract Smoke" "$target/AGENTS.md"
