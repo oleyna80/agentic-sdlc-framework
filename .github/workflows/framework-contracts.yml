@@ -44,6 +44,7 @@ jobs:
               Path("scripts/test-codex-adapter.py"),
               Path("template/.codex/hooks/pre_tool_use_policy.py"),
               Path("template/.codex/hooks/subagent_context.py"),
+              Path("template/.codex/hooks/stage0_write_gate.py"),
           ]
           for path in paths:
               compile(path.read_text(encoding="utf-8"), str(path), "exec")
@@ -77,7 +78,24 @@ jobs:
         run: bash scripts/validate-governance.sh
 
       - name: Validate publication scaffold
-        run: bash scripts/validate-publication.sh
+        id: publication
+        continue-on-error: true
+        run: bash scripts/validate-publication.sh > publication-validation.log 2>&1
+
+      - name: Upload publication validation failure log
+        if: steps.publication.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-validation-failure
+          path: publication-validation.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce publication validation result
+        if: steps.publication.outcome == 'failure'
+        run: |
+          tail -n 200 publication-validation.log
+          exit 1
 
       - name: Bootstrap disposable generated project
         run: |
