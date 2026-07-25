@@ -24,15 +24,21 @@ fi
 echo "==> Scaffolding project: $PROJECT_NAME ($PROJECT_SLUG)"
 echo "    Target: $TARGET_DIR"
 
-# 1. Copy template
-echo "==> Copying template..."
+# 1. Copy the generated-project template.
+echo "==> Copying project template..."
 mkdir -p "$TARGET_DIR"
 cp -r "$FRAMEWORK_DIR/template/." "$TARGET_DIR/"
 if [ -f "$TARGET_DIR/project.gitignore" ]; then
   mv "$TARGET_DIR/project.gitignore" "$TARGET_DIR/.gitignore"
 fi
 
-# 2. Replace placeholders
+# 2. Install the runtime-neutral control plane and adapter documentation.
+# These are documentation contracts, not provider credentials or runtime state.
+echo "==> Installing governance and runtime adapter documentation..."
+cp -r "$FRAMEWORK_DIR/governance" "$TARGET_DIR/governance"
+cp -r "$FRAMEWORK_DIR/runtimes" "$TARGET_DIR/runtimes"
+
+# 3. Replace project placeholders across the scaffold and copied contracts.
 echo "==> Replacing placeholders..."
 find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o -name "*.yaml" -o -name "*.yml" -o -name "*.toml" -o -name "*.py" \) \
   -exec sed -i \
@@ -43,9 +49,9 @@ find "$TARGET_DIR" -type f \( -name "*.md" -o -name "*.json" -o -name "*.sh" -o 
     -e "s/{{TECH_STACK}}/to be defined/g" \
     {} +
 
-# 3. Copy default skills (Core SDLC)
+# 4. Copy default portable skills.
 echo "==> Copying core skills..."
-CORE_SKILLS="architecture-discovery technical-discovery task-decomposition project-estimation scoped-coder verifier reviewer systematic-debugging webapp-testing memory-bank-manager ssot-sync-closeout subagent-mission-brief agent-operations-review output-skill scoped-commit-guard shell-context-guard orchestrator-log context-snapshot merge-protocol critic-review codex-verification handoff-live-smoke security-audit-triage security-verification-gate"
+CORE_SKILLS="architecture-discovery technical-discovery task-decomposition project-estimation scoped-coder verifier reviewer spec-drift-audit systematic-debugging webapp-testing memory-bank-manager ssot-sync-closeout subagent-mission-brief agent-operations-review output-skill scoped-commit-guard shell-context-guard orchestrator-log context-snapshot merge-protocol critic-review codex-verification handoff-live-smoke security-audit-triage security-verification-gate"
 mkdir -p "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills"
 for skill in $CORE_SKILLS; do
   if [ -d "$FRAMEWORK_DIR/skills/$skill" ]; then
@@ -54,18 +60,18 @@ for skill in $CORE_SKILLS; do
   fi
 done
 
-# 4. Replace placeholders in skills too (belt-and-suspenders)
+# 5. Replace placeholders in installed skills too.
 find "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills" -name "SKILL.md" -exec sed -i \
     -e "s/{{PROJECT_NAME}}/$PROJECT_NAME_ESC/g" \
     -e "s/{{PROJECT_SLUG}}/$PROJECT_SLUG_ESC/g" \
     -e "s/{{PROJECT_ROOT}}/$TARGET_DIR_ESC/g" \
     {} + 2>/dev/null || true
 
-# 5. Make hooks executable
+# 6. Make runtime hooks and project scripts executable.
 chmod +x "$TARGET_DIR/.claude/hooks/"*.sh 2>/dev/null || true
 chmod +x "$TARGET_DIR/scripts/"*.sh 2>/dev/null || true
 
-# 6. Run bootstrap verification
+# 7. Run generated-project verification.
 echo "==> Running bootstrap verification..."
 if [ -f "$TARGET_DIR/scripts/bootstrap.sh" ]; then
   bash "$TARGET_DIR/scripts/bootstrap.sh"
@@ -79,9 +85,9 @@ echo "  cd $TARGET_DIR"
 echo "  git init && git add -A && git commit -m 'Initial scaffold from Agentic SDLC Framework'"
 echo ""
 echo "Then customize:"
-echo "  1. Review AGENTS.md defaults for source directories and tech stack"
-echo "  2. Copy additional skills from this repository's skills/ as needed"
-echo "  3. Configure MCP servers (.mcp.json)"
-echo "  4. Set up project-specific security patterns"
-echo "  5. Update docs/engineering-memory/ only for durable project knowledge"
-echo "  6. Update memory_bank/context.md with current focus"
+echo "  1. Read AGENTS.md and select a governance profile in the first Work Block"
+echo "  2. Confirm the active runtime adapter and capability snapshot"
+echo "  3. Review source-directory and technology placeholders"
+echo "  4. Configure approved MCP servers or runtime plugins without committing secrets"
+echo "  5. Add project-specific security and verification commands"
+echo "  6. Keep operational memory local; promote only durable evidence-backed knowledge"
