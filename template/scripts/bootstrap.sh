@@ -23,6 +23,10 @@ echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
   exit 1
 }
 
+# Validate portable selected/unselected composition before creating or restoring
+# any ignored local operational state.
+python3 "$PROFILE_VALIDATOR" "$ROOT"
+
 # Projects may use memory_bank/ (framework default) or memory-bank/ (legacy).
 MEMORY_DIR="memory_bank"
 HAS_HYPHEN=false
@@ -70,8 +74,6 @@ if [ ! -f "$ACTIVE_WORK_BLOCK" ]; then
   cp "$DEFAULT_WORK_BLOCK" "$ACTIVE_WORK_BLOCK"
   echo "  RESTORED: .agent/active-work-block.json (BLOCKED default)"
 fi
-
-python3 "$PROFILE_VALIDATOR" "$ROOT"
 
 INSTALLATION_PROFILE="$(python3 - "$PROFILE_FILE" <<'PY'
 import json
