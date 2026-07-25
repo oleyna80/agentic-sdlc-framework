@@ -32,6 +32,16 @@ def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     )
 
 
+def git(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args],
+        cwd=root,
+        check=check,
+        capture_output=True,
+        text=True,
+    )
+
+
 def state(root: Path) -> dict:
     return json.loads(
         (root / ".agent/bootstrap-profile.json").read_text(encoding="utf-8")
@@ -59,6 +69,53 @@ def assert_no_placeholders(root: Path) -> None:
         raise AssertionError(f"unresolved placeholders: {unresolved}")
 
 
+def is_ignored(root: Path, relative: str) -> bool:
+    result = git(root, "check-ignore", "-q", "--no-index", "--", relative, check=False)
+    if result.returncode not in {0, 1}:
+        raise AssertionError(
+            f"git check-ignore failed for {relative}: {result.stderr.strip()}"
+        )
+    return result.returncode == 0
+
+
+def assert_git_boundaries(root: Path, profile_state: dict) -> None:
+    git(root, "init", "-q")
+
+    portable_common = (
+        ".agent/bootstrap-profile.json",
+        ".agent/ROSTER.md",
+        ".agent/hooks/hard_stop_policy.py",
+        ".agent/workflows/sdd-protocol.md",
+        ".agent/skills/scoped-coder/SKILL.md",
+    )
+    for relative in portable_common:
+        assert not is_ignored(root, relative), f"portable path is ignored: {relative}"
+
+    operational_local = (
+        ".agent/active-work-block.json",
+        ".agent/critic-gate.md",
+        ".agent/verification-gate.md",
+        ".agent/project-config.md",
+        "memory_bank/context.md",
+        ".claude/agent-memory/verifier/MEMORY.md",
+        ".codex/config.toml",
+    )
+    for relative in operational_local:
+        assert is_ignored(root, relative), f"local path is not ignored: {relative}"
+
+    selected = set(profile_state["components"])
+    selected_portable = {
+        "runtime:codex": ".codex/agents/coder.toml",
+        "runtime:claude-code": ".claude/settings.json",
+        "runtime:opencode": "opencode.json",
+        "integration:mcp-config": ".mcp.json",
+    }
+    for component_id, relative in selected_portable.items():
+        if component_id in selected:
+            assert (root / relative).exists(), f"selected path missing: {relative}"
+            assert not is_ignored(root, relative), f"selected path ignored: {relative}"
+
+
 def assert_profile(requested: str, resolved: str, root: Path) -> None:
     profile_state = state(root)
     assert profile_state["requested_profile"] == requested
@@ -82,6 +139,7 @@ def assert_profile(requested: str, resolved: str, root: Path) -> None:
     config = (root / ".agent/project-config.md").read_text(encoding="utf-8")
     assert f"INSTALLATION_PROFILE:** `{resolved}`" in config
     assert_no_placeholders(root)
+    assert_git_boundaries(root, profile_state)
 
 
 def profile_matrix() -> None:
