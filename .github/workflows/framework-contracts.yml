@@ -43,3 +43,18 @@ jobs:
 
       - name: Validate publication scaffold
         run: bash scripts/validate-publication.sh
+
+      - name: Bootstrap disposable generated project
+        run: |
+          target="$(mktemp -d)"
+          ./bootstrap.sh "$target" "Contract Smoke" contract-smoke
+          test -f "$target/AGENTS.md"
+          test -f "$target/governance/authority.md"
+          test -f "$target/governance/lifecycle.md"
+          test -f "$target/runtimes/codex/README.md"
+          test -f "$target/runtimes/generic/README.md"
+          test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
+          test -f "$target/docs/templates/spec-drift-report-template.md"
+          grep -q "Contract Smoke" "$target/AGENTS.md"
+          grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
+          rm -rf "$target"
