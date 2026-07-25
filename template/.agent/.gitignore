@@ -1,15 +1,11 @@
-# In generated projects, .agent/ is local-only by default because the root
-# .gitignore ignores .agent/.
+# Portable `.agent/` contracts are committed in generated projects.
 #
-# In the framework repository, this file must not hide the publishable scaffold
-# under template/.agent/, so the core routing files are explicitly kept visible.
-*
-!.gitignore
-!README.md
-!ROSTER.md
-!critic-gate.md
-!verification-gate.md
-!workflows/
-!workflows/**
-!skills/
-!skills/README.md
+# Operational/local paths are ignored by the generated root `.gitignore`:
+# - active-work-block.json
+# - critic-gate.md
+# - verification-gate.md
+# - project-config.md
+#
+# Keep this file pattern-free so it cannot override the profile-aware root
+# tracking boundary or hide bootstrap-profile.json, the blocked default Work
+# Block, shared hooks, workflows, roster, or selected skills.
