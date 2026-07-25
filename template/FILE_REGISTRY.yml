@@ -1,8 +1,7 @@
-# Machine-readable navigation registry for important files and path patterns.
-# It is intentionally selective: register authority-bearing files and major
-# project zones, not every file.
+# Machine-readable navigation registry for authority-bearing files and major zones.
+# Register contracts and repository areas, not every file.
 
-version: 1
+version: 2
 scope: generated_project
 project:
   name: "{{PROJECT_NAME}}"
@@ -10,48 +9,72 @@ project:
   root: "{{PROJECT_ROOT}}"
 
 statuses:
-  normative: "source of truth or policy-bearing file"
-  runtime: "runtime-specific agent configuration"
-  reference: "background knowledge; does not override policy"
-  example: "illustrative scenario; not mandatory policy"
-  log: "evidence/history; not current authority"
-  derived: "generated or discovered from other sources"
-  local_state: "machine-local or runtime state; do not publish by default"
-  source: "project source code or tests"
+  normative: "governance, product, architecture, or policy source of truth"
+  derived: "artifact derived from approved normative intent"
+  evidence: "review, verification, drift, consolidation, or closeout evidence"
+  runtime_adapter: "runtime-specific execution configuration or guidance"
+  integration_adapter: "plugin, MCP, handoff, or transport configuration"
+  durable_reference: "evidence-backed engineering memory"
+  operational_log: "current or historical execution state; not normative"
+  generated: "tool-generated artifact; verify against current source"
+  local_state: "machine-local, private, credential, cache, or runtime state"
+  source: "project implementation or tests"
 
 authority_order:
-  - explicit_owner_instruction
-  - AGENTS.md
-  - approved_work_block_plan
-  - PROJECT_MAP.md
-  - FILE_REGISTRY.yml
-  - docs_engineering_memory
-  - runtime_policy_files
-  - reference_docs_examples_logs_generated_artifacts
+  product_and_delivery:
+    - explicit_owner_instruction_or_approved_change_request
+    - approved_specification
+    - accepted_architecture_decisions_and_external_contracts
+    - approved_implementation_plan
+    - active_tasklist
+    - assurance_and_closeout_reports
+    - durable_engineering_memory
+    - runtime_policy_and_operational_logs
+    - generated_and_external_reference_artifacts
+  agent_behavior:
+    - explicit_owner_instruction
+    - AGENTS.md
+    - governance_core
+    - active_work_block_scope_and_write_set
+    - canonical_sdlc_protocol
+    - runtime_and_integration_adapters
+    - operational_logs_and_generated_artifacts
 
 entries:
   AGENTS.md:
-    role: root_agent_policy
+    role: project_operating_contract
     status: normative
     owner: owner
     update_when:
-      - role permissions change
-      - approval gates change
-      - project source boundaries change
+      - authority or Hard Stop rules change
+      - lifecycle entry-point guidance changes
+      - source or write boundaries change
     related:
-      - PROJECT_MAP.md
-      - FILE_REGISTRY.yml
-      - docs/session-bootstrap.md
+      - governance/README.md
+      - .agent/workflows/sdd-protocol.md
+      - .agent/ROSTER.md
+
+  governance/**:
+    role: runtime_neutral_governance_core
+    status: normative
+    owner: architect
+    update_when:
+      - logical role authority changes
+      - lifecycle or artifact contracts change
+      - runtime capability negotiation changes
+    related:
+      - AGENTS.md
+      - runtimes/**
+      - docs/templates/work-block-template.md
 
   PROJECT_MAP.md:
     role: human_readable_project_map
     status: normative
     owner: architect
     update_when:
-      - major directories change
-      - authority model changes
-      - runtime layers change
-      - generated or local-only boundaries change
+      - major directories or boundaries change
+      - authority order changes
+      - runtime adapters change
     related:
       - FILE_REGISTRY.yml
       - docs/session-bootstrap.md
@@ -61,244 +84,321 @@ entries:
     status: normative
     owner: architect
     update_when:
-      - key files or path patterns are added moved or removed
-      - file authority status changes
-      - update triggers change
+      - authority-bearing paths change
+      - path status or ownership changes
+      - generated/local boundaries change
     related:
       - PROJECT_MAP.md
       - docs/session-bootstrap.md
 
-  docs/session-bootstrap.md:
-    role: new_session_intake_flow
+  .agent/ROSTER.md:
+    role: logical_role_and_skill_router
     status: normative
     owner: architect
     update_when:
-      - new-session read order changes
-      - git or diff preflight changes
-      - memory usage policy changes
-    related:
-      - PROJECT_MAP.md
-      - FILE_REGISTRY.yml
-
-  docs/engineering-memory/**:
-    role: durable_project_engineering_memory
-    status: normative
-    owner: architect
-    update_when:
-      - durable engineering decision is accepted
-      - source-of-truth chain changes
-      - temporary decision is added reviewed or retired
-      - reproducibility procedure changes
-    related:
-      - docs/session-bootstrap.md
-      - docs/templates/work-block-template.md
-      - memory_bank/decisions.md
-
-  docs/templates/work-block-template.md:
-    role: work_block_template
-    status: normative
-    owner: orchestrator
-    update_when:
-      - Work Block planning requirements change
-      - closeout requirements change
-      - verification evidence requirements change
-    related:
-      - docs/session-bootstrap.md
-      - memory_bank/orchestrator-log.md
-
-  docs/templates/verification-report-template.md:
-    role: verification_evidence_template
-    status: normative
-    owner: verifier
-    update_when:
-      - verification verdict schema changes
-      - evidence requirements change
-    related:
-      - .agent/verification-gate.md
-      - docs/templates/closeout-report-template.md
-
-  docs/templates/closeout-report-template.md:
-    role: closeout_classification_template
-    status: normative
-    owner: orchestrator
-    update_when:
-      - success or reporting-only closeout semantics change
-      - promotion restrictions change
-    related:
-      - .agent/workflows/sdd-protocol.md
-      - docs/templates/verification-report-template.md
-
-  docs/templates/project-agent-update-template.md:
-    role: framework_update_intake_template
-    status: normative
-    owner: orchestrator
-    update_when:
-      - framework update intake process changes
-      - project feedback response contract changes
-      - synchronization boundaries change
-    related:
-      - docs/session-bootstrap.md
-      - PROJECT_MAP.md
-      - FILE_REGISTRY.yml
-
-  scripts/bootstrap.sh:
-    role: workflow_layer_health_check
-    status: normative
-    owner: verifier
-    update_when:
-      - required workflow files change
-      - project navigation files change
-      - bootstrap health check behavior changes
-    related:
-      - PROJECT_MAP.md
-      - FILE_REGISTRY.yml
-      - docs/session-bootstrap.md
-
-  .codex/**:
-    role: codex_runtime_policy
-    status: runtime
-    owner: orchestrator
-    update_when:
-      - Codex write gate changes
-      - Codex critic contract changes
-      - local hook policy changes
-    related:
-      - AGENTS.md
-      - memory_bank/orchestrator-log.md
-      - memory_bank/review-log.md
-
-  .agent/**:
-    role: runtime_neutral_agent_routing
-    status: normative
-    owner: architect
-    update_when:
-      - roster changes
-      - workflow routing changes
-      - skill list changes
-      - gate policy changes
+      - logical roles or authority change
+      - skill routing changes
+      - isolation guidance changes
     related:
       - AGENTS.md
       - .agent/workflows/sdd-protocol.md
+      - runtimes/**
 
   .agent/workflows/sdd-protocol.md:
     role: canonical_lifecycle_contract
     status: normative
     owner: architect
     update_when:
-      - stage semantics change
-      - critic or verifier triggers change
-      - closeout classification changes
+      - stage or gate semantics change
+      - review verification or drift triggers change
+      - closeout rules change
     related:
-      - AGENTS.md
-      - .agent/critic-gate.md
-      - .agent/verification-gate.md
+      - governance/lifecycle.md
+      - docs/templates/work-block-template.md
+      - docs/templates/spec-drift-report-template.md
 
-  .claude/**:
-    role: claude_code_team_runtime
-    status: runtime
+  .agent/critic-gate.md:
+    role: critic_gate_state
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - active Work Block critic state changes
+    related:
+      - .agent/workflows/sdd-protocol.md
+      - memory_bank/review-log.md
+
+  .agent/verification-gate.md:
+    role: verification_gate_state
+    status: operational_log
+    owner: verifier
+    update_when:
+      - active Work Block verification state changes
+    related:
+      - .agent/workflows/sdd-protocol.md
+      - docs/reports/**
+
+  .agent/skills/**:
+    role: installed_portable_skills
+    status: runtime_adapter
     owner: architect
     update_when:
-      - Claude Code agents change
-      - hooks change
-      - settings or MCP boundaries change
-      - per-agent memory policy changes
+      - project skill baseline changes
+      - skill source revision changes
     related:
-      - CLAUDE.md
-      - .mcp.json
-      - memory_bank/external-team-log.md
-
-  memory_bank/context.md:
-    role: operational_project_context
-    status: log
-    owner: orchestrator
-    update_when:
-      - project focus changes
-      - active Work Block or next gate changes
-    related:
-      - docs/engineering-memory/**
-      - memory_bank/progress.md
-      - memory_bank/decisions.md
-
-  memory_bank/orchestrator-log.md:
-    role: orchestrator_decision_log
-    status: log
-    owner: orchestrator
-    update_when:
-      - significant orchestration decision is made
-      - Work Block needs audit trail
-    related:
-      - .codex/critic.md
-      - docs/plans/**
-
-  memory_bank/review-log.md:
-    role: critic_reviewer_verifier_log
-    status: log
-    owner: reviewer
-    update_when:
-      - critic review runs
-      - verifier review runs
-      - review findings are resolved
-    related:
-      - .codex/critic.md
-      - .agent/critic-gate.md
-      - .agent/verification-gate.md
-
-  memory_bank/external-team-log.md:
-    role: external_team_delivery_log
-    status: log
-    owner: orchestrator
-    update_when:
-      - Claude Code or another external team is delegated work
-      - handoff result is reviewed
-    related:
-      - .claude/**
-      - handoff task files if installed
-
-  docs/plans/**:
-    role: work_block_plans
-    status: log
-    owner: orchestrator
-    update_when:
-      - Work Block is planned or closed
-    related:
-      - docs/templates/work-block-template.md
+      - .agent/ROSTER.md
+      - .agent/skills.lock.yml
 
   docs/specs/**:
-    role: specifications
+    role: approved_product_and_technical_specifications
     status: normative
     owner: architect
     update_when:
-      - product or technical contract changes
+      - approved behavior or technical contract changes
+      - implementation reveals an approved requirement change
     related:
+      - docs/plans/**
       - docs/tasklist/**
+      - docs/reports/**
+
+  docs/architecture/**:
+    role: accepted_architecture_decisions_and_contracts
+    status: normative
+    owner: architect
+    update_when:
+      - architecture boundary or tradeoff is accepted
+      - decision is superseded or retired
+    related:
+      - docs/specs/**
+      - docs/engineering-memory/**
+
+  docs/plans/**:
+    role: approved_implementation_plans_and_work_blocks
+    status: derived
+    owner: orchestrator
+    update_when:
+      - Work Block is created revised or closed
+      - specification change requires replanning
+    related:
+      - docs/specs/**
+      - docs/templates/work-block-template.md
+
+  docs/tasklist/**:
+    role: active_task_decomposition
+    status: derived
+    owner: orchestrator
+    update_when:
+      - approved plan tasks change
+      - verification changes task state
+    related:
+      - docs/specs/**
       - docs/plans/**
 
   docs/reports/**:
-    role: reports_and_verification_evidence
-    status: log
+    role: critic_review_verification_drift_and_closeout_evidence
+    status: evidence
     owner: verifier
     update_when:
-      - verification or review report is created
+      - assurance or closeout function produces evidence
+    related:
+      - docs/templates/verification-report-template.md
+      - docs/templates/spec-drift-report-template.md
+      - docs/templates/closeout-report-template.md
+
+  docs/templates/work-block-template.md:
+    role: portable_work_block_contract
+    status: normative
+    owner: orchestrator
+    update_when:
+      - scope risk capability or gate fields change
+      - closeout evidence requirements change
+    related:
+      - governance/artifacts.md
+      - .agent/workflows/sdd-protocol.md
+
+  docs/templates/verification-report-template.md:
+    role: verification_report_contract
+    status: normative
+    owner: verifier
+    update_when:
+      - verification evidence or verdict schema changes
+    related:
+      - .agent/verification-gate.md
+      - docs/templates/closeout-report-template.md
+
+  docs/templates/spec-drift-report-template.md:
+    role: specification_drift_report_contract
+    status: normative
+    owner: reviewer
+    update_when:
+      - drift classifications or gate semantics change
+    related:
+      - .agent/workflows/sdd-protocol.md
+      - .agent/skills/spec-drift-audit/SKILL.md
+
+  docs/templates/closeout-report-template.md:
+    role: closeout_report_contract
+    status: normative
+    owner: orchestrator
+    update_when:
+      - success or reporting-only semantics change
+    related:
+      - docs/reports/**
+      - .agent/workflows/sdd-protocol.md
+
+  docs/engineering-memory/**:
+    role: durable_engineering_memory
+    status: durable_reference
+    owner: architect
+    update_when:
+      - reusable evidence-backed decision is promoted
+      - source-of-truth chain or reproducibility procedure changes
+      - temporary exception is added reviewed or retired
+    related:
+      - docs/specs/**
+      - docs/architecture/**
+      - memory_bank/decisions.md
+
+  docs/session-bootstrap.md:
+    role: new_session_intake_guidance
+    status: normative
+    owner: architect
+    update_when:
+      - progressive read strategy changes
+      - repository preflight changes
+    related:
+      - AGENTS.md
+      - PROJECT_MAP.md
+      - FILE_REGISTRY.yml
+
+  runtimes/**:
+    role: runtime_capability_and_fallback_adapters
+    status: runtime_adapter
+    owner: architect
+    update_when:
+      - runtime capabilities or limitations are verified
+      - adapter mapping or fallback changes
+    related:
+      - governance/runtime-capabilities.md
+      - .codex/**
+      - .claude/**
+
+  .codex/**:
+    role: codex_project_runtime_configuration
+    status: runtime_adapter
+    owner: orchestrator
+    update_when:
+      - Codex agents hooks gates or MCP configuration change
+    related:
+      - runtimes/codex/README.md
+      - AGENTS.md
+
+  .claude/**:
+    role: claude_code_project_runtime_configuration
+    status: runtime_adapter
+    owner: architect
+    update_when:
+      - Claude Code agents hooks skills settings or memory policy change
+    related:
+      - runtimes/claude-code/README.md
+      - CLAUDE.md
+      - .mcp.json
+
+  .mcp.json:
+    role: project_mcp_integration_configuration
+    status: integration_adapter
+    owner: owner
+    update_when:
+      - approved MCP servers or tool boundaries change
+    related:
+      - runtimes/**
+      - AGENTS.md
+
+  memory_bank/context.md:
+    role: current_operational_context
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - active objective or next gate changes
+    related:
+      - memory_bank/progress.md
+      - docs/engineering-memory/**
+
+  memory_bank/progress.md:
+    role: rolling_execution_progress
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - stage or Work Block progress changes
+    related:
+      - docs/plans/**
+      - memory_bank/context.md
+
+  memory_bank/decisions.md:
+    role: operational_decisions_pending_promotion
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - temporary execution decision is made
+    related:
+      - docs/engineering-memory/**
+
+  memory_bank/orchestrator-log.md:
+    role: orchestration_audit_log
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - significant routing gate or fallback decision occurs
     related:
       - docs/plans/**
       - memory_bank/review-log.md
 
+  memory_bank/review-log.md:
+    role: assurance_finding_log
+    status: operational_log
+    owner: reviewer
+    update_when:
+      - Critic Reviewer Verifier or Drift Auditor produces findings
+    related:
+      - docs/reports/**
+      - .agent/critic-gate.md
+      - .agent/verification-gate.md
+
+  memory_bank/external-team-log.md:
+    role: external_runtime_or_team_delivery_log
+    status: operational_log
+    owner: orchestrator
+    update_when:
+      - work is delegated across runtime process or machine boundaries
+    related:
+      - runtimes/**
+      - handoff/**
+
+  scripts/bootstrap.sh:
+    role: generated_project_health_check
+    status: normative
+    owner: verifier
+    update_when:
+      - required governance workflow or adapter paths change
+    related:
+      - AGENTS.md
+      - governance/**
+      - PROJECT_MAP.md
+
   source_directories:
-    role: project_source_code
+    role: project_source_and_tests
     status: source
     owner: coder
     patterns:
       - "{{SOURCE_DIRS}}"
     update_when:
-      - approved Work Block includes source changes
+      - approved Work Block includes the path in its write-set
     related:
-      - AGENTS.md
       - docs/specs/**
-      - docs/tasklist/**
+      - docs/plans/**
 
   generated_outputs:
-    role: build_cache_generated_artifacts
-    status: derived
+    role: build_cache_and_discovery_artifacts
+    status: generated
     owner: tooling
     patterns:
       - node_modules/**
@@ -308,12 +408,12 @@ entries:
       - coverage/**
       - graphify-out/**
     update_when:
-      - generated by tools only
+      - generated by approved tools
     related:
       - .gitignore
 
   local_secrets:
-    role: local_credentials_and_environment
+    role: credentials_private_environment_and_runtime_state
     status: local_state
     owner: owner
     patterns:
@@ -324,6 +424,6 @@ entries:
       - secrets/**
       - credentials/**
     update_when:
-      - never commit; rotate through approved secret process
+      - never commit; manage through approved secret process
     related:
       - .gitignore
