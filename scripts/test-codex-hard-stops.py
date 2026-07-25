@@ -11,6 +11,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 BASE_TEST = ROOT / "scripts/test-codex-adapter.py"
 HARD_STOP = ROOT / "template/.codex/hooks/hard_stop_policy.py"
+HOOKS_CONFIG = ROOT / "template/.codex/hooks.json"
 
 spec = importlib.util.spec_from_file_location("codex_adapter_test", BASE_TEST)
 if spec is None or spec.loader is None:
@@ -33,7 +34,23 @@ def set_gate_status(repo: Path, status: str) -> None:
     path.write_text(json.dumps(gate, indent=2) + "\n", encoding="utf-8")
 
 
+def assert_hook_wiring() -> None:
+    config = json.loads(HOOKS_CONFIG.read_text(encoding="utf-8"))
+    groups = config.get("hooks", {}).get("PreToolUse", [])
+    commands = [
+        hook.get("command", "")
+        for group in groups
+        for hook in group.get("hooks", [])
+        if isinstance(hook, dict)
+    ]
+    for required in ("hard_stop_policy.py", "pre_tool_use_policy.py"):
+        if not any(required in command for command in commands):
+            raise AssertionError(f"PreToolUse hook wiring missing {required}")
+
+
 def main() -> int:
+    assert_hook_wiring()
+
     with tempfile.TemporaryDirectory(prefix="codex-hard-stops-") as temp:
         repo = Path(temp)
         for path in (".agent", "src", "tests", "docs/specs", "docs/reports"):
@@ -62,7 +79,10 @@ def main() -> int:
 
         for command in (
             "git push origin main",
+            "git push origin +main",
+            "git push origin :main",
             "git push origin HEAD:refs/heads/main",
+            "git push origin +HEAD:refs/heads/main",
         ):
             module.assert_denied(
                 f"default branch push {command}",
@@ -90,6 +110,8 @@ def main() -> int:
             "rm -rf src",
             "rm -fr src",
             "rm --recursive src",
+            "sudo rm -rf src",
+            "command rm -rf src",
             "echo inspected\nrm -rf src",
         ):
             module.assert_denied(
