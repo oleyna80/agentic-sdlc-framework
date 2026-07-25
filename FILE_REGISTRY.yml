@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 4
+version: 5
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -43,6 +43,8 @@ migration_state:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
     - docs/plans/wb-002-runtime-neutral-template-convergence.md
     - docs/plans/wb-003-codex-native-agents-and-gates.md
+  review_evidence:
+    - docs/reports/reviews/pr-3-final-review.md
   active_work_block: null
   planned:
     - WB-004 integration adapter normalization
@@ -94,6 +96,7 @@ entries:
       - template/.codex/**
       - template/.agent/active-work-block.json
       - scripts/test-codex-adapter.py
+      - scripts/test-codex-hard-stops.py
 
   runtimes/claude-code/**:
     role: claude_code_runtime_adapter
@@ -158,6 +161,22 @@ entries:
       - template/.codex/**
       - template/.agent/active-work-block.json
       - scripts/test-codex-adapter.py
+      - scripts/test-codex-hard-stops.py
+      - .github/workflows/framework-contracts.yml
+
+  docs/reports/reviews/**:
+    role: framework_review_evidence
+    status: evidence
+    owner: reviewer
+
+  docs/reports/reviews/pr-3-final-review.md:
+    role: runtime_neutral_migration_final_review
+    status: evidence
+    owner: reviewer
+    related:
+      - docs/plans/wb-001-runtime-neutral-control-plane.md
+      - docs/plans/wb-002-runtime-neutral-template-convergence.md
+      - docs/plans/wb-003-codex-native-agents-and-gates.md
       - .github/workflows/framework-contracts.yml
 
   README.md:
@@ -208,7 +227,12 @@ entries:
     owner: verifier
 
   scripts/test-codex-adapter.py:
-    role: codex_agent_hook_and_gate_fixture_test
+    role: codex_agent_write_gate_and_context_fixture_test
+    status: normative
+    owner: verifier
+
+  scripts/test-codex-hard-stops.py:
+    role: codex_hard_stop_approval_and_bypass_fixture_test
     status: normative
     owner: verifier
 
@@ -257,6 +281,7 @@ entries:
     status: template
     owner: orchestrator
     related:
+      - template/.codex/hooks/hard_stop_policy.py
       - template/.codex/hooks/pre_tool_use_policy.py
       - template/.codex/hooks/subagent_context.py
 
@@ -295,10 +320,21 @@ entries:
     status: runtime_adapter
     owner: maintainer
 
-  template/.codex/hooks/pre_tool_use_policy.py:
-    role: codex_fail_closed_write_and_hard_stop_guard
+  template/.codex/hooks/hard_stop_policy.py:
+    role: codex_owner_approval_hard_stop_guard
     status: runtime_adapter
     owner: maintainer
+
+  template/.codex/hooks/pre_tool_use_policy.py:
+    role: codex_fail_closed_write_and_scope_guard
+    status: runtime_adapter
+    owner: maintainer
+
+  template/.codex/hooks/stage0_write_gate.py:
+    role: deprecated_codex_write_gate_compatibility_shim
+    status: runtime_adapter
+    owner: maintainer
+    related: [template/.codex/hooks/pre_tool_use_policy.py]
 
   template/.codex/hooks/subagent_context.py:
     role: codex_bounded_subagent_work_block_context
