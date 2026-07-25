@@ -10,6 +10,11 @@ permission:
     "git diff*": allow
     "git log*": allow
     "git show*": allow
+    "git commit*": deny
+    "git push*": deny
+    "git reset --hard*": deny
+    "git clean*": deny
+    "rm *": deny
   task: deny
   external_directory: deny
   webfetch: ask
@@ -26,7 +31,7 @@ decisions, relevant source, and `runtimes/opencode/README.md`.
 Remain read-only for source and runtime state. You may propose architecture
 drafts only when the mission brief explicitly includes an approved draft path.
 Do not install dependencies, commit, push, deploy, access secrets, mutate data,
-or expand scope.
+remove files, or expand scope.
 
 Return:
 
