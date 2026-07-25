@@ -13,7 +13,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "bootstrap/bootstrap_project.py"
 CATALOG = json.loads((ROOT / "bootstrap/profiles.json").read_text(encoding="utf-8"))
-CANONICAL = {
+PROFILE_CASES = {
     "core": "core",
     "codex": "codex",
     "claude-code": "claude-code",
@@ -57,7 +57,7 @@ def git(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProce
     )
 
 
-def state(root: Path) -> dict:
+def load_state(root: Path) -> dict[str, Any]:
     return json.loads(
         (root / ".agent/bootstrap-profile.json").read_text(encoding="utf-8")
     )
@@ -76,35 +76,66 @@ def assert_no_placeholders(root: Path) -> None:
     suffixes = {".md", ".json", ".sh", ".yaml", ".yml", ".toml", ".py"}
     unresolved: list[str] = []
     for path in root.rglob("*"):
-        if path.is_file() and path.suffix in suffixes:
-            text = path.read_text(encoding="utf-8")
-            if "{{PROJECT_" in text or "{{SOURCE_DIRS}}" in text or "{{TECH_STACK}}" in text:
-                unresolved.append(str(path.relative_to(root)))
-    if unresolved:
-        raise AssertionError(f"unresolved placeholders: {unresolved}")
+        if not path.is_file() or path.suffix not in suffixes:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if (
+            "{{PROJECT_" in text
+            or "{{SOURCE_DIRS}}" in text
+            or "{{TECH_STACK}}" in text
+        ):
+            unresolved.append(str(path.relative_to(root)))
+    assert not unresolved, f"unresolved placeholders: {unresolved}"
 
 
-def is_ignored(root: Path, relative: str) -> bool:
-    result = git(root, "check-ignore", "-q", "--no-index", "--", relative, check=False)
-    if result.returncode not in {0, 1}:
+def ignore_rule(root: Path, relative: str) -> str | None:
+    """Return the effective ignore rule, or None when the path is trackable.
+
+    `git check-ignore -q` behavior around negative patterns has varied across Git
+    versions. Verbose output lets the fixture distinguish an effective ignore
+    from a last-match negation and gives a useful diagnostic on failure.
+    """
+    result = git(
+        root,
+        "check-ignore",
+        "-v",
+        "--no-index",
+        "--",
+        relative,
+        check=False,
+    )
+    if result.returncode == 1:
+        return None
+    if result.returncode != 0:
         raise AssertionError(
             f"git check-ignore failed for {relative}: {result.stderr.strip()}"
         )
-    return result.returncode == 0
+    output = result.stdout.strip()
+    if not output:
+        return "matched-without-diagnostic"
+    descriptor = output.split("\t", 1)[0]
+    pattern = descriptor.rsplit(":", 1)[-1]
+    if pattern.startswith("!"):
+        return None
+    return output
 
 
-def assert_git_boundaries(root: Path, profile_state: dict) -> None:
+def assert_git_boundaries(root: Path, profile_state: dict[str, Any]) -> None:
     git(root, "init", "-q")
+    # Evaluate the generated repository contract, not user/runner excludes.
+    git(root, "config", "core.excludesFile", "/dev/null")
 
     portable_common = (
         ".agent/bootstrap-profile.json",
+        ".agent/active-work-block.default.json",
         ".agent/ROSTER.md",
         ".agent/hooks/hard_stop_policy.py",
         ".agent/workflows/sdd-protocol.md",
         ".agent/skills/scoped-coder/SKILL.md",
     )
     for relative in portable_common:
-        assert not is_ignored(root, relative), f"portable path is ignored: {relative}"
+        rule = ignore_rule(root, relative)
+        assert rule is None, f"portable path ignored: {relative}; rule={rule}"
 
     operational_local = (
         ".agent/active-work-block.json",
@@ -116,7 +147,8 @@ def assert_git_boundaries(root: Path, profile_state: dict) -> None:
         ".codex/config.toml",
     )
     for relative in operational_local:
-        assert is_ignored(root, relative), f"local path is not ignored: {relative}"
+        rule = ignore_rule(root, relative)
+        assert rule is not None, f"local path is not ignored: {relative}"
 
     selected = set(profile_state["components"])
     selected_portable = {
@@ -126,13 +158,15 @@ def assert_git_boundaries(root: Path, profile_state: dict) -> None:
         "integration:mcp-config": ".mcp.json",
     }
     for component_id, relative in selected_portable.items():
-        if component_id in selected:
-            assert (root / relative).exists(), f"selected path missing: {relative}"
-            assert not is_ignored(root, relative), f"selected path ignored: {relative}"
+        if component_id not in selected:
+            continue
+        assert (root / relative).exists(), f"selected path missing: {relative}"
+        rule = ignore_rule(root, relative)
+        assert rule is None, f"selected path ignored: {relative}; rule={rule}"
 
 
 def assert_profile(requested: str, resolved: str, root: Path) -> None:
-    profile_state = state(root)
+    profile_state = load_state(root)
     assert profile_state["requested_profile"] == requested
     assert profile_state["resolved_profile"] == resolved
     assert "does not grant" in profile_state["authority_note"]
@@ -141,10 +175,10 @@ def assert_profile(requested: str, resolved: str, root: Path) -> None:
     for component_id, component in CATALOG["components"].items():
         for relative in component["paths"]:
             exists = (root / relative).exists()
-            if component_id in selected and not exists:
-                raise AssertionError(f"{requested}: missing selected path {relative}")
-            if component_id not in selected and exists:
-                raise AssertionError(f"{requested}: unexpected unselected path {relative}")
+            if component_id in selected:
+                assert exists, f"{requested}: missing selected path {relative}"
+            else:
+                assert not exists, f"{requested}: unexpected path {relative}"
 
     expected_skills = set(profile_state["skills"])
     assert skill_directories(root, ".agent/skills") == expected_skills
@@ -157,37 +191,6 @@ def assert_profile(requested: str, resolved: str, root: Path) -> None:
     assert_git_boundaries(root, profile_state)
 
 
-def profile_matrix() -> None:
-    with tempfile.TemporaryDirectory(prefix="bootstrap-profiles-") as temp:
-        base = Path(temp)
-        for requested, resolved in CANONICAL.items():
-            target = base / requested
-            result = run(
-                "--profile",
-                requested,
-                str(target),
-                "Profile & Contract",
-                f"profile-{requested}",
-            )
-            assert "Installation profile:" in result.stdout
-            assert_profile(requested, resolved, target)
-
-
-def default_profile_fixture() -> None:
-    with tempfile.TemporaryDirectory(prefix="bootstrap-default-") as temp:
-        target = Path(temp) / "default"
-        run(str(target), "Default Profile", "default-profile")
-        assert state(target)["resolved_profile"] == CATALOG["default_profile"]
-
-
-def list_profiles_fixture() -> None:
-    result = run("--list-profiles")
-    for profile_id in CATALOG["profiles"]:
-        assert profile_id in result.stdout
-    for alias, target in CATALOG["aliases"].items():
-        assert f"{alias} -> {target}" in result.stdout
-
-
 def catalog_prevalidation_fixtures() -> None:
     missing_common = copy.deepcopy(CATALOG)
     missing_common["common_required_paths"].append("docs/definitely-missing.md")
@@ -196,7 +199,7 @@ def catalog_prevalidation_fixtures() -> None:
     except MODULE.BootstrapError as exc:
         assert "common required source is missing" in str(exc)
     else:
-        raise AssertionError("missing common source did not fail catalog validation")
+        raise AssertionError("missing common source did not fail validation")
 
     missing_component = copy.deepcopy(CATALOG)
     missing_component["components"]["runtime:codex"]["required_paths"].append(
@@ -207,7 +210,7 @@ def catalog_prevalidation_fixtures() -> None:
     except MODULE.BootstrapError as exc:
         assert "required source is missing" in str(exc)
     else:
-        raise AssertionError("missing component source did not fail catalog validation")
+        raise AssertionError("missing component source did not fail validation")
 
 
 def transactional_failure_fixtures() -> None:
@@ -221,53 +224,67 @@ def transactional_failure_fixtures() -> None:
     try:
         with tempfile.TemporaryDirectory(prefix="bootstrap-transaction-") as temp:
             base = Path(temp)
-            absent = base / "absent"
-            try:
-                MODULE.scaffold(
-                    ROOT,
-                    absent,
-                    "Atomic Project",
-                    "atomic-project",
-                    state_value,
-                    CATALOG,
-                )
-            except MODULE.BootstrapError as exc:
-                assert "synthetic staged failure" in str(exc)
-            else:
-                raise AssertionError("synthetic staged failure did not propagate")
-            assert not absent.exists(), "failed bootstrap left a partial target"
-
-            existing_empty = base / "existing-empty"
-            existing_empty.mkdir()
-            try:
-                MODULE.scaffold(
-                    ROOT,
-                    existing_empty,
-                    "Atomic Project",
-                    "atomic-project",
-                    state_value,
-                    CATALOG,
-                )
-            except MODULE.BootstrapError:
-                pass
-            else:
-                raise AssertionError("synthetic failure did not propagate for empty target")
-            assert existing_empty.is_dir()
-            assert not any(existing_empty.iterdir())
+            for target, should_exist in (
+                (base / "absent", False),
+                (base / "existing-empty", True),
+            ):
+                if should_exist:
+                    target.mkdir()
+                try:
+                    MODULE.scaffold(
+                        ROOT,
+                        target,
+                        "Atomic Project",
+                        "atomic-project",
+                        state_value,
+                        CATALOG,
+                    )
+                except MODULE.BootstrapError as exc:
+                    assert "synthetic staged failure" in str(exc)
+                else:
+                    raise AssertionError("synthetic staged failure did not propagate")
+                assert target.exists() is should_exist
+                if should_exist:
+                    assert not any(target.iterdir())
     finally:
         MODULE.copy_skills = original_copy_skills
+
+
+def profile_matrix() -> None:
+    with tempfile.TemporaryDirectory(prefix="bootstrap-profiles-") as temp:
+        base = Path(temp)
+        for requested, resolved in PROFILE_CASES.items():
+            target = base / requested
+            result = run(
+                "--profile",
+                requested,
+                str(target),
+                "Profile & Contract",
+                f"profile-{requested}",
+            )
+            assert "Installation profile:" in result.stdout
+            assert_profile(requested, resolved, target)
+
+
+def default_and_listing_fixtures() -> None:
+    with tempfile.TemporaryDirectory(prefix="bootstrap-default-") as temp:
+        target = Path(temp) / "default"
+        run(str(target), "Default Profile", "default-profile")
+        assert load_state(target)["resolved_profile"] == CATALOG["default_profile"]
+
+    result = run("--list-profiles")
+    for profile_id in CATALOG["profiles"]:
+        assert profile_id in result.stdout
+    for alias, target in CATALOG["aliases"].items():
+        assert f"{alias} -> {target}" in result.stdout
 
 
 def fail_closed_fixtures() -> None:
     with tempfile.TemporaryDirectory(prefix="bootstrap-fail-closed-") as temp:
         base = Path(temp)
+
         unknown = base / "unknown"
-        result = run(
-            "--profile",
-            "does-not-exist",
-            str(unknown),
-            check=False,
-        )
+        result = run("--profile", "does-not-exist", str(unknown), check=False)
         assert result.returncode != 0
         assert "unknown installation profile" in result.stderr
         assert not unknown.exists()
@@ -276,12 +293,7 @@ def fail_closed_fixtures() -> None:
         occupied.mkdir()
         marker = occupied / "keep.txt"
         marker.write_text("keep\n", encoding="utf-8")
-        result = run(
-            "--profile",
-            "core",
-            str(occupied),
-            check=False,
-        )
+        result = run("--profile", "core", str(occupied), check=False)
         assert result.returncode != 0
         assert "not empty" in result.stderr
         assert marker.read_text(encoding="utf-8") == "keep\n"
@@ -290,12 +302,7 @@ def fail_closed_fixtures() -> None:
         real.mkdir()
         symlink = base / "symlink"
         symlink.symlink_to(real, target_is_directory=True)
-        result = run(
-            "--profile",
-            "core",
-            str(symlink),
-            check=False,
-        )
+        result = run("--profile", "core", str(symlink), check=False)
         assert result.returncode != 0
         assert "symbolic link" in result.stderr
         assert symlink.is_symlink()
@@ -306,8 +313,7 @@ def main() -> int:
     catalog_prevalidation_fixtures()
     transactional_failure_fixtures()
     profile_matrix()
-    default_profile_fixture()
-    list_profiles_fixture()
+    default_and_listing_fixtures()
     fail_closed_fixtures()
     print("Bootstrap profile matrix: OK")
     return 0
