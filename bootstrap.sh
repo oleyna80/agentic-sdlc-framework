@@ -69,6 +69,7 @@ find "$TARGET_DIR/.agent/skills" "$TARGET_DIR/.claude/skills" -name "SKILL.md" -
 
 # 6. Make runtime hooks and project scripts executable.
 chmod +x "$TARGET_DIR/.claude/hooks/"*.sh 2>/dev/null || true
+chmod +x "$TARGET_DIR/.codex/hooks/"*.py 2>/dev/null || true
 chmod +x "$TARGET_DIR/scripts/"*.sh 2>/dev/null || true
 
 # 7. Run generated-project verification.
@@ -89,5 +90,6 @@ echo "  1. Read AGENTS.md and select a governance profile in the first Work Bloc
 echo "  2. Confirm the active runtime adapter and capability snapshot"
 echo "  3. Review source-directory and technology placeholders"
 echo "  4. Configure approved MCP servers or runtime plugins without committing secrets"
-echo "  5. Add project-specific security and verification commands"
-echo "  6. Keep operational memory local; promote only durable evidence-backed knowledge"
+echo "  5. Review and trust project-local Codex hooks before relying on them"
+echo "  6. Add project-specific security and verification commands"
+echo "  7. Keep operational memory local; promote only durable evidence-backed knowledge"
