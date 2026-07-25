@@ -27,16 +27,23 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check PyYAML
 
-      - name: Check shell syntax
+      - name: Check syntax
         run: |
           bash -n bootstrap.sh
           bash -n scripts/test-sdd-contract.sh
           bash -n scripts/validate-governance.sh
           bash -n scripts/validate-publication.sh
           bash -n template/scripts/bootstrap.sh
+          python -m py_compile \
+            scripts/test-codex-adapter.py \
+            template/.codex/hooks/pre_tool_use_policy.py \
+            template/.codex/hooks/subagent_context.py
 
       - name: Validate runtime-neutral SDLC contracts
         run: bash scripts/test-sdd-contract.sh
+
+      - name: Validate Codex adapter gates
+        run: python scripts/test-codex-adapter.py
 
       - name: Validate governance structure
         run: bash scripts/validate-governance.sh
@@ -55,6 +62,15 @@ jobs:
           test -f "$target/runtimes/generic/README.md"
           test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
           test -f "$target/docs/templates/spec-drift-report-template.md"
+          test -f "$target/.agent/active-work-block.json"
+          test -f "$target/.codex/hooks.json"
+          test -f "$target/.codex/agents/architect.toml"
+          test -f "$target/.codex/agents/critic.toml"
+          test -f "$target/.codex/agents/coder.toml"
+          test -f "$target/.codex/agents/reviewer.toml"
+          test -f "$target/.codex/agents/verifier.toml"
+          test -f "$target/.codex/hooks/pre_tool_use_policy.py"
+          test -f "$target/.codex/hooks/subagent_context.py"
           grep -q "Contract Smoke" "$target/AGENTS.md"
           grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
           rm -rf "$target"
