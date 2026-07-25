@@ -109,6 +109,20 @@ require_absent_pattern "template/AGENTS.md" 'GPT Critic|GPT Verifier|Codex Revie
 require_absent_pattern "template/.agent/ROSTER.md" '^\| GPT Critic|^\| GPT Verifier|^\| Codex Reviewer'
 require_absent_pattern "template/.agent/workflows/sdd-protocol.md" 'Claude critic|GPT critic|Claude verifier|GPT verifier'
 
+# Portable review, verification, and drift schemas use one vocabulary.
+require_contains "governance/artifacts.md" 'verdict: `READY \| CHANGES_REQUIRED \| BLOCKED \| UNVERIFIED`'
+require_contains "governance/artifacts.md" '`SKIPPED` is a review-gate state'
+require_contains "governance/artifacts.md" '`MISSING_IMPLEMENTATION`'
+require_contains "governance/artifacts.md" '`UNSPECIFIED_IMPLEMENTATION`'
+require_contains "governance/artifacts.md" '`STALE_PLAN`'
+require_contains "governance/artifacts.md" '`STALE_TEST`'
+require_contains "governance/artifacts.md" '`STALE_DOCUMENTATION`'
+require_contains "governance/artifacts.md" '`SPEC_CHANGE_REQUIRED`'
+require_contains "governance/artifacts.md" '`INSPECTION_GAP`'
+require_contains "governance/artifacts.md" '`ALIGNMENT_REQUIRED`'
+require_absent_pattern "governance/artifacts.md" 'verdict: `APPROVE \| CHANGES_REQUIRED'
+require_absent_pattern "governance/artifacts.md" '`documented_change`|`implementation_drift`|`documentation_drift`'
+
 # Portable drift contract.
 require_contains "skills/spec-drift-audit/SKILL.md" 'Reviewer checks the quality'
 require_contains "skills/spec-drift-audit/SKILL.md" 'Verifier checks observable behavior'
@@ -120,13 +134,17 @@ require_contains "skills/spec-drift-audit/SKILL.md" '`UNVERIFIED`'
 require_contains "template/docs/templates/spec-drift-report-template.md" 'Alignment Matrix'
 require_contains "skills/catalog.yml" 'spec-drift-audit'
 
-# Bootstrap delivers the same portable contracts to generated projects.
+# Bootstrap delivers the same portable contracts and complete Codex hook bundle.
 require_contains "bootstrap.sh" 'cp -r.*governance.*TARGET_DIR/governance'
 require_contains "bootstrap.sh" 'cp -r.*runtimes.*TARGET_DIR/runtimes'
 require_contains "bootstrap.sh" 'CORE_SKILLS=.*spec-drift-audit'
 require_contains "template/scripts/bootstrap.sh" 'governance/authority.md'
 require_contains "template/scripts/bootstrap.sh" 'runtimes/generic/README.md'
 require_contains "template/scripts/bootstrap.sh" 'spec-drift-audit/SKILL.md'
+require_contains "template/scripts/bootstrap.sh" 'hard_stop_policy.py'
+require_contains "template/scripts/bootstrap.sh" 'pre_tool_use_policy.py'
+require_contains "template/scripts/bootstrap.sh" 'stage0_write_gate.py'
+require_contains "template/scripts/bootstrap.sh" 'subagent_context.py'
 
 # Existing runtime enforcement remains a compatibility adapter.
 require_contains "template/.agent/critic-gate.md" '^Approved Write-Set:'
