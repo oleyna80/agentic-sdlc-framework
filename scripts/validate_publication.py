@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the public framework, profile catalog, and generated scaffolds."""
+"""Validate public framework inventory, profiles, configs, tests, and privacy."""
 from __future__ import annotations
 
 import importlib.util
@@ -32,9 +32,9 @@ REQUIRED_FILES = [
     "CHANGELOG.md",
     "PUBLICATION_CHECKLIST.md",
     "bootstrap.sh",
+    "bootstrap/README.md",
     "bootstrap/profiles.json",
     "bootstrap/bootstrap_project.py",
-    "skills/catalog.yml",
     "governance/README.md",
     "governance/authority.md",
     "governance/lifecycle.md",
@@ -49,15 +49,15 @@ REQUIRED_FILES = [
     "integrations/claude-code-codex-plugin/README.md",
     "integrations/mcp/README.md",
     "integrations/file-handoff/README.md",
-    "docs/profiles.md",
     "docs/bootstrap-profiles.md",
+    "docs/profiles.md",
+    "docs/quickstart-minimal.md",
     "docs/session-bootstrap.md",
     "docs/mcp-tool-policy.md",
-    "docs/plans/wb-004-integration-adapter-normalization.md",
     "docs/plans/wb-005-profile-aware-bootstrap-conformance.md",
     "handoff/README.md",
     "handoff/templates/runtime-task-template.md",
-    "handoff/templates/claude-team-task-template.md",
+    "skills/catalog.yml",
     "scripts/test-sdd-contract.sh",
     "scripts/test-bootstrap-profiles.py",
     "scripts/test-runtime-conformance.py",
@@ -77,20 +77,15 @@ REQUIRED_FILES = [
     "template/.agent/active-work-block.json",
     "template/.agent/hooks/hard_stop_policy.py",
     "template/.agent/workflows/sdd-protocol.md",
+    "template/scripts/bootstrap.sh",
+    "template/scripts/validate-installation-profile.py",
     "template/.mcp.json",
     "template/.claude/settings.json",
     "template/.claude/hooks/work_block_gate.py",
     "template/.claude/hooks/assurance_gate.py",
-    "template/.claude/agents/solution-architect.md",
-    "template/.claude/agents/critic.md",
-    "template/.claude/agents/scoped-coder.md",
-    "template/.claude/agents/reviewer.md",
-    "template/.claude/agents/verifier.md",
     "template/.codex/hooks.json",
     "template/.codex/hooks/hard_stop_policy.py",
     "template/.codex/hooks/pre_tool_use_policy.py",
-    "template/.codex/hooks/stage0_write_gate.py",
-    "template/.codex/hooks/subagent_context.py",
     "template/opencode.json",
     "template/.opencode/agents/architect.md",
     "template/.opencode/agents/critic.md",
@@ -100,8 +95,6 @@ REQUIRED_FILES = [
     "template/docs/templates/work-block-template.md",
     "template/docs/templates/spec-drift-report-template.md",
     "template/docs/templates/integration-admission-template.md",
-    "template/scripts/bootstrap.sh",
-    "template/scripts/validate-installation-profile.py",
 ]
 
 FORBIDDEN_PATHS = [
@@ -194,13 +187,22 @@ def require_absent(relative: str) -> None:
         ok(f"{relative} absent")
 
 
+def file_lines(relative: str) -> list[str]:
+    return (ROOT / relative).read_text(encoding="utf-8").splitlines()
+
+
 def require_line(relative: str, expected: str) -> None:
-    path = ROOT / relative
-    lines = path.read_text(encoding="utf-8").splitlines()
-    if expected in lines:
+    if expected in file_lines(relative):
         ok(f"{relative} contains standalone line: {expected}")
     else:
         fail(f"{relative} missing standalone line: {expected}")
+
+
+def forbid_line(relative: str, forbidden: str) -> None:
+    if forbidden in file_lines(relative):
+        fail(f"{relative} contains forbidden blanket ignore: {forbidden}")
+    else:
+        ok(f"{relative} omits blanket ignore: {forbidden}")
 
 
 def load_bootstrap_module() -> Any:
@@ -213,7 +215,7 @@ def load_bootstrap_module() -> Any:
     return module
 
 
-def validate_catalog_and_configs() -> None:
+def validate_configs() -> None:
     try:
         for relative in (
             "FILE_REGISTRY.yml",
@@ -224,7 +226,7 @@ def validate_catalog_and_configs() -> None:
             if not isinstance(value, dict):
                 raise RuntimeError(f"{relative} must parse to a mapping")
 
-        for relative in (
+        json_paths = (
             ".claude/settings.json",
             "bootstrap/profiles.json",
             "template/.claude/settings.json",
@@ -232,26 +234,27 @@ def validate_catalog_and_configs() -> None:
             "template/.agent/active-work-block.json",
             "template/.codex/hooks.json",
             "template/opencode.json",
-        ):
+        )
+        for relative in json_paths:
             value = json.loads((ROOT / relative).read_text(encoding="utf-8"))
             if not isinstance(value, dict):
                 raise RuntimeError(f"{relative} must parse to an object")
 
         engine = load_bootstrap_module()
-        profile_catalog = json.loads(
+        catalog = json.loads(
             (ROOT / "bootstrap/profiles.json").read_text(encoding="utf-8")
         )
-        engine.validate_catalog(profile_catalog, ROOT)
-        for profile_id in profile_catalog["profiles"]:
-            state = engine.resolve_profile_state(profile_catalog, profile_id)
+        engine.validate_catalog(catalog, ROOT)
+        for profile_id in catalog["profiles"]:
+            state = engine.resolve_profile_state(catalog, profile_id)
             if state["resolved_profile"] != profile_id:
                 raise RuntimeError(f"profile resolution drift: {profile_id}")
 
         referenced_skills = {
             skill
-            for profile in profile_catalog["profiles"].values()
+            for profile in catalog["profiles"].values()
             for set_id in profile["skill_sets"]
-            for skill in profile_catalog["skill_sets"][set_id]
+            for skill in catalog["skill_sets"][set_id]
         }
         missing = sorted(
             skill
@@ -270,14 +273,13 @@ def validate_catalog_and_configs() -> None:
         )
         if any(key in claude for key in ("enabledMcpjsonServers", "permissions", "autoMode")):
             raise RuntimeError("template Claude settings pre-enable external integrations")
-        expected_agents = {
+        if set(claude.get("agents", {})) != {
             "solution-architect",
             "critic",
             "reviewer",
             "scoped-coder",
             "verifier",
-        }
-        if set(claude.get("agents", {})) != expected_agents:
+        }:
             raise RuntimeError("template Claude logical agent set mismatch")
 
         opencode = json.loads(
@@ -337,18 +339,21 @@ def scan_public_text() -> None:
 
 
 def check_syntax() -> None:
+    failed = False
     for relative in BASH_SCRIPTS:
         result = subprocess.run(
             ["bash", "-n", str(ROOT / relative)], capture_output=True, text=True
         )
         if result.returncode:
+            failed = True
             fail(f"bash syntax failed: {relative}: {result.stderr.strip()}")
     for relative in PYTHON_FILES:
         try:
             compile((ROOT / relative).read_text(encoding="utf-8"), relative, "exec")
         except (OSError, SyntaxError) as exc:
+            failed = True
             fail(f"Python syntax failed: {relative}: {exc}")
-    if not any("syntax failed" in item for item in FAILURES):
+    if not failed:
         ok("bash and Python syntax checks")
 
 
@@ -356,7 +361,7 @@ def run_check(command: list[str], label: str) -> None:
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     if result.returncode:
         output = (result.stdout + "\n" + result.stderr).strip()
-        fail(f"{label} failed:\n{output[-4000:]}")
+        fail(f"{label} failed:\n{output[-5000:]}")
     else:
         ok(label)
 
@@ -378,13 +383,14 @@ def smoke_profile(profile: str, expected: str) -> None:
             text=True,
         )
         if result.returncode:
-            fail(f"{profile} smoke bootstrap failed: {(result.stdout + result.stderr)[-4000:]}")
+            fail(f"{profile} smoke bootstrap failed: {(result.stdout + result.stderr)[-5000:]}")
             return
         state = json.loads(
             (target / ".agent/bootstrap-profile.json").read_text(encoding="utf-8")
         )
         if state.get("resolved_profile") != expected:
             fail(f"{profile} smoke resolved to {state.get('resolved_profile')!r}")
+
         unresolved: list[str] = []
         for path in target.rglob("*"):
             if not path.is_file():
@@ -397,12 +403,14 @@ def smoke_profile(profile: str, expected: str) -> None:
                 unresolved.append(str(path.relative_to(target)))
         if unresolved:
             fail(f"{profile} smoke has unresolved placeholders: {unresolved}")
+
+        runtime_paths = (".codex", ".claude", ".opencode", "opencode.json", ".mcp.json")
         if profile == "core":
-            for relative in (".codex", ".claude", ".opencode", "opencode.json", ".mcp.json"):
+            for relative in runtime_paths:
                 if (target / relative).exists():
                     fail(f"core smoke contains unselected path {relative}")
         if expected == "multi-runtime":
-            for relative in (".codex", ".claude", ".opencode", "opencode.json", ".mcp.json"):
+            for relative in runtime_paths:
                 if not (target / relative).exists():
                     fail(f"multi-runtime smoke missing {relative}")
         if not unresolved:
@@ -420,16 +428,19 @@ def main() -> int:
         (".gitignore", "archive/"),
         (".gitignore", "node_modules/"),
         (".gitignore", ".env"),
-        ("template/project.gitignore", ".agent/"),
+        ("template/project.gitignore", ".agent/active-work-block.json"),
+        ("template/project.gitignore", ".agent/project-config.md"),
         ("template/project.gitignore", "memory_bank/"),
         ("template/project.gitignore", ".claude/agent-memory/"),
-        ("template/project.gitignore", ".codex/"),
+        ("template/project.gitignore", ".codex/config.toml"),
         ("template/project.gitignore", "node_modules/"),
         ("template/project.gitignore", ".env"),
     ):
         require_line(relative, line)
+    forbid_line("template/project.gitignore", ".agent/")
+    forbid_line("template/project.gitignore", ".codex/")
 
-    validate_catalog_and_configs()
+    validate_configs()
 
     bytecode = [
         str(path.relative_to(ROOT))
