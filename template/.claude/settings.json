@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/hard-stop.sh",
+            "command": "python3 .agent/hooks/hard_stop_policy.py",
             "timeout": 5000
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/critic-gate.sh",
+            "command": "python3 .claude/hooks/work_block_gate.py",
             "timeout": 5000
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/verification-gate.sh",
+            "command": "python3 .claude/hooks/assurance_gate.py",
             "timeout": 5000
           }
         ]
