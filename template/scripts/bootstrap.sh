@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Bootstrap verification: ensure required workflow layer paths exist.
-# Run after cloning or restoring a workspace.
+# Bootstrap verification: ensure required workflow and governance paths exist.
+# Run after cloning or restoring a generated workspace.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -8,12 +8,8 @@ MISSING=0
 
 echo "==> Bootstrap: verifying workflow layer at $ROOT"
 
-# ── Memory convention detection ──────────────────────────────────────
-# Projects may use memory_bank/ (underscore, framework default) or
-# memory-bank/ (hyphen, legacy project convention). Detect and persist.
-
-MEMORY_DIR="memory_bank"  # framework default
-
+# Projects may use memory_bank/ (framework default) or memory-bank/ (legacy).
+MEMORY_DIR="memory_bank"
 HAS_HYPHEN=false
 HAS_UNDERSCORE=false
 [ -d "$ROOT/memory-bank" ] && HAS_HYPHEN=true
@@ -25,7 +21,6 @@ if $HAS_HYPHEN && ! $HAS_UNDERSCORE; then
 elif $HAS_UNDERSCORE && ! $HAS_HYPHEN; then
   echo "  Using: memory_bank/ (underscore convention)"
 elif $HAS_HYPHEN && $HAS_UNDERSCORE; then
-  # Both exist — prefer the one with project content files
   if [ -f "$ROOT/memory-bank/activeContext.md" ] || [ -f "$ROOT/memory-bank/productContext.md" ]; then
     MEMORY_DIR="memory-bank"
     echo "  DETECTED: both exist. Using memory-bank/ (has project content)."
@@ -37,7 +32,6 @@ else
   mkdir -p "$ROOT/memory_bank/snapshots"
 fi
 
-# Persist convention for agents
 mkdir -p "$ROOT/.agent"
 cat > "$ROOT/.agent/project-config.md" << PROJECTCONFIG
 # Project Configuration
@@ -47,17 +41,27 @@ cat > "$ROOT/.agent/project-config.md" << PROJECTCONFIG
 - **MEMORY_DIR:** \`$MEMORY_DIR\`
 PROJECTCONFIG
 
-# ── Core workflow layer ──────────────────────────────────────────────
-
 for path in \
   ".gitignore" \
+  "AGENTS.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml" \
+  "governance/README.md" \
+  "governance/authority.md" \
+  "governance/lifecycle.md" \
+  "governance/artifacts.md" \
+  "governance/runtime-capabilities.md" \
+  "runtimes/README.md" \
+  "runtimes/codex/README.md" \
+  "runtimes/claude-code/README.md" \
+  "runtimes/opencode/README.md" \
+  "runtimes/generic/README.md" \
   ".agent/ROSTER.md" \
   ".agent/critic-gate.md" \
   ".agent/verification-gate.md" \
   ".agent/workflows/sdd-protocol.md" \
   ".agent/skills/README.md" \
+  ".agent/skills/spec-drift-audit/SKILL.md" \
   ".mcp.json" \
   ".claude/settings.json" \
   ".claude/agent-memory/codex-reviewer/MEMORY.md" \
@@ -85,6 +89,8 @@ for path in \
   "docs/specs/README.md" \
   "docs/tasklist/README.md" \
   "docs/reports/README.md" \
+  "docs/templates/work-block-template.md" \
+  "docs/templates/spec-drift-report-template.md" \
   "$MEMORY_DIR/context.md" \
   "$MEMORY_DIR/progress.md" \
   "$MEMORY_DIR/decisions.md" \
@@ -107,15 +113,12 @@ fi
 
 echo "==> Workflow layer: OK"
 
-# ── Dev environment checks (warnings only) ──────────────────────────
-
 echo ""
 echo "==> Dev environment checks..."
-
 if [ -d "$ROOT/node_modules" ]; then
   echo "  OK: node_modules/"
 else
-  echo "  WARN: node_modules/ missing — run 'npm install'"
+  echo "  WARN: node_modules/ missing — install dependencies when this project requires them"
 fi
 
 if [ -n "${DATABASE_URL:-}" ]; then
@@ -123,7 +126,7 @@ if [ -n "${DATABASE_URL:-}" ]; then
 elif [ -f "$ROOT/.env" ] && grep -q "DATABASE_URL" "$ROOT/.env" 2>/dev/null; then
   echo "  OK: DATABASE_URL found in .env"
 else
-  echo "  WARN: DATABASE_URL not set — builds may fail"
+  echo "  WARN: DATABASE_URL not set — database-dependent checks may be blocked"
 fi
 
 echo "==> Dev environment checks done"
