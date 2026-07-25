@@ -113,7 +113,10 @@ require_absent_pattern "template/.agent/workflows/sdd-protocol.md" 'Claude criti
 require_contains "skills/spec-drift-audit/SKILL.md" 'Reviewer checks the quality'
 require_contains "skills/spec-drift-audit/SKILL.md" 'Verifier checks observable behavior'
 require_contains "skills/spec-drift-audit/SKILL.md" 'Drift Auditor checks agreement'
-require_contains "skills/spec-drift-audit/SKILL.md" 'ALIGNED.*ALIGNMENT_REQUIRED.*BLOCKED.*UNVERIFIED'
+require_contains "skills/spec-drift-audit/SKILL.md" '`ALIGNED`'
+require_contains "skills/spec-drift-audit/SKILL.md" '`ALIGNMENT_REQUIRED`'
+require_contains "skills/spec-drift-audit/SKILL.md" '`BLOCKED`'
+require_contains "skills/spec-drift-audit/SKILL.md" '`UNVERIFIED`'
 require_contains "template/docs/templates/spec-drift-report-template.md" 'Alignment Matrix'
 require_contains "skills/catalog.yml" 'spec-drift-audit'
 
