@@ -10,6 +10,11 @@ permission:
     "git diff*": allow
     "git log*": allow
     "git show*": allow
+    "git commit*": deny
+    "git push*": deny
+    "git reset --hard*": deny
+    "git clean*": deny
+    "rm *": deny
   task: deny
   external_directory: deny
   webfetch: ask
@@ -33,6 +38,9 @@ Remain read-only. Inspect:
 - test and observability gaps;
 - unapproved scope expansion;
 - prompt-shaped or generated boilerplate that a human cannot maintain.
+
+Do not commit, push, delete files, run destructive Git, or mutate project/runtime
+state.
 
 Return findings ordered by severity with file/line evidence, inspected and
 uninspected areas, residual risks, and one verdict:
