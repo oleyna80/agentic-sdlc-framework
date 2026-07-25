@@ -52,8 +52,10 @@ DANGEROUS = [
     (re.compile(r"\bgit\s+push\b", re.I), "git_push", "git push"),
     (
         re.compile(
-            r"\b(git\s+reset\s+--hard|git\s+clean|rm\s+-[^;\n]*r|"
-            r"terraform\s+destroy|kubectl\s+delete|DROP\s+(DATABASE|TABLE))\b",
+            r"\b(git\s+reset\s+--hard|git\s+clean|terraform\s+destroy|"
+            r"kubectl\s+delete|DROP\s+(DATABASE|TABLE))\b|"
+            r"\brm\b(?=[^;\n]*(?:\s--recursive\b|\s-[A-Za-z]*r))"
+            r"(?=[^;\n]*(?:\s--force\b|\s-[A-Za-z]*f))",
             re.I,
         ),
         "destructive",
