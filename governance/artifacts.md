@@ -75,6 +75,12 @@ A feature or system specification defines:
 - compatibility and migration expectations;
 - open decisions that block implementation.
 
+For a small Controlled Work Block, the approved objective, constraints, and
+acceptance criteria inside the Work Block may serve as the specification. A
+separate specification file is required when behavior, public contracts,
+architecture, security boundaries, schemas, migrations, external integrations,
+or multiple work packages are involved.
+
 Plans and tasklists are derived from the approved specification. If a plan or
 implementation conflicts with the specification, the workflow must either
 correct the derivative artifact or formally revise the specification.
@@ -104,7 +110,12 @@ The Reviewer reports:
 - architecture and maintainability findings;
 - security and side-effect findings;
 - missing tests or evidence;
-- verdict: `APPROVE | CHANGES_REQUIRED | BLOCKED`.
+- isolation level and launch mechanism;
+- verdict: `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED`.
+
+`SKIPPED` is a review-gate state, not a Reviewer verdict. It is valid only when
+the selected governance profile and lifecycle explicitly allow a skip and the
+Work Block records the reason.
 
 ## Verification Report
 
@@ -130,20 +141,33 @@ specification ↔ architecture decisions ↔ plan ↔ code ↔ tests ↔ documen
 
 Classifications:
 
-- `aligned` — no material mismatch;
-- `documented_change` — the approved requirement changed and all normative
-  artifacts were synchronized;
-- `implementation_drift` — code or tests diverge from approved requirements;
-- `documentation_drift` — documentation no longer matches behavior;
-- `unverified` — insufficient evidence to establish alignment.
+- `ALIGNED` — requirement, implementation, evidence, and documentation agree;
+- `MISSING_IMPLEMENTATION` — an approved requirement is not delivered;
+- `UNSPECIFIED_IMPLEMENTATION` — delivered behavior lacks approved specification;
+- `STALE_PLAN` — implementation matches the specification but the plan is outdated;
+- `STALE_TEST` — implementation exists but evidence does not prove it;
+- `STALE_DOCUMENTATION` — documentation disagrees with delivered behavior;
+- `SPEC_CHANGE_REQUIRED` — a legitimate requirement change needs approval;
+- `INSPECTION_GAP` — required evidence was unavailable.
+
+Drift report verdicts are:
+
+- `ALIGNED` — drift gate becomes `READY`;
+- `ALIGNMENT_REQUIRED` — drift gate remains `BLOCKED` until corrected and rerun;
+- `BLOCKED` — material mismatch prevents successful closeout;
+- `UNVERIFIED` — evidence is insufficient to establish alignment.
+
+`SKIPPED` is a drift-gate state, not a drift-report verdict. It is allowed only
+under the documented Quick-Fix rule.
 
 ## Closeout Report
 
 Successful closeout requires:
 
+- review gate `READY`, or an explicitly allowed and documented `SKIPPED` state;
 - verification verdict `READY`;
-- resolved blocking review findings;
-- required drift status `aligned` or `documented_change`;
+- required drift gate `READY`, or an explicitly allowed and documented `SKIPPED` state;
+- no unresolved `CHANGES_REQUIRED`, `BLOCKED`, or `UNVERIFIED` state;
 - updated task and decision state;
 - recorded residual risks;
 - promoted durable knowledge when applicable.
