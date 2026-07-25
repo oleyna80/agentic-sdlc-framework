@@ -15,6 +15,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 from typing import Any
 
 SCHEMA_VERSION = 1
@@ -27,6 +28,8 @@ ALLOWED_PLACEHOLDER_SUFFIXES = {
     ".toml",
     ".py",
 }
+GENERATED_REQUIRED_PATHS = {".agent/bootstrap-profile.json"}
+SPECIAL_SOURCE_PATHS = {".gitignore": "template/project.gitignore"}
 
 
 class BootstrapError(RuntimeError):
@@ -53,6 +56,11 @@ def unique(items: list[str]) -> list[str]:
     return result
 
 
+def require_unique(items: list[str], label: str) -> None:
+    if len(items) != len(set(items)):
+        raise BootstrapError(f"{label} contains duplicate values")
+
+
 def validate_relative_path(value: object, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise BootstrapError(f"{label} must be a non-empty string")
@@ -60,6 +68,20 @@ def validate_relative_path(value: object, label: str) -> str:
     if path.is_absolute() or ".." in path.parts:
         raise BootstrapError(f"{label} must be a safe relative path: {value!r}")
     return value
+
+
+def source_for_common_path(framework_root: Path, relative: str) -> Path | None:
+    if relative in GENERATED_REQUIRED_PATHS:
+        return None
+    if relative in SPECIAL_SOURCE_PATHS:
+        return framework_root / SPECIAL_SOURCE_PATHS[relative]
+    template_source = framework_root / "template" / relative
+    if template_source.exists():
+        return template_source
+    framework_source = framework_root / relative
+    if framework_source.exists():
+        return framework_source
+    return framework_source
 
 
 def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
@@ -88,8 +110,19 @@ def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
     if default_profile not in profiles:
         raise BootstrapError("default_profile must reference a declared profile")
 
-    for index, path in enumerate(common_required):
+    common_paths = [
         validate_relative_path(path, f"common_required_paths[{index}]")
+        for index, path in enumerate(common_required)
+    ]
+    require_unique(common_paths, "common_required_paths")
+
+    template_root = framework_root / "template"
+    if not template_root.is_dir():
+        raise BootstrapError(f"missing template directory: {template_root}")
+    for relative in common_paths:
+        source = source_for_common_path(framework_root, relative)
+        if source is not None and not source.exists():
+            raise BootstrapError(f"common required source is missing: {relative}")
 
     for component_id, component in components.items():
         if not isinstance(component_id, str) or not component_id:
@@ -106,14 +139,29 @@ def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
                 raise BootstrapError(
                     f"component {component_id!r} {field} must be an array"
                 )
-            for index, value in enumerate(values):
+            validated = [
                 validate_relative_path(
                     value, f"component {component_id!r} {field}[{index}]"
+                )
+                for index, value in enumerate(values)
+            ]
+            require_unique(validated, f"component {component_id!r} {field}")
+
+        for relative in component["paths"]:
+            if not (template_root / relative).exists():
+                raise BootstrapError(
+                    f"component {component_id!r} source path is missing: {relative}"
+                )
+        for relative in component["required_paths"]:
+            if not (template_root / relative).exists():
+                raise BootstrapError(
+                    f"component {component_id!r} required source is missing: {relative}"
                 )
 
     for set_id, skills in skill_sets.items():
         if not isinstance(skills, list):
             raise BootstrapError(f"skill set {set_id!r} must be an array")
+        require_unique(skills, f"skill set {set_id!r}")
         for skill in skills:
             skill_id = validate_relative_path(skill, f"skill set {set_id!r}")
             source = framework_root / "skills" / skill_id
@@ -125,7 +173,7 @@ def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
     for profile_id, profile in profiles.items():
         if not isinstance(profile, dict):
             raise BootstrapError(f"profile {profile_id!r} must be an object")
-        if not isinstance(profile.get("description"), str):
+        if not isinstance(profile.get("description"), str) or not profile["description"].strip():
             raise BootstrapError(f"profile {profile_id!r} requires description")
         profile_components = profile.get("components")
         profile_skill_sets = profile.get("skill_sets")
@@ -133,12 +181,10 @@ def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
             raise BootstrapError(f"profile {profile_id!r} components must be an array")
         if not isinstance(profile_skill_sets, list):
             raise BootstrapError(f"profile {profile_id!r} skill_sets must be an array")
-        unknown_components = [
-            item for item in profile_components if item not in components
-        ]
-        unknown_skill_sets = [
-            item for item in profile_skill_sets if item not in skill_sets
-        ]
+        require_unique(profile_components, f"profile {profile_id!r} components")
+        require_unique(profile_skill_sets, f"profile {profile_id!r} skill_sets")
+        unknown_components = [item for item in profile_components if item not in components]
+        unknown_skill_sets = [item for item in profile_skill_sets if item not in skill_sets]
         if unknown_components:
             raise BootstrapError(
                 f"profile {profile_id!r} has unknown components: {unknown_components}"
@@ -157,16 +203,6 @@ def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
             )
         if alias in profiles:
             raise BootstrapError(f"profile alias {alias!r} conflicts with a profile")
-
-    template_root = framework_root / "template"
-    if not template_root.is_dir():
-        raise BootstrapError(f"missing template directory: {template_root}")
-    for component_id, component in components.items():
-        for relative in component["paths"]:
-            if not (template_root / relative).exists():
-                raise BootstrapError(
-                    f"component {component_id!r} source path is missing: {relative}"
-                )
 
 
 def resolve_profile(
@@ -212,9 +248,7 @@ def resolve_profile_state(
         else:
             integrations.append(component["integration_id"])
 
-    required_paths.extend(
-        f".agent/skills/{skill}/SKILL.md" for skill in skills
-    )
+    required_paths.extend(f".agent/skills/{skill}/SKILL.md" for skill in skills)
     for mirror in unique(skill_mirrors):
         required_paths.extend(f"{mirror}/{skill}/SKILL.md" for skill in skills)
 
@@ -243,6 +277,8 @@ def resolve_profile_state(
 
 
 def ensure_target_is_empty(target: Path) -> None:
+    if target.is_symlink():
+        raise BootstrapError(f"target must not be a symbolic link: {target}")
     if target.exists() and not target.is_dir():
         raise BootstrapError(f"target exists and is not a directory: {target}")
     if target.is_dir() and any(target.iterdir()):
@@ -264,9 +300,7 @@ def clean_skill_root(path: Path) -> None:
         remove_path(child)
 
 
-def copy_skills(
-    framework_root: Path, target: Path, state: dict[str, Any]
-) -> None:
+def copy_skills(framework_root: Path, target: Path, state: dict[str, Any]) -> None:
     destinations = [target / ".agent/skills"]
     destinations.extend(target / mirror for mirror in state["skill_mirrors"])
     for destination in destinations:
@@ -279,16 +313,19 @@ def copy_skills(
 
 
 def replace_placeholders(
-    target: Path, project_name: str, project_slug: str
+    tree_root: Path,
+    final_project_root: Path,
+    project_name: str,
+    project_slug: str,
 ) -> None:
     replacements = {
         "{{PROJECT_NAME}}": project_name,
         "{{PROJECT_SLUG}}": project_slug,
-        "{{PROJECT_ROOT}}": str(target),
+        "{{PROJECT_ROOT}}": str(final_project_root),
         "{{SOURCE_DIRS}}": "src/*, app/*",
         "{{TECH_STACK}}": "to be defined",
     }
-    for path in target.rglob("*"):
+    for path in tree_root.rglob("*"):
         if not path.is_file() or path.suffix not in ALLOWED_PLACEHOLDER_SUFFIXES:
             continue
         text = path.read_text(encoding="utf-8")
@@ -306,26 +343,24 @@ def make_executable(path: Path) -> None:
     path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
-def scaffold(
+def build_project_tree(
     framework_root: Path,
-    target: Path,
+    tree_root: Path,
+    final_target: Path,
     project_name: str,
     project_slug: str,
     state: dict[str, Any],
     catalog: dict[str, Any],
 ) -> None:
-    ensure_target_is_empty(target)
-    target.mkdir(parents=True, exist_ok=True)
-
-    shutil.copytree(framework_root / "template", target, dirs_exist_ok=True)
-    project_gitignore = target / "project.gitignore"
+    shutil.copytree(framework_root / "template", tree_root)
+    project_gitignore = tree_root / "project.gitignore"
     if project_gitignore.is_file():
-        project_gitignore.replace(target / ".gitignore")
+        project_gitignore.replace(tree_root / ".gitignore")
 
     for directory in ("governance", "runtimes", "integrations"):
         shutil.copytree(
             framework_root / directory,
-            target / directory,
+            tree_root / directory,
             dirs_exist_ok=True,
         )
 
@@ -334,18 +369,18 @@ def scaffold(
         if component_id in selected:
             continue
         for relative in component["paths"]:
-            remove_path(target / relative)
+            remove_path(tree_root / relative)
 
-    copy_skills(framework_root, target, state)
+    copy_skills(framework_root, tree_root, state)
 
-    state_path = target / ".agent/bootstrap-profile.json"
+    state_path = tree_root / ".agent/bootstrap-profile.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(
         json.dumps(state, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
 
-    replace_placeholders(target, project_name, project_slug)
+    replace_placeholders(tree_root, final_target, project_name, project_slug)
 
     executable_patterns = (
         ".agent/hooks/*.py",
@@ -356,12 +391,42 @@ def scaffold(
         "scripts/*.py",
     )
     for pattern in executable_patterns:
-        for path in target.glob(pattern):
+        for path in tree_root.glob(pattern):
             make_executable(path)
 
-    health_check = target / "scripts/bootstrap.sh"
+    health_check = tree_root / "scripts/bootstrap.sh"
     if health_check.is_file():
-        subprocess.run(["bash", str(health_check)], cwd=target, check=True)
+        subprocess.run(["bash", str(health_check)], cwd=tree_root, check=True)
+
+
+def scaffold(
+    framework_root: Path,
+    target: Path,
+    project_name: str,
+    project_slug: str,
+    state: dict[str, Any],
+    catalog: dict[str, Any],
+) -> None:
+    ensure_target_is_empty(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(
+        prefix=f".{target.name or 'project'}.bootstrap-",
+        dir=target.parent,
+    ) as temp:
+        staging_root = Path(temp) / "project"
+        build_project_tree(
+            framework_root,
+            staging_root,
+            target,
+            project_name,
+            project_slug,
+            state,
+            catalog,
+        )
+        if target.exists():
+            target.rmdir()
+        staging_root.replace(target)
 
 
 def list_profiles(catalog: dict[str, Any]) -> None:
