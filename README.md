@@ -199,7 +199,7 @@ For framework architecture:
 2. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
 3. `docs/bootstrap-profiles.md` for scaffold composition;
 4. `docs/profiles.md` for Work Block governance/runtime/integration selection;
-5. the active Work Block under `docs/plans/`.
+5. an active Work Block under `docs/plans/`, when one exists.
 
 For a generated project:
 
@@ -220,9 +220,11 @@ For a generated project:
 | Integration admission | `integrations/`, `docs/mcp-tool-policy.md` |
 | Portable skills | `skills/catalog.yml` |
 | Profile matrix | `scripts/test-bootstrap-profiles.py` |
+| Clone/restore contract | `scripts/test-profile-restore.py` |
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
-| Active migration | `docs/plans/wb-005-profile-aware-bootstrap-conformance.md` |
+| Latest completed migration | `docs/plans/wb-005-profile-aware-bootstrap-conformance.md` |
+| Latest final review | `docs/reports/reviews/pr-5-final-review.md` |
 
 ## Requirements
 
@@ -237,6 +239,7 @@ For a generated project:
 ```bash
 bash scripts/test-sdd-contract.sh
 python scripts/test-bootstrap-profiles.py
+python scripts/test-profile-restore.py
 python scripts/test-runtime-conformance.py
 python scripts/test-integration-contracts.py
 python scripts/test-integration-admission-evidence.py
@@ -246,8 +249,9 @@ bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-Framework CI also bootstraps disposable profile variants and checks selected and
-unselected surfaces.
+Framework CI also bootstraps disposable profile variants, checks selected and
+unselected surfaces, verifies clone/restore, and preserves a blocked active Work
+Block default.
 
 ## License
 
