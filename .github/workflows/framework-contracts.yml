@@ -54,7 +54,24 @@ jobs:
         run: bash scripts/test-sdd-contract.sh
 
       - name: Validate Codex adapter gates
-        run: python scripts/test-codex-adapter.py
+        id: codex_adapter
+        continue-on-error: true
+        run: python scripts/test-codex-adapter.py > codex-adapter-test.log 2>&1
+
+      - name: Upload Codex adapter failure log
+        if: steps.codex_adapter.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-adapter-failure
+          path: codex-adapter-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce Codex adapter result
+        if: steps.codex_adapter.outcome == 'failure'
+        run: |
+          cat codex-adapter-test.log
+          exit 1
 
       - name: Validate governance structure
         run: bash scripts/validate-governance.sh
