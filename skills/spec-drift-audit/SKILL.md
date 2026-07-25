@@ -73,6 +73,8 @@ artifacts are compliant.
 
 ## Verdicts
 
+Allowed verdicts: `ALIGNED | ALIGNMENT_REQUIRED | BLOCKED | UNVERIFIED`.
+
 - `ALIGNED`: no material drift; successful closeout may proceed if other gates pass.
 - `ALIGNMENT_REQUIRED`: correctable drift exists; update the appropriate normative
   or derived artifact and rerun the audit.
