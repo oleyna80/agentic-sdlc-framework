@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
 jobs:
   contracts:
     runs-on: ubuntu-latest
@@ -34,10 +37,18 @@ jobs:
           bash -n scripts/validate-governance.sh
           bash -n scripts/validate-publication.sh
           bash -n template/scripts/bootstrap.sh
-          python -m py_compile \
-            scripts/test-codex-adapter.py \
-            template/.codex/hooks/pre_tool_use_policy.py \
-            template/.codex/hooks/subagent_context.py
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path("scripts/test-codex-adapter.py"),
+              Path("template/.codex/hooks/pre_tool_use_policy.py"),
+              Path("template/.codex/hooks/subagent_context.py"),
+          ]
+          for path in paths:
+              compile(path.read_text(encoding="utf-8"), str(path), "exec")
+              print(f"syntax OK: {path}")
+          PY
 
       - name: Validate runtime-neutral SDLC contracts
         run: bash scripts/test-sdd-contract.sh
