@@ -1,8 +1,9 @@
 # Bootstrap Installation Profiles
 
 Installation profiles control **which runtime implementation surfaces and skills
-are copied into a new project**. They do not select governance authority, admit
-an integration, configure a provider account, or grant side-effect permission.
+are copied into a new project**. An installation profile does not grant
+governance authority, integration admission, credentials, or side-effect
+permission.
 
 The per-Work Block dimensions remain independent:
 
@@ -61,7 +62,7 @@ Includes:
 Does not include executable Codex, Claude Code, OpenCode, or MCP configuration
 surfaces.
 
-Alias: `minimal` and `generic`.
+Aliases: `minimal` and `generic`.
 
 ### `codex`
 
