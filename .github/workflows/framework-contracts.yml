@@ -92,6 +92,7 @@ jobs:
           empty_git_config="$RUNNER_TEMP/empty-gitconfig"
           : > "$empty_git_config"
           export GIT_CONFIG_GLOBAL="$empty_git_config"
+          export GIT_CONFIG_NOSYSTEM=1
           python scripts/test-bootstrap-profiles.py > "$RUNNER_TEMP/profile-conformance.log" 2>&1
           python scripts/test-profile-restore.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
           python scripts/test-runtime-conformance.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
