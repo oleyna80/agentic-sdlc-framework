@@ -4,12 +4,21 @@
 # Keep this filename inactive inside the framework repository so the
 # publishable template files are not hidden by nested gitignore rules.
 
-# Portable governance/runtime contracts are committed by default:
-# - .agent/bootstrap-profile.json
-# - .agent/ROSTER.md, hooks, workflows, and selected skills
-# - .codex/agents, hooks, templates, and hooks.json when installed
-# - .claude/.opencode runtime baselines when installed
-#
+# Portable governance/runtime contracts are committed by default. Explicit
+# negations protect them from user/global blanket excludes such as `.agent/` or
+# `.codex/`; narrower local-state rules below still win because they appear later.
+!.agent/
+!.agent/**
+!.codex/
+!.codex/**
+!.claude/
+!.claude/**
+!.opencode/
+!.opencode/**
+!CLAUDE.md
+!opencode.json
+!.mcp.json
+
 # Ignore only operational, private, generated, or user-local state.
 .agent/active-work-block.json
 .agent/critic-gate.md
