@@ -58,22 +58,22 @@ jobs:
         id: codex_adapter
         continue-on-error: true
         run: |
-          python scripts/test-codex-adapter.py > codex-adapter-test.log 2>&1
-          python scripts/test-codex-hard-stops.py >> codex-adapter-test.log 2>&1
+          python scripts/test-codex-adapter.py > "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+          python scripts/test-codex-hard-stops.py >> "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
 
       - name: Upload Codex adapter failure log
         if: steps.codex_adapter.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: codex-adapter-failure
-          path: codex-adapter-test.log
+          path: ${{ runner.temp }}/codex-adapter-test.log
           if-no-files-found: error
           retention-days: 1
 
       - name: Enforce Codex adapter result
         if: steps.codex_adapter.outcome == 'failure'
         run: |
-          cat codex-adapter-test.log
+          cat "$RUNNER_TEMP/codex-adapter-test.log"
           exit 1
 
       - name: Validate governance structure
@@ -82,21 +82,21 @@ jobs:
       - name: Validate publication scaffold
         id: publication
         continue-on-error: true
-        run: bash scripts/validate-publication.sh > publication-validation.log 2>&1
+        run: bash scripts/validate-publication.sh > "$RUNNER_TEMP/publication-validation.log" 2>&1
 
       - name: Upload publication validation failure log
         if: steps.publication.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: publication-validation-failure
-          path: publication-validation.log
+          path: ${{ runner.temp }}/publication-validation.log
           if-no-files-found: error
           retention-days: 1
 
       - name: Enforce publication validation result
         if: steps.publication.outcome == 'failure'
         run: |
-          tail -n 200 publication-validation.log
+          tail -n 200 "$RUNNER_TEMP/publication-validation.log"
           exit 1
 
       - name: Bootstrap disposable generated project
