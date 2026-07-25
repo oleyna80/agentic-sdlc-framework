@@ -2,10 +2,13 @@
 """End-to-end fixtures for installation profile selection and exact scaffolds."""
 from __future__ import annotations
 
+import copy
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
 import tempfile
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "bootstrap/bootstrap_project.py"
@@ -20,6 +23,18 @@ CANONICAL = {
     "full": "multi-runtime",
     "generic": "core",
 }
+
+
+def load_engine() -> Any:
+    spec = importlib.util.spec_from_file_location("bootstrap_project", ENGINE)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("unable to import bootstrap engine")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+MODULE = load_engine()
 
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -173,6 +188,76 @@ def list_profiles_fixture() -> None:
         assert f"{alias} -> {target}" in result.stdout
 
 
+def catalog_prevalidation_fixtures() -> None:
+    missing_common = copy.deepcopy(CATALOG)
+    missing_common["common_required_paths"].append("docs/definitely-missing.md")
+    try:
+        MODULE.validate_catalog(missing_common, ROOT)
+    except MODULE.BootstrapError as exc:
+        assert "common required source is missing" in str(exc)
+    else:
+        raise AssertionError("missing common source did not fail catalog validation")
+
+    missing_component = copy.deepcopy(CATALOG)
+    missing_component["components"]["runtime:codex"]["required_paths"].append(
+        ".codex/agents/definitely-missing.toml"
+    )
+    try:
+        MODULE.validate_catalog(missing_component, ROOT)
+    except MODULE.BootstrapError as exc:
+        assert "required source is missing" in str(exc)
+    else:
+        raise AssertionError("missing component source did not fail catalog validation")
+
+
+def transactional_failure_fixtures() -> None:
+    state_value = MODULE.resolve_profile_state(CATALOG, "core")
+    original_copy_skills = MODULE.copy_skills
+
+    def fail_copy_skills(*_args: object, **_kwargs: object) -> None:
+        raise MODULE.BootstrapError("synthetic staged failure")
+
+    MODULE.copy_skills = fail_copy_skills
+    try:
+        with tempfile.TemporaryDirectory(prefix="bootstrap-transaction-") as temp:
+            base = Path(temp)
+            absent = base / "absent"
+            try:
+                MODULE.scaffold(
+                    ROOT,
+                    absent,
+                    "Atomic Project",
+                    "atomic-project",
+                    state_value,
+                    CATALOG,
+                )
+            except MODULE.BootstrapError as exc:
+                assert "synthetic staged failure" in str(exc)
+            else:
+                raise AssertionError("synthetic staged failure did not propagate")
+            assert not absent.exists(), "failed bootstrap left a partial target"
+
+            existing_empty = base / "existing-empty"
+            existing_empty.mkdir()
+            try:
+                MODULE.scaffold(
+                    ROOT,
+                    existing_empty,
+                    "Atomic Project",
+                    "atomic-project",
+                    state_value,
+                    CATALOG,
+                )
+            except MODULE.BootstrapError:
+                pass
+            else:
+                raise AssertionError("synthetic failure did not propagate for empty target")
+            assert existing_empty.is_dir()
+            assert not any(existing_empty.iterdir())
+    finally:
+        MODULE.copy_skills = original_copy_skills
+
+
 def fail_closed_fixtures() -> None:
     with tempfile.TemporaryDirectory(prefix="bootstrap-fail-closed-") as temp:
         base = Path(temp)
@@ -201,8 +286,25 @@ def fail_closed_fixtures() -> None:
         assert "not empty" in result.stderr
         assert marker.read_text(encoding="utf-8") == "keep\n"
 
+        real = base / "real"
+        real.mkdir()
+        symlink = base / "symlink"
+        symlink.symlink_to(real, target_is_directory=True)
+        result = run(
+            "--profile",
+            "core",
+            str(symlink),
+            check=False,
+        )
+        assert result.returncode != 0
+        assert "symbolic link" in result.stderr
+        assert symlink.is_symlink()
+        assert not any(real.iterdir())
+
 
 def main() -> int:
+    catalog_prevalidation_fixtures()
+    transactional_failure_fixtures()
     profile_matrix()
     default_profile_fixture()
     list_profiles_fixture()
