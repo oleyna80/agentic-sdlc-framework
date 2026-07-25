@@ -1,10 +1,16 @@
 {
-  "description": "Project-local Codex guardrails for the Agentic SDLC write gate, write-set scope, and subagent context.",
+  "description": "Project-local Codex guardrails for Hard Stops, the active Work Block write gate, write-set scope, and subagent context.",
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "^(Bash|apply_patch|Edit|Write)$",
         "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/hard_stop_policy.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking Owner-approved Hard Stops"
+          },
           {
             "type": "command",
             "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/pre_tool_use_policy.py\"",
