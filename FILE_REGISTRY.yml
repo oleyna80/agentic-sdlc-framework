@@ -30,14 +30,7 @@ artifact_authority_order:
   - runtime_policy_operational_logs_generated_context_and_examples
 
 role_dimensions:
-  authority_roles:
-    - owner
-    - orchestrator
-    - architect
-    - critic
-    - coder
-    - reviewer
-    - verifier
+  authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
   separate_from_authority:
     - runtime
     - model_class
@@ -51,25 +44,12 @@ entries:
     role: runtime_neutral_governance_core
     status: normative
     owner: architect
-    update_when:
-      - authority or logical roles change
-      - lifecycle or closeout semantics change
-      - artifact or SSOT rules change
-      - capability negotiation or fallback rules change
-    related:
-      - governance/README.md
-      - docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md
-      - runtimes/**
+    related: [governance/README.md, runtimes/**]
 
   governance/README.md:
     role: governance_entrypoint
     status: normative
     owner: architect
-    related:
-      - governance/authority.md
-      - governance/lifecycle.md
-      - governance/artifacts.md
-      - governance/runtime-capabilities.md
 
   governance/authority.md:
     role: logical_roles_and_authority_boundaries
@@ -95,35 +75,25 @@ entries:
     role: runtime_adapter_collection
     status: runtime_adapter
     owner: maintainer
-    update_when:
-      - a runtime is added or retired
-      - mappings capabilities limitations or smoke evidence change
-    related:
-      - governance/runtime-capabilities.md
-      - governance/authority.md
+    related: [governance/runtime-capabilities.md, governance/authority.md]
 
   runtimes/codex/**:
     role: codex_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related:
-      - template/.codex/**
-      - framework/workflow/codex-model-routing.md
+    related: [template/.codex/**, framework/workflow/codex-model-routing.md]
 
   runtimes/claude-code/**:
     role: claude_code_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related:
-      - template/.claude/**
-      - template/CLAUDE.md
+    related: [template/.claude/**, template/CLAUDE.md]
 
   runtimes/opencode/**:
     role: opencode_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related:
-      - framework/knowledge/opencode-runtime.md
+    related: [framework/knowledge/opencode-runtime.md]
 
   runtimes/generic/**:
     role: generic_sequential_agent_baseline
@@ -141,7 +111,7 @@ entries:
     owner: owner
     related:
       - docs/plans/wb-001-runtime-neutral-control-plane.md
-      - docs/plans/wb-002-normalize-portable-sdlc-contracts.md
+      - docs/plans/wb-002-runtime-neutral-template-convergence.md
       - governance/**
       - runtimes/**
 
@@ -149,17 +119,14 @@ entries:
     role: work_block_plans_and_execution_evidence
     status: log
     owner: orchestrator
-    update_when:
-      - a Work Block is created updated closed or superseded
 
   docs/plans/wb-001-runtime-neutral-control-plane.md:
     role: completed_architecture_foundation_work_block
     status: log
     owner: orchestrator
-    related:
-      - docs/plans/wb-002-normalize-portable-sdlc-contracts.md
+    related: [docs/plans/wb-002-runtime-neutral-template-convergence.md]
 
-  docs/plans/wb-002-normalize-portable-sdlc-contracts.md:
+  docs/plans/wb-002-runtime-neutral-template-convergence.md:
     role: active_portable_contract_migration_work_block
     status: log
     owner: orchestrator
@@ -169,24 +136,22 @@ entries:
       - scripts/test-sdd-contract.sh
       - .github/workflows/framework-contracts.yml
 
+  docs/plans/wb-002-normalize-portable-sdlc-contracts.md:
+    role: superseded_work_block_compatibility_alias
+    status: reference
+    owner: orchestrator
+    related: [docs/plans/wb-002-runtime-neutral-template-convergence.md]
+
   README.md:
     role: public_entrypoint
     status: normative
     owner: maintainer
-    related:
-      - governance/README.md
-      - PROJECT_MAP.md
-      - SETUP.md
 
   PROJECT_MAP.md:
     role: human_readable_repository_map
     status: normative
     owner: architect
-    update_when:
-      - architecture layers active Work Block or major paths change
-    related:
-      - FILE_REGISTRY.yml
-      - governance/README.md
+    related: [FILE_REGISTRY.yml, governance/README.md]
 
   FILE_REGISTRY.yml:
     role: machine_readable_navigation_registry
@@ -202,9 +167,6 @@ entries:
     role: governance_runtime_integration_and_model_profile_selector
     status: normative
     owner: architect
-    related:
-      - governance/lifecycle.md
-      - runtimes/**
 
   docs/session-bootstrap.md:
     role: framework_repository_progressive_intake
@@ -220,21 +182,12 @@ entries:
     role: project_scaffold_installer
     status: normative
     owner: maintainer
-    update_when:
-      - installed governance runtime adapters templates or skills change
-    related:
-      - template/**
-      - governance/**
-      - runtimes/**
+    related: [template/**, governance/**, runtimes/**]
 
   scripts/test-sdd-contract.sh:
     role: portable_sdlc_contract_test
     status: normative
     owner: verifier
-    related:
-      - template/AGENTS.md
-      - template/.agent/workflows/sdd-protocol.md
-      - skills/spec-drift-audit/SKILL.md
 
   scripts/validate-governance.sh:
     role: governance_structure_validation
@@ -247,24 +200,14 @@ entries:
     owner: verifier
 
   .github/workflows/framework-contracts.yml:
-    role: framework_contract_ci
+    role: framework_contract_and_bootstrap_smoke_ci
     status: evidence
     owner: verifier
-    update_when:
-      - required validation commands or runtime dependencies change
-    related:
-      - scripts/test-sdd-contract.sh
-      - scripts/validate-governance.sh
-      - scripts/validate-publication.sh
 
   template/AGENTS.md:
     role: generated_project_runtime_neutral_operating_contract
     status: template
     owner: owner
-    related:
-      - governance/**
-      - template/.agent/ROSTER.md
-      - template/.agent/workflows/sdd-protocol.md
 
   template/PROJECT_MAP.md:
     role: generated_project_human_navigation
@@ -301,16 +244,6 @@ entries:
     status: template
     owner: reviewer
 
-  template/docs/templates/verification-report-template.md:
-    role: generated_project_verification_report
-    status: template
-    owner: verifier
-
-  template/docs/templates/closeout-report-template.md:
-    role: generated_project_closeout_report
-    status: template
-    owner: orchestrator
-
   template/scripts/bootstrap.sh:
     role: generated_project_health_check
     status: template
@@ -320,15 +253,11 @@ entries:
     role: current_codex_runtime_compatibility_layer
     status: runtime_adapter
     owner: maintainer
-    related:
-      - runtimes/codex/**
 
   template/.claude/**:
     role: current_claude_code_runtime_compatibility_layer
     status: runtime_adapter
     owner: maintainer
-    related:
-      - runtimes/claude-code/**
 
   skills/catalog.yml:
     role: shared_skill_library_navigation_index
@@ -339,8 +268,6 @@ entries:
     role: portable_specification_alignment_assurance
     status: normative
     owner: reviewer
-    related:
-      - template/docs/templates/spec-drift-report-template.md
 
   skills/**:
     role: portable_skill_library
@@ -350,24 +277,6 @@ entries:
   handoff/**:
     role: audited_file_based_cross_runtime_transport
     status: integration_adapter
-    owner: architect
-    related:
-      - runtimes/codex/**
-      - runtimes/claude-code/**
-
-  framework/workflow/codex-model-routing.md:
-    role: codex_model_routing_reference
-    status: reference
-    owner: architect
-
-  framework/knowledge/opencode-runtime.md:
-    role: opencode_runtime_research
-    status: reference
-    owner: architect
-
-  framework/memory/project-engineering-memory.md:
-    role: project_engineering_memory_policy
-    status: reference
     owner: architect
 
   framework/**:
