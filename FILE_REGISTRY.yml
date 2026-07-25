@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 7
+version: 8
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -10,6 +10,7 @@ statuses:
   template: "copied into generated projects"
   runtime_adapter: "runtime-specific implementation; cannot override governance"
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
+  installation_manifest: "scaffold composition data; grants no authority"
   reference: "background knowledge; does not override policy"
   evidence: "review, verification, drift, CI, integration, or closeout evidence"
   log: "active or historical Work Block state; not general policy"
@@ -31,6 +32,7 @@ artifact_authority_order:
 role_dimensions:
   authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
   separate_from_authority:
+    - installation_profile
     - runtime
     - model_class
     - actual_model
@@ -40,15 +42,32 @@ role_dimensions:
     - integration
     - provider
 
+installation_profiles:
+  source: bootstrap/profiles.json
+  engine: bootstrap/bootstrap_project.py
+  default: multi-runtime
+  canonical: [core, codex, claude-code, opencode, multi-runtime]
+  aliases:
+    minimal: core
+    generic: core
+    full: multi-runtime
+  generated_state: .agent/bootstrap-profile.json
+  authority: none
+  rules:
+    - validate_before_target_mutation
+    - selected_runtime_surfaces_only
+    - no_automatic_integration_activation
+    - no_credentials_or_provider_binding
+    - work_block_authority_remains_separate
+
 migration_state:
   completed_work_blocks:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
     - docs/plans/wb-002-runtime-neutral-template-convergence.md
     - docs/plans/wb-003-codex-native-agents-and-gates.md
     - docs/plans/wb-004-integration-adapter-normalization.md
-  active_work_block: null
-  planned:
-    - WB-005 profile-aware bootstrap and cross-runtime conformance
+  active_work_block: docs/plans/wb-005-profile-aware-bootstrap-conformance.md
+  planned: []
 
 entries:
   governance/**:
@@ -92,19 +111,19 @@ entries:
     role: codex_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/.codex/**, template/.agent/active-work-block.json]
+    related: [template/.codex/**, bootstrap/profiles.json]
 
   runtimes/claude-code/**:
     role: claude_code_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/.claude/**, template/CLAUDE.md, integrations/**]
+    related: [template/.claude/**, template/CLAUDE.md, bootstrap/profiles.json]
 
   runtimes/opencode/**:
     role: opencode_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/opencode.json, template/.opencode/**]
+    related: [template/opencode.json, template/.opencode/**, bootstrap/profiles.json]
 
   runtimes/generic/**:
     role: generic_sequential_agent_baseline
@@ -117,11 +136,6 @@ entries:
     owner: architect
     related: [docs/mcp-tool-policy.md, template/docs/templates/integration-admission-template.md]
 
-  integrations/README.md:
-    role: integration_admission_and_selection_entrypoint
-    status: normative
-    owner: architect
-
   integrations/claude-code-codex-plugin/**:
     role: official_codex_plugin_for_claude_code_adapter
     status: integration_adapter
@@ -131,13 +145,34 @@ entries:
     role: mcp_server_and_exact_tool_admission_adapter
     status: integration_adapter
     owner: architect
-    related: [template/.mcp.json, docs/mcp-tool-policy.md]
 
   integrations/file-handoff/**:
     role: runtime_neutral_audited_file_transport_contract
     status: integration_adapter
     owner: architect
-    related: [handoff/**, handoff/templates/runtime-task-template.md]
+
+  bootstrap/profiles.json:
+    role: installation_profile_component_skill_and_alias_manifest
+    status: installation_manifest
+    owner: architect
+    authority: none
+    related: [bootstrap/bootstrap_project.py, docs/bootstrap-profiles.md, scripts/test-bootstrap-profiles.py]
+
+  bootstrap/bootstrap_project.py:
+    role: validated_profile_aware_scaffold_engine
+    status: normative
+    owner: maintainer
+    related: [bootstrap/profiles.json, template/**]
+
+  bootstrap.sh:
+    role: backward_compatible_profile_aware_scaffold_wrapper
+    status: normative
+    owner: maintainer
+
+  docs/bootstrap-profiles.md:
+    role: installation_profile_selection_and_extension_contract
+    status: normative
+    owner: architect
 
   docs/architecture/decisions/**:
     role: accepted_architecture_decisions
@@ -164,11 +199,6 @@ entries:
     status: log
     owner: orchestrator
 
-  docs/plans/wb-002-normalize-portable-sdlc-contracts.md:
-    role: superseded_work_block_compatibility_alias
-    status: reference
-    owner: orchestrator
-
   docs/plans/wb-003-codex-native-agents-and-gates.md:
     role: completed_codex_native_adapter_work_block
     status: log
@@ -178,7 +208,12 @@ entries:
     role: completed_integration_adapter_normalization_work_block
     status: log
     owner: orchestrator
-    related: [integrations/**, runtimes/claude-code/**, runtimes/opencode/**, handoff/**]
+
+  docs/plans/wb-005-profile-aware-bootstrap-conformance.md:
+    role: active_profile_aware_bootstrap_and_runtime_conformance_work_block
+    status: log
+    owner: orchestrator
+    related: [bootstrap/**, scripts/test-bootstrap-profiles.py, scripts/test-runtime-conformance.py]
 
   docs/reports/**:
     role: assurance_and_closeout_evidence
@@ -209,7 +244,7 @@ entries:
     role: human_readable_repository_map
     status: normative
     owner: architect
-    related: [FILE_REGISTRY.yml, governance/README.md]
+    related: [FILE_REGISTRY.yml, bootstrap/profiles.json]
 
   FILE_REGISTRY.yml:
     role: machine_readable_navigation_registry
@@ -217,12 +252,12 @@ entries:
     owner: architect
 
   docs/profiles.md:
-    role: governance_runtime_integration_and_model_profile_selector
+    role: governance_runtime_integration_model_and_installation_profile_selector
     status: normative
     owner: architect
 
   docs/quickstart-minimal.md:
-    role: single_runtime_no_integration_quickstart
+    role: core_installation_profile_quickstart
     status: normative
     owner: maintainer
 
@@ -236,14 +271,18 @@ entries:
     status: normative
     owner: architect
 
-  bootstrap.sh:
-    role: project_scaffold_installer
-    status: normative
-    owner: maintainer
-    related: [template/**, governance/**, runtimes/**, integrations/**]
-
   scripts/test-sdd-contract.sh:
-    role: portable_sdlc_contract_test
+    role: portable_sdlc_profile_and_authority_contract_test
+    status: normative
+    owner: verifier
+
+  scripts/test-bootstrap-profiles.py:
+    role: installation_profile_exact_scaffold_and_fail_closed_fixture_test
+    status: normative
+    owner: verifier
+
+  scripts/test-runtime-conformance.py:
+    role: cross_runtime_logical_role_permission_and_gate_conformance_test
     status: normative
     owner: verifier
 
@@ -273,12 +312,17 @@ entries:
     owner: verifier
 
   scripts/validate-publication.sh:
-    role: publication_safety_configuration_and_scaffold_validation
+    role: publication_validation_wrapper
+    status: normative
+    owner: verifier
+
+  scripts/validate_publication.py:
+    role: catalog_driven_publication_profile_conformance_and_privacy_validation
     status: normative
     owner: verifier
 
   .github/workflows/framework-contracts.yml:
-    role: framework_contract_adapter_and_bootstrap_ci
+    role: framework_contract_profile_adapter_and_bootstrap_ci
     status: evidence
     owner: verifier
 
@@ -287,28 +331,13 @@ entries:
     status: template
     owner: owner
 
-  template/CLAUDE.md:
-    role: generated_project_claude_code_runtime_entrypoint
-    status: runtime_adapter
-    owner: maintainer
-
   template/PROJECT_MAP.md:
-    role: generated_project_human_navigation
+    role: generated_project_profile_aware_human_navigation
     status: template
     owner: architect
 
   template/FILE_REGISTRY.yml:
-    role: generated_project_machine_registry
-    status: template
-    owner: architect
-
-  template/.agent/ROSTER.md:
-    role: generated_project_logical_role_and_skill_router
-    status: template
-    owner: architect
-
-  template/.agent/workflows/sdd-protocol.md:
-    role: generated_project_define_execute_assure_close_contract
+    role: generated_project_profile_aware_machine_registry
     status: template
     owner: architect
 
@@ -316,77 +345,51 @@ entries:
     role: generated_project_machine_readable_work_block_gate
     status: template
     owner: orchestrator
-    related: [template/.agent/hooks/**, template/.claude/hooks/**, template/.codex/hooks/**]
 
   template/.agent/hooks/**:
     role: shared_provider_neutral_gate_implementation
     status: template
     owner: maintainer
 
-  template/.agent/hooks/hard_stop_policy.py:
-    role: shared_consequential_action_and_external_runtime_guard
-    status: template
-    owner: maintainer
-
-  template/docs/templates/work-block-template.md:
-    role: generated_project_portable_work_block_and_integration_binding_contract
-    status: template
-    owner: orchestrator
-
-  template/docs/templates/integration-admission-template.md:
-    role: generated_project_integration_admission_contract
-    status: template
-    owner: owner
-
   template/scripts/bootstrap.sh:
-    role: generated_project_health_check
+    role: generated_project_profile_aware_health_check
+    status: template
+    owner: verifier
+
+  template/scripts/validate-installation-profile.py:
+    role: generated_project_installation_profile_validator
     status: template
     owner: verifier
 
   template/.codex/**:
-    role: codex_runtime_adapter_implementation
+    role: conditional_codex_runtime_adapter_implementation
     status: runtime_adapter
     owner: maintainer
-
-  template/.codex/hooks/hard_stop_policy.py:
-    role: codex_wrapper_for_shared_hard_stop_policy
-    status: runtime_adapter
-    owner: maintainer
+    selected_by: runtime:codex
 
   template/.claude/**:
-    role: claude_code_runtime_adapter_implementation
+    role: conditional_claude_code_runtime_adapter_implementation
     status: runtime_adapter
     owner: maintainer
-
-  template/.claude/settings.json:
-    role: claude_code_hooks_and_logical_agent_registration
-    status: runtime_adapter
-    owner: maintainer
-
-  template/.claude/hooks/work_block_gate.py:
-    role: claude_machine_readable_source_write_gate
-    status: runtime_adapter
-    owner: maintainer
-
-  template/.claude/hooks/assurance_gate.py:
-    role: claude_review_verification_drift_closeout_gate
-    status: runtime_adapter
-    owner: maintainer
+    selected_by: runtime:claude-code
 
   template/opencode.json:
-    role: opencode_project_instruction_and_permission_baseline
+    role: conditional_opencode_project_instruction_and_permission_baseline
     status: runtime_adapter
     owner: maintainer
+    selected_by: runtime:opencode
 
   template/.opencode/agents/**:
-    role: opencode_logical_role_subagents
+    role: conditional_opencode_logical_role_subagents
     status: runtime_adapter
     owner: maintainer
+    selected_by: runtime:opencode
 
   template/.mcp.json:
-    role: empty_opt_in_generated_mcp_registry
+    role: conditional_empty_opt_in_generated_mcp_registry
     status: integration_adapter
     owner: owner
+    selected_by: integration:mcp-config
 
   skills/catalog.yml:
     role: shared_skill_library_navigation_index
@@ -403,32 +406,7 @@ entries:
     status: integration_adapter
     owner: architect
 
-  handoff/templates/runtime-task-template.md:
-    role: portable_runtime_neutral_task_envelope
-    status: integration_adapter
-    owner: orchestrator
-
-  handoff/templates/claude-team-task-template.md:
-    role: claude_runner_compatibility_task_specialization
-    status: integration_adapter
-    owner: orchestrator
-
   framework/**:
     role: reference_knowledge
     status: reference
     owner: maintainer
-
-  examples/**:
-    role: scenario_guides
-    status: example
-    owner: docs
-
-  archive/**:
-    role: private_or_local_archive
-    status: local_state
-    owner: owner
-
-  graphify-out/**:
-    role: generated_discovery_graph
-    status: generated
-    owner: tooling
