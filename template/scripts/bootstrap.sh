@@ -5,8 +5,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROFILE_FILE="$ROOT/.agent/bootstrap-profile.json"
 PROFILE_VALIDATOR="$ROOT/scripts/validate-installation-profile.py"
+ACTIVE_WORK_BLOCK="$ROOT/.agent/active-work-block.json"
+DEFAULT_WORK_BLOCK="$ROOT/.agent/active-work-block.default.json"
 
 echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
+
+[ -f "$PROFILE_FILE" ] || {
+  echo "FAIL: missing .agent/bootstrap-profile.json" >&2
+  exit 1
+}
+[ -f "$PROFILE_VALIDATOR" ] || {
+  echo "FAIL: missing scripts/validate-installation-profile.py" >&2
+  exit 1
+}
+[ -f "$DEFAULT_WORK_BLOCK" ] || {
+  echo "FAIL: missing .agent/active-work-block.default.json" >&2
+  exit 1
+}
 
 # Projects may use memory_bank/ (framework default) or memory-bank/ (legacy).
 MEMORY_DIR="memory_bank"
@@ -29,17 +44,32 @@ elif $HAS_HYPHEN && $HAS_UNDERSCORE; then
   fi
 else
   echo "  Creating: memory_bank/ (framework default)"
-  mkdir -p "$ROOT/memory_bank/snapshots"
 fi
 
-[ -f "$PROFILE_FILE" ] || {
-  echo "FAIL: missing .agent/bootstrap-profile.json" >&2
-  exit 1
+mkdir -p "$ROOT/$MEMORY_DIR/snapshots"
+
+ensure_operational_file() {
+  local relative="$1"
+  local title="$2"
+  local path="$ROOT/$MEMORY_DIR/$relative"
+  if [ ! -f "$path" ]; then
+    printf '# %s\n\n' "$title" > "$path"
+    echo "  RESTORED: $MEMORY_DIR/$relative"
+  fi
 }
-[ -f "$PROFILE_VALIDATOR" ] || {
-  echo "FAIL: missing scripts/validate-installation-profile.py" >&2
-  exit 1
-}
+
+ensure_operational_file "context.md" "Current Context"
+ensure_operational_file "progress.md" "Progress"
+ensure_operational_file "decisions.md" "Operational Decisions"
+ensure_operational_file "orchestrator-log.md" "Orchestrator Log"
+ensure_operational_file "review-log.md" "Review Log"
+ensure_operational_file "external-team-log.md" "External Team Log"
+touch "$ROOT/$MEMORY_DIR/snapshots/.gitkeep"
+
+if [ ! -f "$ACTIVE_WORK_BLOCK" ]; then
+  cp "$DEFAULT_WORK_BLOCK" "$ACTIVE_WORK_BLOCK"
+  echo "  RESTORED: .agent/active-work-block.json (BLOCKED default)"
+fi
 
 python3 "$PROFILE_VALIDATOR" "$ROOT"
 
