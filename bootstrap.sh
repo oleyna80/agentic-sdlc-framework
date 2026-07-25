@@ -33,10 +33,12 @@ if [ -f "$TARGET_DIR/project.gitignore" ]; then
 fi
 
 # 2. Install the runtime-neutral control plane and adapter documentation.
-# These are documentation contracts, not provider credentials or runtime state.
+# Copy directory contents rather than directory nodes so the operation remains
+# structurally safe if a future installer permits partial/resume scaffolding.
 echo "==> Installing governance and runtime adapter documentation..."
-cp -r "$FRAMEWORK_DIR/governance" "$TARGET_DIR/governance"
-cp -r "$FRAMEWORK_DIR/runtimes" "$TARGET_DIR/runtimes"
+mkdir -p "$TARGET_DIR/governance" "$TARGET_DIR/runtimes"
+cp -r "$FRAMEWORK_DIR/governance/." "$TARGET_DIR/governance/"
+cp -r "$FRAMEWORK_DIR/runtimes/." "$TARGET_DIR/runtimes/"
 
 # 3. Replace project placeholders across the scaffold and copied contracts.
 echo "==> Replacing placeholders..."
