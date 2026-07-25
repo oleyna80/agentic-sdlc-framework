@@ -1,38 +1,87 @@
-# Codex Stage 0 Write Gate
+# Codex Write Gate — Compatibility View
 
-Status: BLOCKED
-Expires: 2099-12-31
-Work Block: TBD
-Approved Scope: TBD
-Codex Critic: REQUIRED
-Critic Verdict: N/A
-Critic Report: N/A
-Critic Skip Reason: N/A
-Orchestrator Response: N/A
-Orchestrator Log: memory_bank/orchestrator-log.md
-Review Log: memory_bank/review-log.md
+> Human-readable compatibility note. The executable source of truth is
+> `.agent/active-work-block.json`.
 
-Codex must not modify repository files until the Owner-approved scope for the
-current workblock is recorded here or in the active conversation.
+## Default State
 
-Set `Status: READY` only after Stage 0 preflight is complete and the approved
-scope is clear.
+- **Status:** BLOCKED
+- **Active Work Block:** unset
+- **Specification:** unset
+- **Base commit:** unset
+- **Expiry:** unset
+- **Critic:** PENDING
+- **Approved write-set:** empty
 
-For non-trivial Work Blocks, also set `Codex Critic` before writes:
+The generated project starts fail-closed.
 
-- `READY` when a read-only Codex critic subagent or external critic completed.
-- `FALLBACK` when a same-session critic pass completed because native subagents
-  were unavailable.
-- `SKIPPED` only for valid skip conditions in `.codex/critic.md` or explicit
-  Owner approval.
-- `REQUIRED` means the critic requirement is not resolved yet and writes must
-  remain blocked.
+## Executable Gate
 
-When `Codex Critic` is `READY` or `FALLBACK`, set `Critic Verdict` to
-`APPROVE`, `SUPPLEMENT`, or `RECONSIDER`. When `Codex Critic` is `SKIPPED`,
-write a concrete `Critic Skip Reason`.
+Codex `PreToolUse` reads `.agent/active-work-block.json` and checks:
 
-If `Critic Verdict` is `SUPPLEMENT` or `RECONSIDER`, set a concrete
-`Orchestrator Response` before marking `Status: READY`. For `RECONSIDER`, the
-response must explain that Stage 0 was rerun or why the Owner explicitly
-accepted proceeding.
+- schema version;
+- Work Block ID;
+- specification path and revision;
+- `write_gate.status`;
+- timezone-aware expiry;
+- current `HEAD` against `base_commit`;
+- required Critic status and verdict;
+- source targets against the approved write-set;
+- Hard Stop approval flags for supported Bash operations.
+
+Do not set this Markdown file to READY. Updating it alone does not authorize a
+write.
+
+## Coordination Before READY
+
+While the source gate remains BLOCKED, the hook permits only the configured
+coordination write-set, normally:
+
+```text
+.agent/active-work-block.json
+.agent/critic-gate.md
+.agent/verification-gate.md
+.codex/write-gate.md
+docs/architecture/drafts/**
+docs/specs/**
+docs/plans/**
+docs/tasklist/**
+docs/reports/**
+memory_bank/**
+```
+
+These paths allow Define-stage and evidence work. They do not authorize source,
+configuration, runtime, infrastructure, credential, or data mutations.
+
+## Opening the Source Gate
+
+Populate the machine-readable gate only after:
+
+1. the human Work Block is approved;
+2. the active specification and revision are recorded;
+3. the architecture baseline and implementation plan are resolved;
+4. the source write-set is explicit;
+5. the required Critic function completed or an allowed degraded/skip state is
+   documented;
+6. `base_commit` matches the current Git `HEAD`;
+7. `expires_at` is short-lived and timezone-aware;
+8. relevant Hard Stop approvals are recorded.
+
+Then set:
+
+```json
+"write_gate": {
+  "status": "READY",
+  "opened_at": "2026-07-25T12:00:00+02:00",
+  "expires_at": "2026-07-25T18:00:00+02:00"
+}
+```
+
+After a commit changes `HEAD`, renew the gate before further source writes.
+
+## Limitations
+
+Hooks are project guardrails, not OS-level isolation. Project hooks must be
+reviewed and trusted in Codex. Live parent permission overrides can affect
+subagents. Stronger assurance may require a separate read-only root, worktree,
+runtime, container, or OS boundary.
