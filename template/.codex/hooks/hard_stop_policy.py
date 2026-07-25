@@ -115,6 +115,21 @@ def load_gate(root: Path) -> dict:
     return gate
 
 
+def git(root: Path, *args: str) -> str:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        deny(f"Cannot inspect git state for Hard Stop policy: {exc}")
+    return result.stdout.strip()
+
+
 def approval_window_ready(gate: dict) -> None:
     if gate.get("schema_version") != 1:
         deny("Hard Stop approval requires active-work-block schema_version=1.")
@@ -138,24 +153,25 @@ def approval_window_ready(gate: dict) -> None:
         deny(f"Hard Stop approval window expired at {expiry.isoformat()}.")
 
 
+def require_fresh_base(gate: dict, root: Path) -> None:
+    base = str(gate.get("base_commit") or "").strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", base):
+        deny("Hard Stop approval requires a valid base_commit SHA.")
+    head = git(root, "rev-parse", "HEAD")
+    if not head.startswith(base) and not base.startswith(head):
+        deny(
+            f"Stale Hard Stop gate: HEAD {head[:12]} != base_commit {base[:12]}. "
+            "Renew the Work Block gate and approval before push."
+        )
+
+
 def approved(gate: dict, key: str) -> bool:
     approvals = gate.get("hard_stop_approvals")
     return isinstance(approvals, dict) and approvals.get(key) is True
 
 
 def current_branch(root: Path) -> str:
-    try:
-        result = subprocess.run(
-            ["git", "branch", "--show-current"],
-            cwd=root,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        deny(f"Cannot inspect git branch for push policy: {exc}")
-    return result.stdout.strip()
+    return git(root, "branch", "--show-current")
 
 
 def recursive_rm(command: str) -> bool:
@@ -235,12 +251,14 @@ def check_command(command: str, gate: dict, root: Path) -> None:
             found.add(key)
             require_approval(gate, key, label)
 
-    if "git_push" in found and pushes_default_branch(command, root):
-        require_approval(
-            gate,
-            "default_branch_push",
-            "default-branch push",
-        )
+    if "git_push" in found:
+        require_fresh_base(gate, root)
+        if pushes_default_branch(command, root):
+            require_approval(
+                gate,
+                "default_branch_push",
+                "default-branch push",
+            )
 
 
 def main() -> None:
