@@ -58,11 +58,12 @@ domains:
       - output-skill
 
   review_and_verification:
-    description: Independent review, testing, evidence gathering, and closeout.
+    description: Independent decision review, code review, testing, specification alignment, evidence gathering, and closeout.
     skills:
       - critic-review
       - reviewer
       - verifier
+      - spec-drift-audit
       - codex-verification
       - webapp-testing
       - ssot-sync-closeout
