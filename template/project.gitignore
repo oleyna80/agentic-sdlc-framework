@@ -4,20 +4,9 @@
 # Keep this filename inactive inside the framework repository so the
 # publishable template files are not hidden by nested gitignore rules.
 
-# Portable governance/runtime contracts are committed by default. Explicit
-# negations protect them from user/global blanket excludes such as `.agent/` or
-# `.codex/`; narrower local-state rules below still win because they appear later.
-!.agent/
-!.agent/**
-!.codex/
-!.codex/**
-!.claude/
-!.claude/**
-!.opencode/
-!.opencode/**
-!CLAUDE.md
-!opencode.json
-!.mcp.json
+# Portable governance/runtime contracts are committed by default. The generated
+# ignore file contains no blanket `.agent/`, `.codex/`, `.claude/`, or
+# `.opencode/` rule. Test environments isolate user/global excludes separately.
 
 # Ignore only operational, private, generated, or user-local state.
 .agent/active-work-block.json
