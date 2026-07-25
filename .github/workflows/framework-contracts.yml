@@ -49,6 +49,7 @@ jobs:
               Path("scripts/test-codex-adapter.py"),
               Path("scripts/test-codex-hard-stops.py"),
               Path("scripts/test-integration-contracts.py"),
+              Path("scripts/test-integration-admission-evidence.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
               Path("template/.claude/hooks/work_block_gate.py"),
               Path("template/.claude/hooks/assurance_gate.py"),
@@ -79,7 +80,9 @@ jobs:
       - name: Validate integration adapters
         id: integration_adapters
         continue-on-error: true
-        run: python scripts/test-integration-contracts.py > "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
+        run: |
+          python scripts/test-integration-contracts.py > "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
+          python scripts/test-integration-admission-evidence.py >> "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
 
       - name: Upload integration adapter failure log
         if: steps.integration_adapters.outcome == 'failure'
@@ -198,6 +201,9 @@ jobs:
           assert opencode["mcp"] == {}
           assert opencode["plugin"] == []
           assert opencode["permission"]["external_directory"] == "deny"
+          machine_gate = json.loads((root / ".agent/active-work-block.json").read_text())
+          assert machine_gate["integrations"] == {"approved": [], "admission_records": []}
+          assert set(machine_gate["assurance"]) == {"review", "verification", "drift"}
           print("generated integration configuration OK")
           PY
           grep -q "Contract Smoke" "$target/AGENTS.md"
