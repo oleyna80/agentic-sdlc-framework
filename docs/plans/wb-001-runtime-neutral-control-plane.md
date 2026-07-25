@@ -2,10 +2,12 @@
 
 ## Status
 
-- **State:** in_progress
+- **State:** completed
+- **Closeout:** success
 - **Branch:** `agent/runtime-neutral-control-plane`
 - **Side-effect class:** public repository change
 - **Verification tier:** standard
+- **Superseded active work by:** `docs/plans/wb-002-normalize-portable-sdlc-contracts.md`
 
 ## Objective
 
@@ -19,6 +21,20 @@ The repository contains a clear runtime-neutral governance core, explicit
 runtime adapter boundaries, and an accepted architectural decision that treats
 Codex, Claude Code, OpenCode, and future runtimes as interchangeable execution
 adapters rather than as authority-bearing parts of the SDLC.
+
+## Delivered
+
+- Accepted architecture decision:
+  `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
+- Added the runtime-neutral control plane under `governance/`.
+- Added Codex, Claude Code, OpenCode, and generic adapter boundaries under
+  `runtimes/`.
+- Separated logical role, runtime, model, specialization, isolation, and tool
+  capability.
+- Repositioned plugins, MCP, and file handoff as integrations/transports rather
+  than governance authority.
+- Updated repository overview, navigation, and machine-readable registry.
+- Added structural governance validation.
 
 ## In Scope
 
@@ -48,28 +64,33 @@ runtimes/**
 README.md
 PROJECT_MAP.md
 FILE_REGISTRY.yml
+scripts/validate-governance.sh
 ```
 
 ## Acceptance Criteria
 
-- [ ] The core architecture is explicitly runtime-neutral.
-- [ ] Logical roles are separated from runtime, model, and isolation level.
-- [ ] Governance lifecycle functions do not require one process per role.
-- [ ] Runtime adapters expose capabilities and limitations without changing
+- [x] The core architecture is explicitly runtime-neutral.
+- [x] Logical roles are separated from runtime, model, and isolation level.
+- [x] Governance lifecycle functions do not require one process per role.
+- [x] Runtime adapters expose capabilities and limitations without changing
       authority rules.
-- [ ] Existing implementation layers are classified as adapters or legacy
+- [x] Existing implementation layers are classified as adapters or legacy
       transports rather than the core SDLC.
-- [ ] Repository navigation points agents to the new normative documents.
-- [ ] Existing integrations remain usable during migration.
+- [x] Repository navigation points agents to the new normative documents.
+- [x] Existing integrations remain usable during migration.
 
-## Verification Plan
+## Verification Evidence
 
-- Review all new normative documents for conflicting authority statements.
-- Confirm links and paths referenced by `README.md`, `PROJECT_MAP.md`, and
-  `FILE_REGISTRY.yml` exist.
-- Compare branch to `main` and inspect the complete diff.
-- Keep the pull request in draft state until later migration Work Blocks align
-  templates, profiles, hooks, and skills with this architecture.
+- GitHub compare confirmed the branch was based on `main` and not behind.
+- Governance, runtime, ADR, README, map, and registry paths were inspected.
+- `scripts/validate-governance.sh` was added for machine-executed validation.
+- Shell execution was moved to the GitHub Actions contract workflow during
+  WB-002.
+
+## Closeout
+
+The architectural foundation is complete. Template convergence, generated
+project contracts, drift audit, and CI validation continue under WB-002.
 
 ## Follow-up Work Blocks
 
