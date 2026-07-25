@@ -1,32 +1,33 @@
 # Machine-readable navigation registry for authority-bearing files and major
-# repository zones. It is intentionally selective: do not register every file.
+# repository zones. Keep this selective: register contracts and boundaries, not
+# every file.
 
-version: 2
+version: 3
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
 statuses:
-  normative: "source of truth or policy-bearing file"
-  normative_target: "accepted target architecture being migrated into templates"
-  runtime_adapter: "runtime-specific implementation; cannot override governance"
-  integration_adapter: "transport or integration mechanism; cannot override governance"
+  normative: "source of truth or accepted policy-bearing file"
   template: "copied into generated projects"
+  runtime_adapter: "runtime-specific implementation; cannot override governance"
+  integration_adapter: "plugin, MCP, handoff, or transport; cannot override governance"
   reference: "background knowledge; does not override policy"
-  example: "illustrative scenario; not mandatory policy"
-  log: "evidence/history; not current authority"
-  derived: "generated or discovered from other sources"
-  local_state: "machine-local or runtime state; do not publish by default"
+  evidence: "review, verification, drift, CI, or closeout evidence"
+  log: "active or historical Work Block state; not general policy"
+  example: "illustrative scenario; never mandatory policy"
+  generated: "derived output; verify against current source"
+  local_state: "machine-local or private state; do not publish by default"
 
 artifact_authority_order:
   - explicit_owner_instruction_for_active_work_block
-  - active_workspace_AGENTS_and_approved_governance
+  - active_workspace_AGENTS_and_governance
   - approved_specification_and_acceptance_criteria
   - accepted_architecture_decisions_and_external_contracts
   - approved_implementation_plan_and_write_set
   - active_task_decomposition
   - review_verification_drift_and_closeout_evidence
   - durable_engineering_memory
-  - operational_memory_runtime_logs_generated_context_and_examples
+  - runtime_policy_operational_logs_generated_context_and_examples
 
 role_dimensions:
   authority_roles:
@@ -39,7 +40,8 @@ role_dimensions:
     - verifier
   separate_from_authority:
     - runtime
-    - model
+    - model_class
+    - actual_model
     - specialization
     - isolation_level
     - tool_availability
@@ -47,7 +49,7 @@ role_dimensions:
 entries:
   governance/**:
     role: runtime_neutral_governance_core
-    status: normative_target
+    status: normative
     owner: architect
     update_when:
       - authority or logical roles change
@@ -61,7 +63,7 @@ entries:
 
   governance/README.md:
     role: governance_entrypoint
-    status: normative_target
+    status: normative
     owner: architect
     related:
       - governance/authority.md
@@ -71,39 +73,23 @@ entries:
 
   governance/authority.md:
     role: logical_roles_and_authority_boundaries
-    status: normative_target
+    status: normative
     owner: owner
-    update_when:
-      - an authority-bearing role changes
-      - hard stops change
-      - parallel write or isolation rules change
 
   governance/lifecycle.md:
     role: runtime_neutral_lifecycle_contract
-    status: normative_target
+    status: normative
     owner: architect
-    update_when:
-      - Define Execute Assure Close semantics change
-      - governance profile semantics change
-      - degraded or failure paths change
 
   governance/artifacts.md:
     role: portable_artifact_and_ssot_contract
-    status: normative_target
+    status: normative
     owner: architect
-    update_when:
-      - artifact metadata or verdict schemas change
-      - source-of-truth order changes
-      - review verification drift or closeout contracts change
 
   governance/runtime-capabilities.md:
     role: runtime_capability_negotiation
-    status: normative_target
+    status: normative
     owner: architect
-    update_when:
-      - capability schema changes
-      - fallback ladder changes
-      - runtime smoke-test requirements change
 
   runtimes/**:
     role: runtime_adapter_collection
@@ -111,9 +97,7 @@ entries:
     owner: maintainer
     update_when:
       - a runtime is added or retired
-      - role mappings change
-      - verified capabilities or limitations change
-      - runtime versions invalidate smoke evidence
+      - mappings capabilities limitations or smoke evidence change
     related:
       - governance/runtime-capabilities.md
       - governance/authority.md
@@ -150,8 +134,6 @@ entries:
     role: accepted_architecture_decisions
     status: normative
     owner: architect
-    update_when:
-      - a cross-cutting architecture decision is accepted superseded or retired
 
   docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md:
     role: runtime_neutral_control_plane_adr
@@ -159,6 +141,7 @@ entries:
     owner: owner
     related:
       - docs/plans/wb-001-runtime-neutral-control-plane.md
+      - docs/plans/wb-002-normalize-portable-sdlc-contracts.md
       - governance/**
       - runtimes/**
 
@@ -167,20 +150,29 @@ entries:
     status: log
     owner: orchestrator
     update_when:
-      - a Work Block is created updated or closed
+      - a Work Block is created updated closed or superseded
 
   docs/plans/wb-001-runtime-neutral-control-plane.md:
-    role: active_runtime_neutral_migration_work_block
+    role: completed_architecture_foundation_work_block
     status: log
     owner: orchestrator
+    related:
+      - docs/plans/wb-002-normalize-portable-sdlc-contracts.md
+
+  docs/plans/wb-002-normalize-portable-sdlc-contracts.md:
+    role: active_portable_contract_migration_work_block
+    status: log
+    owner: orchestrator
+    related:
+      - template/AGENTS.md
+      - template/.agent/workflows/sdd-protocol.md
+      - scripts/test-sdd-contract.sh
+      - .github/workflows/framework-contracts.yml
 
   README.md:
     role: public_entrypoint
     status: normative
     owner: maintainer
-    update_when:
-      - public positioning changes
-      - architecture layers or onboarding paths change
     related:
       - governance/README.md
       - PROJECT_MAP.md
@@ -191,10 +183,7 @@ entries:
     status: normative
     owner: architect
     update_when:
-      - top-level directories change
-      - authority or architecture layers change
-      - runtime or integration adapters change
-      - generated reference log or local boundaries change
+      - architecture layers active Work Block or major paths change
     related:
       - FILE_REGISTRY.yml
       - governance/README.md
@@ -203,98 +192,134 @@ entries:
     role: machine_readable_navigation_registry
     status: normative
     owner: architect
-    update_when:
-      - key files or path patterns change
-      - authority status changes
-      - update triggers or architecture classification changes
 
   SETUP.md:
     role: setup_guide
     status: normative
     owner: maintainer
-    update_when:
-      - bootstrap flow changes
-      - runtime setup changes
-      - required tools change
+
+  docs/profiles.md:
+    role: governance_runtime_integration_and_model_profile_selector
+    status: normative
+    owner: architect
     related:
-      - README.md
-      - docs/profiles.md
+      - governance/lifecycle.md
+      - runtimes/**
+
+  docs/session-bootstrap.md:
+    role: framework_repository_progressive_intake
+    status: normative
+    owner: architect
+
+  docs/mcp-tool-policy.md:
+    role: tool_and_integration_authority_policy
+    status: normative
+    owner: architect
 
   bootstrap.sh:
     role: project_scaffold_installer
     status: normative
     owner: maintainer
     update_when:
-      - template copy behavior changes
-      - profiles affect installed content
-      - generated project validation changes
+      - installed governance runtime adapters templates or skills change
     related:
       - template/**
-      - scripts/validate-publication.sh
-
-  scripts/validate-publication.sh:
-    role: publication_safety_check
-    status: normative
-    owner: verifier
-    update_when:
-      - required public files change
-      - publication scans change
-      - bootstrap smoke expectations change
-
-  docs/session-bootstrap.md:
-    role: new_session_intake_flow
-    status: normative
-    owner: architect
-    update_when:
-      - read order or impact checks change
-      - progressive disclosure rules change
-      - memory usage policy changes
-
-  docs/profiles.md:
-    role: existing_operating_profile_selector
-    status: normative
-    owner: architect
-    update_when:
-      - governance profiles replace runtime-named profiles
-      - onboarding or runtime layers change
-    related:
-      - governance/lifecycle.md
+      - governance/**
       - runtimes/**
 
-  docs/mcp-tool-policy.md:
-    role: tool_authority_policy
+  scripts/test-sdd-contract.sh:
+    role: portable_sdlc_contract_test
     status: normative
-    owner: architect
+    owner: verifier
+    related:
+      - template/AGENTS.md
+      - template/.agent/workflows/sdd-protocol.md
+      - skills/spec-drift-audit/SKILL.md
+
+  scripts/validate-governance.sh:
+    role: governance_structure_validation
+    status: normative
+    owner: verifier
+
+  scripts/validate-publication.sh:
+    role: publication_safety_and_scaffold_validation
+    status: normative
+    owner: verifier
+
+  .github/workflows/framework-contracts.yml:
+    role: framework_contract_ci
+    status: evidence
+    owner: verifier
     update_when:
-      - MCP or external tool boundaries change
-      - integration authority rules change
+      - required validation commands or runtime dependencies change
+    related:
+      - scripts/test-sdd-contract.sh
+      - scripts/validate-governance.sh
+      - scripts/validate-publication.sh
 
   template/AGENTS.md:
-    role: generated_project_agent_policy
+    role: generated_project_runtime_neutral_operating_contract
     status: template
     owner: owner
-    update_when:
-      - governance core is migrated into generated projects
-      - role permissions approval gates or lifecycle change
     related:
       - governance/**
+      - template/.agent/ROSTER.md
       - template/.agent/workflows/sdd-protocol.md
 
-  template/.agent/workflows/sdd-protocol.md:
-    role: generated_project_lifecycle_compatibility_contract
+  template/PROJECT_MAP.md:
+    role: generated_project_human_navigation
     status: template
     owner: architect
-    update_when:
-      - lifecycle is normalized against governance/lifecycle.md
-      - review verifier or drift semantics change
+
+  template/FILE_REGISTRY.yml:
+    role: generated_project_machine_registry
+    status: template
+    owner: architect
+
+  template/.agent/ROSTER.md:
+    role: generated_project_logical_role_and_skill_router
+    status: template
+    owner: architect
+
+  template/.agent/workflows/sdd-protocol.md:
+    role: generated_project_define_execute_assure_close_contract
+    status: template
+    owner: architect
+
+  template/docs/session-bootstrap.md:
+    role: generated_project_progressive_session_intake
+    status: template
+    owner: architect
+
+  template/docs/templates/work-block-template.md:
+    role: generated_project_portable_work_block_contract
+    status: template
+    owner: orchestrator
+
+  template/docs/templates/spec-drift-report-template.md:
+    role: generated_project_specification_drift_report
+    status: template
+    owner: reviewer
+
+  template/docs/templates/verification-report-template.md:
+    role: generated_project_verification_report
+    status: template
+    owner: verifier
+
+  template/docs/templates/closeout-report-template.md:
+    role: generated_project_closeout_report
+    status: template
+    owner: orchestrator
+
+  template/scripts/bootstrap.sh:
+    role: generated_project_health_check
+    status: template
+    owner: verifier
 
   template/.codex/**:
     role: current_codex_runtime_compatibility_layer
     status: runtime_adapter
     owner: maintainer
-    update_when:
-      - Codex custom agents hooks or config change
-      - the Codex adapter migration advances
     related:
       - runtimes/codex/**
 
@@ -302,63 +327,30 @@ entries:
     role: current_claude_code_runtime_compatibility_layer
     status: runtime_adapter
     owner: maintainer
-    update_when:
-      - Claude Code agents hooks plugins or skills change
-      - the Claude Code adapter migration advances
     related:
       - runtimes/claude-code/**
-
-  template/docs/engineering-memory/**:
-    role: generated_project_engineering_memory_starters
-    status: template
-    owner: architect
-    related:
-      - framework/memory/project-engineering-memory.md
-
-  template/docs/templates/verification-report-template.md:
-    role: generated_project_verification_evidence_template
-    status: template
-    owner: verifier
-    update_when:
-      - verification metadata evidence or verdict contract changes
-
-  template/docs/templates/closeout-report-template.md:
-    role: generated_project_closeout_template
-    status: template
-    owner: orchestrator
-    update_when:
-      - successful or reporting-only closeout semantics change
-
-  template/**:
-    role: generated_project_source_template
-    status: template
-    owner: architect
-    update_when:
-      - generated project structure or policy changes
-      - bootstrap required files change
 
   skills/catalog.yml:
     role: shared_skill_library_navigation_index
     status: normative
     owner: architect
-    update_when:
-      - a skill is added promoted renamed or removed
-      - domain classification changes
+
+  skills/spec-drift-audit/**:
+    role: portable_specification_alignment_assurance
+    status: normative
+    owner: reviewer
+    related:
+      - template/docs/templates/spec-drift-report-template.md
 
   skills/**:
     role: portable_skill_library
     status: normative
     owner: maintainer
-    update_when:
-      - skill contracts or bootstrap installation change
 
   handoff/**:
     role: audited_file_based_cross_runtime_transport
     status: integration_adapter
     owner: architect
-    update_when:
-      - queue lifecycle scope audit recovery or result contract changes
-      - migration introduces a dedicated integrations boundary
     related:
       - runtimes/codex/**
       - runtimes/claude-code/**
@@ -367,18 +359,11 @@ entries:
     role: codex_model_routing_reference
     status: reference
     owner: architect
-    update_when:
-      - Codex model classes or routing guidance changes
-      - content is migrated into the Codex runtime adapter
 
   framework/knowledge/opencode-runtime.md:
     role: opencode_runtime_research
     status: reference
     owner: architect
-    update_when:
-      - OpenCode behavior is verified
-      - provider routing or permission behavior changes
-      - content is promoted into the OpenCode adapter
 
   framework/memory/project-engineering-memory.md:
     role: project_engineering_memory_policy
@@ -389,8 +374,6 @@ entries:
     role: reference_knowledge
     status: reference
     owner: maintainer
-    update_when:
-      - lessons are promoted or reference knowledge changes
 
   examples/**:
     role: scenario_guides
@@ -404,5 +387,5 @@ entries:
 
   graphify-out/**:
     role: generated_discovery_graph
-    status: derived
+    status: generated
     owner: tooling
