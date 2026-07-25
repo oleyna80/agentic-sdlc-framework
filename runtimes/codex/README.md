@@ -2,30 +2,34 @@
 
 ## Status
 
-Implemented baseline for project-scoped Codex subagents and executable Work
-Block guardrails.
+Implemented generated-project baseline for project-scoped logical-role agents,
+Codex hooks, provider-neutral machine gates, and explicit integration admission.
 
-This adapter maps Codex runtime capabilities to the runtime-neutral Governance
-Core. It does not redefine role authority, SSOT, Hard Stops, or closeout rules.
+This adapter implements the Governance Core. It does not redefine authority,
+source-of-truth order, Hard Stops, artifact verdicts, or closeout.
 
 ## Logical Role Mapping
 
 | Logical role | Codex implementation | Default sandbox |
 |---|---|---|
-| Orchestrator | Main Codex thread / control tower | Parent session policy |
+| Orchestrator | main Codex thread | parent session policy |
 | Architect | `.codex/agents/architect.toml` | read-only |
 | Critic | `.codex/agents/critic.toml` | read-only |
 | Coder | `.codex/agents/coder.toml` | workspace-write |
 | Reviewer | `.codex/agents/reviewer.toml` | read-only |
 | Verifier | `.codex/agents/verifier.toml` | read-only |
 
-The built-in `explorer` remains useful for read-heavy repository discovery.
-Temporary specializations may be expressed in the mission brief; they do not
-create broader authority.
+The built-in explorer may support read-heavy discovery. Temporary
+specializations change focus, not authority.
 
-## Installed Project Files
+## Installed Files
 
 ```text
+.agent/
+├── active-work-block.json
+└── hooks/
+    └── hard_stop_policy.py
+
 .codex/
 ├── config.toml.template
 ├── hooks.json
@@ -40,20 +44,18 @@ create broader authority.
     ├── pre_tool_use_policy.py
     ├── stage0_write_gate.py
     └── subagent_context.py
-
-.agent/
-└── active-work-block.json
 ```
 
-`stage0_write_gate.py` is a deprecated compatibility shim that delegates to
-`pre_tool_use_policy.py`. New configurations use `.codex/hooks.json` directly.
+- `.agent/hooks/hard_stop_policy.py` is the shared provider-neutral
+  consequential-action and external-runtime guard.
+- `.codex/hooks/hard_stop_policy.py` is a Codex compatibility wrapper.
+- `stage0_write_gate.py` is a deprecated compatibility entry point for the
+  Codex write/scope policy.
+- `config.toml.template` is not activated automatically.
 
-`config.toml.template` is not activated automatically. Copy it to
-`.codex/config.toml` after reviewing project-local settings.
+## Configuration
 
-## Current Codex Configuration Model
-
-Multi-agent configuration belongs under `[agents]`:
+Project multi-agent settings belong under `[agents]`:
 
 ```toml
 [agents]
@@ -62,176 +64,186 @@ max_concurrent_threads_per_session = 6
 interrupt_message = true
 ```
 
-`agents.enabled` currently defaults to true. The explicit setting documents
-project intent and allows the adapter contract test to detect regressions.
+The public framework does not pin models/providers. Keep authentication,
+provider definitions, private endpoints, telemetry settings, and concrete model
+routing in user/private configuration.
 
-Standalone project-scoped custom agents live under `.codex/agents/*.toml`.
-Each agent supplies `name`, `description`, and `developer_instructions` and may
-also set normal session values such as reasoning effort and sandbox mode.
+Do not duplicate project hooks inline in `.codex/config.toml` when
+`.codex/hooks.json` already declares them.
 
-The public framework does not pin concrete models. Model routing belongs in
-private/user configuration or a deliberately validated project baseline.
+## Hook Layers
 
-## Hooks
+`.codex/hooks.json` registers:
 
-Project hooks are declared only in `.codex/hooks.json`:
+1. shared Hard Stop policy for consequential Bash operations and direct external
+   runtime CLI invocation;
+2. Codex write/scope policy for Bash and edit/apply-patch paths;
+3. bounded Work Block context on `SubagentStart`.
 
-- `PreToolUse` runs `hard_stop_policy.py` for consequential Bash operations;
-- `PreToolUse` also runs `pre_tool_use_policy.py` for write-gate and write-set
-  enforcement across Bash and edit/apply-patch paths;
-- `SubagentStart` runs `subagent_context.py` to add bounded Work Block authority
-  to the spawned agent context.
+A command must pass every applicable hook. Approval in one layer does not bypass
+another.
 
-The two `PreToolUse` policies are intentionally layered:
+Project hooks are loaded only for trusted projects. Review source and run safe
+fixtures before trusting new or modified hooks.
 
-1. Hard Stop policy checks explicit Owner approvals and their active time window.
-2. Write policy checks specification, Critic state, gate expiry, Git baseline,
-   and target paths.
+Hooks are guardrails, not OS isolation, and do not necessarily intercept every
+hosted/specialized tool path. Plugins, MCP tools, connectors, browsers, and
+other external capabilities require separate admission and runtime permission.
 
-A command must pass every matching hook. Approval by one layer does not bypass
-the other.
+## Machine Work Block
 
-Codex loads project-local hooks only for trusted projects. New or modified
-non-managed hooks must be reviewed and trusted in Codex before they run. Inspect
-hook sources before accepting them.
+`.agent/active-work-block.json` starts fail-closed and records:
 
-Do not duplicate the same project hooks inline in `.codex/config.toml`; Codex
-merges both sources and warns when both representations are present.
-
-## Machine-Readable Work Block Gate
-
-`.agent/active-work-block.json` is the executable gate input. It is generated in
-`BLOCKED` state.
+- Work Block/governance profile;
+- specification path/revision;
+- Git `base_commit`;
+- write gate/opened/expiry;
+- Critic state/isolation/report;
+- exact source and coordination write-sets;
+- Hard Stop approvals;
+- approved integration IDs and admission-record paths;
+- Review, Verification, and Drift state/evidence;
+- closeout mode.
 
 Source writes require:
 
-- schema version 1;
-- non-empty Work Block ID;
-- approved specification path and revision;
+- schema version 1 and Work Block ID;
+- approved specification path/revision;
 - `write_gate.status: READY`;
-- timezone-aware, non-expired `expires_at`;
-- current Git `HEAD` matching `base_commit`;
-- resolved required Critic state;
-- non-empty approved `write_set`;
-- every source target matching that write-set.
+- timezone-aware unexpired gate;
+- current `HEAD` matching `base_commit`;
+- resolved required Critic;
+- non-empty write-set;
+- target path inside the write-set.
 
-Before the source gate opens, the hook allows only explicit coordination paths
-needed to prepare specifications, plans, reports, gate state, and operational
-logs.
+Coordination paths needed to prepare specifications/plans/reports/gate state may
+remain writable while source is blocked.
 
-The gate becomes stale after `HEAD` changes. Renew it deliberately before
-additional source writes.
+After a commit changes `HEAD`, renew the gate before further source writes or an
+approved push.
 
-## Hard Stop and Bash Policy
+## Hard Stops
 
-Ordinary read-only commands pass without opening a source gate. Supported
-consequential operations require both a short-lived active Work Block gate and
-the corresponding explicit approval flag.
-
-The Hard Stop layer covers selected Bash forms for:
+Supported Bash forms require an active approval window and matching Owner flag
+for:
 
 - commit and push;
-- default-branch push, including explicit default refs and `HEAD` from a default
-  branch;
-- recursive removal and other destructive operations;
-- live infrastructure and live-data mutations;
-- credential or secret access/mutation;
+- default-branch push/refspecs;
+- recursive removal/destructive operations;
+- live infrastructure and live-data mutation;
+- credential/secret access or mutation;
 - client-facing communications.
 
-The write/scope layer additionally:
+Direct child-runtime commands also cross an integration boundary:
 
-- denies source writes while the gate is blocked, invalid, expired, or stale;
-- denies patches outside the approved write-set;
-- denies dynamic, globbed, repository-wide, or compound mutations that cannot be
-  scoped safely;
+| Command | Integration ID |
+|---|---|
+| `codex` | `codex-cli` |
+| `claude` | `claude-code-cli` |
+| `opencode` | `opencode-cli` |
+
+They require:
+
+- active non-expired Work Block;
+- fresh Git baseline;
+- matching ID in `integrations.approved`;
+- at least one concrete path in `integrations.admission_records`.
+
+Admission does not authorize child-runtime writes. The mission/function binding
+and approved write-set must separately permit them.
+
+Pattern matching covers common direct command forms; wrappers, aliases,
+interpreters, containers, hosted tools, and indirect process launches need their
+own admission/permission review.
+
+## Write and Bash Scope Policy
+
+The Codex write/scope layer:
+
+- denies source writes while the gate is blocked/invalid/expired/stale;
+- denies patches outside the write-set;
+- denies uninspectable dynamic/globbed/repository-wide/compound mutations;
 - validates staged paths before an approved commit;
-- recommends `apply_patch` or small explicit commands for inspectable writes.
+- rejects broad implicit dependency-manager writes unless handled by an
+  explicitly reviewed workflow;
+- recommends small inspectable commands or `apply_patch`.
 
-Hard Stop approvals expire with `write_gate.expires_at` and are invalid while the
-write gate is `BLOCKED`. Renewing the gate or changing the Work Block must be a
-deliberate coordination update.
+## Subagent Context and Isolation
 
-Dependency-manager commands have broad implicit writes and require a separately
-reviewed workflow rather than automatic scope inference.
+`subagent_context.py` adds bounded operational context:
 
-## Subagent Context
-
-`subagent_context.py` adds:
-
-- logical agent type;
-- current permission mode;
+- logical agent type and permission mode;
 - role authority;
-- Work Block ID and governance profile;
-- specification and revision;
-- source gate and expiry;
-- Critic state;
-- approved write-set and coordination paths.
+- Work Block/governance profile;
+- specification/revision;
+- source gate/expiry and Critic state;
+- source and coordination write-sets.
 
-This context is operational guidance. It does not itself grant approval.
+Context does not grant approval.
 
-## Sandbox and Isolation Limits
+Custom-agent sandbox defaults are defense in depth. The parent turn's live
+sandbox/approval overrides may apply to children. Record actual isolation and
+shared machine/checkout/auth resources. Use separate worktrees, roots, runtimes,
+containers, users, machines, accounts, or human review when stronger assurance
+is required.
 
-Custom agent files set safe defaults, but Codex reapplies the parent turn's live
-sandbox and approval overrides when spawning a child. Therefore:
+Parallel writers require separate worktrees/non-overlapping write-sets, one
+consolidation owner, and assurance of the consolidated result.
 
-- read-only agent profiles are defense in depth, not absolute isolation;
-- choose parent permissions before delegation;
-- record actual permission mode and isolation in the Work Block;
-- use a separate read-only root, separate runtime, container, or OS boundary when
-  stronger independence is required;
-- treat hooks as guardrails, not a complete enforcement or security boundary.
+## Integrations
 
-Tool hooks do not cover every possible hosted or specialized execution path.
-MCP and other consequential tools need their own reviewed policy, permissions,
-and evidence rather than an assumption that Bash matching protects them.
+Codex may be:
 
-Use parallel subagents primarily for independent read-heavy tasks. Parallel
-writers require separate worktrees, non-overlapping write-sets, consolidation,
-and assurance of the merged result.
+- the primary runtime;
+- called through the official Claude Code Codex plugin;
+- exposed through a reviewed MCP server;
+- targeted through audited file handoff;
+- invoked as an admitted direct CLI process.
+
+See `integrations/`. No plugin, MCP server, external runtime, or service is
+enabled by default.
 
 ## Activation
 
 1. Bootstrap the project.
-2. Review `AGENTS.md`, `governance/`, and this adapter.
-3. Copy `.codex/config.toml.template` to `.codex/config.toml`.
-4. Create the human Work Block.
-5. Populate `.agent/active-work-block.json` while keeping the source gate
-   `BLOCKED`.
-6. Run required Critic review and record the result.
-7. Set `base_commit`, write-set, expiry, and required approvals.
-8. Change `write_gate.status` to `READY` only after Define is complete.
-9. Open Codex hook management, inspect the project hook definitions, and trust
-   them deliberately.
-10. Run a safe fixture or read-only smoke before real writes.
+2. Read `AGENTS.md`, Governance Core, and this adapter.
+3. Review `.codex/agents/`, `.codex/hooks.json`, and shared/Codex hooks.
+4. Copy `.codex/config.toml.template` to `.codex/config.toml` only when desired.
+5. Create the human Work Block and populate the machine gate while blocked.
+6. Record capability/runtime/model/isolation evidence.
+7. Resolve required Critic and integration admissions.
+8. Set current base commit, scope/write-set, short expiry, and required approvals.
+9. Change the source gate to `READY` only after Define is complete.
+10. Trust hooks deliberately and run safe fixtures/read-only smoke.
 
 ## Validation
 
 Framework CI runs:
 
 ```bash
+bash scripts/test-sdd-contract.sh
+python scripts/test-integration-contracts.py
 python scripts/test-codex-adapter.py
 python scripts/test-codex-hard-stops.py
-bash scripts/test-sdd-contract.sh
 bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-The disposable bootstrap smoke also verifies that all agent, hook, gate, and
-adapter files reach generated projects.
+The disposable scaffold verifies agents, shared/Codex hooks, machine gate,
+runtime/integration adapters, safe defaults, and templates.
 
 ## Degraded Mode
 
-When custom agents or hooks are unavailable:
+When custom agents/hooks are unavailable:
 
-- preserve the logical function through a separate session or manual pass;
-- record actual runtime and isolation;
-- keep source writes blocked unless another approved guardrail enforces scope;
-- label same-context review as degraded;
-- do not upgrade BLOCKED or UNVERIFIED evidence because the preferred Codex
-  capability was unavailable.
+- preserve logical functions through separate sessions/runtimes/manual passes;
+- record actual authority/isolation and missing enforcement;
+- keep source blocked unless another approved guardrail enforces scope;
+- label same-context assurance degraded;
+- do not upgrade `BLOCKED`/`UNVERIFIED` evidence.
 
 ## Official References
 
-- [Codex subagents and custom agents](https://developers.openai.com/codex/subagents)
-- [Codex hooks](https://developers.openai.com/codex/hooks)
-- [Codex configuration reference](https://developers.openai.com/codex/config-reference)
+- <https://developers.openai.com/codex/subagents>
+- <https://developers.openai.com/codex/hooks>
+- <https://developers.openai.com/codex/config-reference>
