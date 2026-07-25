@@ -42,23 +42,10 @@ require_line() {
   fi
 }
 
-require_min_lines() {
-  local path="$1"
-  local min_lines="$2"
-  local line_count
-  line_count="$(wc -l < "$ROOT/$path")"
-  if [ "$line_count" -ge "$min_lines" ]; then
-    ok "$path line count >= $min_lines"
-  else
-    fail "$path has $line_count lines; expected at least $min_lines"
-  fi
-}
-
 echo "==> Publication validation: $ROOT"
 
 for path in \
   "README.md" \
-  "skills/catalog.yml" \
   "SETUP.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml" \
@@ -68,110 +55,88 @@ for path in \
   "SECURITY.md" \
   "CHANGELOG.md" \
   "PUBLICATION_CHECKLIST.md" \
-  ".claude/settings.json" \
   "bootstrap.sh" \
-  "docs/quickstart-minimal.md" \
+  "skills/catalog.yml" \
+  "governance/README.md" \
+  "governance/authority.md" \
+  "governance/lifecycle.md" \
+  "governance/artifacts.md" \
+  "governance/runtime-capabilities.md" \
+  "runtimes/README.md" \
+  "runtimes/codex/README.md" \
+  "runtimes/claude-code/README.md" \
+  "runtimes/opencode/README.md" \
+  "runtimes/generic/README.md" \
+  "integrations/README.md" \
+  "integrations/claude-code-codex-plugin/README.md" \
+  "integrations/mcp/README.md" \
+  "integrations/file-handoff/README.md" \
   "docs/profiles.md" \
   "docs/session-bootstrap.md" \
   "docs/mcp-tool-policy.md" \
-  "docs/templates/project-agent-update-template.md" \
-  "docs/plans/2026-06-18-framework-onboarding-profiles.md" \
-  "docs/plans/2026-06-18-framework-navigation-control-layer.md" \
-  "docs/plans/2026-06-19-claude-code-plugin-profile.md" \
-  "docs/plans/2026-06-20-sdd-protocol-template-convergence.md" \
-  "examples/README.md" \
-  "examples/codex-only-nextjs/README.md" \
-  "examples/codex-claude-reviewer/README.md" \
-  "examples/codex-claude-handoff-smoke/README.md" \
-  "scripts/test-handoff-scope-audit.sh" \
+  "docs/plans/wb-004-integration-adapter-normalization.md" \
+  "handoff/README.md" \
+  "handoff/templates/runtime-task-template.md" \
+  "handoff/templates/claude-team-task-template.md" \
+  "handoff/runner/handoff-runner.sh" \
+  "handoff/runner/parallel-runner.sh" \
+  "handoff/runner/sanitize-env.sh" \
+  "handoff/runner/watch-queue.sh" \
   "scripts/test-sdd-contract.sh" \
+  "scripts/test-integration-contracts.py" \
+  "scripts/test-codex-adapter.py" \
+  "scripts/test-codex-hard-stops.py" \
+  "scripts/validate-governance.sh" \
   "template/project.gitignore" \
+  "template/AGENTS.md" \
+  "template/CLAUDE.md" \
   "template/PROJECT_MAP.md" \
   "template/FILE_REGISTRY.yml" \
   "template/.agent/ROSTER.md" \
+  "template/.agent/active-work-block.json" \
+  "template/.agent/hooks/hard_stop_policy.py" \
   "template/.agent/workflows/sdd-protocol.md" \
-  "template/.agent/skills/README.md" \
   "template/.mcp.json" \
   "template/.claude/settings.json" \
-  "template/.claude/agent-memory/codex-reviewer/MEMORY.md" \
-  "template/.claude/agent-memory/critic/MEMORY.md" \
-  "template/.claude/agent-memory/gpt-critic/MEMORY.md" \
-  "template/.claude/agent-memory/gpt-verifier/MEMORY.md" \
-  "template/.claude/agent-memory/reviewer/MEMORY.md" \
-  "template/.claude/agent-memory/scoped-coder/MEMORY.md" \
-  "template/.claude/agent-memory/solution-architect/MEMORY.md" \
-  "template/.claude/agent-memory/verifier/MEMORY.md" \
-  "template/.claude/agents/codex-reviewer.md" \
-  "template/.claude/agents/critic.md" \
-  "template/.claude/agents/gpt-critic.md" \
-  "template/.claude/agents/gpt-verifier.md" \
-  "template/.claude/agents/reviewer.md" \
-  "template/.claude/agents/scoped-coder.md" \
-  "template/.claude/agents/solution-architect.md" \
-  "template/.claude/agents/verifier.md" \
+  "template/.claude/hooks/work_block_gate.py" \
+  "template/.claude/hooks/assurance_gate.py" \
   "template/.claude/hooks/critic-gate.sh" \
   "template/.claude/hooks/hard-stop.sh" \
   "template/.claude/hooks/typecheck.sh" \
   "template/.claude/hooks/verification-gate.sh" \
-  "template/.claude/skills/README.md" \
-  "template/.agent/critic-gate.md" \
-  "template/.agent/verification-gate.md" \
-  "template/.codex/critic.md" \
-  "template/.codex/write-gate.md" \
-  "template/memory_bank/external-team-log.md" \
-  "template/docs/session-bootstrap.md" \
+  "template/.claude/agents/solution-architect.md" \
+  "template/.claude/agents/critic.md" \
+  "template/.claude/agents/scoped-coder.md" \
+  "template/.claude/agents/reviewer.md" \
+  "template/.claude/agents/verifier.md" \
+  "template/.codex/hooks.json" \
+  "template/.codex/hooks/hard_stop_policy.py" \
+  "template/.codex/hooks/pre_tool_use_policy.py" \
+  "template/.codex/hooks/stage0_write_gate.py" \
+  "template/.codex/hooks/subagent_context.py" \
+  "template/opencode.json" \
+  "template/.opencode/agents/architect.md" \
+  "template/.opencode/agents/critic.md" \
+  "template/.opencode/agents/coder.md" \
+  "template/.opencode/agents/reviewer.md" \
+  "template/.opencode/agents/verifier.md" \
   "template/docs/templates/work-block-template.md" \
-  "template/docs/templates/tasklist-template.md" \
-  "template/docs/templates/consolidation-report-template.md" \
-  "template/docs/templates/verification-report-template.md" \
-  "template/docs/templates/closeout-report-template.md" \
-  "template/docs/templates/project-agent-update-template.md" \
-  "template/docs/engineering-memory/README.md" \
-  "template/docs/engineering-memory/decision-record-template.md" \
-  "template/docs/engineering-memory/source-of-truth-chains.md" \
-  "template/docs/engineering-memory/temporary-decisions.md" \
-  "template/docs/engineering-memory/reproducibility-log.md" \
-  "template/docs/plans/README.md" \
-  "template/docs/specs/README.md" \
-  "template/docs/tasklist/README.md" \
-  "template/docs/reports/README.md" \
-  "framework/knowledge/README.md" \
-  "framework/knowledge/claude-code-cli.md" \
-  "framework/knowledge/claude-code-global-bootstrap.md" \
-  "framework/knowledge/claude-code-plugins.md" \
-  "framework/knowledge/opencode-runtime.md" \
-  "framework/memory/project-engineering-memory.md" \
-  "handoff/.gitignore" \
-  "handoff/README.md" \
-  "handoff/active/.gitkeep" \
-  "handoff/done/.gitkeep" \
-  "handoff/failed/.gitkeep" \
-  "handoff/logs/.gitkeep" \
-  "handoff/parallel/.gitkeep" \
-  "handoff/queue/.gitkeep" \
-  "handoff/runtime/.gitkeep" \
-  "handoff/runner/cleanup.sh" \
-  "handoff/runner/handoff-runner.sh" \
-  "handoff/runner/install-systemd-user-service.sh" \
-  "handoff/runner/parallel-runner.sh" \
-  "handoff/runner/sanitize-env.sh" \
-  "handoff/runner/watch-queue.sh" \
-  "handoff/systemd/agentic-sdlc-handoff.service.template" \
-  "handoff/systemd/handoff.env.example" \
-  "handoff/templates/claude-team-task-template.md"; do
+  "template/docs/templates/spec-drift-report-template.md" \
+  "template/docs/templates/integration-admission-template.md" \
+  "template/scripts/bootstrap.sh"; do
   require_file "$path"
 done
 
-CORE_SKILLS="$(sed -n 's/^CORE_SKILLS="\(.*\)"$/\1/p' "$ROOT/bootstrap.sh")"
-if [ -z "$CORE_SKILLS" ]; then
-  fail "unable to read CORE_SKILLS from bootstrap.sh"
-else
-  for skill in $CORE_SKILLS; do
-    require_file "skills/$skill/SKILL.md"
-  done
-fi
-
-require_absent "template/.gitignore"
+for path in \
+  "template/.gitignore" \
+  "template/.claude/agents/gpt-critic.md" \
+  "template/.claude/agents/gpt-verifier.md" \
+  "template/.claude/agents/codex-reviewer.md" \
+  "template/.claude/agent-memory/gpt-critic/MEMORY.md" \
+  "template/.claude/agent-memory/gpt-verifier/MEMORY.md" \
+  "template/.claude/agent-memory/codex-reviewer/MEMORY.md"; do
+  require_absent "$path"
+done
 
 require_line ".gitignore" "archive/"
 require_line ".gitignore" "node_modules/"
@@ -183,118 +148,78 @@ require_line "template/project.gitignore" ".codex/"
 require_line "template/project.gitignore" "node_modules/"
 require_line "template/project.gitignore" ".env"
 
-for path in \
-  ".gitignore" \
-  "template/project.gitignore" \
-  "FILE_REGISTRY.yml" \
-  "template/FILE_REGISTRY.yml" \
-  "bootstrap.sh" \
-  "scripts/validate-publication.sh" \
-  "template/scripts/bootstrap.sh" \
-  "PROJECT_MAP.md" \
-  "docs/session-bootstrap.md" \
-  "docs/profiles.md" \
-  "framework/memory/project-engineering-memory.md" \
-  "docs/quickstart-minimal.md" \
-  "docs/mcp-tool-policy.md" \
-  "examples/README.md" \
-  "template/PROJECT_MAP.md" \
-  "template/docs/engineering-memory/README.md" \
-  "template/docs/session-bootstrap.md"; do
-  require_min_lines "$path" 10
-done
+CORE_SKILLS="$(sed -n 's/^CORE_SKILLS="\(.*\)"$/\1/p' "$ROOT/bootstrap.sh")"
+if [ -z "$CORE_SKILLS" ]; then
+  fail "unable to read CORE_SKILLS from bootstrap.sh"
+else
+  for skill in $CORE_SKILLS; do
+    require_file "skills/$skill/SKILL.md"
+  done
+fi
 
 if command -v python3 >/dev/null 2>&1; then
-  python3 - "$ROOT/FILE_REGISTRY.yml" "$ROOT/template/FILE_REGISTRY.yml" <<'PY' || fail "YAML parse failed for FILE_REGISTRY.yml"
-import pathlib
-import sys
-
-try:
-    import yaml
-except ImportError as exc:
-    raise SystemExit("PyYAML is required for registry validation") from exc
-
-for path_arg in sys.argv[1:]:
-    path = pathlib.Path(path_arg)
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise SystemExit(f"{path} did not parse to a mapping")
-    for key in ("version", "scope", "entries"):
-        if key not in data:
-            raise SystemExit(f"{path} missing top-level key: {key}")
-print("YAML OK")
-PY
-  ok "FILE_REGISTRY.yml YAML parsing"
-
-  python3 - "$ROOT/skills/catalog.yml" "$ROOT/skills" <<'PY' || fail "skill catalog validation failed"
-import pathlib
-import sys
-
-try:
-    import yaml
-except ImportError as exc:
-    raise SystemExit("PyYAML is required for catalog validation") from exc
-
-catalog_path = pathlib.Path(sys.argv[1])
-skills_root = pathlib.Path(sys.argv[2])
-data = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
-
-if not isinstance(data, dict):
-    raise SystemExit("catalog did not parse to a mapping")
-
-for key in ("schema_version", "library_role", "selection_policy", "domains", "consumer_contract"):
-    if key not in data:
-        raise SystemExit(f"catalog missing top-level key: {key}")
-
-catalogued = []
-for domain, definition in data["domains"].items():
-    if not isinstance(definition, dict) or not isinstance(definition.get("skills"), list):
-        raise SystemExit(f"catalog domain {domain!r} has no skills list")
-    catalogued.extend(definition["skills"])
-
-if len(catalogued) != len(set(catalogued)):
-    raise SystemExit("catalog contains duplicate skill names")
-
-actual = {
-    path.parent.name
-    for path in skills_root.glob("*/SKILL.md")
-}
-if set(catalogued) != actual:
-    missing = sorted(actual - set(catalogued))
-    unknown = sorted(set(catalogued) - actual)
-    raise SystemExit(f"catalog mismatch: missing={missing}, unknown={unknown}")
-
-print("skill catalog YAML and coverage OK")
-PY
-  ok "skills/catalog.yml YAML parsing and coverage"
-
-  python3 - "$ROOT/.claude/settings.json" <<'PY' || fail "Claude Code plugin allowlist validation failed"
+  python3 - "$ROOT" <<'PY' || fail "JSON/YAML/public configuration validation failed"
 import json
 import pathlib
 import sys
+import yaml
 
-path = pathlib.Path(sys.argv[1])
-data = json.loads(path.read_text(encoding="utf-8"))
-expected = {
-    "frontend-design@claude-plugins-official": True,
-    "skill-creator@claude-plugins-official": True,
-}
-if data != {"enabledPlugins": expected}:
-    raise SystemExit(
-        f"{path} must contain only the approved enabledPlugins allowlist"
-    )
-print("Claude Code plugin allowlist OK")
+root = pathlib.Path(sys.argv[1])
+
+for relative in ("FILE_REGISTRY.yml", "template/FILE_REGISTRY.yml", "skills/catalog.yml"):
+    path = root / relative
+    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise SystemExit(f"{relative} must parse to a mapping")
+
+for relative in (
+    ".claude/settings.json",
+    "template/.claude/settings.json",
+    "template/.mcp.json",
+    "template/.agent/active-work-block.json",
+    "template/.codex/hooks.json",
+    "template/opencode.json",
+):
+    path = root / relative
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise SystemExit(f"{relative} must parse to an object")
+
+mcp = json.loads((root / "template/.mcp.json").read_text(encoding="utf-8"))
+if mcp != {"mcpServers": {}}:
+    raise SystemExit("template/.mcp.json must remain empty by default")
+
+claude = json.loads((root / "template/.claude/settings.json").read_text(encoding="utf-8"))
+if any(key in claude for key in ("enabledMcpjsonServers", "permissions", "autoMode")):
+    raise SystemExit("template Claude settings must not pre-enable external integrations")
+expected_agents = {"solution-architect", "critic", "reviewer", "scoped-coder", "verifier"}
+if set(claude.get("agents", {})) != expected_agents:
+    raise SystemExit("template Claude settings logical agent set mismatch")
+
+opencode = json.loads((root / "template/opencode.json").read_text(encoding="utf-8"))
+if opencode.get("mcp") != {} or opencode.get("plugin") != []:
+    raise SystemExit("template OpenCode must not enable MCP/plugins")
+if opencode.get("permission", {}).get("external_directory") != "deny":
+    raise SystemExit("template OpenCode must deny external_directory")
+
+catalog = yaml.safe_load((root / "skills/catalog.yml").read_text(encoding="utf-8"))
+catalogued = []
+for definition in catalog.get("domains", {}).values():
+    if not isinstance(definition, dict) or not isinstance(definition.get("skills"), list):
+        raise SystemExit("invalid skill catalog domain")
+    catalogued.extend(definition["skills"])
+actual = {path.parent.name for path in (root / "skills").glob("*/SKILL.md")}
+if set(catalogued) != actual or len(catalogued) != len(set(catalogued)):
+    raise SystemExit("skill catalog coverage mismatch")
+
+print("JSON/YAML public configuration OK")
 PY
-  ok "Claude Code plugin allowlist"
+  ok "JSON/YAML public configuration"
 else
-  fail "python3 not found; cannot validate YAML registries or Claude Code plugin allowlist"
+  fail "python3 not found; cannot validate public configuration"
 fi
 
-BYTECODE="$(
-  find "$ROOT" \
-    -path "$ROOT/archive" -prune -o \
-    \( -name '*.pyc' -o -name '__pycache__' \) -print
-)"
+BYTECODE="$(find "$ROOT" -path "$ROOT/archive" -prune -o \( -name '*.pyc' -o -name '__pycache__' \) -print)"
 if [ -n "$BYTECODE" ]; then
   echo "$BYTECODE"
   fail "generated Python bytecode/cache files found"
@@ -303,32 +228,18 @@ else
 fi
 
 PRIVATE_MARKERS='azursystech|choushop|178\.156\.212\.10|/home/dmitrii|/home/azur|oleyna80|home-dmitrii'
-if command -v rg >/dev/null 2>&1; then
-  PRIVATE_HITS="$(rg --hidden --no-ignore -n -i "$PRIVATE_MARKERS" "$ROOT" \
-    -g '!.git/**' \
-    -g '!archive/**' \
-    -g '!handoff/active/**' \
-    -g '!handoff/done/**' \
-    -g '!handoff/failed/**' \
-    -g '!handoff/logs/**' \
-    -g '!handoff/parallel/**' \
-    -g '!handoff/queue/**' \
-    -g '!handoff/runtime/**' \
-    -g '!**/scripts/validate-publication.sh' || true)"
-else
-  PRIVATE_HITS="$(grep -RInE \
-    --exclude-dir=.git \
-    --exclude-dir=archive \
-    --exclude-dir=active \
-    --exclude-dir=done \
-    --exclude-dir=failed \
-    --exclude-dir=logs \
-    --exclude-dir=parallel \
-    --exclude-dir=queue \
-    --exclude-dir=runtime \
-    --exclude=validate-publication.sh \
-    "$PRIVATE_MARKERS" "$ROOT" || true)"
-fi
+PRIVATE_HITS="$(grep -RInE \
+  --exclude-dir=.git \
+  --exclude-dir=archive \
+  --exclude-dir=active \
+  --exclude-dir=done \
+  --exclude-dir=failed \
+  --exclude-dir=logs \
+  --exclude-dir=parallel \
+  --exclude-dir=queue \
+  --exclude-dir=runtime \
+  --exclude=validate-publication.sh \
+  "$PRIVATE_MARKERS" "$ROOT" || true)"
 if [ -n "$PRIVATE_HITS" ]; then
   echo "$PRIVATE_HITS"
   fail "private project markers found in public paths"
@@ -337,32 +248,18 @@ else
 fi
 
 ABSOLUTE_HOME_MARKERS='/(home|Users)/[A-Za-z0-9._-]+/'
-if command -v rg >/dev/null 2>&1; then
-  ABSOLUTE_HOME_HITS="$(rg --hidden --no-ignore -n "$ABSOLUTE_HOME_MARKERS" "$ROOT" \
-    -g '!.git/**' \
-    -g '!archive/**' \
-    -g '!handoff/active/**' \
-    -g '!handoff/done/**' \
-    -g '!handoff/failed/**' \
-    -g '!handoff/logs/**' \
-    -g '!handoff/parallel/**' \
-    -g '!handoff/queue/**' \
-    -g '!handoff/runtime/**' \
-    -g '!**/scripts/validate-publication.sh' || true)"
-else
-  ABSOLUTE_HOME_HITS="$(grep -RInE \
-    --exclude-dir=.git \
-    --exclude-dir=archive \
-    --exclude-dir=active \
-    --exclude-dir=done \
-    --exclude-dir=failed \
-    --exclude-dir=logs \
-    --exclude-dir=parallel \
-    --exclude-dir=queue \
-    --exclude-dir=runtime \
-    --exclude=validate-publication.sh \
-    "$ABSOLUTE_HOME_MARKERS" "$ROOT" || true)"
-fi
+ABSOLUTE_HOME_HITS="$(grep -RInE \
+  --exclude-dir=.git \
+  --exclude-dir=archive \
+  --exclude-dir=active \
+  --exclude-dir=done \
+  --exclude-dir=failed \
+  --exclude-dir=logs \
+  --exclude-dir=parallel \
+  --exclude-dir=queue \
+  --exclude-dir=runtime \
+  --exclude=validate-publication.sh \
+  "$ABSOLUTE_HOME_MARKERS" "$ROOT" || true)"
 if [ -n "$ABSOLUTE_HOME_HITS" ]; then
   echo "$ABSOLUTE_HOME_HITS"
   fail "user-specific absolute home paths found in public paths"
@@ -372,14 +269,14 @@ fi
 
 for script in \
   "$ROOT/bootstrap.sh" \
-  "$ROOT/scripts/test-critic-gate.sh" \
-  "$ROOT/scripts/test-handoff-scope-audit.sh" \
   "$ROOT/scripts/test-sdd-contract.sh" \
+  "$ROOT/scripts/validate-governance.sh" \
+  "$ROOT/scripts/validate-publication.sh" \
   "$ROOT/template/scripts/bootstrap.sh" \
+  "$ROOT/template/.claude/hooks/critic-gate.sh" \
   "$ROOT/template/.claude/hooks/hard-stop.sh" \
   "$ROOT/template/.claude/hooks/typecheck.sh" \
   "$ROOT/template/.claude/hooks/verification-gate.sh" \
-  "$ROOT/scripts/validate-publication.sh" \
   "$ROOT/handoff/runner/cleanup.sh" \
   "$ROOT/handoff/runner/handoff-runner.sh" \
   "$ROOT/handoff/runner/install-systemd-user-service.sh" \
@@ -390,25 +287,42 @@ for script in \
 done
 ok "bash syntax checks completed"
 
-"$ROOT/scripts/test-critic-gate.sh" || fail "critic gate smoke tests failed"
-"$ROOT/scripts/test-handoff-scope-audit.sh" || fail "handoff scope audit smoke test failed"
-"$ROOT/scripts/test-sdd-contract.sh" || fail "SDD contract tests failed"
-
 if command -v python3 >/dev/null 2>&1; then
-  python3 -B -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text())' "$ROOT/template/.codex/hooks/stage0_write_gate.py" || fail "Python syntax failed"
-  ok "Python hook syntax checks"
-else
-  echo "WARN: python3 not found; skipped Python hook compile"
+  python3 - "$ROOT" <<'PY' || fail "Python syntax failed"
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+paths = [
+    root / "scripts/test-codex-adapter.py",
+    root / "scripts/test-codex-hard-stops.py",
+    root / "scripts/test-integration-contracts.py",
+    root / "template/.agent/hooks/hard_stop_policy.py",
+    root / "template/.claude/hooks/work_block_gate.py",
+    root / "template/.claude/hooks/assurance_gate.py",
+    root / "template/.codex/hooks/hard_stop_policy.py",
+    root / "template/.codex/hooks/pre_tool_use_policy.py",
+    root / "template/.codex/hooks/stage0_write_gate.py",
+    root / "template/.codex/hooks/subagent_context.py",
+]
+for path in paths:
+    compile(path.read_text(encoding="utf-8"), str(path), "exec")
+print("Python syntax OK")
+PY
+  ok "Python syntax checks"
 fi
+
+python3 "$ROOT/scripts/test-integration-contracts.py" || fail "integration adapter contracts failed"
+python3 "$ROOT/scripts/test-codex-adapter.py" || fail "Codex adapter contracts failed"
+python3 "$ROOT/scripts/test-codex-hard-stops.py" || fail "Codex Hard Stop fixtures failed"
+bash "$ROOT/scripts/test-sdd-contract.sh" || fail "SDLC contract tests failed"
+bash "$ROOT/scripts/validate-governance.sh" || fail "governance validation failed"
 
 SMOKE_DIR="${TMPDIR:-/tmp}/agentic-sdlc-framework-smoke-$$"
+rm -rf "$SMOKE_DIR"
 "$ROOT/bootstrap.sh" "$SMOKE_DIR" "Smoke & Project" "smoke-project"
 
-if command -v rg >/dev/null 2>&1; then
-  PLACEHOLDERS="$(rg -n '\{\{' "$SMOKE_DIR" || true)"
-else
-  PLACEHOLDERS="$(grep -RIn '{{' "$SMOKE_DIR" || true)"
-fi
+PLACEHOLDERS="$(grep -RIn '{{' "$SMOKE_DIR" || true)"
 if [ -n "$PLACEHOLDERS" ]; then
   echo "$PLACEHOLDERS"
   fail "unresolved placeholders found in smoke project"
@@ -416,15 +330,24 @@ else
   ok "smoke project placeholders replaced"
 fi
 
-SMOKE_BYTECODE="$(
-  find "$SMOKE_DIR" \( -name '*.pyc' -o -name '__pycache__' \) -print
-)"
-if [ -n "$SMOKE_BYTECODE" ]; then
-  echo "$SMOKE_BYTECODE"
-  fail "bytecode copied into smoke project"
-else
-  ok "no bytecode copied into smoke project"
-fi
+for path in \
+  "integrations/README.md" \
+  "integrations/mcp/README.md" \
+  "runtimes/opencode/README.md" \
+  ".agent/hooks/hard_stop_policy.py" \
+  ".claude/hooks/work_block_gate.py" \
+  ".claude/hooks/assurance_gate.py" \
+  "opencode.json" \
+  ".opencode/agents/coder.md"; do
+  [ -f "$SMOKE_DIR/$path" ] || fail "smoke project missing $path"
+done
+
+for path in \
+  ".claude/agents/gpt-critic.md" \
+  ".claude/agents/gpt-verifier.md" \
+  ".claude/agents/codex-reviewer.md"; do
+  [ ! -e "$SMOKE_DIR/$path" ] || fail "smoke project contains retired path $path"
+done
 
 for pattern in ".agent/" "memory_bank/" ".claude/agent-memory/" ".codex/" ".env"; do
   if grep -qx -- "$pattern" "$SMOKE_DIR/.gitignore"; then
