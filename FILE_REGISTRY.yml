@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 9
+version: 10
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -12,7 +12,7 @@ statuses:
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
   installation_manifest: "scaffold composition data; grants no authority"
   reference: "background knowledge; does not override policy"
-  evidence: "review, verification, drift, CI, integration, or closeout evidence"
+  evidence: "review, verification, evaluation, drift, CI, integration, or closeout evidence"
   log: "active or historical Work Block state; not general policy"
   example: "illustrative scenario; never mandatory policy"
   generated: "derived output; verify against current source"
@@ -23,14 +23,15 @@ artifact_authority_order:
   - active_workspace_AGENTS_and_governance
   - approved_specification_and_acceptance_criteria
   - accepted_architecture_decisions_and_external_contracts
-  - approved_implementation_plan_and_write_set
+  - approved_implementation_and_evaluation_plans_and_write_set
   - active_task_decomposition
-  - review_verification_drift_integration_and_closeout_evidence
+  - review_verification_evaluation_drift_integration_and_closeout_evidence
   - durable_engineering_memory
   - runtime_integration_operational_logs_generated_context_and_examples
 
 role_dimensions:
   authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
+  specializations: [evaluator, drift_auditor, security_reviewer, domain_verifier]
   separate_from_authority:
     - installation_profile
     - runtime
@@ -57,10 +58,23 @@ installation_profiles:
     - validate_before_target_mutation
     - required_paths_validate_expected_filesystem_kind
     - blocked_default_work_block_validates_before_restore
+    - evaluation_contract_available_in_every_profile
     - selected_runtime_surfaces_only
     - no_automatic_integration_activation
     - no_credentials_or_provider_binding
     - work_block_authority_remains_separate
+
+evaluation_assurance:
+  contract: governance/evaluation.md
+  plan_template: template/docs/templates/evaluation-plan-template.json
+  report_template: template/docs/templates/evaluation-report-template.json
+  event_template: template/docs/templates/trajectory-event-template.json
+  generated_validator: template/scripts/validate-evaluation.py
+  contract_fixtures: scripts/test-evaluation-contracts.py
+  publication_validator: scripts/validate_evaluation_publication.py
+  evidence_boundary: observable_events_only
+  hidden_reasoning_required: false
+  authority: none
 
 migration_state:
   completed_work_blocks:
@@ -70,7 +84,7 @@ migration_state:
     - docs/plans/wb-004-integration-adapter-normalization.md
     - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
     - docs/plans/wb-006-bootstrap-restore-hardening.md
-  active_work_block: null
+  active_work_block: docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
   planned: []
 
 entries:
@@ -100,6 +114,13 @@ entries:
     status: normative
     owner: architect
 
+  governance/evaluation.md:
+    role: deterministic_output_and_observable_trajectory_evaluation_contract
+    status: normative
+    owner: architect
+    authority: assurance_only
+    related: [governance/lifecycle.md, governance/artifacts.md, template/scripts/validate-evaluation.py]
+
   governance/runtime-capabilities.md:
     role: runtime_capability_negotiation
     status: normative
@@ -109,25 +130,22 @@ entries:
     role: runtime_adapter_collection
     status: runtime_adapter
     owner: maintainer
-    related: [governance/runtime-capabilities.md, governance/authority.md, integrations/**]
+    related: [governance/runtime-capabilities.md, governance/authority.md, governance/evaluation.md, integrations/**]
 
   runtimes/codex/**:
     role: codex_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/.codex/**, bootstrap/profiles.json]
 
   runtimes/claude-code/**:
     role: claude_code_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/.claude/**, template/CLAUDE.md, bootstrap/profiles.json]
 
   runtimes/opencode/**:
     role: opencode_runtime_adapter
     status: runtime_adapter
     owner: maintainer
-    related: [template/opencode.json, template/.opencode/**, bootstrap/profiles.json]
 
   runtimes/generic/**:
     role: generic_sequential_agent_baseline
@@ -138,55 +156,27 @@ entries:
     role: optional_external_capability_and_transport_adapters
     status: integration_adapter
     owner: architect
-    related: [docs/mcp-tool-policy.md, template/docs/templates/integration-admission-template.md]
-
-  integrations/claude-code-codex-plugin/**:
-    role: official_codex_plugin_for_claude_code_adapter
-    status: integration_adapter
-    owner: maintainer
-
-  integrations/mcp/**:
-    role: mcp_server_and_exact_tool_admission_adapter
-    status: integration_adapter
-    owner: architect
-
-  integrations/file-handoff/**:
-    role: runtime_neutral_audited_file_transport_contract
-    status: integration_adapter
-    owner: architect
 
   bootstrap/profiles.json:
     role: installation_profile_component_skill_and_alias_manifest
     status: installation_manifest
     owner: architect
     authority: none
-    related: [bootstrap/bootstrap_project.py, docs/bootstrap-profiles.md, scripts/test-bootstrap-profiles.py]
 
   bootstrap/bootstrap_project.py:
     role: validated_profile_aware_scaffold_engine
     status: normative
     owner: maintainer
-    related: [bootstrap/profiles.json, template/**]
 
   bootstrap.sh:
     role: backward_compatible_profile_aware_scaffold_wrapper
     status: normative
     owner: maintainer
 
-  docs/bootstrap-profiles.md:
-    role: installation_profile_selection_and_extension_contract
-    status: normative
-    owner: architect
-
   docs/architecture/decisions/**:
     role: accepted_architecture_decisions
     status: normative
     owner: architect
-
-  docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md:
-    role: runtime_neutral_control_plane_adr
-    status: normative
-    owner: owner
 
   docs/plans/**:
     role: work_block_plans_and_execution_evidence
@@ -217,34 +207,33 @@ entries:
     role: completed_profile_aware_bootstrap_and_runtime_conformance_work_block
     status: log
     owner: orchestrator
-    related: [bootstrap/**, scripts/test-bootstrap-profiles.py, scripts/test-runtime-conformance.py]
 
   docs/plans/wb-006-bootstrap-restore-hardening.md:
     role: completed_bootstrap_restore_hardening_work_block
     status: log
     owner: orchestrator
-    related: [template/scripts/validate-installation-profile.py, scripts/test-bootstrap-profiles.py, scripts/test-profile-restore.py]
 
-  docs/reports/reviews/pr-6-final-review.md:
-    role: wb_006_final_review_and_closeout
+  docs/plans/wb-007-agent-evaluation-trajectory-assurance.md:
+    role: active_agent_evaluation_and_trajectory_assurance_work_block
+    status: log
+    owner: orchestrator
+    related: [governance/evaluation.md, scripts/test-evaluation-contracts.py]
+
+  docs/evals/**:
+    role: approved_evaluation_plans_benchmarks_and_observable_event_evidence
     status: evidence
-    owner: reviewer
-    related: [docs/plans/wb-006-bootstrap-restore-hardening.md]
+    owner: verifier
+    restrictions: [no_hidden_reasoning, no_secrets, no_unredacted_protected_payloads]
 
   docs/reports/**:
     role: assurance_and_closeout_evidence
     status: evidence
     owner: verifier
 
-  docs/reports/reviews/pr-3-final-review.md:
-    role: wb_001_through_wb_003_final_review
+  docs/reports/evaluations/**:
+    role: output_and_observable_trajectory_evaluation_reports
     status: evidence
-    owner: reviewer
-
-  docs/reports/reviews/pr-4-final-review.md:
-    role: wb_004_final_review
-    status: evidence
-    owner: reviewer
+    owner: verifier
 
   README.md:
     role: public_entrypoint
@@ -260,35 +249,14 @@ entries:
     role: human_readable_repository_map
     status: normative
     owner: architect
-    related: [FILE_REGISTRY.yml, bootstrap/profiles.json]
 
   FILE_REGISTRY.yml:
     role: machine_readable_navigation_registry
     status: normative
     owner: architect
 
-  docs/profiles.md:
-    role: governance_runtime_integration_model_and_installation_profile_selector
-    status: normative
-    owner: architect
-
-  docs/quickstart-minimal.md:
-    role: core_installation_profile_quickstart
-    status: normative
-    owner: maintainer
-
-  docs/session-bootstrap.md:
-    role: framework_repository_progressive_intake
-    status: normative
-    owner: architect
-
-  docs/mcp-tool-policy.md:
-    role: external_tool_and_integration_authority_policy
-    status: normative
-    owner: architect
-
   scripts/test-sdd-contract.sh:
-    role: portable_sdlc_profile_and_authority_contract_test
+    role: portable_sdlc_evaluation_profile_and_authority_contract_test
     status: normative
     owner: verifier
 
@@ -297,8 +265,18 @@ entries:
     status: normative
     owner: verifier
 
+  scripts/test-profile-restore.py:
+    role: clone_restore_and_blocked_default_regression_test
+    status: normative
+    owner: verifier
+
   scripts/test-runtime-conformance.py:
     role: cross_runtime_logical_role_permission_and_gate_conformance_test
+    status: normative
+    owner: verifier
+
+  scripts/test-evaluation-contracts.py:
+    role: evaluation_plan_report_trajectory_and_closeout_regression_fixtures
     status: normative
     owner: verifier
 
@@ -337,8 +315,13 @@ entries:
     status: normative
     owner: verifier
 
+  scripts/validate_evaluation_publication.py:
+    role: evaluation_specific_publication_and_generated_scaffold_validation
+    status: normative
+    owner: verifier
+
   .github/workflows/framework-contracts.yml:
-    role: framework_contract_profile_adapter_and_bootstrap_ci
+    role: framework_contract_profile_adapter_evaluation_and_bootstrap_ci
     status: evidence
     owner: verifier
 
@@ -362,6 +345,11 @@ entries:
     status: template
     owner: orchestrator
 
+  template/.agent/active-work-block.default.json:
+    role: portable_fail_closed_work_block_restore_default
+    status: template
+    owner: orchestrator
+
   template/.agent/hooks/**:
     role: shared_provider_neutral_gate_implementation
     status: template
@@ -373,7 +361,28 @@ entries:
     owner: verifier
 
   template/scripts/validate-installation-profile.py:
-    role: generated_project_installation_profile_path_kind_and_blocked_default_validator
+    role: generated_installation_profile_path_kind_blocked_default_and_evaluation_default_validator
+    status: template
+    owner: verifier
+
+  template/scripts/validate-evaluation.py:
+    role: generated_evaluation_plan_report_and_closeout_validator
+    status: template
+    owner: verifier
+    authority: assurance_only
+
+  template/docs/templates/evaluation-plan-template.json:
+    role: generated_evaluation_plan_schema_example
+    status: template
+    owner: architect
+
+  template/docs/templates/evaluation-report-template.json:
+    role: generated_evaluation_report_schema_example
+    status: template
+    owner: verifier
+
+  template/docs/templates/trajectory-event-template.json:
+    role: generated_observable_trajectory_event_schema_example
     status: template
     owner: verifier
 
@@ -381,48 +390,43 @@ entries:
     role: conditional_codex_runtime_adapter_implementation
     status: runtime_adapter
     owner: maintainer
-    selected_by: runtime:codex
 
   template/.claude/**:
     role: conditional_claude_code_runtime_adapter_implementation
     status: runtime_adapter
     owner: maintainer
-    selected_by: runtime:claude-code
 
   template/opencode.json:
     role: conditional_opencode_project_instruction_and_permission_baseline
     status: runtime_adapter
     owner: maintainer
-    selected_by: runtime:opencode
 
-  template/.opencode/agents/**:
+  template/.opencode/**:
     role: conditional_opencode_logical_role_subagents
     status: runtime_adapter
     owner: maintainer
-    selected_by: runtime:opencode
 
   template/.mcp.json:
-    role: conditional_empty_opt_in_generated_mcp_registry
+    role: conditional_empty_mcp_registry
     status: integration_adapter
-    owner: owner
-    selected_by: integration:mcp-config
-
-  skills/catalog.yml:
-    role: shared_skill_library_navigation_index
-    status: normative
-    owner: architect
-
-  skills/**:
-    role: portable_skill_library
-    status: normative
     owner: maintainer
 
-  handoff/**:
-    role: current_claude_runner_and_audited_file_transport_implementation
-    status: integration_adapter
+  skills/**:
+    role: portable_procedural_knowledge_library
+    status: normative
     owner: architect
 
-  framework/**:
-    role: reference_knowledge
-    status: reference
+  handoff/**:
+    role: runtime_transport_implementation
+    status: integration_adapter
+    owner: maintainer
+
+  examples/**:
+    role: synthetic_usage_examples
+    status: example
+    owner: maintainer
+
+  archive/**:
+    role: local_private_archive
+    status: local_state
     owner: maintainer
