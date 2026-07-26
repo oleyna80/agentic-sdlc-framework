@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major zones.
 # Runtime implementation surfaces are conditional on .agent/bootstrap-profile.json.
 
-version: 5
+version: 6
 scope: generated_project
 project:
   name: "{{PROJECT_NAME}}"
@@ -19,13 +19,14 @@ installation_profile:
     - required_paths_must_match_expected_filesystem_kind
     - known_unselected_component_paths_must_be_absent_in_fresh_scaffold
     - blocked_default_work_block_must_validate_before_restore
+    - evaluation_contract_is_available_in_every_profile
     - installation_does_not_grant_work_block_authority
     - integration_activation_requires_separate_admission
 
 statuses:
   normative: "governance, product, architecture, or policy source of truth"
   derived: "artifact derived from approved normative intent"
-  evidence: "critic, review, verification, drift, integration, or closeout evidence"
+  evidence: "critic, review, verification, evaluation, drift, integration, or closeout evidence"
   runtime_adapter: "runtime-specific execution configuration or guidance"
   integration_adapter: "optional plugin, MCP, external runtime, tool, or transport"
   durable_reference: "evidence-backed engineering memory"
@@ -40,9 +41,9 @@ authority_order:
     - explicit_owner_instruction_or_approved_change_request
     - approved_specification
     - accepted_architecture_decisions_and_external_contracts
-    - approved_implementation_plan
+    - approved_implementation_and_evaluation_plans
     - active_tasklist
-    - assurance_and_closeout_reports
+    - review_verification_evaluation_drift_and_closeout_reports
     - durable_engineering_memory
     - runtime_integration_operational_logs
     - generated_and_external_reference_artifacts
@@ -50,11 +51,24 @@ authority_order:
     - explicit_owner_instruction
     - AGENTS.md
     - governance_core
-    - active_work_block_scope_and_write_set
+    - active_work_block_scope_write_set_and_assurance_state
     - canonical_sdlc_protocol
     - installed_runtime_adapters
     - admitted_integration_adapters
     - operational_logs_and_generated_artifacts
+
+evaluation_assurance:
+  contract: governance/evaluation.md
+  plan_directory: docs/evals/**
+  report_directory: docs/reports/evaluations/**
+  validator: scripts/validate-evaluation.py
+  templates:
+    - docs/templates/evaluation-plan-template.json
+    - docs/templates/evaluation-report-template.json
+    - docs/templates/trajectory-event-template.json
+  evidence_boundary: observable_events_only
+  hidden_reasoning_required: false
+  authority: none
 
 entries:
   AGENTS.md:
@@ -67,7 +81,6 @@ entries:
     role: human_readable_project_map
     status: normative
     owner: architect
-    related: [FILE_REGISTRY.yml, .agent/bootstrap-profile.json, docs/session-bootstrap.md]
 
   FILE_REGISTRY.yml:
     role: machine_readable_navigation_registry
@@ -79,13 +92,18 @@ entries:
     status: generated
     owner: tooling
     authority: none
-    related: [scripts/bootstrap.sh, scripts/validate-installation-profile.py]
 
   governance/**:
     role: runtime_neutral_governance_core
     status: normative
     owner: architect
     availability: always
+
+  governance/evaluation.md:
+    role: deterministic_output_and_observable_trajectory_evaluation_contract
+    status: normative
+    owner: architect
+    authority: assurance_only
 
   .agent/ROSTER.md:
     role: logical_role_and_skill_router
@@ -96,6 +114,11 @@ entries:
     role: canonical_define_execute_assure_close_contract
     status: normative
     owner: architect
+
+  .agent/active-work-block.default.json:
+    role: portable_fail_closed_restore_default
+    status: normative
+    owner: orchestrator
 
   .agent/active-work-block.json:
     role: executable_work_block_source_write_integration_assurance_gate
@@ -115,7 +138,7 @@ entries:
     owner: orchestrator
 
   .agent/verification-gate.md:
-    role: human_readable_assurance_gate_compatibility_view
+    role: human_readable_review_verification_evaluation_and_drift_gate_view
     status: operational_log
     owner: verifier
 
@@ -145,8 +168,19 @@ entries:
     status: derived
     owner: orchestrator
 
+  docs/evals/**:
+    role: approved_evaluation_plans_benchmarks_fixtures_and_observable_events
+    status: evidence
+    owner: verifier
+    restrictions: [no_hidden_reasoning, no_secrets, no_unredacted_protected_payloads]
+
   docs/reports/**:
-    role: critic_review_verification_drift_integration_and_closeout_evidence
+    role: critic_review_verification_evaluation_drift_integration_and_closeout_evidence
+    status: evidence
+    owner: verifier
+
+  docs/reports/evaluations/**:
+    role: output_and_observable_trajectory_evaluation_reports
     status: evidence
     owner: verifier
 
@@ -157,6 +191,21 @@ entries:
 
   docs/templates/verification-report-template.md:
     role: verification_report_contract
+    status: normative
+    owner: verifier
+
+  docs/templates/evaluation-plan-template.json:
+    role: evaluation_plan_schema_example
+    status: normative
+    owner: architect
+
+  docs/templates/evaluation-report-template.json:
+    role: evaluation_report_schema_example
+    status: normative
+    owner: verifier
+
+  docs/templates/trajectory-event-template.json:
+    role: observable_trajectory_event_schema_example
     status: normative
     owner: verifier
 
@@ -192,50 +241,11 @@ entries:
     availability: always
     note: documentation_presence_does_not_mean_runtime_surface_installed
 
-  runtimes/codex/**:
-    role: codex_runtime_adapter_guidance
-    status: runtime_adapter
-    owner: maintainer
-    implementation_surface: .codex/**
-
-  runtimes/claude-code/**:
-    role: claude_code_runtime_adapter_guidance
-    status: runtime_adapter
-    owner: maintainer
-    implementation_surface: [CLAUDE.md, .claude/**]
-
-  runtimes/opencode/**:
-    role: opencode_runtime_adapter_guidance
-    status: runtime_adapter
-    owner: maintainer
-    implementation_surface: [opencode.json, .opencode/**]
-
-  runtimes/generic/**:
-    role: generic_sequential_runtime_fallback
-    status: runtime_adapter
-    owner: architect
-    availability: always
-
   integrations/**:
     role: optional_external_capability_and_transport_documentation
     status: integration_adapter
     owner: architect
     availability: always
-
-  integrations/claude-code-codex-plugin/**:
-    role: optional_official_codex_plugin_bridge
-    status: integration_adapter
-    owner: maintainer
-
-  integrations/mcp/**:
-    role: optional_mcp_server_and_exact_tool_boundary
-    status: integration_adapter
-    owner: architect
-
-  integrations/file-handoff/**:
-    role: optional_audited_runtime_neutral_file_transport
-    status: integration_adapter
-    owner: architect
 
   .codex/**:
     role: codex_project_runtime_configuration
@@ -276,45 +286,26 @@ entries:
     selected_by_component: integration:mcp-config
     authority: none_until_exact_tool_admission
 
-  memory_bank/context.md:
-    role: current_operational_context
-    status: operational_log
-    owner: orchestrator
-
-  memory_bank/progress.md:
-    role: rolling_execution_progress
-    status: operational_log
-    owner: orchestrator
-
-  memory_bank/decisions.md:
-    role: operational_decisions_pending_promotion
-    status: operational_log
-    owner: orchestrator
-
-  memory_bank/orchestrator-log.md:
-    role: orchestration_audit_log
-    status: operational_log
-    owner: orchestrator
-
-  memory_bank/review-log.md:
-    role: assurance_finding_log
-    status: operational_log
-    owner: reviewer
-
-  memory_bank/external-team-log.md:
-    role: external_runtime_or_team_delivery_log
-    status: operational_log
-    owner: orchestrator
-
   scripts/bootstrap.sh:
     role: generated_project_profile_aware_health_check
     status: normative
     owner: verifier
 
   scripts/validate-installation-profile.py:
-    role: generated_installation_profile_path_kind_and_blocked_default_validator
+    role: generated_installation_profile_path_kind_blocked_default_and_evaluation_default_validator
     status: normative
     owner: verifier
+
+  scripts/validate-evaluation.py:
+    role: generated_evaluation_plan_report_and_closeout_validator
+    status: normative
+    owner: verifier
+    authority: assurance_only
+
+  memory_bank/**:
+    role: local_operational_context_and_logs
+    status: operational_log
+    owner: orchestrator
 
   source_directories:
     role: project_source_and_tests
