@@ -142,6 +142,9 @@ GitHub Draft/Ready/open/closed/merged state, timestamps, and branch deletion are
 **mutable external operational metadata**. Query them from GitHub when needed;
 they do not override repository authority or closeout.
 
+The repository migration series WB-001 through WB-008 is complete. There is no
+active implementation Work Block; the next phase is a live runtime/product pilot.
+
 ## Installation Profiles
 
 Source of truth: `bootstrap/profiles.json`.
@@ -287,7 +290,8 @@ For a generated project:
 | Clone/restore contract | `scripts/test-profile-restore.py` |
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
-| Active migration | `docs/plans/wb-008-post-merge-ssot-release-gate.md` |
+| Latest completed migration | `docs/plans/wb-008-post-merge-ssot-release-gate.md` |
+| Active migration | none; `FILE_REGISTRY.yml:migration_state.active_work_block` is null |
 
 ## Validation
 
