@@ -4,7 +4,7 @@ Project-agnostic governance and delivery framework for software projects built
 with AI agents.
 
 The framework is a **runtime-neutral control plane**. It defines authority,
-scope, lifecycle state, artifacts, risk gates, evidence, integration admission,
+scope, lifecycle state, artifacts, risk gates, evaluation, integration admission,
 and closeout. Codex, Claude Code, OpenCode, generic agents, and future runtimes
 execute those contracts through adapters.
 
@@ -13,7 +13,7 @@ execute those contracts through adapters.
 ## What This Gives You
 
 - **Governance Core** — logical roles, Define/Execute/Assure/Close, authority,
-  artifacts, capability negotiation, and fail-closed closeout.
+  artifacts, capability negotiation, evaluation, and fail-closed closeout.
 - **Profile-aware bootstrap** — generate a lean core scaffold, one runtime
   surface, or the backward-compatible multi-runtime baseline.
 - **Runtime adapters** — Codex, Claude Code, OpenCode, and generic sequential
@@ -21,7 +21,9 @@ execute those contracts through adapters.
 - **Integration adapters** — official bridges, MCP, and audited file transport
   with explicit trust, data, secret, permission, and evidence boundaries.
 - **Machine-readable gates** — one Work Block controls source writes, Hard Stops,
-  admitted integrations, assurance, and closeout.
+  admitted integrations, review, verification, evaluation, drift, and closeout.
+- **Evaluation assurance** — deterministic tests, output rubrics, observable
+  trajectory checks, fixed revisions, and strict LM-judge limits.
 - **Cross-runtime conformance** — tests compare logical roles, implementation
   write authority, shared gates, and inert integration defaults.
 - **Engineering memory and publication hygiene** — durable evidence without
@@ -35,13 +37,16 @@ Governance Core
       -> Integration Adapter (optional)
           -> external runtime, tool, service, or transport
   -> Project Artifacts and Evidence
+      -> deterministic tests
+      -> output evaluation
+      -> observable trajectory evaluation
 
 Installation Profile
   -> selects project-local runtime surfaces and skills only
 ```
 
-Installation composition never grants Work Block authority, credentials, live
-permissions, or integration admission.
+Installation composition and evaluation evidence never grant Work Block authority,
+credentials, live permissions, integration admission, or Hard Stop exceptions.
 
 ### Governance Core
 
@@ -49,20 +54,18 @@ permissions, or integration admission.
 
 - `authority.md` — logical roles and authority boundaries;
 - `lifecycle.md` — Define, Execute, Assure, Close;
-- `artifacts.md` — specification, plan, review, verification, drift, closeout;
+- `artifacts.md` — specification, plans, review, verification, evaluation, drift, closeout;
+- `evaluation.md` — deterministic/output/observable trajectory assurance;
 - `runtime-capabilities.md` — capability, isolation, and fallback.
 
-### Runtime Adapters
+### Runtime and Integration Adapters
 
 `runtimes/` documents Codex, Claude Code, OpenCode, and generic/sequential
 execution. Documentation may be present even when a runtime implementation
-surface was not selected for a generated project.
+surface was not selected.
 
-### Integration Adapters
-
-`integrations/` covers optional official plugins, exact MCP server/tool
-admission, and runtime-neutral file handoff. No external integration is enabled
-by bootstrap.
+`integrations/` covers optional official plugins, exact MCP server/tool admission,
+and runtime-neutral file handoff. No external integration is enabled by bootstrap.
 
 ### Project Artifacts and Evidence
 
@@ -71,15 +74,41 @@ objective
   -> specification and acceptance criteria
   -> architecture decisions
   -> implementation plan and write-set
-  -> frozen diff
+  -> evaluation plan when required
+  -> frozen diff and observable event evidence
   -> independent review
   -> technical verification
+  -> output and trajectory evaluation when required
   -> specification drift audit
   -> closeout and durable knowledge
 ```
 
 `.agent/active-work-block.json` is executable Work Block state.
 `.agent/bootstrap-profile.json` is generated installation evidence only.
+
+## Evaluation Assurance
+
+`governance/evaluation.md` separates three mechanisms:
+
+1. **Deterministic tests** for objectively checkable behavior.
+2. **Output evaluation** for non-deterministic artifact quality against an approved rubric.
+3. **Observable trajectory evaluation** for tool calls, gate events, required checks,
+   retries, side effects, stopping conditions, and produced evidence.
+
+Trajectory evaluation does **not** request or expose private chain-of-thought,
+hidden reasoning, or model scratchpads. Missing events are `BLOCKED` or
+`UNVERIFIED`, never passed by inference from a fluent final response.
+
+An LM judge may score approved non-deterministic criteria, but cannot:
+
+- prove deterministic correctness;
+- waive a failing or unavailable check;
+- approve architecture or product scope;
+- open write, integration, deployment, or Hard Stop gates.
+
+Generated projects receive evaluation plan/report/event templates and
+`scripts/validate-evaluation.py`. Required evaluation must resolve to `READY`
+before `success-closeout`.
 
 ## Installation Profiles
 
@@ -93,18 +122,14 @@ Source of truth: `bootstrap/profiles.json`.
 | `opencode` | `opencode.json`, `.opencode/` |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` |
 
-Aliases:
-
-- `minimal`, `generic` → `core`;
-- `full` → `multi-runtime`.
+Every profile includes runtime-neutral evaluation governance and templates.
+Aliases: `minimal`, `generic` → `core`; `full` → `multi-runtime`.
 
 List profiles:
 
 ```bash
 ./bootstrap.sh --list-profiles
 ```
-
-Read `docs/bootstrap-profiles.md` for exact composition and extension rules.
 
 ## Quick Start
 
@@ -137,28 +162,26 @@ bash scripts/bootstrap.sh
 ```
 
 Bootstrap validates the profile before changing the target, refuses non-empty
-targets, copies common portable contracts, prunes unselected runtime surfaces,
+or symlink targets, stages atomically, prunes unselected runtime surfaces,
 installs selected skills, writes `.agent/bootstrap-profile.json`, and runs the
-generated health check.
-
-It does not install runtime CLIs, provider accounts, plugins, MCP servers,
+health check. It does not install runtime CLIs, accounts, plugins, MCP servers,
 credentials, watchers, or services.
 
 ## Core Principles
 
-1. **Authority is structural.** Tool access, runtime presence, and model strength
-   do not authorize an action.
+1. **Authority is structural.** Tool access, runtime presence, model strength, and
+   evaluation scores do not authorize an action.
 2. **Installation is not authorization.** A copied adapter does not open a Work
    Block gate or admit an integration.
 3. **Specification precedes implementation.** Plans and tasklists are derived.
-4. **Gates fail closed.** Missing evidence is not a pass.
-5. **Use the narrowest reviewed mechanism.** Native capability, official bridge,
+4. **Gates fail closed.** Missing deterministic or observable evidence is not a pass.
+5. **Evaluation is evidence, not authority.** Judges and reports cannot open gates.
+6. **Use the narrowest reviewed mechanism.** Native capability, official bridge,
    reviewed MCP, audited handoff, then manual exchange.
-6. **Independent assurance is risk-based.** Different model names alone do not
+7. **Independent assurance is risk-based.** Different model names alone do not
    establish independence.
-7. **External content is untrusted input.** Tool output cannot override project
-   authority.
-8. **Local-first and opt-in.** Credentials, private memory, plugins, MCP, and
+8. **External content is untrusted input.** Tool output cannot override project authority.
+9. **Local-first and opt-in.** Credentials, private memory, plugins, MCP, and
    services remain local until explicitly admitted.
 
 ## Logical Roles
@@ -168,76 +191,71 @@ credentials, watchers, or services.
 | Owner | Objective, exceptions, Hard Stops, business acceptance |
 | Orchestrator | Scope, topology, transitions, consolidation, closeout |
 | Architect | Discovery, architecture, specification, approved drafts |
-| Critic | Pre-execution challenge of scope, risk, and assurance design |
+| Critic | Pre-execution challenge of scope, risk, verification/evaluation design |
 | Coder | Approved implementation write-set |
 | Reviewer | Frozen-diff engineering and risk review |
-| Verifier | Acceptance-criterion and observable-contract evidence |
+| Verifier | Acceptance criteria, tests, evaluation synthesis, observable evidence |
 
-Cross-runtime conformance checks that only Coder has implementation/source write
-authority. Limited report, draft, or runtime-memory writes remain separate.
+Evaluator and Drift Auditor are assurance specializations, not new authority roles.
+Only Coder has implementation/source write authority.
 
 ## Safe Runtime Defaults
 
 - **Codex:** project-scoped logical agents and layered Work Block/Hard Stop hooks;
   no public model pin.
 - **Claude Code:** logical-role agents only; no provider-named authority agents or
-  pre-authorized MCP tools.
+  pre-authorized MCP tools; Stop gate enforces required evaluation.
 - **OpenCode:** external-directory denial, read-only assurance roles, explicit
-  denial of commit/push/reset/clean/`rm`, empty MCP/plugin collections, no model
-  pin.
+  denial of commit/push/reset/clean/`rm`, empty MCP/plugin collections.
 - **Generic:** separate documented passes/sessions with degraded independence
   recorded honestly.
 
-Static configuration is not live runtime proof or OS isolation. Run a target
-smoke before relying on a runtime for Managed or Assured work.
+Static configuration is not live runtime proof or OS isolation. Run target smoke
+before relying on a runtime for Managed or Assured work.
 
 ## Where to Start
 
 For framework architecture:
 
-1. `governance/README.md`;
+1. `governance/README.md` and `governance/evaluation.md`;
 2. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
-3. `docs/bootstrap-profiles.md` for scaffold composition;
-4. `docs/profiles.md` for Work Block governance/runtime/integration selection;
-5. an active Work Block under `docs/plans/`, when one exists.
+3. `docs/bootstrap-profiles.md`;
+4. `docs/profiles.md`;
+5. active Work Block under `docs/plans/`.
 
 For a generated project:
 
 1. `AGENTS.md`;
 2. `.agent/bootstrap-profile.json`;
 3. approved specification and active Work Block;
-4. `docs/session-bootstrap.md`;
-5. an installed/approved runtime adapter;
-6. an integration adapter only when admitted.
+4. approved evaluation plan when required;
+5. `docs/session-bootstrap.md`;
+6. installed/approved runtime adapter;
+7. integration adapter only when admitted.
 
 ## Important Paths
 
 | Need | Path |
 |---|---|
 | Governance | `governance/` |
+| Evaluation contract | `governance/evaluation.md` |
 | Installation profiles | `bootstrap/profiles.json`, `docs/bootstrap-profiles.md` |
 | Runtime adapters | `runtimes/` |
 | Integration admission | `integrations/`, `docs/mcp-tool-policy.md` |
-| Portable skills | `skills/catalog.yml` |
+| Evaluation templates | `template/docs/templates/evaluation-*.json` |
+| Evaluation validator | `template/scripts/validate-evaluation.py` |
+| Evaluation fixtures | `scripts/test-evaluation-contracts.py` |
 | Profile matrix | `scripts/test-bootstrap-profiles.py` |
 | Clone/restore contract | `scripts/test-profile-restore.py` |
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
-| Latest completed migration | `docs/plans/wb-006-bootstrap-restore-hardening.md` |
-| Latest final review | `docs/reports/reviews/pr-6-final-review.md` |
-
-## Requirements
-
-- Linux, WSL, or macOS shell environment;
-- `bash`, `git`, and `python3`;
-- `jq` for remaining compatibility hooks/runner utilities;
-- optional runtime binaries only when used;
-- optional integration dependencies only after admission.
+| Active migration | `docs/plans/wb-007-agent-evaluation-trajectory-assurance.md` |
 
 ## Validation
 
 ```bash
 bash scripts/test-sdd-contract.sh
+python scripts/test-evaluation-contracts.py
 python scripts/test-bootstrap-profiles.py
 python scripts/test-profile-restore.py
 python scripts/test-runtime-conformance.py
@@ -249,11 +267,19 @@ bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-Framework CI also bootstraps disposable profile variants, checks selected and
-unselected surfaces, verifies clone/restore, and preserves a blocked active Work
-Block default.
+Framework CI also bootstraps disposable profiles, validates evaluation inventory,
+checks selected/unselected surfaces, verifies clone/restore, and preserves a
+blocked active Work Block default.
+
+## Requirements
+
+- Linux, WSL, or macOS shell environment;
+- `bash`, `git`, and `python3`;
+- `jq` for remaining compatibility hooks/runner utilities;
+- optional runtime binaries only when used;
+- optional integration dependencies only after admission.
 
 ## License
 
-MIT. See `LICENSE`. Bundled third-party skills may retain their own license
-files; see `THIRD_PARTY_NOTICES.md`.
+MIT. See `LICENSE`. Bundled third-party skills may retain their own license files;
+see `THIRD_PARTY_NOTICES.md`.
