@@ -2,13 +2,13 @@
   "schema_version": 1,
   "artifact_type": "evaluation_plan",
   "evaluation_id": "eval-wb-007",
-  "status": "draft",
+  "status": "approved",
   "work_block_id": "wb-007",
   "revision": "1",
   "subject": {
     "objective": "Demonstrate that WB-007 provides a portable, fail-closed evaluation and observable trajectory assurance layer without expanding authority.",
     "specification_revision": "governance/evaluation.md@1",
-    "frozen_revision": "pending-final-implementation-freeze"
+    "frozen_revision": "6bb2f3f2379da693103f467bb83a0f0862889f80"
   },
   "deterministic_checks": [
     {
