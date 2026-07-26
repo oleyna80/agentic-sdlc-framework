@@ -16,7 +16,8 @@ The repository owns and versions:
 - review, verification, evaluation, drift, and closeout evidence;
 - release-readiness classification based on repository evidence.
 
-GitHub owns mutable operational state such as:
+GitHub pull-request and merge state is **mutable external operational metadata**,
+including:
 
 - whether a pull request is Draft or Ready;
 - whether it is open, closed, or merged;
