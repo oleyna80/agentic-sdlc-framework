@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -49,12 +50,17 @@ def frontmatter(path: Path) -> dict[str, Any]:
 
 def static_contracts() -> None:
     for path in (
+        ROOT / "governance/evaluation.md",
         ROOT / "integrations/README.md",
         ROOT / "integrations/claude-code-codex-plugin/README.md",
         ROOT / "integrations/mcp/README.md",
         ROOT / "integrations/file-handoff/README.md",
         ROOT / "handoff/templates/runtime-task-template.md",
         TEMPLATE / "docs/templates/integration-admission-template.md",
+        TEMPLATE / "docs/templates/evaluation-plan-template.json",
+        TEMPLATE / "docs/templates/evaluation-report-template.json",
+        TEMPLATE / "docs/templates/trajectory-event-template.json",
+        TEMPLATE / "scripts/validate-evaluation.py",
         TEMPLATE / ".agent/hooks/hard_stop_policy.py",
         TEMPLATE / ".claude/hooks/work_block_gate.py",
         TEMPLATE / ".claude/hooks/assurance_gate.py",
@@ -147,9 +153,15 @@ def static_contracts() -> None:
     if not isinstance(assurance, dict) or set(assurance) != {
         "review",
         "verification",
+        "evaluation",
         "drift",
     }:
         fail("active Work Block assurance functions missing")
+    evaluation = assurance["evaluation"]
+    if evaluation.get("required") is not False:
+        fail("generated evaluation assurance must be optional by default")
+    if evaluation.get("status") != "PENDING" or evaluation.get("verdict") != "PENDING":
+        fail("generated evaluation assurance must start PENDING")
     if gate.get("closeout_mode") != "pending":
         fail("generated closeout_mode must start pending")
 
@@ -256,6 +268,17 @@ def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
                 "isolation": "unknown",
                 "skip_reason": "",
             },
+            "evaluation": {
+                "required": False,
+                "status": "PENDING",
+                "verdict": "PENDING",
+                "plan": "",
+                "report": "",
+                "rubric_revision": "",
+                "benchmark_revision": "",
+                "isolation": "unknown",
+                "skip_reason": "",
+            },
             "drift": {
                 "required": False,
                 "status": "PENDING",
@@ -301,11 +324,21 @@ def executable_fixtures() -> None:
     hard_stop = TEMPLATE / ".agent/hooks/hard_stop_policy.py"
     write_guard = TEMPLATE / ".claude/hooks/work_block_gate.py"
     assurance_guard = TEMPLATE / ".claude/hooks/assurance_gate.py"
+    evaluation_validator = TEMPLATE / "scripts/validate-evaluation.py"
 
     with tempfile.TemporaryDirectory(prefix="integration-contracts-") as tmp:
         repo = Path(tmp)
-        for path in (".agent", "src", "tests", "docs/specs", "docs/plans", "docs/reports"):
+        for path in (
+            ".agent",
+            "scripts",
+            "src",
+            "tests",
+            "docs/specs",
+            "docs/plans",
+            "docs/reports",
+        ):
             (repo / path).mkdir(parents=True, exist_ok=True)
+        shutil.copy2(evaluation_validator, repo / "scripts/validate-evaluation.py")
         (repo / "AGENTS.md").write_text("# Fixture\n", encoding="utf-8")
         (repo / "src/app.py").write_text("value = 1\n", encoding="utf-8")
         (repo / "README.md").write_text("fixture\n", encoding="utf-8")
@@ -370,6 +403,13 @@ def executable_fixtures() -> None:
                     "isolation": "separate-session",
                 }
             )
+        gate["assurance"]["evaluation"].update(
+            {
+                "status": "SKIPPED",
+                "verdict": "UNVERIFIED",
+                "skip_reason": "No non-deterministic output or trajectory requirement in fixture.",
+            }
+        )
         gate["assurance"]["drift"].update(
             {
                 "status": "SKIPPED",
@@ -384,6 +424,15 @@ def executable_fixtures() -> None:
             run_script(assurance_guard, repo, {"cwd": str(repo)}),
         )
 
+        gate["assurance"]["evaluation"]["required"] = True
+        persist(repo, gate)
+        assert_denied(
+            "required evaluation cannot be skipped",
+            run_script(assurance_guard, repo, {"cwd": str(repo)}),
+            "evaluation",
+        )
+
+        gate["assurance"]["evaluation"]["required"] = False
         gate["assurance"]["verification"]["verdict"] = "BLOCKED"
         persist(repo, gate)
         assert_denied(
