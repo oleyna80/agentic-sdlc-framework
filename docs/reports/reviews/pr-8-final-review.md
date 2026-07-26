@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 0022e62f527fcf23b157d45a8615381a82dc0c03
+subject_revision: 86713e95e42e9d747838e02dd5098c6283aa821f
 created_at: 2026-07-26
 last_verified: 2026-07-26
 ---
@@ -15,21 +15,22 @@ last_verified: 2026-07-26
 ## Scope
 
 Reviewed implementation revision
-`0022e62f527fcf23b157d45a8615381a82dc0c03` against:
+`86713e95e42e9d747838e02dd5098c6283aa821f` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
 - normalized Work Blocks WB-001 through WB-007;
 - `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
-- WB-007 closeout evidence;
+- WB-007 and WB-008 closeout evidence;
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- existing Framework Contracts and publication/governance checks.
+- Framework Contracts and publication/governance checks;
+- Codex Review findings submitted on PR #8.
 
 The review evaluated correctness, fail-closed behavior, identity binding, path
-safety, map/registry consistency, historical migration compatibility, authority
-separation, and CI coverage.
+safety, marker parsing, map-section consistency, historical migration
+compatibility, authority separation, and CI coverage.
 
 ## Review Verdict
 
@@ -142,6 +143,52 @@ The map-drift fixture used an empty completed list and triggered the intentional
 non-empty-list guard before reaching the intended map/registry mismatch check.
 It now uses a non-empty but different completed path.
 
+### F-008 — `MISALIGNED` passed the substring drift check
+
+**Severity:** P1  
+**Source:** Codex Review  
+**Resolution:** fixed
+
+The previous condition accepted any value containing `ALIGNED`, including the
+explicitly adverse verdict `MISALIGNED`.
+
+Resolution:
+
+- drift verdict must equal the exact token `ALIGNED`;
+- `PENDING` and `MISALIGNED` have separate adversarial fixtures;
+- Release State Contract run 28 and Framework Contracts run 477 passed.
+
+### F-009 — Duplicate closeout markers could hide contradictory evidence
+
+**Severity:** P1  
+**Source:** Codex Review  
+**Resolution:** fixed
+
+The marker parser previously overwrote an earlier normalized key with the final
+value. A `PENDING` marker followed by `READY` could therefore pass.
+
+Resolution:
+
+- duplicate normalized closeout marker keys now raise `ReleaseStateError`;
+- contradictory duplicate `Verification verdict` evidence has a dedicated fixture;
+- no last-value-wins behavior remains.
+
+### F-010 — Active-path visibility check was scoped to the whole document
+
+**Severity:** P1  
+**Source:** Codex Review  
+**Resolution:** fixed
+
+An active path mentioned in `Key Paths` could satisfy the validator even when the
+`Migration Work` section said there was no active Work Block.
+
+Resolution:
+
+- exactly one `## Migration Work` section is required;
+- active-path and no-active assertions are evaluated only inside that section;
+- an active section containing the no-active statement fails as contradictory;
+- a fixture proves that an active path outside the section cannot satisfy the gate.
+
 ## Contract Review
 
 ### Repository and GitHub Ownership
@@ -160,23 +207,27 @@ The validator rejects:
 - active/completed path or ID overlap;
 - invalid active Work Block status;
 - map/registry disagreement;
-- visible map drift;
+- missing or contradictory visible migration state;
+- stale hosting-platform claims;
 - missing release assets;
 - wrong latest-completed ordering;
 - closeout identity mismatch;
-- missing/pending review, verification, evaluation, or drift evidence;
+- duplicate closeout markers;
+- missing/pending/adverse review, verification, evaluation, or drift evidence;
 - mutable VCS state stored as normative closeout;
 - authority expansion beyond assurance-only.
 
 **Result:** aligned.
 
-### Path and Identity Safety
+### Path, Identity, and Marker Safety
 
 - repository-relative paths reject absolute and traversal paths;
 - completed paths are constrained to `docs/plans/*.md`;
 - closeout paths are constrained to `docs/reports/closeout/`;
 - Work Block IDs are non-empty and unique across completed/active state;
-- closeout identity is exact, not inferred from filenames.
+- closeout identity is exact, not inferred from filenames;
+- closeout marker keys are unique after normalization;
+- drift verdict is an exact accepted token.
 
 **Result:** aligned.
 
@@ -186,19 +237,19 @@ The validator rejects:
 - Framework Contracts invokes governance validation, which also runs release-state
   validation and fixtures;
 - positive fixtures cover active and no-active states;
-- adversarial fixtures cover all declared drift classes.
+- adversarial fixtures cover declared drift classes and all three Codex P1 findings.
 
 **Result:** aligned.
 
 ## Verification Evidence
 
 Reviewed implementation revision:
-`0022e62f527fcf23b157d45a8615381a82dc0c03`.
+`86713e95e42e9d747838e02dd5098c6283aa821f`.
 
-Successful runs:
+Successful corrective runs:
 
-- Framework Contracts run **459**;
-- Release State Contract run **10**.
+- Framework Contracts run **477**;
+- Release State Contract run **28**.
 
 Earlier Release State Contract run 8 failed because of a fixture expectation-order
 error. The failure remains a failure and was followed by a scoped correction and
@@ -206,8 +257,8 @@ successful rerun.
 
 ## Residual Limitations
 
-- The validator relies on versioned YAML frontmatter and explicit Markdown markers;
-  schema evolution must update validator and fixtures together.
+- The validator relies on versioned YAML frontmatter, Markdown headings, and
+  explicit markers; schema evolution must update validator and fixtures together.
 - The repository does not self-commit after integration; external GitHub state is
   queried separately rather than copied into normative closeout.
 - This Work Block does not create a release tag or claim v1.0 production readiness.
@@ -217,6 +268,6 @@ successful rerun.
 
 ## Recommendation
 
-Proceed to drift audit and repository success-closeout for WB-008. After the final
-no-active-Work-Block state passes both workflows, mark PR #8 Ready for review.
-Do not integrate without explicit Owner approval.
+Keep PR #8 unmerged until the final evidence-head workflows pass and the three
+Codex review threads are replied to and resolved. Integration still requires
+explicit Owner approval.
