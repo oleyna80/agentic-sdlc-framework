@@ -171,6 +171,9 @@ unrelated work silently.
   generated health check.
 - The portable default must validate as blocked, approval-free,
   integration-free, and empty-write-set before active state is restored.
+- Its `coordination_write_set` must exactly match the canonical ordered safe
+  paths; broad or unapproved patterns, source paths, absolute paths, traversal
+  paths, missing entries, additions, and reordering deny restore.
 - Health checks must not replace an existing active Work Block.
 - Durable engineering memory must be evidence-backed and secret-free.
 - Do not store secrets, raw private transcripts, or hidden reasoning.

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import sys
 from typing import Any
 
@@ -20,6 +20,17 @@ EXPECTED_HARD_STOP_APPROVALS = {
     "credentials": False,
     "client_communications": False,
 }
+EXPECTED_COORDINATION_WRITE_SET = [
+    ".agent/active-work-block.json",
+    ".agent/critic-gate.md",
+    ".agent/verification-gate.md",
+    "docs/plans/**",
+    "docs/specs/**",
+    "docs/tasklist/**",
+    "docs/reports/**",
+    "docs/architecture/drafts/**",
+    "memory_bank/**",
+]
 
 
 class ValidationError(RuntimeError):
@@ -106,6 +117,58 @@ def load_json_object(path: Path, label: str) -> dict[str, Any]:
     return value
 
 
+def validate_coordination_write_set(state: dict[str, Any]) -> None:
+    value = state.get("coordination_write_set")
+    if not isinstance(value, list):
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set must be an array"
+        )
+
+    for index, item in enumerate(value):
+        if not isinstance(item, str) or not item or item != item.strip():
+            raise ValidationError(
+                f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set[{index}] "
+                "must be a non-empty canonical string"
+            )
+        normalized = item.replace("\\", "/")
+        posix_path = PurePosixPath(normalized)
+        windows_path = PureWindowsPath(item)
+        if posix_path.is_absolute() or windows_path.is_absolute():
+            raise ValidationError(
+                f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set[{index}] "
+                f"must be relative: {item!r}"
+            )
+        if item in {".", "./"}:
+            raise ValidationError(
+                f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set[{index}] "
+                "must not authorize the repository root"
+            )
+        if ".." in posix_path.parts:
+            raise ValidationError(
+                f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set[{index}] "
+                f"must not traverse outside the project: {item!r}"
+            )
+        if any(marker in item for marker in ("*", "?", "[")) and (
+            item not in EXPECTED_COORDINATION_WRITE_SET
+        ):
+            raise ValidationError(
+                f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set[{index}] "
+                f"contains an unauthorized wildcard pattern: {item!r}"
+            )
+
+    if value != EXPECTED_COORDINATION_WRITE_SET:
+        if (
+            len(value) == len(EXPECTED_COORDINATION_WRITE_SET)
+            and set(value) == set(EXPECTED_COORDINATION_WRITE_SET)
+        ):
+            detail = "must preserve canonical path order"
+        else:
+            detail = "must exactly match the canonical blocked-default paths"
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} coordination_write_set {detail}"
+        )
+
+
 def validate_blocked_default(root: Path) -> None:
     state = load_json_object(
         root / DEFAULT_WORK_BLOCK_PATH, str(DEFAULT_WORK_BLOCK_PATH)
@@ -132,6 +195,7 @@ def validate_blocked_default(root: Path) -> None:
         )
     if state.get("write_set") != []:
         raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} write_set must be empty")
+    validate_coordination_write_set(state)
     approvals = state.get("hard_stop_approvals")
     if approvals != EXPECTED_HARD_STOP_APPROVALS:
         raise ValidationError(

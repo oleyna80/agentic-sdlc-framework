@@ -20,6 +20,17 @@ MEMORY_FILES = (
     "review-log.md",
     "external-team-log.md",
 )
+CANONICAL_COORDINATION_WRITE_SET = [
+    ".agent/active-work-block.json",
+    ".agent/critic-gate.md",
+    ".agent/verification-gate.md",
+    "docs/plans/**",
+    "docs/specs/**",
+    "docs/tasklist/**",
+    "docs/reports/**",
+    "docs/architecture/drafts/**",
+    "memory_bank/**",
+]
 
 
 def run(command: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -51,6 +62,23 @@ def load_json(path: Path) -> dict:
 
 def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+
+
+def assert_corrupt_coordination_restore_fails(
+    project: Path, coordination_write_set: object
+) -> None:
+    active_path = project / ".agent/active-work-block.json"
+    if active_path.exists():
+        active_path.unlink()
+    default_path = project / ".agent/active-work-block.default.json"
+    default_gate = load_json(default_path)
+    default_gate["coordination_write_set"] = coordination_write_set
+    write_json(default_path, default_gate)
+
+    result = run([BASH, "scripts/bootstrap.sh"], project, check=False)
+    assert result.returncode != 0
+    assert "coordination_write_set" in result.stderr
+    assert not active_path.exists()
 
 
 def main() -> int:
@@ -101,6 +129,10 @@ def main() -> int:
         assert active_gate == default_gate
         assert active_gate["write_gate"]["status"] == "BLOCKED"
         assert active_gate["integrations"]["approved"] == []
+        assert (
+            active_gate["coordination_write_set"]
+            == CANONICAL_COORDINATION_WRITE_SET
+        )
         assert active_gate["hard_stop_approvals"] == {
             "git_commit": False,
             "git_push": False,
@@ -126,6 +158,10 @@ def main() -> int:
         restored_gate = load_json(project / ".agent/active-work-block.json")
         assert restored_gate == default_gate
         assert restored_gate["write_gate"]["status"] == "BLOCKED"
+        assert (
+            restored_gate["coordination_write_set"]
+            == CANONICAL_COORDINATION_WRITE_SET
+        )
 
         for filename in MEMORY_FILES:
             path = project / "memory_bank" / filename
@@ -171,6 +207,39 @@ def main() -> int:
         assert result.returncode != 0
         assert "write_gate.status must be BLOCKED" in result.stderr
         assert not (project / ".agent/active-work-block.json").exists()
+
+    corrupt_coordination_cases = {
+        "broad-glob": ["**"],
+        "source-glob": CANONICAL_COORDINATION_WRITE_SET + ["src/**"],
+        "repository-root": ["."],
+        "absolute-path": ["/tmp/source.py"],
+        "traversal-path": ["../source.py"],
+        "missing-path": CANONICAL_COORDINATION_WRITE_SET[:-1],
+        "additional-path": CANONICAL_COORDINATION_WRITE_SET + ["src/app.py"],
+        "reordered-paths": list(reversed(CANONICAL_COORDINATION_WRITE_SET)),
+        "non-string-path": CANONICAL_COORDINATION_WRITE_SET[:-1] + [42],
+        "malformed-path": CANONICAL_COORDINATION_WRITE_SET[:-1] + [""],
+    }
+    with tempfile.TemporaryDirectory(prefix="profile-restore-coordination-") as temp:
+        seed_project = Path(temp) / "seed"
+        run(
+            [
+                BASH,
+                str(BOOTSTRAP),
+                "--profile",
+                "core",
+                str(seed_project),
+                "Coordination Restore Contract",
+                "coordination-restore-contract",
+            ],
+            ROOT,
+        )
+        for name, coordination_write_set in corrupt_coordination_cases.items():
+            project = Path(temp) / name
+            shutil.copytree(seed_project, project)
+            assert_corrupt_coordination_restore_fails(
+                project, coordination_write_set
+            )
 
     print("Profile clone/restore contract: OK")
     return 0

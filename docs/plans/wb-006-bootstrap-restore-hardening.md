@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: work_block
 artifact_id: wb-006-bootstrap-restore-hardening
-status: complete
+status: in_progress
 owner_role: orchestrator
 work_block_id: wb-006
 created_at: 2026-07-26
@@ -13,8 +13,9 @@ last_verified: 2026-07-26
 
 ## Objective
 
-Address the two unresolved P2 Codex review findings from merged PR #5 by
-hardening generated-project installation validation and clone/restore behavior.
+Address the two unresolved P2 Codex review findings from merged PR #5 and the
+follow-up P1 review finding on PR #6 by hardening generated-project installation
+validation and clone/restore behavior.
 
 ## Expected Final Result
 
@@ -25,7 +26,14 @@ hardening generated-project installation validation and clone/restore behavior.
   restoring `.agent/active-work-block.json`.
 - The portable default Work Block must be valid JSON, `BLOCKED`,
   approval-free, integration-free, and empty-write-set.
+- Its authorization-bearing `coordination_write_set` must exactly match the
+  canonical ordered blocked-default paths.
+- Missing, additional, reordered, malformed, non-string, broad wildcard,
+  repository-root, arbitrary source, absolute, and traversal paths must deny
+  restore before active state is created.
 - Regression fixtures prove both P2 cases fail closed.
+- Regression fixtures prove canonical coordination paths restore and corrupted
+  coordination authority fails closed.
 - Navigation, registry, documentation, review, verification, drift, and closeout
   evidence are updated.
 - A draft PR is opened from `agent/bootstrap-restore-hardening`, Framework
@@ -39,6 +47,7 @@ hardening generated-project installation validation and clone/restore behavior.
 - `template/scripts/validate-installation-profile.py`
 - `template/scripts/bootstrap.sh`
 - generated profile and clone/restore regression fixtures
+- canonical blocked-default coordination authority validation
 - documentation, maps, registry, Work Block, and final review evidence
 - Framework Contracts CI
 
@@ -61,6 +70,9 @@ hardening generated-project installation validation and clone/restore behavior.
 6. Run local contract checks.
 7. Open a draft PR, wait for Framework Contracts, write final review/closeout,
    and mark the PR Ready for review.
+8. Address the follow-up P1 by validating the exact ordered
+   `coordination_write_set`, adding adversarial restore fixtures, rerunning
+   Framework Contracts, and refreshing final review/closeout evidence.
 
 ## Assurance Plan
 
@@ -70,6 +82,10 @@ Review:
 - missing old `required_path_kinds` state remains safely treated as file
   requirements;
 - blocked default validation runs before local state restore;
+- coordination authority exactly matches the canonical ordered blocked default;
+- `**`, `src/**`, `.`, absolute paths, and `../` paths deny restore;
+- missing, additional, reordered, malformed, and non-string paths deny restore;
+- canonical coordination paths still restore successfully;
 - existing active Work Block state is not overwritten;
 - failure messages are actionable and fail closed.
 
@@ -90,13 +106,13 @@ bash scripts/validate-publication.sh
 
 ## Closeout State
 
-- **Stage:** Close
-- **Stage State:** complete
+- **Stage:** Assure
+- **Stage State:** in progress for follow-up P1
 - **Write Gate:** READY for this branch and documented scope
-- **Review Gate:** READY
-- **Verification Verdict:** READY
-- **Drift Gate:** READY / ALIGNED
-- **Closeout Mode:** success-closeout
+- **Review Gate:** REOPENED by unresolved P1 on PR #6
+- **Verification Verdict:** IN PROGRESS
+- **Drift Gate:** PENDING
+- **Closeout Mode:** pending
 - **Review Evidence:** `docs/reports/reviews/pr-6-final-review.md`
-- **CI Evidence:** Framework Contracts runs 317 and 318 passed for
-  `2b34e5cfa743c9973f431758b775b93e2021172f`
+- **Prior CI Evidence:** Framework Contracts runs 319 and 320 passed for
+  `67f6c8fef27ea4f73de01e9cdc153305f1b82a86`; follow-up P1 CI is pending
