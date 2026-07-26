@@ -56,6 +56,7 @@ jobs:
               Path("scripts/test-integration-contracts.py"),
               Path("scripts/test-integration-admission-evidence.py"),
               Path("scripts/validate_publication.py"),
+              Path("scripts/validate_evaluation_publication.py"),
               Path("template/scripts/validate-installation-profile.py"),
               Path("template/scripts/validate-evaluation.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
@@ -79,6 +80,7 @@ jobs:
               Path("template/docs/templates/evaluation-plan-template.json"),
               Path("template/docs/templates/evaluation-report-template.json"),
               Path("template/docs/templates/trajectory-event-template.json"),
+              Path("docs/evals/wb-007/plan.json"),
               Path("template/opencode.json"),
           ):
               value = json.loads(path.read_text(encoding="utf-8"))
@@ -88,7 +90,24 @@ jobs:
           PY
 
       - name: Validate runtime-neutral SDLC contracts
-        run: bash scripts/test-sdd-contract.sh
+        id: sdlc_contract
+        continue-on-error: true
+        run: bash scripts/test-sdd-contract.sh > "$RUNNER_TEMP/sdlc-contract.log" 2>&1
+
+      - name: Upload SDLC contract failure log
+        if: steps.sdlc_contract.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdlc-contract-failure
+          path: ${{ runner.temp }}/sdlc-contract.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce SDLC contract result
+        if: steps.sdlc_contract.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/sdlc-contract.log"
+          exit 1
 
       - name: Validate evaluation contracts
         run: python scripts/test-evaluation-contracts.py
