@@ -53,7 +53,7 @@ assert_quick_fix() {
 
 assert_quick_fix yes 2 none
 assert_quick_fix no 3 none
-for impact in logic route schema api security runtime integration architecture governance; do
+for impact in logic route schema api security runtime integration architecture evaluation governance; do
   assert_quick_fix no 1 "$impact"
 done
 
@@ -61,17 +61,22 @@ for path in \
   "governance/authority.md" \
   "governance/lifecycle.md" \
   "governance/artifacts.md" \
+  "governance/evaluation.md" \
   "governance/runtime-capabilities.md" \
   "integrations/README.md" \
   "bootstrap/profiles.json" \
   "bootstrap/bootstrap_project.py" \
   "docs/bootstrap-profiles.md" \
+  "docs/plans/wb-007-agent-evaluation-trajectory-assurance.md" \
   "scripts/test-bootstrap-profiles.py" \
+  "scripts/test-profile-restore.py" \
   "scripts/test-runtime-conformance.py" \
+  "scripts/test-evaluation-contracts.py" \
   "template/AGENTS.md" \
   "template/CLAUDE.md" \
   "template/.agent/ROSTER.md" \
   "template/.agent/active-work-block.json" \
+  "template/.agent/active-work-block.default.json" \
   "template/.agent/hooks/hard_stop_policy.py" \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.claude/hooks/work_block_gate.py" \
@@ -79,7 +84,11 @@ for path in \
   "template/docs/templates/work-block-template.md" \
   "template/docs/templates/spec-drift-report-template.md" \
   "template/docs/templates/integration-admission-template.md" \
+  "template/docs/templates/evaluation-plan-template.json" \
+  "template/docs/templates/evaluation-report-template.json" \
+  "template/docs/templates/trajectory-event-template.json" \
   "template/scripts/validate-installation-profile.py" \
+  "template/scripts/validate-evaluation.py" \
   "skills/spec-drift-audit/SKILL.md"; do
   require_file "$path"
 done
@@ -91,14 +100,19 @@ require_contains "template/.agent/workflows/sdd-protocol.md" 'Stage 2.*Assure'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'Stage 3.*Close'
 require_contains "template/.agent/workflows/sdd-protocol.md" '2A.*Independent Review'
 require_contains "template/.agent/workflows/sdd-protocol.md" '2B.*Technical Verification'
-require_contains "template/.agent/workflows/sdd-protocol.md" '2C.*Specification Drift Audit'
+require_contains "template/.agent/workflows/sdd-protocol.md" '2C.*Agent Evaluation'
+require_contains "template/.agent/workflows/sdd-protocol.md" '2D.*Specification Drift Audit'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'Review gate:.*CHANGES_REQUIRED'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'Verification verdict:.*READY.*BLOCKED.*UNVERIFIED'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'Evaluation verdict:.*READY.*BLOCKED.*UNVERIFIED'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'Drift gate:.*READY.*BLOCKED.*UNVERIFIED'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'observable events only'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'private chain-of-thought'
 
 # Work Block binds governance separately from runtime/model/isolation/integration.
 require_contains "template/docs/templates/work-block-template.md" 'Governance Profile:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Specification:'
+require_contains "template/docs/templates/work-block-template.md" 'Approved Evaluation Plan:'
 require_contains "template/docs/templates/work-block-template.md" 'Runtime Capability Snapshot'
 require_contains "template/docs/templates/work-block-template.md" 'Integration Profile and Admission'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Integration IDs:'
@@ -108,15 +122,19 @@ require_contains "template/docs/templates/work-block-template.md" 'Integration S
 require_contains "template/docs/templates/work-block-template.md" 'Function Bindings'
 require_contains "template/docs/templates/work-block-template.md" 'Review Gate:'
 require_contains "template/docs/templates/work-block-template.md" 'Verification Verdict:'
+require_contains "template/docs/templates/work-block-template.md" 'Evaluation Verdict:'
+require_contains "template/docs/templates/work-block-template.md" 'Agent Evaluation'
+require_contains "template/docs/templates/work-block-template.md" 'Trajectory Requirements:'
+require_contains "template/docs/templates/work-block-template.md" 'No Hidden Reasoning:'
 require_contains "template/docs/templates/work-block-template.md" 'Drift Gate:'
 require_contains "template/docs/templates/work-block-template.md" 'Specification Drift Audit'
 require_contains "template/docs/templates/integration-admission-template.md" 'Logical functions served:'
 require_contains "template/docs/templates/integration-admission-template.md" 'Data Boundary'
 require_contains "template/docs/templates/integration-admission-template.md" 'Secret and Authentication Boundary'
 
-# Specification and architecture outrank implementation plans/tasklists.
+# Specification and architecture outrank implementation/evaluation plans and tasklists.
 assert_before "template/AGENTS.md" 'approved specification' 'approved implementation plan'
-assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation plan'
+assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/docs/templates/work-block-template.md" 'Approved Specification:' 'Derived Implementation Plan:'
 
 # Stable logical roles; provider/model/integration names remain implementation details.
@@ -130,14 +148,31 @@ require_absent_pattern "template/.agent/ROSTER.md" '^\| GPT Critic|^\| GPT Verif
 require_absent_pattern "template/.agent/workflows/sdd-protocol.md" 'Claude critic|GPT critic|Claude verifier|GPT verifier'
 require_absent_pattern "template/CLAUDE.md" 'gpt-critic|gpt-verifier|codex-reviewer|Claude agents remain the authoritative'
 
-# Portable review, verification, and drift schemas use one vocabulary.
+# Portable review, verification, evaluation, and drift schemas use one vocabulary.
 require_contains "governance/artifacts.md" 'verdict: `READY \| CHANGES_REQUIRED \| BLOCKED \| UNVERIFIED`'
 require_contains "governance/artifacts.md" '`SKIPPED` is a review-gate state'
+require_contains "governance/artifacts.md" 'Evaluation Report'
+require_contains "governance/artifacts.md" 'verdict: `READY \| BLOCKED \| UNVERIFIED`'
 for value in MISSING_IMPLEMENTATION UNSPECIFIED_IMPLEMENTATION STALE_PLAN STALE_TEST STALE_DOCUMENTATION SPEC_CHANGE_REQUIRED INSPECTION_GAP ALIGNMENT_REQUIRED; do
   require_contains "governance/artifacts.md" "\`$value\`"
 done
 require_absent_pattern "governance/artifacts.md" 'verdict: `APPROVE \| CHANGES_REQUIRED'
 require_absent_pattern "governance/artifacts.md" '`documented_change`|`implementation_drift`|`documentation_drift`'
+
+# Evaluation contract: observable events only, deterministic evidence cannot be judge-only.
+require_contains "governance/evaluation.md" 'Deterministic Tests'
+require_contains "governance/evaluation.md" 'Output Evaluation'
+require_contains "governance/evaluation.md" 'Observable Trajectory Evaluation'
+require_contains "governance/evaluation.md" 'must not require or claim access to private chain-of-thought'
+require_contains "governance/evaluation.md" 'cannot by itself:'
+require_contains "governance/evaluation.md" 'prove deterministic correctness'
+require_contains "governance/evaluation.md" 'open a write, integration, deployment, or Hard Stop gate'
+for verdict in READY BLOCKED UNVERIFIED; do
+  require_contains "governance/evaluation.md" "\`$verdict\`"
+done
+require_contains "template/scripts/validate-evaluation.py" 'reject_hidden_reasoning'
+require_contains "template/scripts/validate-evaluation.py" 'all_blocking_pass'
+require_contains "template/scripts/validate-evaluation.py" 'success-closeout requires required evaluation'
 
 # Portable drift contract.
 require_contains "skills/spec-drift-audit/SKILL.md" 'Reviewer checks the quality'
@@ -161,10 +196,13 @@ for profile in core codex claude-code opencode multi-runtime; do
 done
 require_contains "bootstrap/profiles.json" '"minimal": "core"'
 require_contains "bootstrap/profiles.json" '"full": "multi-runtime"'
+require_contains "bootstrap/profiles.json" 'governance/evaluation.md'
+require_contains "bootstrap/profiles.json" 'scripts/validate-evaluation.py'
 require_contains "template/scripts/bootstrap.sh" 'validate-installation-profile.py'
 require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
 require_contains "template/scripts/validate-installation-profile.py" 'required_paths'
 require_contains "template/scripts/validate-installation-profile.py" 'forbidden_paths'
+require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_EVALUATION'
 require_contains "docs/bootstrap-profiles.md" 'Installation profiles control'
 require_contains "docs/bootstrap-profiles.md" 'does not grant'
 
@@ -175,10 +213,14 @@ require_contains "template/.agent/active-work-block.json" '"admission_records"'
 require_contains "template/.agent/active-work-block.json" '"assurance"'
 require_contains "template/.agent/active-work-block.json" '"review"'
 require_contains "template/.agent/active-work-block.json" '"verification"'
+require_contains "template/.agent/active-work-block.json" '"evaluation"'
+require_contains "template/.agent/active-work-block.json" '"rubric_revision"'
+require_contains "template/.agent/active-work-block.json" '"benchmark_revision"'
 require_contains "template/.agent/active-work-block.json" '"drift"'
 require_contains "template/.agent/critic-gate.md" 'active-work-block.json'
 require_contains "template/.agent/verification-gate.md" 'Review:.*PENDING'
 require_contains "template/.agent/verification-gate.md" 'Verification:.*PENDING'
+require_contains "template/.agent/verification-gate.md" 'Evaluation:.*PENDING'
 require_contains "template/.agent/verification-gate.md" 'Drift:.*PENDING'
 
 # Reviewer/verifier direct consumers retain portable verdicts.
@@ -197,4 +239,4 @@ for path in \
   require_absent_pattern "$path" 'Plan & Discover|Stage 2: Verify|Codex mega-orchestrator'
 done
 
-echo "OK: runtime-neutral SDLC protocol and profile-aware direct consumers satisfy the contract checks"
+echo "OK: runtime-neutral SDLC protocol and evaluation-aware direct consumers satisfy the contract checks"
