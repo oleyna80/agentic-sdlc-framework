@@ -29,9 +29,15 @@ def write(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
-def expect_failure(label: str, function, *args, contains: str | None = None) -> None:
+def expect_failure(
+    label: str,
+    function,
+    *args,
+    contains: str | None = None,
+    **kwargs,
+) -> None:
     try:
-        function(*args)
+        function(*args, **kwargs)
     except EvaluationError as exc:
         if contains is not None:
             assert contains in str(exc), f"{label}: unexpected error: {exc}"
@@ -58,18 +64,10 @@ def approved_plan() -> dict:
         "frozen_revision": "deadbeef",
     }
     plan["deterministic_checks"][0].update(
-        {
-            "command": "python scripts/test-evaluation-contracts.py",
-            "evidence": "ci/run",
-        }
+        {"command": "python scripts/test-evaluation-contracts.py", "evidence": "ci/run"}
     )
     plan["output_criteria"][0].update(
-        {
-            "evaluator_type": "human",
-            "threshold": 1.0,
-            "weight": 1.0,
-            "evidence": "review",
-        }
+        {"evaluator_type": "human", "threshold": 1.0, "weight": 1.0, "evidence": "review"}
     )
     plan["trajectory_requirements"][0].update(
         {
@@ -99,12 +97,7 @@ def ready_report() -> dict:
         }
     )
     report["deterministic_results"] = [
-        {
-            "criterion_id": "deterministic-contract",
-            "state": "pass",
-            "evidence": "ci/run",
-            "notes": "",
-        }
+        {"criterion_id": "deterministic-contract", "state": "pass", "evidence": "ci/run", "notes": ""}
     ]
     report["output_results"] = [
         {
@@ -163,6 +156,8 @@ def main() -> int:
     validator.validate_plan(plan, require_approved=True)
     validator.validate_report(report, plan)
 
+    cases: list[tuple[str, object, object, str]] = []
+
     pending_freeze = copy.deepcopy(plan)
     pending_freeze["subject"]["frozen_revision"] = "pending-final-freeze"
     expect_failure(
@@ -175,194 +170,89 @@ def main() -> int:
 
     duplicate = copy.deepcopy(plan)
     duplicate["output_criteria"][0]["criterion_id"] = "deterministic-contract"
-    expect_failure(
-        "duplicate-global-id",
-        validator.validate_plan,
-        duplicate,
-        contains="globally unique",
-    )
+    cases.append(("duplicate-global-id", validator.validate_plan, duplicate, "globally unique"))
 
     hidden = copy.deepcopy(plan)
     hidden["trajectory_requirements"][0]["chain_of_thought"] = "capture it"
-    expect_failure(
-        "hidden-reasoning",
-        validator.validate_plan,
-        hidden,
-        contains="hidden reasoning",
-    )
+    cases.append(("hidden-reasoning", validator.validate_plan, hidden, "hidden reasoning"))
 
     judge_override = copy.deepcopy(plan)
     judge_override["judge_policy"]["can_override_deterministic"] = True
-    expect_failure(
-        "judge-override",
-        validator.validate_plan,
-        judge_override,
-        contains="cannot override",
-    )
+    cases.append(("judge-override", validator.validate_plan, judge_override, "cannot override"))
 
     judge_gate = copy.deepcopy(plan)
     judge_gate["judge_policy"]["can_open_authority_gates"] = True
-    expect_failure(
-        "judge-gate", validator.validate_plan, judge_gate, contains="cannot open"
-    )
+    cases.append(("judge-gate", validator.validate_plan, judge_gate, "cannot open"))
 
     disabled_judge = copy.deepcopy(plan)
     disabled_judge["output_criteria"][0]["evaluator_type"] = "lm_judge"
-    expect_failure(
-        "disabled-judge",
-        validator.validate_plan,
-        disabled_judge,
-        contains="disables",
-    )
+    cases.append(("disabled-judge", validator.validate_plan, disabled_judge, "disables"))
 
     zero_weight = copy.deepcopy(plan)
     zero_weight["output_criteria"][0]["weight"] = 0
-    expect_failure(
-        "zero-total-weight",
-        validator.validate_plan,
-        zero_weight,
-        contains="positive total weight",
-    )
+    cases.append(("zero-total-weight", validator.validate_plan, zero_weight, "positive total weight"))
+
+    for label, function, value, marker in cases:
+        expect_failure(label, function, value, contains=marker)
+
+    report_cases: list[tuple[str, dict, str]] = []
 
     subject_mismatch = copy.deepcopy(report)
     subject_mismatch["subject_revision"] = "cafebabe"
-    expect_failure(
-        "subject-revision-mismatch",
-        validator.validate_report,
-        subject_mismatch,
-        plan,
-        contains="frozen_revision",
-    )
+    report_cases.append(("subject-revision-mismatch", subject_mismatch, "frozen_revision"))
 
     below_threshold = copy.deepcopy(report)
     below_threshold["output_results"][0]["score"] = 0.5
-    expect_failure(
-        "below-threshold-pass",
-        validator.validate_report,
-        below_threshold,
-        plan,
-        contains="below approved threshold",
-    )
+    report_cases.append(("below-threshold-pass", below_threshold, "below approved threshold"))
 
     evaluator_mismatch = copy.deepcopy(report)
     evaluator_mismatch["output_results"][0]["evaluator_type"] = "rule_based"
-    expect_failure(
-        "evaluator-type-mismatch",
-        validator.validate_report,
-        evaluator_mismatch,
-        plan,
-        contains="evaluator type",
-    )
+    report_cases.append(("evaluator-type-mismatch", evaluator_mismatch, "evaluator type"))
 
     missing_event = copy.deepcopy(report)
     missing_event["trajectory_results"][0]["observed_events"] = ["work_block_bound"]
-    missing_event["trajectory_results"][0]["missing_events"] = [
-        "required_checks_completed"
-    ]
-    expect_failure(
-        "trajectory-required-event-missing",
-        validator.validate_report,
-        missing_event,
-        plan,
-        contains="cannot pass",
-    )
+    missing_event["trajectory_results"][0]["missing_events"] = ["required_checks_completed"]
+    report_cases.append(("trajectory-required-event-missing", missing_event, "cannot pass"))
 
     false_empty_missing = copy.deepcopy(report)
-    false_empty_missing["trajectory_results"][0]["observed_events"] = [
-        "work_block_bound"
-    ]
-    expect_failure(
-        "trajectory-false-empty-missing",
-        validator.validate_report,
-        false_empty_missing,
-        plan,
-        contains="missing_events",
-    )
+    false_empty_missing["trajectory_results"][0]["observed_events"] = ["work_block_bound"]
+    report_cases.append(("trajectory-false-empty-missing", false_empty_missing, "missing_events"))
 
     event_source_mismatch = copy.deepcopy(report)
     event_source_mismatch["trajectory_results"][0]["event_source"] = "other.jsonl"
-    expect_failure(
-        "trajectory-event-source-mismatch",
-        validator.validate_report,
-        event_source_mismatch,
-        plan,
-        contains="event source",
-    )
+    report_cases.append(("trajectory-event-source-mismatch", event_source_mismatch, "event source"))
 
     prohibited_event = copy.deepcopy(report)
-    prohibited_event["trajectory_results"][0]["prohibited_events_observed"] = [
-        "unauthorized_side_effect"
-    ]
-    expect_failure(
-        "trajectory-prohibited",
-        validator.validate_report,
-        prohibited_event,
-        plan,
-        contains="cannot pass",
-    )
+    prohibited_event["trajectory_results"][0]["prohibited_events_observed"] = ["unauthorized_side_effect"]
+    report_cases.append(("trajectory-prohibited", prohibited_event, "cannot pass"))
 
     unplanned_prohibited = copy.deepcopy(report)
     unplanned_prohibited["trajectory_results"][0]["state"] = "fail"
-    unplanned_prohibited["trajectory_results"][0][
-        "prohibited_events_observed"
-    ] = ["unknown-prohibition"]
-    expect_failure(
-        "trajectory-unplanned-prohibited",
-        validator.validate_report,
-        unplanned_prohibited,
-        plan,
-        contains="unplanned prohibited",
-    )
+    unplanned_prohibited["trajectory_results"][0]["prohibited_events_observed"] = ["unknown-prohibition"]
+    report_cases.append(("trajectory-unplanned-prohibited", unplanned_prohibited, "unplanned prohibited"))
 
     wrong_ids = copy.deepcopy(report)
     wrong_ids["output_results"][0]["criterion_id"] = "wrong"
-    expect_failure(
-        "result-id-mismatch",
-        validator.validate_report,
-        wrong_ids,
-        plan,
-        contains="exactly match",
-    )
+    report_cases.append(("result-id-mismatch", wrong_ids, "exactly match"))
 
     ready_with_gap = copy.deepcopy(report)
     ready_with_gap["aggregate"]["inspection_gaps"] = ["missing-log"]
-    expect_failure(
-        "ready-gap",
-        validator.validate_report,
-        ready_with_gap,
-        plan,
-        contains="cannot contain",
-    )
+    report_cases.append(("ready-gap", ready_with_gap, "cannot contain"))
 
     blocking_not_run = copy.deepcopy(report)
     blocking_not_run["deterministic_results"][0]["state"] = "not_run"
-    expect_failure(
-        "blocking-not-run",
-        validator.validate_report,
-        blocking_not_run,
-        plan,
-        contains="requires blocking criterion pass",
-    )
+    report_cases.append(("blocking-not-run", blocking_not_run, "requires blocking criterion pass"))
 
     deterministic_judge = copy.deepcopy(report)
     deterministic_judge["deterministic_results"][0]["evaluator_type"] = "lm_judge"
-    expect_failure(
-        "deterministic-judge",
-        validator.validate_report,
-        deterministic_judge,
-        plan,
-        contains="cannot rely",
-    )
+    report_cases.append(("deterministic-judge", deterministic_judge, "cannot rely"))
 
     missing_completed_at = copy.deepcopy(report)
     missing_completed_at["completed_at"] = None
-    expect_failure(
-        "complete-report-time",
-        validator.validate_report,
-        missing_completed_at,
-        plan,
-        contains="completed_at",
-    )
+    report_cases.append(("complete-report-time", missing_completed_at, "completed_at"))
+
+    for label, candidate, marker in report_cases:
+        expect_failure(label, validator.validate_report, candidate, plan, contains=marker)
 
     with tempfile.TemporaryDirectory(prefix="evaluation-contract-") as temp:
         root = Path(temp)
@@ -372,81 +262,41 @@ def main() -> int:
         write(plan_path, plan)
         write(report_path, report)
         write(gate_path, active_gate())
-        result = validator.validate_closeout(root)
-        assert result["verdict"] == "READY"
+        assert validator.validate_closeout(root)["verdict"] == "READY"
+
+        gate_cases: list[tuple[str, dict, str]] = []
 
         skipped_required = active_gate()
         skipped_required["assurance"]["evaluation"].update(
-            {
-                "status": "SKIPPED",
-                "verdict": "UNVERIFIED",
-                "skip_reason": "not needed",
-            }
+            {"status": "SKIPPED", "verdict": "UNVERIFIED", "skip_reason": "not needed"}
         )
-        write(gate_path, skipped_required)
-        expect_failure(
-            "required-skipped",
-            validator.validate_closeout,
-            root,
-            contains="cannot be SKIPPED",
-        )
+        gate_cases.append(("required-skipped", skipped_required, "cannot be SKIPPED"))
 
         optional_no_reason = active_gate()
         optional_no_reason["assurance"]["evaluation"].update(
-            {
-                "required": False,
-                "status": "SKIPPED",
-                "verdict": "UNVERIFIED",
-                "skip_reason": "",
-            }
+            {"required": False, "status": "SKIPPED", "verdict": "UNVERIFIED", "skip_reason": ""}
         )
-        write(gate_path, optional_no_reason)
-        expect_failure(
-            "optional-skip-reason",
-            validator.validate_closeout,
-            root,
-            contains="requires skip_reason",
-        )
+        gate_cases.append(("optional-skip-reason", optional_no_reason, "requires skip_reason"))
 
         rubric_mismatch = active_gate()
         rubric_mismatch["assurance"]["evaluation"]["rubric_revision"] = "wrong"
-        write(gate_path, rubric_mismatch)
-        expect_failure(
-            "rubric-mismatch",
-            validator.validate_closeout,
-            root,
-            contains="rubric revision",
-        )
+        gate_cases.append(("rubric-mismatch", rubric_mismatch, "rubric revision"))
 
         benchmark_mismatch = active_gate()
         benchmark_mismatch["assurance"]["evaluation"]["benchmark_revision"] = "wrong"
-        write(gate_path, benchmark_mismatch)
-        expect_failure(
-            "benchmark-mismatch",
-            validator.validate_closeout,
-            root,
-            contains="benchmark revision",
-        )
+        gate_cases.append(("benchmark-mismatch", benchmark_mismatch, "benchmark revision"))
 
         isolation_mismatch = active_gate()
         isolation_mismatch["assurance"]["evaluation"]["isolation"] = "other"
-        write(gate_path, isolation_mismatch)
-        expect_failure(
-            "isolation-mismatch",
-            validator.validate_closeout,
-            root,
-            contains="isolation",
-        )
+        gate_cases.append(("isolation-mismatch", isolation_mismatch, "isolation"))
 
         outside_report = active_gate()
         outside_report["assurance"]["evaluation"]["report"] = "../report.json"
-        write(gate_path, outside_report)
-        expect_failure(
-            "outside-report",
-            validator.validate_closeout,
-            root,
-            contains="escapes repository",
-        )
+        gate_cases.append(("outside-report", outside_report, "escapes repository"))
+
+        for label, gate, marker in gate_cases:
+            write(gate_path, gate)
+            expect_failure(label, validator.validate_closeout, root, contains=marker)
 
     print("Evaluation contract fixtures: OK")
     return 0
