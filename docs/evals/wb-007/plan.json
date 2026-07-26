@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "artifact_type": "evaluation_plan",
+  "evaluation_id": "eval-wb-007",
+  "status": "draft",
+  "work_block_id": "wb-007",
+  "revision": "1",
+  "subject": {
+    "objective": "Demonstrate that WB-007 provides a portable, fail-closed evaluation and observable trajectory assurance layer without expanding authority.",
+    "specification_revision": "governance/evaluation.md@1",
+    "frozen_revision": "pending-final-implementation-freeze"
+  },
+  "deterministic_checks": [
+    {
+      "criterion_id": "framework-contract-suite",
+      "description": "The complete Framework Contracts suite passes on the frozen PR revision.",
+      "command": "bash scripts/test-sdd-contract.sh && python scripts/test-evaluation-contracts.py && python scripts/test-bootstrap-profiles.py && python scripts/test-profile-restore.py && python scripts/test-runtime-conformance.py && python scripts/test-integration-contracts.py && python scripts/test-integration-admission-evidence.py && python scripts/test-codex-adapter.py && python scripts/test-codex-hard-stops.py && bash scripts/validate-governance.sh && bash scripts/validate-publication.sh",
+      "evidence": "GitHub Actions Framework Contracts run for the frozen revision",
+      "blocking": true
+    },
+    {
+      "criterion_id": "generated-profile-smoke",
+      "description": "Disposable core and multi-runtime scaffolds contain the evaluation contract, templates, validator, and fail-closed default state.",
+      "command": "bash scripts/validate-publication.sh",
+      "evidence": "publication and disposable scaffold logs",
+      "blocking": true
+    }
+  ],
+  "output_criteria": [
+    {
+      "criterion_id": "evaluation-contract-completeness",
+      "description": "Governance, lifecycle, artifacts, Work Block state, generated templates, validator, CI, navigation, and documentation form one consistent evaluation contract.",
+      "evaluator_type": "human",
+      "threshold": 1.0,
+      "weight": 0.5,
+      "blocking": true,
+      "evidence": "docs/reports/reviews/pr-7-final-review.md"
+    },
+    {
+      "criterion_id": "authority-and-privacy-boundary",
+      "description": "Evaluation cannot grant authority, waive deterministic failures, or require hidden reasoning/private chain-of-thought, and observable evidence excludes secrets/protected payloads.",
+      "evaluator_type": "rule_based",
+      "threshold": 1.0,
+      "weight": 0.5,
+      "blocking": true,
+      "evidence": "governance/evaluation.md and evaluation contract fixtures"
+    }
+  ],
+  "trajectory_requirements": [
+    {
+      "criterion_id": "required-assurance-events",
+      "description": "Observable delivery evidence shows Work Block binding, predeclared evaluation criteria, implementation, full CI, final review, evaluation, drift audit, and closeout without merge.",
+      "event_source": "docs/evals/wb-007/events.jsonl",
+      "required_events": [
+        "work_block_bound",
+        "evaluation_plan_declared",
+        "implementation_completed",
+        "framework_contracts_passed",
+        "final_review_completed",
+        "evaluation_completed",
+        "drift_audit_completed",
+        "closeout_completed"
+      ],
+      "prohibited_events": [
+        "hidden_reasoning_collected",
+        "deterministic_failure_waived_by_judge",
+        "evaluation_opened_authority_gate",
+        "unapproved_merge"
+      ],
+      "blocking": true
+    },
+    {
+      "criterion_id": "corrective-loop-observed",
+      "description": "CI failures and review findings are recorded as observable failures followed by corrective changes and reruns rather than represented as passes.",
+      "event_source": "docs/evals/wb-007/events.jsonl",
+      "required_events": [
+        "ci_failure_observed",
+        "corrective_change_applied",
+        "ci_rerun_completed"
+      ],
+      "prohibited_events": [
+        "failed_check_reported_as_pass"
+      ],
+      "blocking": true
+    }
+  ],
+  "benchmark_revision": "wb-007-contract-fixtures-v1",
+  "rubric_revision": "wb-007-rubric-v1",
+  "judge_policy": {
+    "lm_judge_allowed": false,
+    "judge_identity": "not-applicable",
+    "judge_prompt_revision": "not-applicable",
+    "can_override_deterministic": false,
+    "can_open_authority_gates": false
+  },
+  "isolation_requirement": "separate-review-pass-plus-github-actions-ubuntu-runner",
+  "aggregate_verdict_rule": "all_blocking_pass"
+}
