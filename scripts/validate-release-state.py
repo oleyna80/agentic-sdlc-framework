@@ -14,7 +14,7 @@ ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
 MAP_BLOCK_RE = re.compile(
     r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL
 )
-MUTABLE_VCS_PATTERNS = (
+MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
     re.compile(r"\bremains? draft\b", re.IGNORECASE),
@@ -22,6 +22,17 @@ MUTABLE_VCS_PATTERNS = (
     re.compile(r"\bmerge commit\b", re.IGNORECASE),
     re.compile(r"\bmerged_at\b", re.IGNORECASE),
 )
+STALE_MAP_PATTERNS = (
+    re.compile(r"PR\s*#\d+\s+remains?\s+Draft", re.IGNORECASE),
+    re.compile(r"PR\s*#\d+.*\bnot merged\b", re.IGNORECASE),
+    re.compile(r"\*\*Merge status:\*\*\s*not merged", re.IGNORECASE),
+)
+CANONICAL_RELEASE_ASSETS = {
+    "contract": "governance/release-state.md",
+    "validator": "scripts/validate-release-state.py",
+    "fixtures": "scripts/test-release-state-contracts.py",
+    "workflow": ".github/workflows/release-state-contract.yml",
+}
 
 
 class ReleaseStateError(RuntimeError):
@@ -73,37 +84,39 @@ def safe_repo_path(root: Path, value: object, label: str) -> tuple[str, Path]:
     return normalized, resolved
 
 
-def string_list(value: object, label: str) -> list[str]:
+def string_list(value: object, label: str, *, allow_empty: bool = False) -> list[str]:
     if not isinstance(value, list) or any(
         not isinstance(item, str) or not item.strip() for item in value
     ):
         raise ReleaseStateError(f"{label} must be an array of non-empty strings")
+    if not allow_empty and not value:
+        raise ReleaseStateError(f"{label} must not be empty")
     normalized = [item.strip().replace("\\", "/") for item in value]
     if len(normalized) != len(set(normalized)):
         raise ReleaseStateError(f"{label} contains duplicate paths")
     return normalized
 
 
-def parse_map_state(path: Path) -> dict[str, Any]:
+def parse_map_state(path: Path) -> tuple[dict[str, Any], str]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
         raise ReleaseStateError(f"cannot read PROJECT_MAP.md: {exc}") from exc
-    match = MAP_BLOCK_RE.search(text)
-    if not match:
+    matches = list(MAP_BLOCK_RE.finditer(text))
+    if not matches:
         raise ReleaseStateError("PROJECT_MAP.md requires one release-state comment block")
-    if len(MAP_BLOCK_RE.findall(text)) != 1:
+    if len(matches) != 1:
         raise ReleaseStateError("PROJECT_MAP.md must contain exactly one release-state block")
     try:
-        value = yaml.safe_load(match.group("body"))
+        value = yaml.safe_load(matches[0].group("body"))
     except yaml.YAMLError as exc:
         raise ReleaseStateError(f"invalid PROJECT_MAP.md release-state block: {exc}") from exc
     if not isinstance(value, dict):
         raise ReleaseStateError("PROJECT_MAP.md release-state block must be an object")
-    return value
+    return value, text
 
 
-def validate_completed_work_block(root: Path, relative: str) -> None:
+def validate_completed_work_block(root: Path, relative: str) -> dict[str, Any]:
     normalized, path = safe_repo_path(root, relative, "completed_work_block")
     if not normalized.startswith("docs/plans/") or not normalized.endswith(".md"):
         raise ReleaseStateError(f"completed Work Block must be under docs/plans: {normalized}")
@@ -114,7 +127,12 @@ def validate_completed_work_block(root: Path, relative: str) -> None:
         raise ReleaseStateError(f"completed path is not a Work Block: {normalized}")
     if frontmatter.get("status") != "completed":
         raise ReleaseStateError(f"completed Work Block is not status completed: {normalized}")
+    work_block_id = frontmatter.get("work_block_id")
+    if not isinstance(work_block_id, str) or not work_block_id.strip():
+        raise ReleaseStateError(f"completed Work Block lacks work_block_id: {normalized}")
     pending_markers = (
+        "**Stage State:** in_progress",
+        "**State:** in_progress",
         "**Review Gate:** PENDING",
         "**Verification Verdict:** PENDING",
         "**Evaluation Verdict:** PENDING",
@@ -126,9 +144,10 @@ def validate_completed_work_block(root: Path, relative: str) -> None:
         raise ReleaseStateError(
             f"completed Work Block retains pending lifecycle markers: {normalized}: {found}"
         )
+    return frontmatter
 
 
-def validate_active_work_block(root: Path, relative: str) -> None:
+def validate_active_work_block(root: Path, relative: str) -> dict[str, Any]:
     normalized, path = safe_repo_path(root, relative, "active_work_block")
     if not normalized.startswith("docs/plans/") or not normalized.endswith(".md"):
         raise ReleaseStateError(f"active Work Block must be under docs/plans: {normalized}")
@@ -142,14 +161,43 @@ def validate_active_work_block(root: Path, relative: str) -> None:
         raise ReleaseStateError(
             f"active Work Block requires one of {sorted(ACTIVE_STATUSES)}, found {status!r}"
         )
+    return frontmatter
 
 
-def validate_closeout(root: Path, release_state: dict[str, Any], completed: list[str]) -> None:
+def closeout_markers(body: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    pattern = re.compile(r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$", re.MULTILINE)
+    for match in pattern.finditer(body):
+        result[match.group("key").strip().lower()] = match.group("value").strip()
+    return result
+
+
+def validate_release_assets(root: Path, release_state: dict[str, Any]) -> None:
+    for field, expected in CANONICAL_RELEASE_ASSETS.items():
+        if release_state.get(field) != expected:
+            raise ReleaseStateError(f"release_state.{field} must be {expected}")
+        _, path = safe_repo_path(root, expected, f"release_state.{field}")
+        if not path.is_file():
+            raise ReleaseStateError(f"release-state asset is missing: {expected}")
+    if release_state.get("authority") != "assurance_only":
+        raise ReleaseStateError("release_state.authority must be assurance_only")
+
+
+def validate_closeout(
+    root: Path,
+    release_state: dict[str, Any],
+    completed: list[str],
+    completed_frontmatter: dict[str, dict[str, Any]],
+) -> None:
     latest = release_state.get("latest_completed_work_block")
     closeout_value = release_state.get("closeout_report")
     if latest not in completed:
         raise ReleaseStateError(
             "release_state.latest_completed_work_block must be listed in completed_work_blocks"
+        )
+    if latest != completed[-1]:
+        raise ReleaseStateError(
+            "release_state.latest_completed_work_block must be the final completed_work_blocks entry"
         )
     latest_normalized, _ = safe_repo_path(root, latest, "latest_completed_work_block")
     closeout_normalized, closeout_path = safe_repo_path(root, closeout_value, "closeout_report")
@@ -162,25 +210,56 @@ def validate_closeout(root: Path, release_state: dict[str, Any], completed: list
         raise ReleaseStateError("release_state.closeout_report is not a closeout report")
     if frontmatter.get("status") != "approved":
         raise ReleaseStateError("release-state closeout report must be approved")
-    if str(frontmatter.get("work_block_id", "")).lower() not in latest_normalized.lower():
-        raise ReleaseStateError("closeout work_block_id does not match latest completed Work Block")
-    required_markers = (
-        "**Stage execution state:** completed",
-        "**Closeout classification:** SUCCESS",
-        "**Task status:** completed",
-    )
-    missing = [marker for marker in required_markers if marker not in body]
-    if missing:
-        raise ReleaseStateError(f"successful closeout is missing internal markers: {missing}")
-    if "**Review verdict:** PENDING" in body or "**Verification verdict:** PENDING" in body:
-        raise ReleaseStateError("successful closeout contains pending required assurance")
+    expected_work_block_id = completed_frontmatter[latest_normalized].get("work_block_id")
+    if frontmatter.get("work_block_id") != expected_work_block_id:
+        raise ReleaseStateError("closeout work_block_id does not exactly match latest Work Block")
+
+    markers = closeout_markers(body)
+    required_exact = {
+        "stage execution state": "completed",
+        "review verdict": "READY",
+        "verification verdict": "READY",
+        "closeout classification": "SUCCESS",
+        "task status": "completed",
+    }
+    for key, expected in required_exact.items():
+        if markers.get(key) != expected:
+            raise ReleaseStateError(
+                f"successful closeout requires {key}={expected}, found {markers.get(key)!r}"
+            )
+    drift = markers.get("drift verdict", "")
+    if "ALIGNED" not in drift:
+        raise ReleaseStateError("successful closeout requires an ALIGNED drift verdict")
+    evaluation = markers.get("evaluation verdict")
+    if evaluation is not None and not (
+        evaluation == "READY" or evaluation.startswith("SKIPPED")
+    ):
+        raise ReleaseStateError(
+            "successful closeout evaluation verdict must be READY or documented SKIPPED"
+        )
+    external = markers.get("external vcs state", "")
+    if not external.lower().startswith("non-normative"):
+        raise ReleaseStateError("successful closeout must mark external VCS state non-normative")
     if release_state.get("external_vcs_state") != "non_normative":
         raise ReleaseStateError("release_state.external_vcs_state must be non_normative")
-    for pattern in MUTABLE_VCS_PATTERNS:
+    for pattern in MUTABLE_CLOSEOUT_PATTERNS:
         if pattern.search(body):
             raise ReleaseStateError(
                 f"closeout contains mutable GitHub/VCS state: {pattern.pattern}"
             )
+
+
+def validate_map_projection(text: str, active: str | None) -> None:
+    for pattern in STALE_MAP_PATTERNS:
+        if pattern.search(text):
+            raise ReleaseStateError(f"PROJECT_MAP.md contains stale GitHub state: {pattern.pattern}")
+    if active is None:
+        if "No active implementation Work Block." not in text:
+            raise ReleaseStateError(
+                "PROJECT_MAP.md must state that no active implementation Work Block exists"
+            )
+    elif f"`{active}`" not in text:
+        raise ReleaseStateError("PROJECT_MAP.md visible migration section omits active Work Block")
 
 
 def validate_repository(root: Path) -> dict[str, Any]:
@@ -191,8 +270,16 @@ def validate_repository(root: Path) -> dict[str, Any]:
         raise ReleaseStateError("FILE_REGISTRY.yml requires migration_state")
     completed = string_list(migration.get("completed_work_blocks"), "completed_work_blocks")
     completed_set = set(completed)
+    completed_frontmatter: dict[str, dict[str, Any]] = {}
+    work_block_ids: set[str] = set()
     for relative in completed:
-        validate_completed_work_block(root, relative)
+        frontmatter = validate_completed_work_block(root, relative)
+        normalized = relative.strip().replace("\\", "/")
+        work_block_id = str(frontmatter["work_block_id"])
+        if work_block_id in work_block_ids:
+            raise ReleaseStateError(f"duplicate completed work_block_id: {work_block_id}")
+        work_block_ids.add(work_block_id)
+        completed_frontmatter[normalized] = frontmatter
 
     active_value = migration.get("active_work_block")
     active: str | None
@@ -202,9 +289,11 @@ def validate_repository(root: Path) -> dict[str, Any]:
         active, _ = safe_repo_path(root, active_value, "active_work_block")
         if active in completed_set:
             raise ReleaseStateError("active Work Block cannot also be completed")
-        validate_active_work_block(root, active)
+        active_frontmatter = validate_active_work_block(root, active)
+        if active_frontmatter.get("work_block_id") in work_block_ids:
+            raise ReleaseStateError("active Work Block ID duplicates a completed Work Block ID")
 
-    map_state = parse_map_state(root / "PROJECT_MAP.md")
+    map_state, map_text = parse_map_state(root / "PROJECT_MAP.md")
     map_completed = string_list(
         map_state.get("completed_work_blocks"),
         "PROJECT_MAP completed_work_blocks",
@@ -214,17 +303,13 @@ def validate_repository(root: Path) -> dict[str, Any]:
         raise ReleaseStateError("PROJECT_MAP completed Work Blocks do not match FILE_REGISTRY.yml")
     if map_active != active:
         raise ReleaseStateError("PROJECT_MAP active Work Block does not match FILE_REGISTRY.yml")
+    validate_map_projection(map_text, active)
 
     release_state = registry.get("release_state")
     if not isinstance(release_state, dict):
         raise ReleaseStateError("FILE_REGISTRY.yml requires release_state")
-    if release_state.get("contract") != "governance/release-state.md":
-        raise ReleaseStateError("release_state.contract must reference governance/release-state.md")
-    if release_state.get("validator") != "scripts/validate-release-state.py":
-        raise ReleaseStateError("release_state.validator is not canonical")
-    if release_state.get("fixtures") != "scripts/test-release-state-contracts.py":
-        raise ReleaseStateError("release_state.fixtures is not canonical")
-    validate_closeout(root, release_state, completed)
+    validate_release_assets(root, release_state)
+    validate_closeout(root, release_state, completed, completed_frontmatter)
 
     return {
         "completed_work_blocks": completed,
