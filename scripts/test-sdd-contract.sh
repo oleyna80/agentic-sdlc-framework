@@ -133,7 +133,7 @@ require_contains "template/docs/templates/integration-admission-template.md" 'Da
 require_contains "template/docs/templates/integration-admission-template.md" 'Secret and Authentication Boundary'
 
 # Specification and architecture outrank implementation/evaluation plans and tasklists.
-assert_before "template/AGENTS.md" 'approved specification' 'approved implementation plan'
+assert_before "template/AGENTS.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/docs/templates/work-block-template.md" 'Approved Specification:' 'Derived Implementation Plan:'
 
