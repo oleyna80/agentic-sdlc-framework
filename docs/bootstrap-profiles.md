@@ -129,7 +129,7 @@ It records:
 - installed runtime guidance;
 - inert integration configuration surfaces;
 - selected skills and skill mirrors;
-- required paths;
+- required paths and their expected filesystem kinds;
 - known unselected paths that must be absent in a fresh scaffold;
 - an explicit authority disclaimer.
 
@@ -150,6 +150,12 @@ python3 scripts/validate-installation-profile.py
 It also writes `.agent/project-config.md` with the resolved installation profile
 and memory-directory convention.
 
+The validator checks required-path kinds, not only existence. For example, a
+required file such as `AGENTS.md` must be a file; a directory with that name
+fails validation. When ignored local Work Block state is absent after clone, the
+health check also validates `.agent/active-work-block.default.json` before
+restoring `.agent/active-work-block.json`.
+
 ## Fail-Closed Behavior
 
 Bootstrap exits before changing the target when:
@@ -159,6 +165,9 @@ Bootstrap exits before changing the target when:
 - a profile references an unknown component or skill set;
 - a referenced skill or component source is missing;
 - a path is absolute or contains `..`;
+- a required path exists with the wrong filesystem kind;
+- `.agent/active-work-block.default.json` is malformed, not `BLOCKED`, contains
+  approvals, contains admitted integrations, or has a non-empty write set;
 - the target exists and is not empty.
 
 The engine does not delete or overwrite a non-empty target.

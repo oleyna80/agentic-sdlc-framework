@@ -84,7 +84,7 @@ runtime or integration active.
 | Path | Status | Purpose |
 |---|---|---|
 | `AGENTS.md` | normative | Compact project operating contract |
-| `.agent/bootstrap-profile.json` | generated installation evidence | Resolved profile, components, skills, required/forbidden fresh-scaffold paths |
+| `.agent/bootstrap-profile.json` | generated installation evidence | Resolved profile, components, skills, required path kinds, and forbidden fresh-scaffold paths |
 | `governance/` | normative | Runtime-neutral authority, lifecycle, artifact, and capability contracts |
 | `.agent/workflows/sdd-protocol.md` | normative | Define / Execute / Assure / Close semantics |
 | `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, isolation |
@@ -104,8 +104,8 @@ runtime or integration active.
 | `CLAUDE.md` / `.claude/` | conditional Claude Code surface | Present only when selected by installation profile |
 | `opencode.json` / `.opencode/` | conditional OpenCode surface | Present only when selected by installation profile |
 | `.mcp.json` | conditional inert integration config | Present only in profiles that install the empty MCP registry |
-| `scripts/bootstrap.sh` | health check | Validates the resolved installation profile and writes project config |
-| `scripts/validate-installation-profile.py` | generated validator | Checks required selected and absent unselected surfaces |
+| `scripts/bootstrap.sh` | health check | Validates the resolved installation profile, blocked default Work Block, and writes project config |
+| `scripts/validate-installation-profile.py` | generated validator | Checks required selected surfaces, required path kinds, absent unselected surfaces, and blocked default invariants |
 | source/test directories | source | Controlled by approved Work Block write-sets |
 
 ## Safe Integration Defaults

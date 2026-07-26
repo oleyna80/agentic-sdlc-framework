@@ -224,6 +224,7 @@ For a generated project:
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
 | Latest completed migration | `docs/plans/wb-005-profile-aware-bootstrap-conformance.md` |
+| Active migration | `docs/plans/wb-006-bootstrap-restore-hardening.md` |
 | Latest final review | `docs/reports/reviews/pr-5-final-review.md` |
 
 ## Requirements

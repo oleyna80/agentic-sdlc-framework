@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -10,6 +11,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 BOOTSTRAP = ROOT / "bootstrap.sh"
+BASH = os.environ.get("BASH", "bash")
 MEMORY_FILES = (
     "context.md",
     "progress.md",
@@ -43,11 +45,20 @@ def check_ignored(project: Path, relative: str) -> bool:
     return result.returncode == 0
 
 
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json(path: Path, value: dict) -> None:
+    path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="profile-restore-") as temp:
         project = Path(temp) / "project"
         run(
             [
+                BASH,
                 str(BOOTSTRAP),
                 "--profile",
                 "core",
@@ -85,14 +96,8 @@ def main() -> int:
         for relative in local_state:
             assert check_ignored(project, relative), f"local path is not ignored: {relative}"
 
-        default_gate = json.loads(
-            (project / ".agent/active-work-block.default.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        active_gate = json.loads(
-            (project / ".agent/active-work-block.json").read_text(encoding="utf-8")
-        )
+        default_gate = load_json(project / ".agent/active-work-block.default.json")
+        active_gate = load_json(project / ".agent/active-work-block.json")
         assert active_gate == default_gate
         assert active_gate["write_gate"]["status"] == "BLOCKED"
         assert active_gate["integrations"]["approved"] == []
@@ -113,14 +118,12 @@ def main() -> int:
         (project / ".agent/project-config.md").unlink()
         shutil.rmtree(project / "memory_bank")
 
-        result = run(["bash", "scripts/bootstrap.sh"], project)
+        result = run([BASH, "scripts/bootstrap.sh"], project)
         assert "RESTORED: .agent/active-work-block.json" in result.stdout
         assert "Installation profile: OK" in result.stdout
         assert "Agentic SDLC layer: OK" in result.stdout
 
-        restored_gate = json.loads(
-            (project / ".agent/active-work-block.json").read_text(encoding="utf-8")
-        )
+        restored_gate = load_json(project / ".agent/active-work-block.json")
         assert restored_gate == default_gate
         assert restored_gate["write_gate"]["status"] == "BLOCKED"
 
@@ -136,12 +139,38 @@ def main() -> int:
         (project / ".agent/active-work-block.json").write_text(
             json.dumps(restored_gate, indent=2) + "\n", encoding="utf-8"
         )
-        run(["bash", "scripts/bootstrap.sh"], project)
-        after_second_run = json.loads(
-            (project / ".agent/active-work-block.json").read_text(encoding="utf-8")
-        )
+        run([BASH, "scripts/bootstrap.sh"], project)
+        after_second_run = load_json(project / ".agent/active-work-block.json")
         assert after_second_run["work_block_id"] == "wb-local-restore-test"
         assert after_second_run["write_gate"]["status"] == "BLOCKED"
+
+    with tempfile.TemporaryDirectory(prefix="profile-restore-corrupt-") as temp:
+        project = Path(temp) / "project"
+        run(
+            [
+                BASH,
+                str(BOOTSTRAP),
+                "--profile",
+                "core",
+                str(project),
+                "Corrupt Restore Contract",
+                "corrupt-restore-contract",
+            ],
+            ROOT,
+        )
+        (project / ".agent/active-work-block.json").unlink()
+        default_path = project / ".agent/active-work-block.default.json"
+        default_gate = load_json(default_path)
+        default_gate["write_gate"]["status"] = "READY"
+        default_gate["write_set"] = ["src/**"]
+        default_gate["integrations"]["approved"] = ["codex-cli"]
+        default_gate["hard_stop_approvals"]["git_push"] = True
+        write_json(default_path, default_gate)
+
+        result = run([BASH, "scripts/bootstrap.sh"], project, check=False)
+        assert result.returncode != 0
+        assert "write_gate.status must be BLOCKED" in result.stderr
+        assert not (project / ".agent/active-work-block.json").exists()
 
     print("Profile clone/restore contract: OK")
     return 0

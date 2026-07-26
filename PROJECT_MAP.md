@@ -60,7 +60,7 @@ models, and tools implement or compose this model. They do not override it.
 | `template/AGENTS.md` | template | Generated-project operating contract |
 | `template/.agent/active-work-block.json` | template gate | Source-write, Hard Stop, integration, assurance, and closeout state |
 | `template/.agent/hooks/` | shared gate implementation | Provider-neutral consequential-action guards |
-| `template/scripts/validate-installation-profile.py` | generated validator | Verifies selected and absent unselected scaffold paths |
+| `template/scripts/validate-installation-profile.py` | generated validator | Verifies selected and absent unselected scaffold paths, required path kinds, and the blocked default Work Block |
 | `template/.codex/` | conditional Codex surface | Custom agents and Codex-specific wrappers/hooks |
 | `template/.claude/` | conditional Claude Code surface | Logical-role agents, machine gates, hooks, skills, and memory |
 | `template/opencode.json` / `template/.opencode/` | conditional OpenCode surface | Project permissions and logical-role subagents |
@@ -131,16 +131,15 @@ Completed:
 4. `docs/reports/reviews/pr-3-final-review.md`
 5. `docs/plans/wb-004-integration-adapter-normalization.md`
 6. `docs/reports/reviews/pr-4-final-review.md`
+7. `docs/plans/wb-005-profile-aware-bootstrap-conformance.md`
+8. `docs/reports/reviews/pr-5-final-review.md`
 
 Active:
 
-7. `docs/plans/wb-005-profile-aware-bootstrap-conformance.md`
-   - manifest-driven installation profiles;
-   - exact generated-scaffold matrix;
-   - cross-runtime semantic conformance;
-   - catalog-driven publication validation.
-
-PR #5 remains draft until CI, navigation, final review, and closeout pass.
+9. `docs/plans/wb-006-bootstrap-restore-hardening.md`
+   - required installation-profile path kind validation;
+   - blocked default Work Block validation before restore;
+   - regression fixtures for the two unresolved PR #5 P2 review findings.
 
 ## Boundaries
 
