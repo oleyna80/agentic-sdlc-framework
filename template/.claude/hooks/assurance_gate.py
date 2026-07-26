@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Claude Code Stop guard for Review, Verification, Drift, and closeout state."""
+"""Claude Code Stop guard for Review, Verification, Evaluation, Drift, and closeout state."""
 from __future__ import annotations
 
 import json
 import os
 from pathlib import Path, PurePosixPath
+import subprocess
 import sys
 
 GATE_PATH = Path(".agent/active-work-block.json")
+EVALUATION_VALIDATOR = Path("scripts/validate-evaluation.py")
 
 
 class GateError(Exception):
@@ -95,12 +97,29 @@ def validate_function(root: Path, name: str, state: object) -> tuple[bool, str, 
     allowed_verdicts = {
         "review": {"READY", "CHANGES_REQUIRED", "BLOCKED", "UNVERIFIED"},
         "verification": {"READY", "BLOCKED", "UNVERIFIED"},
+        "evaluation": {"READY", "BLOCKED", "UNVERIFIED"},
         "drift": {"ALIGNED", "ALIGNMENT_REQUIRED", "BLOCKED", "UNVERIFIED"},
     }[name]
     if verdict not in allowed_verdicts:
         raise GateError(f"assurance.{name}.verdict is unresolved or invalid: {verdict or 'missing'}")
 
     return required, status, verdict
+
+
+def validate_evaluation_contract(root: Path) -> None:
+    validator = root / EVALUATION_VALIDATOR
+    if not validator.is_file():
+        raise GateError(f"Missing evaluation validator: {EVALUATION_VALIDATOR.as_posix()}")
+    result = subprocess.run(
+        [sys.executable, str(validator), "closeout", str(root)],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "evaluation validation failed").strip()
+        raise GateError(detail)
 
 
 def main() -> None:
@@ -120,6 +139,7 @@ def main() -> None:
 
         review = validate_function(root, "review", assurance.get("review"))
         verification = validate_function(root, "verification", assurance.get("verification"))
+        evaluation = validate_function(root, "evaluation", assurance.get("evaluation"))
         drift = validate_function(root, "drift", assurance.get("drift"))
 
         mode = str(gate.get("closeout_mode") or "")
@@ -128,9 +148,12 @@ def main() -> None:
                 "closeout_mode must be success-closeout or reporting-only before Stop."
             )
 
+        validate_evaluation_contract(root)
+
         if mode == "success-closeout":
             required_review, review_status, review_verdict = review
             required_verification, verification_status, verification_verdict = verification
+            required_evaluation, evaluation_status, evaluation_verdict = evaluation
             required_drift, drift_status, drift_verdict = drift
 
             if required_review and (review_status != "READY" or review_verdict != "READY"):
@@ -139,6 +162,10 @@ def main() -> None:
                 verification_status != "READY" or verification_verdict != "READY"
             ):
                 raise GateError("success-closeout requires Verification status/verdict READY.")
+            if required_evaluation and (
+                evaluation_status != "READY" or evaluation_verdict != "READY"
+            ):
+                raise GateError("success-closeout requires Evaluation status/verdict READY.")
             if required_drift and (drift_status != "READY" or drift_verdict != "ALIGNED"):
                 raise GateError("success-closeout requires Drift status READY and verdict ALIGNED.")
 

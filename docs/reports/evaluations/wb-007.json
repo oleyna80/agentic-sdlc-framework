@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "artifact_type": "evaluation_report",
+  "evaluation_id": "eval-wb-007",
+  "status": "complete",
+  "work_block_id": "wb-007",
+  "plan_revision": "1",
+  "subject_revision": "6bb2f3f2379da693103f467bb83a0f0862889f80",
+  "runtime": "github-actions-and-github-connector",
+  "logical_role": "verifier",
+  "model_class": "assurance",
+  "actual_model": "not-disclosed",
+  "isolation": "separate-review-pass-plus-github-actions-ubuntu-runner",
+  "deterministic_results": [
+    {
+      "criterion_id": "framework-contract-suite",
+      "state": "pass",
+      "evidence": "Framework Contracts run 416 on frozen revision 6bb2f3f2379da693103f467bb83a0f0862889f80",
+      "notes": "The complete required suite passed. Earlier failed runs remain recorded in the observable event ledger."
+    },
+    {
+      "criterion_id": "generated-profile-smoke",
+      "state": "pass",
+      "evidence": "Framework Contracts run 416 publication validation and disposable multi-runtime scaffold step",
+      "notes": "Core/publication smoke and final disposable scaffold contain evaluation governance, templates, validator, directories, and canonical fail-closed default state."
+    }
+  ],
+  "output_results": [
+    {
+      "criterion_id": "evaluation-contract-completeness",
+      "state": "pass",
+      "score": 1.0,
+      "evaluator_type": "human",
+      "evidence": "docs/reports/reviews/pr-7-final-review.md",
+      "notes": "Governance, lifecycle, artifacts, Work Block state, generated templates, validator, runtime closeout, CI, navigation, and setup guidance form one consistent contract."
+    },
+    {
+      "criterion_id": "authority-and-privacy-boundary",
+      "state": "pass",
+      "score": 1.0,
+      "evaluator_type": "rule_based",
+      "evidence": "governance/evaluation.md; template/AGENTS.md; template/scripts/validate-evaluation.py; scripts/test-evaluation-contracts.py",
+      "notes": "Evaluation cannot grant authority or waive deterministic evidence. Forbidden hidden-reasoning fields and false trajectory/output pass claims are rejected by fixtures."
+    }
+  ],
+  "trajectory_results": [
+    {
+      "criterion_id": "required-assurance-events",
+      "state": "pass",
+      "event_source": "docs/evals/wb-007/events.jsonl",
+      "observed_events": [
+        "work_block_bound",
+        "evaluation_plan_declared",
+        "implementation_completed",
+        "framework_contracts_passed",
+        "final_review_completed",
+        "evaluation_completed",
+        "drift_audit_completed",
+        "closeout_completed"
+      ],
+      "missing_events": [],
+      "prohibited_events_observed": [],
+      "notes": "All blocking lifecycle and assurance events are represented by repository, CI, review, evaluation, drift, and closeout evidence. No merge event is included."
+    },
+    {
+      "criterion_id": "corrective-loop-observed",
+      "state": "pass",
+      "event_source": "docs/evals/wb-007/events.jsonl",
+      "observed_events": [
+        "ci_failure_observed",
+        "corrective_change_applied",
+        "ci_rerun_completed"
+      ],
+      "missing_events": [],
+      "prohibited_events_observed": [],
+      "notes": "Runs 360, 398/402, and 414 were retained as failures, followed by scoped corrections and successful reruns 362, 404, and 416."
+    }
+  ],
+  "judge_evidence": [],
+  "aggregate": {
+    "blocking_failures": [],
+    "blocked_checks": [],
+    "inspection_gaps": [],
+    "verdict": "READY"
+  },
+  "residual_risks": [
+    "Live runtime event collectors and a hosted tracing backend are outside WB-007.",
+    "Static contracts do not prove provider authentication, plugin/MCP behavior, or OS sandboxing.",
+    "LM-judge calibration was not exercised because the approved plan disables LM judges.",
+    "Cross-runtime live evaluation smoke remains follow-up work."
+  ],
+  "completed_at": "2026-07-26T18:25:00Z"
+}

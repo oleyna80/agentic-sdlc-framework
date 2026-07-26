@@ -9,4 +9,5 @@ export GIT_CONFIG_GLOBAL="$EMPTY_GIT_CONFIG"
 export GIT_CONFIG_NOSYSTEM=1
 
 python3 "$ROOT/scripts/validate_publication.py" "$@"
+python3 "$ROOT/scripts/validate_evaluation_publication.py"
 python3 "$ROOT/scripts/test-profile-restore.py"

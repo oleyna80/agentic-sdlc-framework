@@ -14,20 +14,20 @@ The framework governs:
 - role and write authority;
 - risk and Hard Stops;
 - lifecycle gates;
-- required evidence;
+- deterministic, output, and observable trajectory evidence;
 - closeout and durable knowledge.
 
 Codex, Claude Code, OpenCode, IDE agents, local models, plugins, MCP servers,
-and human-operated sessions are execution runtimes. Runtime capability does not
-change governance authority.
+and human-operated sessions are execution runtimes. Runtime capability, model
+strength, judge score, or tool access does not change governance authority.
 
-The canonical lifecycle is defined in:
+Canonical contracts:
 
-- `governance/`
-- `.agent/workflows/sdd-protocol.md`
+- `governance/`;
+- `governance/evaluation.md`;
+- `.agent/workflows/sdd-protocol.md`.
 
-Runtime-specific behavior belongs in `runtimes/`, `.codex/`, `.claude/`,
-`.mcp.json`, or another approved adapter.
+Runtime-specific behavior belongs in approved adapters.
 
 ## 2. Autonomy Policy
 
@@ -37,9 +37,10 @@ the approved lifecycle without pausing between internal stages.
 Pause only when:
 
 - a Hard Stop requires Owner approval;
-- objective, specification, or scope must materially change;
+- objective, specification, evaluation plan, or scope must materially change;
 - required credentials, access, or decisions are missing;
 - a destructive or external side effect is not approved;
+- required evidence cannot be produced honestly;
 - the task cannot continue safely.
 
 Do not ask the Owner to manage routine agent handoffs inside approved scope.
@@ -51,18 +52,16 @@ Roles define responsibility and authority. They are not model or runtime names.
 
 | Role | Responsibility | Default authority |
 |---|---|---|
-| Owner | Approves objective, material specification changes, Hard Stops, and final acceptance | Human authority |
-| Orchestrator | Frames Work Blocks, controls scope, routes functions, enforces gates, consolidates evidence, closes work | Workflow and approved coordination artifacts |
+| Owner | Approves objective, material spec/eval changes, Hard Stops, final acceptance | Human authority |
+| Orchestrator | Frames Work Blocks, controls scope, routes functions, enforces gates, consolidates evidence, closes work | Workflow and coordination artifacts |
 | Architect | Discovers constraints and drafts architecture/specification/plan proposals | Read-only; approved draft paths only |
-| Critic | Challenges Define-stage decisions before implementation | Read-only; critic report only |
+| Critic | Challenges Define-stage scope, risk, topology, verification/evaluation design | Read-only; critic report only |
 | Coder | Implements approved work | One approved write-set only |
-| Reviewer | Reviews the frozen diff for defects, risk, architecture, security, and maintainability | Read-only; review report only |
-| Verifier | Tests acceptance criteria and observable contracts | Read-only for source/runtime; verification artifacts only |
+| Reviewer | Reviews the frozen diff for defects, risk, architecture, security, maintainability | Read-only; review report only |
+| Verifier | Tests acceptance criteria and synthesizes deterministic/evaluation evidence | Read-only for source/runtime; evidence artifacts only |
 
-`Specification Drift Auditor` is normally a read-only Reviewer or Verifier
-specialization. Temporary specialization never expands authority.
-
-See `.agent/ROSTER.md` for skill routing and runtime binding examples.
+`Evaluator`, `Specification Drift Auditor`, security reviewer, and domain verifier
+are read-only specializations of Reviewer/Verifier. Specialization never expands authority.
 
 ## 4. Structural Authority
 
@@ -77,131 +76,137 @@ An action is allowed only when all applicable boundaries permit it:
 7. Hard Stop approval;
 8. runtime/tool policy.
 
-Tool availability, sandbox access, plugin installation, model capability, or
-shell access never grants authority by itself.
+Tool availability, sandbox access, plugin installation, model capability, shell
+access, evaluation score, or LM-judge output never grants authority by itself.
 
-Use exactly one write-capable Coder per write-set. Parallel writers require:
+Use exactly one write-capable Coder per write-set. Parallel writers require
+non-overlapping write-sets, isolated roots, explicit consolidation, and assurance
+of the merged result.
 
-- non-overlapping write-sets;
-- separate worktrees or equivalent isolated roots;
-- explicit consolidation;
-- assurance of the merged result.
-
-Reviewer, Verifier, Critic, and Drift Auditor are read-only for source,
-infrastructure, production state, secrets, and business data unless a Work Block
-explicitly grants a narrow report-artifact path.
+Reviewer, Verifier, Evaluator, Critic, and Drift Auditor are read-only for source,
+infrastructure, production state, secrets, and business data except narrow
+approved evidence/draft paths.
 
 ## 5. Source of Truth
 
-When project artifacts conflict, resolve in this order:
+When project artifacts conflict:
 
 1. current Owner instruction or approved change request;
 2. approved specification;
 3. accepted architecture decisions and external contracts;
-4. approved implementation plan;
+4. approved implementation and evaluation plans;
 5. active tasklist;
-6. review, verification, drift, and closeout reports;
+6. review, verification, evaluation, drift, and closeout reports;
 7. durable engineering memory;
 8. operational memory and logs;
-9. generated, discovered, or external reference artifacts.
+9. generated, discovered, or external references.
 
-A plan or tasklist must not silently override an approved specification.
-
-When implementation reveals a legitimate requirement change:
-
-1. stop the affected path;
-2. propose the specification change;
-3. obtain required approval;
-4. update architecture/plan/tasklist as derived artifacts;
-5. resume implementation.
+Plans, tasklists, scores, and reports must not silently override an approved specification.
+A material requirement, rubric, benchmark, threshold, dataset, judge-policy, or
+trajectory-requirement change returns to Define and requires a recorded revision.
 
 ## 6. Lifecycle
 
-Standard flow:
-
 ```text
 Stage 0 — Define
-  Discovery -> Architecture -> Specification -> Plan -> Critic gate
+  Discovery -> Architecture -> Specification -> Implementation/Evaluation Plans -> Critic
 
 Stage 1 — Execute
-  Scoped implementation -> self-check -> frozen diff
+  Scoped implementation -> self-check -> observable event capture -> frozen diff
 
 Stage 2 — Assure
-  Independent Review -> Technical Verification -> Specification Drift Audit
+  Independent Review -> Technical Verification -> Agent Evaluation -> Drift Audit
 
 Stage 3 — Close
   SSOT sync -> engineering memory -> closeout report
 ```
 
-The lifecycle requires functions, not a fixed number of agents. Record the
-actual runtime, model class, and isolation used for each required function.
-
+The lifecycle requires functions, not a fixed number of agents. Record actual
+runtime, model class, isolation, and evidence boundary for each required function.
 Only passing required assurance gates permit successful closeout.
 
 ## 7. Governance Profiles
 
-Select the smallest sufficient profile per Work Block:
+Select the smallest sufficient profile:
 
-- `Advisory`: read-only analysis.
-- `Controlled`: bounded executor, explicit scope/write-set, targeted checks.
-- `Managed`: approved spec/plan, Critic, Reviewer, Verifier, durable evidence.
-- `Assured`: stronger independence, drift audit, risk/threat analysis and runtime evidence where relevant.
-- `Distributed`: multiple runtimes/worktrees/teams with handoff and consolidation.
+- `Advisory`: read-only analysis; evaluation normally optional.
+- `Controlled`: bounded executor, explicit scope/write-set, deterministic checks.
+- `Managed`: approved spec/plan, Critic, Reviewer, Verifier, evaluation for
+  non-deterministic outputs or consequential agent behavior.
+- `Assured`: stronger independence, fixed rubric/benchmark, output/trajectory
+  evaluation, drift audit, risk/threat analysis where relevant.
+- `Distributed`: multiple runtimes/worktrees/teams with event provenance, handoff,
+  consolidation, and recovery.
 
-Governance profile is independent of runtime profile. See `docs/profiles.md`.
+Governance profile is independent of runtime and installation profile.
 
 ## 8. Session Start
 
-For non-trivial work, read the smallest sufficient set:
-
-Always:
+Always for non-trivial work:
 
 1. `AGENTS.md`;
-2. active Work Block;
-3. active specification and revision;
-4. relevant architecture decisions;
-5. current repository status and diff.
+2. `.agent/bootstrap-profile.json` when availability matters;
+3. active Work Block;
+4. active specification/revision and architecture decisions;
+5. approved implementation/evaluation plans;
+6. current repository status and diff.
 
-Conditionally:
+Read conditionally:
 
-- `governance/*` for authority, lifecycle, artifact, or capability questions;
-- `.agent/workflows/sdd-protocol.md` for stage/gate details;
-- `.agent/ROSTER.md` for skill and role routing;
-- the active runtime adapter;
-- relevant engineering memory;
-- relevant skills only;
-- operational logs when resuming interrupted work.
+- relevant `governance/*`, especially `evaluation.md`;
+- `.agent/workflows/sdd-protocol.md` and `.agent/ROSTER.md`;
+- installed/approved runtime and integration adapters;
+- relevant evaluation plans/events/reports;
+- relevant skills, engineering memory, and operational logs.
 
-Do not load every registry, skill, memory file, and runtime document by default.
-Use progressive disclosure to protect context quality.
+Use progressive disclosure. Do not load every registry, skill, memory, runtime doc,
+or event log by default.
 
 ## 9. Work Block and Write Gate
 
-Before non-trivial repository mutation, the active Work Block must record:
+Before non-trivial mutation, the active Work Block must record:
 
-- objective and expected final result;
-- approved specification and revision;
-- architecture baseline;
-- in-scope and out-of-scope boundaries;
-- write-set;
-- governance profile;
-- side-effect class and DB/data action mode;
-- Hard Stops;
-- runtime capability snapshot;
-- function-to-runtime bindings;
-- model class and budget posture;
-- required isolation;
-- review, verification, and drift plan;
-- rollback/recovery;
-- write gate status.
+- objective, expected result, approved specification/revision, architecture baseline;
+- in-scope/out-of-scope boundaries and write-set;
+- governance profile, side-effect class, data mode, Hard Stops;
+- runtime capability, function bindings, model class, actual isolation;
+- review, verification, evaluation, and drift plans;
+- evaluation ID/plan/rubric/benchmark/event sources when required;
+- rollback/recovery and write gate status.
 
 If the write gate is `BLOCKED`, do not edit source, stage, commit, push, deploy,
 change credentials, mutate live data, or send client communications.
 
 A runtime hook may enforce the gate. The written contract remains authoritative
-even when hooks are unavailable.
+when hooks are unavailable.
 
-## 10. Hard Stops
+## 10. Evaluation Assurance
+
+Evaluation has three evidence classes:
+
+- **Deterministic tests:** compilation, types, unit/integration/contract/property/
+  regression tests, schema and rule checks.
+- **Output evaluation:** the final artifact against approved criteria, thresholds,
+  weights, and evaluator types.
+- **Observable trajectory evaluation:** tool calls/results, file/diff/command/test/
+  gate events, retries, failures/recoveries, side-effect attempts, stopping
+  conditions, and produced evidence.
+
+Trajectory evidence must not request, expose, or claim private chain-of-thought,
+hidden reasoning, model scratchpads, or internal deliberation. User-visible
+rationales are outputs, not privileged traces.
+
+An LM judge may evaluate approved non-deterministic criteria only. It cannot:
+
+- prove deterministic correctness or waive a deterministic failure;
+- approve architecture, product scope, or specification revisions;
+- open write, integration, deployment, or Hard Stop gates;
+- convert missing/blocked evidence into `READY`.
+
+Required evaluation cannot be skipped. Missing event sources or unavailable checks
+are `BLOCKED`, `UNVERIFIED`, or `not_run`, never `pass`.
+
+## 11. Hard Stops
 
 Explicit Owner approval is required before:
 
@@ -211,100 +216,92 @@ Explicit Owner approval is required before:
 - destructive git/filesystem/database operations;
 - push to the default branch;
 - release publication or irreversible public-repo action;
-- real client/user communications through email, SMS, messaging, or provider APIs;
-- payment, order, stock, CRM, or other consequential external mutation;
-- scope expansion that materially changes the approved result.
+- real client/user communications;
+- payment, order, stock, CRM, or consequential external mutation;
+- material objective, specification, evaluation-plan, or scope expansion.
 
-Commit or push policy may be stricter in the active Work Block or runtime adapter.
+Evaluation cannot grant or infer Hard Stop approval.
 
-## 11. Runtime Data Mutation Boundary
+## 12. Runtime Data Mutation Boundary
 
-Agents may design, propose, and implement reviewed code paths. They are not
-trusted direct executors for business data.
+Agents may design and implement reviewed code paths. They are not trusted direct
+executors for business data.
 
 For consequential runtime mutations:
 
 1. agent produces a structured action proposal;
-2. trusted application/backend validates identity, payload, scope, and invariants;
+2. trusted backend validates identity, payload, scope, and invariants;
 3. policy decides deny, read-only, approval-required, or execute;
 4. risky actions show a concrete preview/diff and collect approval;
 5. trusted code executes with transaction, idempotency, and audit logging.
 
-Forbidden by default:
+Forbidden by default: raw live SQL, unrestricted provider mutation calls, direct
+agent writes to payment/order/stock/CRM systems, secrets/private payloads in prompts
+or logs.
 
-- raw manual live SQL;
-- unrestricted provider mutation calls;
-- direct agent writes to payment/order/stock/CRM systems;
-- exposing secrets or private row payloads in prompts or logs.
-
-## 12. Security and Maintainability Baseline
+## 13. Security and Maintainability Baseline
 
 Production changes must:
 
-- follow existing project patterns and naming;
+- follow existing patterns and naming;
 - keep abstractions proportional to demonstrated complexity;
-- expose data flow, side effects, failure modes, and ownership clearly;
+- expose data flow, side effects, failure modes, ownership, and evidence clearly;
 - avoid speculative helpers and duplicated generated boilerplate;
-- validate untrusted input and external boundaries;
+- validate untrusted inputs and external boundaries;
 - avoid hardcoded secrets and sensitive log leakage;
 - use parameterized queries and safe path/redirect handling;
-- include targeted evidence for the changed contract;
+- include targeted deterministic and evaluation evidence where applicable;
 - remain understandable without hidden prompt history.
 
-Security-sensitive Work Blocks classify whether a threat model and Full-tier
-verification are required. Runtime claims must be checked against actual served
-behavior when accessible; unavailable runtime evidence is `UNVERIFIED`.
+Unavailable runtime evidence is `UNVERIFIED`.
 
-## 13. Assurance Semantics
+## 14. Assurance Semantics
 
-The three Stage 2 functions are distinct:
+The Stage 2 functions are distinct:
 
-- **Reviewer:** Is the diff safe, correct, maintainable, and architecture-consistent?
+- **Reviewer:** Is the frozen diff safe, correct, maintainable, and architecture-consistent?
 - **Verifier:** Do acceptance criteria and observable contracts hold?
-- **Drift Auditor:** Do spec, architecture, plan, code, tests, and documentation agree?
+- **Evaluator specialization:** Do output and observable trajectory meet the approved rubric/plan?
+- **Drift Auditor:** Do spec, decisions, plans, code, tests/evals, and docs agree?
 
 A green build alone is not sufficient verification. A good review does not prove
-runtime behavior. Passing tests do not prove specification alignment.
+runtime behavior. Passing tests do not prove specification alignment. A fluent
+response does not prove trajectory compliance. Record gaps and degraded isolation honestly.
 
-Record inspection gaps and degraded isolation honestly.
-
-## 14. Failure Policy
+## 15. Failure Policy
 
 When a stage fails:
 
 - downstream success claims remain blocked;
 - continue only with diagnostics, corrective planning, evidence capture, or reporting;
-- do not skip required assurance because a preferred runtime, subagent, model,
-  plugin, or MCP server is unavailable;
-- choose the strongest available fallback and record the limitation;
+- do not skip required assurance because a preferred runtime, model, plugin, or
+  event source is unavailable;
+- choose the strongest available fallback and record limitations;
 - never upgrade `BLOCKED` or `UNVERIFIED` to `READY` without new evidence.
 
-## 15. Closeout
+## 16. Closeout
 
 `success-closeout` requires:
 
 - implementation completed inside approved scope;
 - required review gate passing;
 - verification verdict `READY`;
-- drift gate passing or valid documented skip;
+- required evaluation status/verdict `READY`;
+- required drift gate `READY`/`ALIGNED` or valid documented skip;
 - required approvals recorded;
-- derived artifacts synchronized with the specification;
+- normative/derived artifacts synchronized;
 - residual risks and inspection gaps documented;
 - reusable engineering knowledge classified.
 
 Otherwise use `reporting-only`; keep the task blocked or incomplete.
-
 Operational logs belong in `memory_bank/`. Promote only reusable, evidence-backed,
 secret-free knowledge to `docs/engineering-memory/`.
 
-## 16. Runtime Adapters and Compatibility
+## 17. Runtime Adapters and Compatibility
 
-Existing `.codex/`, `.claude/`, MCP, plugin, OpenCode, and file-based handoff
-layers are adapters. Use them when they improve capability, isolation,
-observability, or recovery.
-
-Prefer native or official integrations when they satisfy the governance contract.
+Existing `.codex/`, `.claude/`, MCP, plugin, OpenCode, and file-handoff layers
+are adapters. Prefer native or official integrations when they satisfy governance.
 Retain file-based handoff for durable queues, cross-machine work, recovery, or
 formal audit requirements.
 
-No adapter may redefine the core authority, SSOT, Hard Stops, or closeout rules.
+No adapter may redefine core authority, SSOT, evaluation rules, Hard Stops, or closeout.

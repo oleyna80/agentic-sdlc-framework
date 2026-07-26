@@ -12,10 +12,11 @@ approved state without relying on hidden prompt history.
 Owner objective or approved change request
   → specification and acceptance criteria
   → architecture decisions
-  → implementation plan and write set
+  → implementation plan, evaluation plan when required, and write set
   → frozen implementation diff
   → review report
   → verification report
+  → evaluation report when required
   → specification drift report when required
   → closeout report and engineering-memory promotion
 ```
@@ -96,9 +97,28 @@ The plan defines:
 - isolation requirement;
 - risk and side-effect classification;
 - verification plan;
+- evaluation plan requirement and location when applicable;
 - rollback/recovery strategy.
 
 A plan may not silently change product or architecture requirements.
+
+## Evaluation Plan
+
+An evaluation plan is required when the Work Block selects output or observable
+trajectory evaluation. It defines:
+
+- stable evaluation ID, Work Block ID, and revision;
+- objective, specification revision, and frozen subject revision;
+- deterministic checks and expected evidence;
+- output criteria, thresholds, weights, and evaluator types;
+- trajectory requirements, event sources, required events, and prohibited events;
+- rubric, benchmark, and judge-policy revisions;
+- actual or required isolation boundary;
+- blocking criteria and aggregate verdict rule.
+
+Evaluation plans must not request private chain-of-thought, hidden reasoning,
+model scratchpads, or internal deliberation. Trajectory criteria operate on
+observable events and produced artifacts only.
 
 ## Review Report
 
@@ -122,7 +142,7 @@ Work Block records the reason.
 The Verifier reports:
 
 - exact objective, specification revision, and diff verified;
-- commands, tests, runtime checks, and artifacts used;
+- commands, tests, runtime checks, evaluation reports, and artifacts used;
 - acceptance-criterion result matrix;
 - inspection gaps and blocked checks;
 - residual risks;
@@ -131,12 +151,29 @@ The Verifier reports:
 
 A check that could not run is `blocked` or `not_run`, never `pass`.
 
+## Evaluation Report
+
+The evaluation report records:
+
+- exact evaluation plan and subject revisions;
+- runtime, logical role, model class, actual model when policy permits, and isolation;
+- deterministic, output, and trajectory result matrices;
+- observable event sources, missing events, and prohibited events observed;
+- evaluator type, judge identity, rubric/prompt revision, and calibration evidence when used;
+- blocked checks, inspection gaps, residual risks, and aggregate calculation;
+- verdict: `READY | BLOCKED | UNVERIFIED`.
+
+A deterministic criterion cannot pass solely through an LM judge. A trajectory
+criterion cannot pass when required observable events are missing, prohibited
+events occurred, or the event source is unavailable. Evaluation evidence does not
+open authority or integration gates.
+
 ## Drift Report
 
 Drift audit compares:
 
 ```text
-specification ↔ architecture decisions ↔ plan ↔ code ↔ tests ↔ documentation
+specification ↔ architecture decisions ↔ plan ↔ code ↔ tests/evals ↔ documentation
 ```
 
 Classifications:
@@ -166,6 +203,7 @@ Successful closeout requires:
 
 - review gate `READY`, or an explicitly allowed and documented `SKIPPED` state;
 - verification verdict `READY`;
+- required evaluation status/verdict `READY`;
 - required drift gate `READY`, or an explicitly allowed and documented `SKIPPED` state;
 - no unresolved `CHANGES_REQUIRED`, `BLOCKED`, or `UNVERIFIED` state;
 - updated task and decision state;
@@ -182,9 +220,9 @@ Resolve conflicts in this order:
 2. Active project operating contract and approved governance policy.
 3. Approved specification and acceptance criteria.
 4. Accepted architecture decisions and external/public contracts.
-5. Approved implementation plan and write set.
+5. Approved implementation and evaluation plans and write set.
 6. Active task decomposition.
-7. Review, verification, drift, and closeout evidence.
+7. Review, verification, evaluation, drift, and closeout evidence.
 8. Durable engineering memory.
 9. Operational memory, runtime logs, and generated context.
 

@@ -4,7 +4,11 @@
 
 - **Date:** [YYYY-MM-DD]
 - **Stage Execution State:** [completed]
+- **Review Verdict:** [READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | valid skip]
 - **Verification Verdict:** [READY | BLOCKED | UNVERIFIED]
+- **Evaluation Verdict:** [READY | BLOCKED | UNVERIFIED | NOT_REQUIRED]
+- **Evaluation Plan / Report:** [paths | not required with reason]
+- **Drift Verdict:** [ALIGNED | ALIGNMENT_REQUIRED | BLOCKED | UNVERIFIED | valid skip]
 - **Closeout Classification:** [SUCCESS | REPORTING_ONLY]
 - **Task Status:** [completed | blocked]
 
@@ -12,7 +16,15 @@
 [Actual result compared with the expected final result.]
 
 ### Evidence
-- [checks, reports, logs, artifacts]
+- **Frozen subject revision:** [commit/hash/version]
+- **Deterministic checks:** [commands/results]
+- **Output evaluation:** [criteria/results | not required]
+- **Observable trajectory evaluation:** [event sources/results | not required]
+- **Review / Verification / Drift:** [reports]
+- **Inspection gaps:** [none | list]
+
+Trajectory evidence references observable events only. Do not include private
+chain-of-thought, hidden reasoning, model scratchpads, secrets, or protected data.
 
 ### Engineering Memory
 - **Classification:** [promoted | operational-only | not-applicable]
@@ -23,11 +35,13 @@
 - [none | unresolved risk]
 
 ### Corrective Action or Unresolved Dependency
-- [not applicable for READY | required for BLOCKED/UNVERIFIED]
+- [not applicable for passing required verdicts | required for BLOCKED/UNVERIFIED]
 
 ### Next Action
-- [promotion/merge only for READY | corrective Work Block/rerun]
+- [promotion/merge only for passing required verdicts | corrective Work Block/rerun]
 
-`SUCCESS` and task status `completed` require verdict `READY`.
-`BLOCKED` or `UNVERIFIED` requires `REPORTING_ONLY`, keeps the task blocked,
-and prohibits promotion, merge, deploy, release-ready, or success claims.
+`SUCCESS` and task status `completed` require Review and Verification to pass,
+required Evaluation status/verdict `READY`, and required Drift `ALIGNED`.
+`BLOCKED`, `UNVERIFIED`, or unresolved `CHANGES_REQUIRED` requires
+`REPORTING_ONLY`, keeps the task blocked, and prohibits promotion, merge, deploy,
+release-ready, or success claims.

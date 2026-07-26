@@ -31,6 +31,17 @@ EXPECTED_COORDINATION_WRITE_SET = [
     "docs/architecture/drafts/**",
     "memory_bank/**",
 ]
+EXPECTED_DEFAULT_EVALUATION = {
+    "required": False,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "plan": "",
+    "report": "",
+    "rubric_revision": "",
+    "benchmark_revision": "",
+    "isolation": "unknown",
+    "skip_reason": "",
+}
 
 
 class ValidationError(RuntimeError):
@@ -169,6 +180,22 @@ def validate_coordination_write_set(state: dict[str, Any]) -> None:
         )
 
 
+def validate_default_assurance(state: dict[str, Any]) -> None:
+    assurance = state.get("assurance")
+    if not isinstance(assurance, dict):
+        raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} assurance must be an object")
+    if set(assurance) != {"review", "verification", "evaluation", "drift"}:
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} assurance must contain review, verification, evaluation, and drift"
+        )
+    if assurance.get("evaluation") != EXPECTED_DEFAULT_EVALUATION:
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} assurance.evaluation must be the optional PENDING default"
+        )
+    if state.get("closeout_mode") != "pending":
+        raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} closeout_mode must be pending")
+
+
 def validate_blocked_default(root: Path) -> None:
     state = load_json_object(
         root / DEFAULT_WORK_BLOCK_PATH, str(DEFAULT_WORK_BLOCK_PATH)
@@ -196,6 +223,7 @@ def validate_blocked_default(root: Path) -> None:
     if state.get("write_set") != []:
         raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} write_set must be empty")
     validate_coordination_write_set(state)
+    validate_default_assurance(state)
     approvals = state.get("hard_stop_approvals")
     if approvals != EXPECTED_HARD_STOP_APPROVALS:
         raise ValidationError(

@@ -28,6 +28,7 @@ for path in \
   "governance/authority.md" \
   "governance/lifecycle.md" \
   "governance/artifacts.md" \
+  "governance/evaluation.md" \
   "governance/runtime-capabilities.md" \
   "runtimes/README.md" \
   "runtimes/codex/README.md" \
@@ -36,6 +37,7 @@ for path in \
   "runtimes/generic/README.md" \
   "docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md" \
   "docs/plans/wb-001-runtime-neutral-control-plane.md" \
+  "docs/plans/wb-007-agent-evaluation-trajectory-assurance.md" \
   "README.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml"; do
@@ -78,12 +80,14 @@ required_entries = {
     "governance/authority.md",
     "governance/lifecycle.md",
     "governance/artifacts.md",
+    "governance/evaluation.md",
     "governance/runtime-capabilities.md",
     "runtimes/**",
     "runtimes/codex/**",
     "runtimes/claude-code/**",
     "runtimes/opencode/**",
     "runtimes/generic/**",
+    "template/scripts/validate-evaluation.py",
 }
 
 entries = set(data["entries"])
@@ -91,9 +95,15 @@ missing = sorted(required_entries - entries)
 if missing:
     raise SystemExit(f"registry missing entries: {missing}")
 
+migration = data.get("migration_state")
+if not isinstance(migration, dict):
+    raise SystemExit("registry missing migration_state")
+if migration.get("active_work_block") != "docs/plans/wb-007-agent-evaluation-trajectory-assurance.md":
+    raise SystemExit("WB-007 must be the active migration Work Block")
+
 print("governance registry YAML OK")
 PY
-  ok "FILE_REGISTRY.yml governance entries"
+  ok "FILE_REGISTRY.yml governance/evaluation entries"
 else
   fail "python3 not found; cannot validate FILE_REGISTRY.yml"
 fi
@@ -103,6 +113,7 @@ for path in \
   "governance/authority.md" \
   "governance/lifecycle.md" \
   "governance/artifacts.md" \
+  "governance/evaluation.md" \
   "governance/runtime-capabilities.md"; do
   if grep -Eqi "api[_-]?key|access[_-]?token|private[_-]?key|password[[:space:]]*:" "$ROOT/$path"; then
     fail "possible credential material in $path"
@@ -110,6 +121,12 @@ for path in \
     ok "$path has no obvious credential markers"
   fi
 done
+
+if ! grep -q "private chain-of-thought" "$ROOT/governance/evaluation.md"; then
+  fail "evaluation governance must explicitly exclude private chain-of-thought"
+else
+  ok "evaluation governance excludes private chain-of-thought"
+fi
 
 if [ "$FAIL" -ne 0 ]; then
   echo "==> Governance validation failed"

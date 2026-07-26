@@ -9,60 +9,48 @@ read next.
 `{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane with four
 separable layers:
 
-1. **Governance Core** — authority, lifecycle, artifacts, risk gates, evidence,
-   capability negotiation, and closeout.
-2. **Portable workflow** — specifications, architecture decisions, Work Blocks,
-   plans, tasks, reports, skills, and memory.
+1. **Governance Core** — authority, lifecycle, artifacts, evaluation, risk gates,
+   capability negotiation, assurance, and closeout.
+2. **Portable workflow** — specifications, decisions, Work Blocks, implementation
+   and evaluation plans, tasks, reports, skills, memory, and observable evidence.
 3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic, or another
    approved execution runtime.
 4. **Integration adapters** — optional plugins, MCP servers, external runtime
    CLIs, hosted tools, and audited file transport.
 
-Runtime, model, integration, or installation-profile selection never changes
-governance authority.
+Runtime, model, judge, integration, or installation-profile selection never
+changes governance authority.
 
 ## Installation Profile
 
-Read first:
+Read `.agent/bootstrap-profile.json` first when runtime availability matters. It
+records which runtime implementation surfaces and skills were installed. It is
+installation evidence only and does not grant Work Block authority, integration
+admission, credentials, side-effect permission, or a passing evaluation verdict.
 
-```text
-.agent/bootstrap-profile.json
-```
-
-It records which runtime implementation surfaces and skills were installed by
-bootstrap. It is installation evidence only. It does not grant Work Block
-authority, integration admission, credentials, or side-effect permission.
-
-Known profile families are documented in `docs/bootstrap-profiles.md` in the
-framework source. A generated project may contain only a subset of these
-implementation surfaces:
+Possible conditional surfaces:
 
 - `.codex/` for Codex;
 - `CLAUDE.md` and `.claude/` for Claude Code;
 - `opencode.json` and `.opencode/` for OpenCode;
 - `.mcp.json` as an inert MCP configuration surface.
 
-Absence of an unselected runtime surface is expected and must not be repaired by
-copying files unless the Owner deliberately changes installation composition.
+Absence of an unselected runtime surface is expected.
 
 ## Authority Order
 
-When artifacts conflict:
-
 1. current Owner instruction or approved change request;
-2. `AGENTS.md` and Governance Core for authority/process questions;
+2. `AGENTS.md` and Governance Core;
 3. approved specification and acceptance criteria;
 4. accepted architecture decisions and external contracts;
-5. approved implementation plan and write-set;
+5. approved implementation and evaluation plans and write-set;
 6. active tasklist;
-7. review, verification, drift, integration, and closeout evidence;
+7. review, verification, evaluation, drift, integration, and closeout evidence;
 8. durable engineering memory;
-9. runtime/integration policy, operational logs, generated output, and external
-   reference material.
+9. runtime/integration policy, operational logs, generated output, references.
 
-For product behavior, the approved specification is normative. Installation
-state, runtime configs, integrations, plans, tasklists, and generated output must
-not silently override it.
+Reports, scores, judges, and logs are evidence; they do not silently revise product
+requirements or open authority gates.
 
 ## Work Block Profiles
 
@@ -70,90 +58,105 @@ Each Work Block selects independently:
 
 - **Governance profile:** Advisory, Controlled, Managed, Assured, Distributed.
 - **Runtime profile:** one installed or otherwise approved runtime adapter.
-- **Integration profile:** none or an admitted plugin, MCP tool, file handoff,
-  hosted connector, direct CLI, or manual exchange.
-- **Model class:** strong reasoning, balanced engineering, fast read-only,
-  local executor, or project-defined.
+- **Integration profile:** none or an admitted bridge/tool/transport.
+- **Model class:** task-appropriate capability class.
 - **Isolation:** actual boundary from same context to OS-isolated.
+- **Evaluation posture:** not required or an approved deterministic/output/trajectory plan.
 
-The installation profile constrains local availability; it does not make a
-runtime or integration active.
+The installation profile constrains local availability; it does not activate a
+runtime, integration, or evaluation authority.
+
+## Evaluation Assurance
+
+`governance/evaluation.md` distinguishes:
+
+- deterministic tests for objective contracts;
+- output evaluation against an approved rubric;
+- observable trajectory evaluation for tool, gate, check, retry, side-effect,
+  and evidence events.
+
+Trajectory evidence never requires private chain-of-thought, hidden reasoning,
+or model scratchpads. Missing events are blocked/unverified, not passed. An LM
+judge cannot waive deterministic failures or open write/integration/deployment gates.
+
+Use:
+
+```text
+docs/evals/<evaluation-id>/plan.json
+docs/evals/<evaluation-id>/events.jsonl
+docs/reports/evaluations/<evaluation-id>.json
+scripts/validate-evaluation.py
+```
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
 | `AGENTS.md` | normative | Compact project operating contract |
-| `.agent/bootstrap-profile.json` | generated installation evidence | Resolved profile, components, skills, required path kinds, and forbidden fresh-scaffold paths |
-| `governance/` | normative | Runtime-neutral authority, lifecycle, artifact, and capability contracts |
+| `.agent/bootstrap-profile.json` | generated | Resolved installation profile and path contract |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifacts, evaluation, capabilities |
+| `governance/evaluation.md` | normative | Deterministic/output/observable trajectory contract |
 | `.agent/workflows/sdd-protocol.md` | normative | Define / Execute / Assure / Close semantics |
 | `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, isolation |
-| `.agent/active-work-block.json` | operational gate | Specification, Git baseline, write-set, Hard Stops, integrations, assurance, closeout |
+| `.agent/active-work-block.json` | operational gate | Specification, write-set, integrations, assurance, closeout |
+| `.agent/active-work-block.default.json` | portable default | Fail-closed restore state including optional PENDING evaluation |
+| `.agent/verification-gate.md` | compatibility view | Review, verification, evaluation, drift, closeout summary |
 | `.agent/hooks/` | shared runtime policy | Provider-neutral consequential-action guards |
 | `docs/specs/` | normative | Approved product and technical behavior |
 | `docs/architecture/` | normative | Accepted architecture decisions and contracts |
 | `docs/plans/` | derived/log | Approved plans and Work Blocks |
 | `docs/tasklist/` | derived | Active task decomposition |
-| `docs/reports/` | evidence | Critic, review, verification, drift, integration, and closeout evidence |
-| `docs/engineering-memory/` | durable reference | Evidence-backed reusable decisions and reproducibility |
-| `docs/templates/` | normative templates | Work Block, reports, and integration admission |
-| `memory_bank/` | operational/local | Current focus, progress, pending decisions, runtime/team logs |
-| `runtimes/` | adapter documentation | Capability, activation, limitation, and fallback guidance for all supported runtimes |
-| `integrations/` | adapter documentation | Optional bridge/tool/transport admission guidance |
-| `.codex/` | conditional Codex surface | Present only when selected by installation profile |
-| `CLAUDE.md` / `.claude/` | conditional Claude Code surface | Present only when selected by installation profile |
-| `opencode.json` / `.opencode/` | conditional OpenCode surface | Present only when selected by installation profile |
-| `.mcp.json` | conditional inert integration config | Present only in profiles that install the empty MCP registry |
-| `scripts/bootstrap.sh` | health check | Validates the resolved installation profile, blocked default Work Block, and writes project config |
-| `scripts/validate-installation-profile.py` | generated validator | Checks required selected surfaces, required path kinds, absent unselected surfaces, and blocked default invariants |
+| `docs/evals/` | evidence/config | Approved evaluation plans, fixtures, observable events |
+| `docs/reports/evaluations/` | evidence | Evaluation matrices, gaps, risks, verdicts |
+| `docs/reports/` | evidence | All assurance, integration, and closeout evidence |
+| `docs/templates/` | normative templates | Work Block, evaluation, reports, integration admission |
+| `docs/engineering-memory/` | durable reference | Evidence-backed reusable decisions |
+| `memory_bank/` | operational/local | Current focus, progress, pending decisions, logs |
+| `runtimes/` | adapter documentation | Capability, activation, limitation, fallback |
+| `integrations/` | adapter documentation | Optional bridge/tool/transport admission |
+| `scripts/bootstrap.sh` | health check | Validates profile/default and restores local state |
+| `scripts/validate-installation-profile.py` | validator | Selected paths, kinds, absent surfaces, blocked default |
+| `scripts/validate-evaluation.py` | validator | Evaluation plan/report consistency and closeout binding |
 | source/test directories | source | Controlled by approved Work Block write-sets |
 
-## Safe Integration Defaults
+## Safe Defaults
 
-Regardless of installation profile:
-
-- no plugin or external runtime bridge is enabled automatically;
+- no plugin, external bridge, MCP server, or watcher is enabled automatically;
 - no provider-named authority agent is installed;
-- external runtime CLI calls require active Work Block integration approval;
-- no handoff watcher or service starts automatically;
-- credentials remain local.
-
-When present, `.mcp.json` is empty and OpenCode `mcp`/`plugin` collections are
-empty. Before activation, create an admission record from:
-
-`docs/templates/integration-admission-template.md`
+- external runtime calls require active integration approval;
+- blocked default evaluation is optional, `PENDING`, unbound, and has no authority;
+- credentials and private runtime state remain local;
+- observable evidence must exclude secrets, protected payloads, and hidden reasoning.
 
 ## Core Lifecycle
 
 ```text
 Define
-  discovery -> architecture -> specification -> plan -> critic
+  discovery -> architecture -> specification -> implementation/evaluation plans -> critic
 
 Execute
-  scoped implementation -> self-check -> frozen diff
+  scoped implementation -> self-check -> observable event capture -> frozen diff
 
 Assure
-  independent review -> technical verification -> specification drift audit
+  independent review -> technical verification -> agent evaluation -> drift audit
 
 Close
   SSOT sync -> engineering memory -> closeout report
 ```
 
-The lifecycle requires functions, not a fixed number of agents. Runtime-specific
-agent names and integrations are bindings to these functions.
+Required evaluation must be `READY` for `success-closeout`. Optional evaluation
+may be skipped only with a concrete reason.
 
-## Generated, Derived, and Local Boundaries
+## Generated, Derived, Evidence, and Local Boundaries
 
 - specifications and accepted architecture decisions are normative;
-- plans and tasklists are derived;
-- reports are evidence, not requirement authority;
+- implementation/evaluation plans and tasklists are derived/configuration;
+- reports and observable events are evidence, not requirement authority;
 - `.agent/bootstrap-profile.json` is generated installation evidence;
 - engineering memory is durable only when evidence-backed and secret-free;
 - `memory_bank/**` and runtime memory are operational/local by default;
-- plugins, downloaded packages, provider auth, MCP credentials, handoff runtime
-  state, browser sessions, and local IDE state are local;
-- `.env*`, tokens, cookies, credentials, keys, live data, and private customer
-  context must not be committed.
+- provider auth, downloaded plugins, browser sessions, local IDE state, `.env*`,
+  tokens, cookies, credentials, keys, and live customer data must not be committed.
 
 ## New-Session Read Strategy
 
@@ -163,27 +166,21 @@ Always for non-trivial work:
 2. `.agent/bootstrap-profile.json` when runtime availability matters;
 3. active Work Block;
 4. active specification and revision;
-5. relevant architecture decisions;
-6. repository status and current diff.
+5. approved implementation/evaluation plans;
+6. relevant architecture decisions;
+7. repository status and current diff.
 
 Read conditionally:
 
-- relevant Governance Core contract;
+- relevant Governance Core contract, especially `evaluation.md`;
 - detailed SDLC protocol and role/skill roster;
-- an installed/approved runtime adapter;
+- installed/approved runtime adapter;
 - selected integration adapter and admission record;
-- relevant skills and engineering memory;
-- operational logs when resuming work.
+- evaluation evidence required by the Work Block;
+- relevant skills, engineering memory, and operational logs.
 
 Do not treat an absent unselected runtime surface as corruption.
 
-## Map Maintenance
-
-Update this file and `FILE_REGISTRY.yml` when a change:
-
-- changes installation profile composition or generated profile state;
-- adds, moves, or removes a major directory;
-- changes authority or source-of-truth order;
-- changes lifecycle, integration, gate, or role semantics;
-- adds or retires a runtime/integration adapter;
-- changes normative, derived, evidence, generated, or local boundaries.
+Update this map and `FILE_REGISTRY.yml` when installation composition, authority,
+source-of-truth order, lifecycle, evaluation, integration, gates, adapters, or
+normative/evidence/local boundaries change.
