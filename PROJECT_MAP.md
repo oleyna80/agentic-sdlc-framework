@@ -133,13 +133,10 @@ Completed:
 6. `docs/reports/reviews/pr-4-final-review.md`
 7. `docs/plans/wb-005-profile-aware-bootstrap-conformance.md`
 8. `docs/reports/reviews/pr-5-final-review.md`
-
-Active:
-
 9. `docs/plans/wb-006-bootstrap-restore-hardening.md`
-   - required installation-profile path kind validation;
-   - blocked default Work Block validation before restore;
-   - regression fixtures for the two unresolved PR #5 P2 review findings.
+10. `docs/reports/reviews/pr-6-final-review.md`
+
+Active: none.
 
 ## Boundaries
 

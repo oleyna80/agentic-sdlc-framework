@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: work_block
 artifact_id: wb-006-bootstrap-restore-hardening
-status: in_progress
+status: complete
 owner_role: orchestrator
 work_block_id: wb-006
 created_at: 2026-07-26
@@ -88,12 +88,15 @@ bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-## Current State
+## Closeout State
 
-- **Stage:** Execute
-- **Stage State:** in_progress
+- **Stage:** Close
+- **Stage State:** complete
 - **Write Gate:** READY for this branch and documented scope
-- **Review Gate:** PENDING
-- **Verification Verdict:** PENDING
-- **Drift Gate:** PENDING
-- **Closeout Mode:** pending
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** READY / ALIGNED
+- **Closeout Mode:** success-closeout
+- **Review Evidence:** `docs/reports/reviews/pr-6-final-review.md`
+- **CI Evidence:** Framework Contracts runs 317 and 318 passed for
+  `2b34e5cfa743c9973f431758b775b93e2021172f`

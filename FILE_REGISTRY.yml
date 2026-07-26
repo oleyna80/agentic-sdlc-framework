@@ -69,7 +69,8 @@ migration_state:
     - docs/plans/wb-003-codex-native-agents-and-gates.md
     - docs/plans/wb-004-integration-adapter-normalization.md
     - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
-  active_work_block: docs/plans/wb-006-bootstrap-restore-hardening.md
+    - docs/plans/wb-006-bootstrap-restore-hardening.md
+  active_work_block: null
   planned: []
 
 entries:
@@ -219,10 +220,16 @@ entries:
     related: [bootstrap/**, scripts/test-bootstrap-profiles.py, scripts/test-runtime-conformance.py]
 
   docs/plans/wb-006-bootstrap-restore-hardening.md:
-    role: active_bootstrap_restore_hardening_work_block
+    role: completed_bootstrap_restore_hardening_work_block
     status: log
     owner: orchestrator
     related: [template/scripts/validate-installation-profile.py, scripts/test-bootstrap-profiles.py, scripts/test-profile-restore.py]
+
+  docs/reports/reviews/pr-6-final-review.md:
+    role: wb_006_final_review_and_closeout
+    status: evidence
+    owner: reviewer
+    related: [docs/plans/wb-006-bootstrap-restore-hardening.md]
 
   docs/reports/**:
     role: assurance_and_closeout_evidence
