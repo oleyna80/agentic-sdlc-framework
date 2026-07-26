@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: work_block
 artifact_id: wb-006-bootstrap-restore-hardening
-status: in_progress
+status: complete
 owner_role: orchestrator
 work_block_id: wb-006
 created_at: 2026-07-26
@@ -31,7 +31,7 @@ validation and clone/restore behavior.
 - Missing, additional, reordered, malformed, non-string, broad wildcard,
   repository-root, arbitrary source, absolute, and traversal paths must deny
   restore before active state is created.
-- Regression fixtures prove both P2 cases fail closed.
+- Regression fixtures prove both P2 cases and the follow-up P1 fail closed.
 - Regression fixtures prove canonical coordination paths restore and corrupted
   coordination authority fails closed.
 - Navigation, registry, documentation, review, verification, drift, and closeout
@@ -106,13 +106,13 @@ bash scripts/validate-publication.sh
 
 ## Closeout State
 
-- **Stage:** Assure
-- **Stage State:** in progress for follow-up P1
+- **Stage:** Close
+- **Stage State:** complete
 - **Write Gate:** READY for this branch and documented scope
-- **Review Gate:** REOPENED by unresolved P1 on PR #6
-- **Verification Verdict:** IN PROGRESS
-- **Drift Gate:** PENDING
-- **Closeout Mode:** pending
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** READY / ALIGNED
+- **Closeout Mode:** success-closeout
 - **Review Evidence:** `docs/reports/reviews/pr-6-final-review.md`
-- **Prior CI Evidence:** Framework Contracts runs 319 and 320 passed for
-  `67f6c8fef27ea4f73de01e9cdc153305f1b82a86`; follow-up P1 CI is pending
+- **CI Evidence:** Framework Contracts runs 321 and 322 passed for
+  `e7b2622003c17736c7c4214dff2e99b4879e1212`

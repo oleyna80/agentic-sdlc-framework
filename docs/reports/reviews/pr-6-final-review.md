@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: review_report
 artifact_id: pr-6-final-review
 work_block_id: wb-006
-reviewed_revision: 2b34e5cfa743c9973f431758b775b93e2021172f
+reviewed_revision: e7b2622003c17736c7c4214dff2e99b4879e1212
 review_date: 2026-07-26
 verdict: READY
 reviewer_role: reviewer
@@ -14,11 +14,13 @@ reviewer_role: reviewer
 ## Scope
 
 Reviewed WB-006 changes for the two unresolved P2 Codex review findings from
-merged PR #5:
+merged PR #5 and the follow-up P1 Codex review finding on PR #6:
 
 - required installation-profile paths must validate expected filesystem kinds;
 - `.agent/active-work-block.default.json` must validate as a safe blocked
-  default before restoring ignored active Work Block state.
+  default before restoring ignored active Work Block state;
+- authorization-bearing `coordination_write_set` must exactly match the
+  canonical ordered safe paths before restore.
 
 ## Review Findings
 
@@ -61,6 +63,33 @@ and approval-free.
   integration approval, and push approval, then verifies restore is denied and
   active state is not created.
 
+### F-03 - Blocked default accepted expanded coordination authority
+
+**Severity:** P1
+**Status:** Resolved
+
+The generated validator did not inspect `coordination_write_set`. A corrupted
+tracked default could therefore add `**` or another broad source pattern and
+restore it into active state while `write_gate.status` remained `BLOCKED`.
+Codex and Claude coordination checks trust this field, so the corruption could
+bypass the source-write gate.
+
+**Resolution:**
+
+- generated validator now contains the canonical ordered blocked-default
+  coordination paths as its independent expected value;
+- restore requires exact list equality, including path order;
+- missing, additional, reordered, malformed, and non-string entries fail;
+- repository roots, POSIX and Windows absolute paths, traversal paths, and
+  unauthorized wildcard patterns fail before exact-list comparison;
+- only the canonical narrow documentation and coordination patterns remain
+  valid;
+- regression fixtures deny `**`, `src/**`, `.`, `/tmp/source.py`,
+  `../source.py`, missing entries, additions, reordering, non-string values,
+  and malformed values;
+- the successful restore fixture confirms the unchanged canonical list is
+  copied into active state.
+
 ## Additional Review Notes
 
 - The test harness now uses `sys.executable` for Python subprocesses and a
@@ -68,6 +97,8 @@ and approval-free.
   Ubuntu CI semantics.
 - Documentation and navigation were updated in framework and generated-project
   maps/registries.
+- The follow-up P1 changes only generated-project validation and restore
+  fixtures; runtime coordination matching behavior itself is unchanged.
 - No installation profile composition, governance authority, runtime adapter
   behavior, integration admission, or live smoke behavior changed.
 
@@ -95,6 +126,8 @@ GitHub Actions Framework Contracts:
 |---|---|---|
 | 317 | push | success |
 | 318 | pull_request | success |
+| 321 | push | success |
+| 322 | pull_request | success |
 
 ## Drift Audit
 
@@ -105,6 +138,8 @@ GitHub Actions Framework Contracts:
 | Blocked default validates before active state restore | ALIGNED |
 | Restore remains idempotent and preserves existing active state | ALIGNED |
 | Default Work Block remains approval-free and empty-write-set | ALIGNED |
+| Coordination authority exactly matches the canonical ordered safe paths | ALIGNED |
+| Broad glob, root, source, absolute, and traversal corruption fails closed | ALIGNED |
 | Framework and generated-project navigation reflect new checks | ALIGNED |
 
 **Drift verdict:** `READY` / `ALIGNED`.
@@ -116,11 +151,13 @@ GitHub Actions Framework Contracts:
 - **Drift verdict:** `READY / ALIGNED`
 - **Closeout mode:** `success-closeout`
 - **Residual risk:** live runtime smoke tests remain outside WB-006 scope; this
-  PR hardens generated-project bootstrap contracts only.
+  PR hardens generated-project bootstrap contracts only. Canonical narrow
+  documentation globs remain intentional coordination authority and are
+  protected by exact-list validation.
 
 ## Final Verdict
 
 `READY`
 
-PR #6 may be moved from Draft to Ready for review after this closeout commit
-passes Framework Contracts.
+PR #6 remains Ready for review and must not be merged without explicit Owner
+approval.
