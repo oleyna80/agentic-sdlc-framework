@@ -222,7 +222,28 @@ def main() -> int:
                 visible_override="## Migration Work\n\nNo active implementation Work Block.\n",
             ),
         )
-        expect_failure("visible-active-missing", root, "visible migration section omits")
+        expect_failure("visible-active-contradiction", root, "contradicts active Work Block state")
+
+        populate(root)
+        active_registry = registry(active=ACTIVE)
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(active_registry, sort_keys=False))
+        write(root / ACTIVE, work_block("wb-008", "in_progress"))
+        write(
+            root / "PROJECT_MAP.md",
+            project_map(
+                active=ACTIVE,
+                visible_override=(
+                    "## Migration Work\n\nNo active implementation Work Block.\n\n"
+                    "## Key Paths\n\n"
+                    f"- `{ACTIVE}`\n"
+                ),
+            ),
+        )
+        expect_failure(
+            "active-path-outside-migration-section",
+            root,
+            "contradicts active Work Block state",
+        )
 
         populate(root)
         write(
@@ -255,8 +276,19 @@ def main() -> int:
         expect_failure("pending-verification", root, "verification verdict=READY")
 
         populate(root)
+        write(
+            root / CLOSEOUT,
+            closeout("\n- **Verification verdict:** PENDING\n"),
+        )
+        expect_failure("duplicate-closeout-marker", root, "duplicate marker: verification verdict")
+
+        populate(root)
         write(root / CLOSEOUT, closeout(drift="PENDING"))
-        expect_failure("pending-drift", root, "ALIGNED drift verdict")
+        expect_failure("pending-drift", root, "drift verdict=ALIGNED")
+
+        populate(root)
+        write(root / CLOSEOUT, closeout(drift="MISALIGNED"))
+        expect_failure("misaligned-is-not-aligned", root, "drift verdict=ALIGNED")
 
         populate(root)
         write(root / CLOSEOUT, closeout(evaluation="UNVERIFIED"))
