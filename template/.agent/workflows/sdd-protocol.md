@@ -9,8 +9,6 @@ The lifecycle requires functions and artifacts, not a fixed number of agents.
 One capable runtime may execute several functions for low-risk work. Higher-risk
 work requires stronger independence as recorded in the active Work Block.
 
-The four macro-stages are:
-
 ```text
 Stage 0 — Define
 Stage 1 — Execute
@@ -34,6 +32,7 @@ Track gates and outcomes separately:
 - **Critic gate:** `READY | BLOCKED | SKIPPED | DEGRADED`
 - **Review gate:** `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED`
 - **Verification verdict:** `READY | BLOCKED | UNVERIFIED`
+- **Evaluation verdict:** `READY | BLOCKED | UNVERIFIED | NOT_REQUIRED`
 - **Drift gate:** `READY | BLOCKED | UNVERIFIED | SKIPPED`
 - **Closeout mode:** `success-closeout | reporting-only`
 
@@ -42,15 +41,20 @@ Only all required gates in a passing state permit `success-closeout`.
 corrective planning, evidence capture, and reporting-only closeout. It does not
 permit merge-ready, deploy-ready, release-ready, or completed-task claims.
 
+Evaluation is assurance evidence. It does not grant source-write authority,
+integration admission, credentials, deployment permission, or a Hard Stop exception.
+Trajectory evaluation uses observable events only and must never request hidden
+reasoning, private chain-of-thought, or model scratchpads.
+
 ## Governance Profiles
 
 The Work Block selects the smallest sufficient governance profile:
 
 - **Advisory:** read-only analysis; no repository mutation.
-- **Controlled:** one bounded executor, explicit scope/write-set, basic review and checks.
-- **Managed:** approved specification and plan, Critic, Reviewer, Verifier, durable evidence.
-- **Assured:** stronger independence, threat/risk analysis where relevant, drift audit, runtime evidence.
-- **Distributed:** multiple runtimes/worktrees/teams with explicit handoff and consolidation.
+- **Controlled:** one bounded executor, explicit scope/write-set, basic review and deterministic checks.
+- **Managed:** approved specification and plan, Critic, Reviewer, Verifier, and evaluation for non-deterministic or consequential agent behavior.
+- **Assured:** stronger independence, fixed evaluation rubric/benchmark revisions, drift audit, runtime evidence.
+- **Distributed:** multiple runtimes/worktrees/teams with explicit handoff, observable-event provenance, and consolidation.
 
 Runtime choice is separate from governance profile.
 
@@ -101,6 +105,7 @@ changes begin.
    - hooks and sandbox availability;
    - model class and budget posture;
    - actual isolation available;
+   - observable-event capability;
    - fallback path for missing capability.
 
 5. **Define execution topology**
@@ -116,33 +121,32 @@ changes begin.
    - used;
    - skipped with reason.
 
-7. **Create the implementation plan**
+7. **Create the implementation and assurance plans**
    - ordered tasks;
    - explicit write-set;
    - dependencies;
-   - verification plan;
-   - review and drift triggers.
+   - review and verification plan;
+   - evaluation requirement and approved plan path;
+   - drift triggers.
 
 8. **Run Critic function when triggered**
-   - challenge scope, assumptions, authority, risk, topology, and verification design;
+   - challenge scope, assumptions, authority, risk, topology, verification, and evaluation design;
    - record `APPROVE`, `SUPPLEMENT`, or `RECONSIDER`;
    - rerun Define for material gaps.
 
-## Critic Triggers
+## Evaluation Triggers
 
-Critic is required when any condition applies:
+Output or trajectory evaluation is required when any condition applies:
 
-- 3 or more planned implementation files;
-- production-code side effects or higher;
-- new architecture boundary, runtime topology, or external integration;
-- authentication, authorization, payment, DB/schema, deploy, infrastructure,
-  webhook, provider, security, or client-facing behavior;
-- 2 or more matched skills are skipped;
-- Assured or Distributed profile;
-- Owner or Orchestrator identifies material ambiguity.
+- output is materially non-deterministic;
+- an agent selects tools or execution paths autonomously;
+- consequential automation depends on process compliance;
+- production users depend on agent-generated responses or decisions;
+- an approved benchmark, dataset, rubric, or LM judge is part of acceptance;
+- Managed, Assured, or Distributed governance requires it by risk classification.
 
-A skip must be explicit and evidence-based. Same-context fallback is labelled
-`DEGRADED`; it is not described as independent.
+When evaluation is not required, record the reason explicitly. Runtime or model name
+alone neither requires nor waives evaluation.
 
 ## Exit Conditions
 
@@ -151,7 +155,7 @@ A skip must be explicit and evidence-based. Same-context fallback is labelled
 - Work Block complete;
 - write-set approved;
 - runtime capability and isolation recorded;
-- verification/review/drift plan recorded;
+- verification/review/evaluation/drift plan recorded;
 - Critic gate resolved when triggered;
 - write gate `READY`.
 
@@ -171,7 +175,8 @@ Coder. Exactly one write-capable Coder per write-set.
 - approved specification and implementation plan;
 - explicit write-set;
 - side-effect and Hard Stop classification;
-- required runtime capability available or an approved degraded fallback recorded.
+- required runtime capability available or an approved degraded fallback recorded;
+- approved evaluation plan available when evaluation is required.
 
 ## Activities
 
@@ -179,18 +184,12 @@ Coder. Exactly one write-capable Coder per write-set.
 2. Implement only inside the approved write-set.
 3. Preserve existing project patterns unless the specification approves a change.
 4. Do not silently change requirements or architecture.
-5. When a legitimate requirement change is discovered:
-   - stop the affected implementation path;
-   - record the proposed specification change;
-   - return to Define for approval;
-   - update plan/tasklist only after the specification decision.
+5. When a legitimate requirement change is discovered, stop and return to Define.
 6. Run scoped self-checks.
-7. Freeze the implementation diff for assurance.
-8. Report one outcome:
-   - `DONE`;
-   - `DONE_WITH_CONCERNS`;
-   - `NEEDS_CONTEXT`;
-   - `BLOCKED`.
+7. Capture required observable tool, gate, check, retry, side-effect, and evidence events.
+8. Redact secrets and protected data from operational evidence.
+9. Freeze the implementation diff for assurance.
+10. Report `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or `BLOCKED`.
 
 ## Exit Conditions
 
@@ -198,6 +197,7 @@ Coder. Exactly one write-capable Coder per write-set.
 - no unapproved scope expansion;
 - frozen diff or changed-file list available;
 - self-check evidence recorded;
+- required observable evaluation events attributable to the Work Block;
 - implementation result handed to Stage 2.
 
 A failed Execute stage blocks assurance from passing. Stage 2 may still inspect
@@ -207,12 +207,13 @@ partial work for diagnostics, but cannot produce a successful verdict.
 
 # Stage 2 — Assure
 
-Stage 2 contains three distinct functions:
+Stage 2 contains four distinct functions:
 
 ```text
 2A Independent Review
 2B Technical Verification
-2C Specification Drift Audit
+2C Agent Evaluation
+2D Specification Drift Audit
 ```
 
 They may be executed by separate agents or by separate passes of one runtime,
@@ -231,7 +232,7 @@ Inspect the frozen diff for engineering quality and risk.
 - architecture and dependency violations;
 - security and privacy risks;
 - maintainability and unnecessary complexity;
-- missing tests or observability;
+- missing tests, evaluation evidence, or observability;
 - scope expansion;
 - unsafe generated boilerplate or prompt-shaped abstractions.
 
@@ -251,37 +252,11 @@ review of the updated frozen diff.
 
 Demonstrate that acceptance criteria and observable contracts hold.
 
-### Lite Tier
+### Evidence Tiers
 
-- changed files match scope;
-- targeted types/lint/build checks;
-- relevant tests pass;
-- no obvious regression.
-
-### Standard Tier
-
-Lite plus relevant:
-
-- route and navigation contracts;
-- API/schema contracts;
-- positive and negative cases;
-- runtime/dev-server smoke;
-- error handling and logging;
-- maintainability baseline;
-- secret and injection baseline.
-
-### Full Tier
-
-Standard plus relevant:
-
-- threat-model validation;
-- security checklist;
-- dependency/security scan classification;
-- actual served response/header checks;
-- auth/origin/CSRF/webhook guards;
-- migration and rollback checks;
-- independent runtime evidence;
-- production-like but non-destructive smoke where approved.
+- **Lite:** changed-file scope, targeted types/lint/build, relevant tests, obvious regressions.
+- **Standard:** Lite plus API/schema, positive/negative cases, runtime smoke, errors/logging, security baseline.
+- **Full:** Standard plus threat model, security classification, auth/origin guards, migrations/rollback, independent runtime evidence, approved production-like smoke.
 
 ### Verdicts
 
@@ -291,14 +266,48 @@ Standard plus relevant:
 
 Unavailable evidence is `UNVERIFIED`, not `READY`.
 
-## 2C — Specification Drift Audit
+## 2C — Agent Evaluation
+
+### Purpose
+
+Evaluate the delivered artifact and observable agent trajectory against the
+approved evaluation plan.
+
+### Evidence Classes
+
+- deterministic check results;
+- output rubric results;
+- observable trajectory events and event-source provenance;
+- benchmark/dataset and rubric revisions;
+- evaluator identity, judge policy, actual runtime, model class, and isolation;
+- inspection gaps, blocked checks, and residual risks.
+
+### Rules
+
+- deterministic correctness cannot pass solely through an LM judge;
+- trajectory pass requires all blocking required events and no prohibited event;
+- missing or inaccessible event sources are `BLOCKED` or `UNVERIFIED`;
+- a fluent final response is not trajectory evidence;
+- private chain-of-thought and hidden reasoning are never required evidence;
+- changing criteria, thresholds, datasets, or judge policy creates a new plan revision.
+
+### Verdicts
+
+- `READY`
+- `BLOCKED`
+- `UNVERIFIED`
+
+Required evaluation cannot be skipped. Optional evaluation may be `SKIPPED` only
+with a recorded reason in the active Work Block.
+
+## 2D — Specification Drift Audit
 
 ### Purpose
 
 Compare:
 
 ```text
-Specification <-> Architecture decisions <-> Plan <-> Code <-> Tests <-> Documentation
+Specification <-> Architecture decisions <-> Plan <-> Code <-> Tests/Evals <-> Documentation
 ```
 
 Use `spec-drift-audit` and the standard drift report template.
@@ -309,6 +318,7 @@ Use `spec-drift-audit` and the standard drift report template.
 - auth, payment, DB, provider, webhook, security, or architecture changed;
 - specification changed during implementation;
 - behavior was added outside the approved plan;
+- evaluation criteria or evidence reveal an undocumented contract;
 - 3 or more implementation files changed;
 - Assured or Distributed profile.
 
@@ -320,24 +330,23 @@ Use `spec-drift-audit` and the standard drift report template.
 - `UNVERIFIED` -> drift gate `UNVERIFIED`.
 
 A Quick Fix may skip drift audit only when it has no behavior, contract, schema,
-security, runtime, architecture, or governance impact.
+security, runtime, architecture, evaluation, or governance impact.
 
 ## Isolation Requirements
 
-Minimum expected isolation:
-
-| Work type | Review / verification expectation |
+| Work type | Review / verification / evaluation expectation |
 |---|---|
 | Controlled, low-risk | separate pass; same-context allowed but recorded |
 | Managed, non-sensitive | separate-subagent or separate-session preferred |
 | Assured or sensitive | independent-readonly-root or separate-runtime preferred |
-| credentials, live data, deploy mutation | os-isolated where practical and no production credentials for read-only assurance |
+| credentials, live data, deploy mutation | OS-isolated where practical and no production credentials for read-only assurance |
 | parallel writers | separate-worktree per write-set plus consolidation |
 
 ## Stage 2 Exit Conditions
 
 - review gate resolved;
 - verification verdict recorded;
+- evaluation verdict recorded when required;
 - drift gate resolved when triggered;
 - findings include evidence and inspection gaps;
 - corrections rerun through the applicable assurance functions;
@@ -365,9 +374,9 @@ Orchestrator.
 1. current Owner instruction or approved change request;
 2. approved specification;
 3. accepted architecture decisions and external contracts;
-4. approved implementation plan;
+4. approved implementation and evaluation plans;
 5. tasklist;
-6. review, verification, drift, and closeout reports;
+6. review, verification, evaluation, drift, and closeout reports;
 7. engineering memory;
 8. operational memory and logs.
 
@@ -378,6 +387,7 @@ Plans and tasklists never silently override an approved specification.
 - implementation completed inside scope;
 - review gate `READY` or valid documented skip;
 - verification verdict `READY`;
+- required evaluation status/verdict `READY`;
 - drift gate `READY` or valid documented skip;
 - required Hard Stop actions either not performed or explicitly approved;
 - residual risks documented;
@@ -393,18 +403,16 @@ A Quick Fix is allowed only when all are true:
 
 - at most 2 implementation files;
 - no behavior, route, API, schema, persistence, security, architecture, runtime,
-  dependency, governance, or public contract impact;
+  dependency, evaluation, governance, or public contract impact;
 - no Hard Stop;
 - rollback is trivial;
-- targeted checks are available.
-
-Flow:
+- targeted deterministic checks are available.
 
 ```text
 Scope statement -> Implement -> targeted self-review/checks -> sync -> close
 ```
 
-The Orchestrator must record why the full lifecycle was not required.
+The Orchestrator must record why the full lifecycle and evaluation were not required.
 
 ---
 
@@ -414,5 +422,6 @@ The Orchestrator must record why the full lifecycle was not required.
 - Work may continue for diagnostics, corrective planning, evidence capture, or reporting.
 - Missing subagent/model/plugin capability does not remove the logical function.
 - Use the strongest available fallback and record actual runtime and isolation.
-- A degraded review cannot upgrade a blocked verification result.
+- A degraded review or evaluation cannot upgrade a blocked verification result.
+- Missing observable trajectory evidence cannot be described as a pass.
 - No agent may grant itself authority because a tool is technically available.
