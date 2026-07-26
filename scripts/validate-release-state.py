@@ -14,6 +14,10 @@ ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
 MAP_BLOCK_RE = re.compile(
     r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL
 )
+MIGRATION_SECTION_RE = re.compile(
+    r"^## Migration Work\s*\n(?P<body>.*?)(?=^##\s|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
 MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
@@ -166,9 +170,15 @@ def validate_active_work_block(root: Path, relative: str) -> dict[str, Any]:
 
 def closeout_markers(body: str) -> dict[str, str]:
     result: dict[str, str] = {}
-    pattern = re.compile(r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$", re.MULTILINE)
+    pattern = re.compile(
+        r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$",
+        re.MULTILINE,
+    )
     for match in pattern.finditer(body):
-        result[match.group("key").strip().lower()] = match.group("value").strip()
+        key = match.group("key").strip().lower()
+        if key in result:
+            raise ReleaseStateError(f"closeout contains duplicate marker: {key}")
+        result[key] = match.group("value").strip()
     return result
 
 
@@ -228,8 +238,10 @@ def validate_closeout(
                 f"successful closeout requires {key}={expected}, found {markers.get(key)!r}"
             )
     drift = markers.get("drift verdict", "")
-    if "ALIGNED" not in drift:
-        raise ReleaseStateError("successful closeout requires an ALIGNED drift verdict")
+    if drift != "ALIGNED":
+        raise ReleaseStateError(
+            f"successful closeout requires drift verdict=ALIGNED, found {drift!r}"
+        )
     evaluation = markers.get("evaluation verdict")
     if evaluation is not None and not (
         evaluation == "READY" or evaluation.startswith("SKIPPED")
@@ -249,17 +261,35 @@ def validate_closeout(
             )
 
 
+def migration_section(text: str) -> str:
+    matches = list(MIGRATION_SECTION_RE.finditer(text))
+    if not matches:
+        raise ReleaseStateError("PROJECT_MAP.md requires one visible Migration Work section")
+    if len(matches) != 1:
+        raise ReleaseStateError("PROJECT_MAP.md must contain exactly one Migration Work section")
+    return matches[0].group("body")
+
+
 def validate_map_projection(text: str, active: str | None) -> None:
     for pattern in STALE_MAP_PATTERNS:
         if pattern.search(text):
             raise ReleaseStateError(f"PROJECT_MAP.md contains stale GitHub state: {pattern.pattern}")
+    section = migration_section(text)
+    no_active = "No active implementation Work Block." in section
     if active is None:
-        if "No active implementation Work Block." not in text:
+        if not no_active:
             raise ReleaseStateError(
-                "PROJECT_MAP.md must state that no active implementation Work Block exists"
+                "PROJECT_MAP.md Migration Work section must state that no active implementation Work Block exists"
             )
-    elif f"`{active}`" not in text:
-        raise ReleaseStateError("PROJECT_MAP.md visible migration section omits active Work Block")
+    else:
+        if no_active:
+            raise ReleaseStateError(
+                "PROJECT_MAP.md Migration Work section contradicts active Work Block state"
+            )
+        if f"`{active}`" not in section:
+            raise ReleaseStateError(
+                "PROJECT_MAP.md Migration Work section omits active Work Block"
+            )
 
 
 def validate_repository(root: Path) -> dict[str, Any]:
