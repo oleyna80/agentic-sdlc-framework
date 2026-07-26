@@ -10,8 +10,9 @@
 - **Owner:** [name/reference]
 - **Orchestrator:** [logical role binding]
 - **Governance Profile:** [Advisory | Controlled | Managed | Assured | Distributed]
-- **Execution Mode:** [end-to-end autonomous | staged approval | read-only review | advisory]
+- **Execution Mode:** [conductor | orchestrator | staged approval | read-only review | advisory]
 - **Verification Tier:** [lite | standard | full]
+- **Evaluation Required:** [yes | no; risk/non-determinism reason]
 
 ## Lifecycle State
 
@@ -21,6 +22,7 @@
 - **Critic Gate:** [PENDING | READY | BLOCKED | SKIPPED | DEGRADED]
 - **Review Gate:** [PENDING | READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED]
 - **Verification Verdict:** [PENDING | READY | BLOCKED | UNVERIFIED]
+- **Evaluation Verdict:** [PENDING | READY | BLOCKED | UNVERIFIED | NOT_REQUIRED]
 - **Drift Gate:** [PENDING | READY | BLOCKED | UNVERIFIED | SKIPPED]
 - **Closeout Mode:** [pending | success-closeout | reporting-only]
 - **Owner Approval Evidence:** [message/reference | not required]
@@ -37,7 +39,7 @@ repository/runtime state, evidence, documentation, and what must remain clean.]
 ## Done Criteria
 
 - [ ] [Measurable outcome]
-- [ ] [Required evidence exists]
+- [ ] [Required deterministic, output, and trajectory evidence exists]
 - [ ] [Repository/runtime state is clean or documented]
 
 ## Normative Baseline
@@ -48,9 +50,11 @@ repository/runtime state, evidence, documentation, and what must remain clean.]
 - **Accepted Architecture Decisions:** [paths/IDs]
 - **External Contracts:** [API/schema/legal/provider/user contract or not applicable]
 - **Derived Implementation Plan:** [path]
+- **Approved Evaluation Plan:** [not required | docs/evals/<id>/plan.json]
 - **Active Tasklist:** [path]
 
-Rule: specification and accepted architecture decisions outrank plans and tasklists.
+Rule: approved specification and accepted architecture decisions outrank plans,
+tasklists, evaluation reports, and operational logs.
 
 ## Repository Preflight
 
@@ -90,14 +94,16 @@ Rule: specification and accepted architecture decisions outrank plans and taskli
 - **Parallel writers:** [no | separate worktrees and non-overlapping write-sets]
 - **Scope guard:** [git diff/status/path validation]
 
-Lifecycle reports, logs, and gate artifacts are counted separately from
-implementation files when applying Quick-Fix and trigger thresholds.
+Lifecycle reports, evaluation evidence, logs, and gate artifacts are counted
+separately from implementation files when applying Quick-Fix and trigger thresholds.
 
 ## Risk and Authority
 
 - **Side-Effect Class:** [read-only | local-docs | production-code | local-test | public-repo | live-infra | live-data | client-facing | destructive]
 - **DB/Data Action Mode:** [none | local_temp | live_readonly | live_migration_apply | runtime_app | emergency_remediation]
 - **Sensitive Domains:** [none | auth | payments | DB/schema | webhooks | provider | deploy | security | client communications | other]
+- **Output Non-Determinism:** [none | bounded | material; why]
+- **Autonomous Tool/Trajectory Risk:** [none | bounded | material; why]
 - **Threat Model Required:** [yes | no; reason]
 - **Rollback / Recovery:** [procedure]
 
@@ -112,9 +118,10 @@ implementation files when applying Quick-Fix and trigger thresholds.
 - [ ] Public release/publication
 - [ ] Client/user communication
 - [ ] Payment/order/stock/CRM/external consequential mutation
-- [ ] Material specification or scope expansion
+- [ ] Material specification, evaluation-plan, or scope expansion
 
-For each checked item, record approval state and evidence.
+For each checked item, record approval state and evidence. Evaluation cannot open
+or waive a Hard Stop.
 
 ## Runtime Capability Snapshot
 
@@ -126,6 +133,7 @@ For each checked item, record approval state and evidence.
 - **Worktrees / Isolated Roots:** [available | unavailable | unknown]
 - **Hooks / Tool Guards:** [available | unavailable | unknown]
 - **Sandbox / Permission Controls:** [description]
+- **Observable Event Sources:** [tool log/gate log/CI/artifacts/none]
 - **MCP / Plugin / External Tools:** [available inventory or none]
 - **Known Limitations:** [list]
 - **Capability Evidence:** [version/config/smoke/reference]
@@ -135,7 +143,7 @@ For each checked item, record approval state and evidence.
 - **Integration Profile:** [none | official plugin | MCP | file handoff | hosted connector | direct runtime CLI | manual handoff]
 - **Approved Integration IDs:** [none | stable IDs matching machine Work Block]
 - **Admission Records:** [none | paths based on integration-admission-template.md]
-- **Logical Functions Served:** [none | Critic/Reviewer/etc.]
+- **Logical Functions Served:** [none | Critic/Reviewer/Verifier/Evaluator/etc.]
 - **From / To Boundary:** [runtime/service endpoints]
 - **Exact Tools / Actions:** [none | list]
 - **Authority:** [read-only | approved write-set | reports only | other]
@@ -159,12 +167,13 @@ Rules:
 
 | Function | Logical Role | Runtime | Model Class | Actual Model | Isolation | Authority | Adapter / Integration / Launch Evidence |
 |---|---|---|---|---|---|---|---|
-| Orchestration | Orchestrator | [runtime] | [strong_reasoning/balanced/etc.] | [optional] | [level] | workflow | [reference] |
+| Orchestration | Orchestrator | [runtime] | [class] | [optional] | [level] | workflow | [reference] |
 | Architecture | Architect | [runtime] | [class] | [optional] | [level] | read-only/drafts | [reference] |
 | Critic | Critic | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
 | Implementation | Coder | [runtime] | [class] | [optional] | [level] | write-set | [reference] |
 | Review | Reviewer | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
 | Verification | Verifier | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
+| Evaluation | Verifier/Evaluator specialization | [runtime] | [class] | [optional] | [level] | read-only/evidence | [reference] |
 | Drift Audit | Reviewer/Verifier specialization | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
 
 Use `not required` for functions legitimately skipped by profile and triggers.
@@ -202,14 +211,14 @@ Model/provider/integration names do not define roles or authority.
 ### Critic
 
 - **Required:** [yes/no; trigger]
-- **Inputs:** [spec/plan/risk/topology/integration admissions]
+- **Inputs:** [spec/plan/risk/topology/integration admissions/evaluation design]
 - **Expected report:** [path]
 
 ### Independent Review
 
 - **Required:** [yes/no; trigger]
 - **Frozen diff:** [reference]
-- **Review dimensions:** [correctness/security/architecture/maintainability/integration boundaries/etc.]
+- **Review dimensions:** [correctness/security/architecture/maintainability/integration/evaluation boundaries]
 - **Expected report:** [path]
 
 ### Technical Verification
@@ -221,10 +230,26 @@ Model/provider/integration names do not define roles or authority.
 - **Allowed fallback checks:** [narrower checks and residual risk]
 - **Skipped checks:** [none | reason]
 
+### Agent Evaluation
+
+- **Required:** [yes/no; trigger]
+- **Evaluation ID / Plan:** [not required | ID and path]
+- **Subject/Frozen Revision:** [revision]
+- **Deterministic Checks:** [criterion IDs and commands]
+- **Output Criteria:** [criterion IDs, thresholds, evaluator types]
+- **Trajectory Requirements:** [required/prohibited observable events]
+- **Event Sources:** [paths/logs/artifacts]
+- **Rubric Revision:** [revision]
+- **Benchmark/Dataset Revision:** [revision | not-applicable]
+- **LM Judge Policy:** [disabled | identity/prompt revision/calibration]
+- **Isolation:** [actual or required boundary]
+- **Expected Report:** [docs/reports/evaluations/<id>.json]
+- **No Hidden Reasoning:** [confirmed; observable events only]
+
 ### Specification Drift Audit
 
 - **Required:** [yes/no; trigger]
-- **Inputs:** [spec/decisions/plan/diff/review/verification/docs]
+- **Inputs:** [spec/decisions/plans/diff/tests/evals/docs]
 - **Expected report:** [path]
 - **Valid skip reason:** [Quick Fix only, or not applicable]
 
@@ -236,6 +261,7 @@ Model/provider/integration names do not define roles or authority.
 - **Specification update:** [yes/no; approval state]
 - **Architecture decision update:** [yes/no; path]
 - **Runtime / integration adapter update:** [yes/no; paths]
+- **Evaluation contract/update:** [yes/no; paths]
 - **User/engineering documentation update:** [yes/no; paths]
 - **Engineering memory candidate:** [yes/no; classification]
 - **Generated/local boundary change:** [yes/no; why]
@@ -253,6 +279,9 @@ Model/provider/integration names do not define roles or authority.
 |---|---|---|---|---|---|---|
 | [time] | [stage] | [function] | [runtime/integration] | [action] | [reference] | [status] |
 
+Record observable trajectory events or references only. Do not include hidden
+reasoning, private chain-of-thought, model scratchpads, secrets, or protected payloads.
+
 ## Closeout
 
 ### Result
@@ -262,6 +291,7 @@ Model/provider/integration names do not define roles or authority.
 - **Task Status:** [completed only when required gates pass | blocked/incomplete]
 - **Review Verdict:** [verdict/path]
 - **Verification Verdict:** [verdict/path]
+- **Evaluation Verdict:** [READY/BLOCKED/UNVERIFIED/NOT_REQUIRED and path]
 - **Drift Verdict:** [verdict/path]
 - **Integration Evidence:** [none | admission/smoke/result paths]
 - **Residual Risks:** [list]
@@ -271,7 +301,7 @@ Model/provider/integration names do not define roles or authority.
 
 - **Specification changed:** [no | approved change path/revision]
 - **Architecture decisions synchronized:** [yes/no/not applicable]
-- **Plan/tasklist synchronized:** [yes/no]
+- **Implementation/evaluation plans and tasklist synchronized:** [yes/no]
 - **Runtime/integration documentation synchronized:** [yes/no/not applicable]
 - **Reports linked:** [paths]
 
@@ -285,5 +315,6 @@ Model/provider/integration names do not define roles or authority.
 - **Framework updates to consider:** [list]
 - **Follow-up Work Blocks:** [IDs/paths]
 
-`SUCCESS` requires all required assurance gates to pass. Otherwise use
-`REPORTING_ONLY`; do not claim merge, deploy, release, or completion readiness.
+`SUCCESS` requires all required assurance gates, including evaluation when required,
+to pass. Otherwise use `REPORTING_ONLY`; do not claim merge, deploy, release, or
+completion readiness.
