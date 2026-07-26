@@ -15,6 +15,7 @@
     "governance/authority.md",
     "governance/lifecycle.md",
     "governance/artifacts.md",
+    "governance/evaluation.md",
     "governance/runtime-capabilities.md",
     "runtimes/README.md",
     "runtimes/codex/README.md",
@@ -33,15 +34,21 @@
     ".agent/skills/README.md",
     "docs/session-bootstrap.md",
     "docs/engineering-memory/README.md",
+    "docs/evals/README.md",
     "docs/plans/README.md",
     "docs/specs/README.md",
     "docs/tasklist/README.md",
     "docs/reports/README.md",
+    "docs/reports/evaluations/README.md",
     "docs/templates/work-block-template.md",
     "docs/templates/spec-drift-report-template.md",
     "docs/templates/integration-admission-template.md",
+    "docs/templates/evaluation-plan-template.json",
+    "docs/templates/evaluation-report-template.json",
+    "docs/templates/trajectory-event-template.json",
     "scripts/bootstrap.sh",
-    "scripts/validate-installation-profile.py"
+    "scripts/validate-installation-profile.py",
+    "scripts/validate-evaluation.py"
   ],
   "components": {
     "runtime:codex": {
