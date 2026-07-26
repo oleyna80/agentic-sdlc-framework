@@ -43,20 +43,35 @@ def nonempty_string(value: object, label: str) -> str:
     return value.strip()
 
 
-def string_list(value: object, label: str, *, allow_empty: bool = True) -> list[str]:
+def string_list(
+    value: object,
+    label: str,
+    *,
+    allow_empty: bool = True,
+    unique: bool = True,
+) -> list[str]:
     if not isinstance(value, list) or any(
         not isinstance(item, str) or not item.strip() for item in value
     ):
         raise EvaluationError(f"{label} must be an array of non-empty strings")
-    if not allow_empty and not value:
+    result = [item.strip() for item in value]
+    if not allow_empty and not result:
         raise EvaluationError(f"{label} must not be empty")
-    return [item.strip() for item in value]
+    if unique and len(set(result)) != len(result):
+        raise EvaluationError(f"{label} contains duplicates")
+    return result
 
 
 def bool_value(value: object, label: str) -> bool:
     if not isinstance(value, bool):
         raise EvaluationError(f"{label} must be boolean")
     return value
+
+
+def number_value(value: object, label: str) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise EvaluationError(f"{label} must be numeric")
+    return float(value)
 
 
 def reject_hidden_reasoning(value: object, path: str = "root") -> None:
@@ -73,7 +88,7 @@ def reject_hidden_reasoning(value: object, path: str = "root") -> None:
             reject_hidden_reasoning(child, f"{path}[{index}]")
 
 
-def unique_criterion_ids(items: object, label: str) -> list[dict[str, Any]]:
+def criterion_list(items: object, label: str) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         raise EvaluationError(f"{label} must be an array")
     result: list[dict[str, Any]] = []
@@ -81,7 +96,9 @@ def unique_criterion_ids(items: object, label: str) -> list[dict[str, Any]]:
     for index, item in enumerate(items):
         if not isinstance(item, dict):
             raise EvaluationError(f"{label}[{index}] must be an object")
-        criterion_id = nonempty_string(item.get("criterion_id"), f"{label}[{index}].criterion_id")
+        criterion_id = nonempty_string(
+            item.get("criterion_id"), f"{label}[{index}].criterion_id"
+        )
         if criterion_id in seen:
             raise EvaluationError(f"duplicate criterion_id in {label}: {criterion_id}")
         seen.add(criterion_id)
@@ -89,10 +106,14 @@ def unique_criterion_ids(items: object, label: str) -> list[dict[str, Any]]:
     return result
 
 
-def validate_plan(plan: dict[str, Any], *, require_approved: bool = False) -> dict[str, Any]:
+def validate_plan(
+    plan: dict[str, Any], *, require_approved: bool = False
+) -> dict[str, Any]:
     reject_hidden_reasoning(plan)
     if plan.get("schema_version") != SCHEMA_VERSION:
-        raise EvaluationError(f"evaluation plan requires schema_version={SCHEMA_VERSION}")
+        raise EvaluationError(
+            f"evaluation plan requires schema_version={SCHEMA_VERSION}"
+        )
     if plan.get("artifact_type") != "evaluation_plan":
         raise EvaluationError("artifact_type must be evaluation_plan")
 
@@ -108,12 +129,21 @@ def validate_plan(plan: dict[str, Any], *, require_approved: bool = False) -> di
     subject = plan.get("subject")
     if not isinstance(subject, dict):
         raise EvaluationError("subject must be an object")
-    for field in ("objective", "specification_revision", "frozen_revision"):
-        nonempty_string(subject.get(field), f"subject.{field}")
+    objective = nonempty_string(subject.get("objective"), "subject.objective")
+    specification_revision = nonempty_string(
+        subject.get("specification_revision"), "subject.specification_revision"
+    )
+    frozen_revision = nonempty_string(
+        subject.get("frozen_revision"), "subject.frozen_revision"
+    )
+    if require_approved and frozen_revision.startswith("pending"):
+        raise EvaluationError("approved evaluation plan requires a frozen subject revision")
 
-    deterministic = unique_criterion_ids(plan.get("deterministic_checks"), "deterministic_checks")
-    output = unique_criterion_ids(plan.get("output_criteria"), "output_criteria")
-    trajectory = unique_criterion_ids(
+    deterministic = criterion_list(
+        plan.get("deterministic_checks"), "deterministic_checks"
+    )
+    output = criterion_list(plan.get("output_criteria"), "output_criteria")
+    trajectory = criterion_list(
         plan.get("trajectory_requirements"), "trajectory_requirements"
     )
     if not deterministic and not output and not trajectory:
@@ -126,17 +156,24 @@ def validate_plan(plan: dict[str, Any], *, require_approved: bool = False) -> di
         ("trajectory_requirements", trajectory),
     ):
         for index, item in enumerate(items):
-            criterion_id = nonempty_string(item.get("criterion_id"), f"{label}[{index}].criterion_id")
+            criterion_id = nonempty_string(
+                item.get("criterion_id"), f"{label}[{index}].criterion_id"
+            )
             if criterion_id in all_ids:
-                raise EvaluationError(f"criterion_id must be globally unique: {criterion_id}")
+                raise EvaluationError(
+                    f"criterion_id must be globally unique: {criterion_id}"
+                )
             all_ids.add(criterion_id)
             nonempty_string(item.get("description"), f"{label}[{index}].description")
             bool_value(item.get("blocking"), f"{label}[{index}].blocking")
 
     for index, item in enumerate(deterministic):
         nonempty_string(item.get("command"), f"deterministic_checks[{index}].command")
-        nonempty_string(item.get("evidence"), f"deterministic_checks[{index}].evidence")
+        nonempty_string(
+            item.get("evidence"), f"deterministic_checks[{index}].evidence"
+        )
 
+    total_weight = 0.0
     for index, item in enumerate(output):
         evaluator_type = nonempty_string(
             item.get("evaluator_type"), f"output_criteria[{index}].evaluator_type"
@@ -145,38 +182,57 @@ def validate_plan(plan: dict[str, Any], *, require_approved: bool = False) -> di
             raise EvaluationError(
                 f"output_criteria[{index}].evaluator_type is unsupported: {evaluator_type}"
             )
-        threshold = item.get("threshold")
-        if not isinstance(threshold, (int, float)) or isinstance(threshold, bool):
-            raise EvaluationError(f"output_criteria[{index}].threshold must be numeric")
-        weight = item.get("weight")
-        if not isinstance(weight, (int, float)) or isinstance(weight, bool) or weight < 0:
-            raise EvaluationError(f"output_criteria[{index}].weight must be non-negative")
+        number_value(item.get("threshold"), f"output_criteria[{index}].threshold")
+        weight = number_value(
+            item.get("weight"), f"output_criteria[{index}].weight"
+        )
+        if weight < 0:
+            raise EvaluationError(
+                f"output_criteria[{index}].weight must be non-negative"
+            )
+        total_weight += weight
         nonempty_string(item.get("evidence"), f"output_criteria[{index}].evidence")
+    if output and total_weight <= 0:
+        raise EvaluationError("output criteria require a positive total weight")
 
     for index, item in enumerate(trajectory):
         nonempty_string(
-            item.get("event_source"), f"trajectory_requirements[{index}].event_source"
+            item.get("event_source"),
+            f"trajectory_requirements[{index}].event_source",
         )
-        string_list(
+        required_events = string_list(
             item.get("required_events"),
             f"trajectory_requirements[{index}].required_events",
             allow_empty=False,
         )
-        string_list(
+        prohibited_events = string_list(
             item.get("prohibited_events", []),
             f"trajectory_requirements[{index}].prohibited_events",
         )
+        overlap = sorted(set(required_events).intersection(prohibited_events))
+        if overlap:
+            raise EvaluationError(
+                f"trajectory requirement cannot both require and prohibit: {', '.join(overlap)}"
+            )
 
-    nonempty_string(plan.get("benchmark_revision"), "benchmark_revision")
-    nonempty_string(plan.get("rubric_revision"), "rubric_revision")
-    nonempty_string(plan.get("isolation_requirement"), "isolation_requirement")
+    benchmark_revision = nonempty_string(
+        plan.get("benchmark_revision"), "benchmark_revision"
+    )
+    rubric_revision = nonempty_string(
+        plan.get("rubric_revision"), "rubric_revision"
+    )
+    isolation_requirement = nonempty_string(
+        plan.get("isolation_requirement"), "isolation_requirement"
+    )
     if plan.get("aggregate_verdict_rule") != "all_blocking_pass":
         raise EvaluationError("aggregate_verdict_rule must be all_blocking_pass")
 
     judge = plan.get("judge_policy")
     if not isinstance(judge, dict):
         raise EvaluationError("judge_policy must be an object")
-    lm_allowed = bool_value(judge.get("lm_judge_allowed"), "judge_policy.lm_judge_allowed")
+    lm_allowed = bool_value(
+        judge.get("lm_judge_allowed"), "judge_policy.lm_judge_allowed"
+    )
     if bool_value(
         judge.get("can_override_deterministic"),
         "judge_policy.can_override_deterministic",
@@ -187,36 +243,52 @@ def validate_plan(plan: dict[str, Any], *, require_approved: bool = False) -> di
         "judge_policy.can_open_authority_gates",
     ):
         raise EvaluationError("LM judges cannot open authority gates")
-    judge_identity = nonempty_string(judge.get("judge_identity"), "judge_policy.judge_identity")
-    prompt_revision = nonempty_string(
+    judge_identity = nonempty_string(
+        judge.get("judge_identity"), "judge_policy.judge_identity"
+    )
+    judge_prompt_revision = nonempty_string(
         judge.get("judge_prompt_revision"), "judge_policy.judge_prompt_revision"
     )
     if lm_allowed and (
-        judge_identity == "not-applicable" or prompt_revision == "not-applicable"
+        judge_identity == "not-applicable"
+        or judge_prompt_revision == "not-applicable"
     ):
-        raise EvaluationError("enabled LM judge requires concrete identity and prompt revision")
+        raise EvaluationError(
+            "enabled LM judge requires concrete identity and prompt revision"
+        )
     if not lm_allowed and any(
         item.get("evaluator_type") == "lm_judge" for item in output
     ):
-        raise EvaluationError("output criterion uses lm_judge while judge policy disables it")
+        raise EvaluationError(
+            "output criterion uses lm_judge while judge policy disables it"
+        )
 
     return {
         "evaluation_id": evaluation_id,
         "work_block_id": work_block_id,
         "revision": revision,
         "status": status,
+        "subject": {
+            "objective": objective,
+            "specification_revision": specification_revision,
+            "frozen_revision": frozen_revision,
+        },
         "deterministic": deterministic,
         "output": output,
         "trajectory": trajectory,
-        "rubric_revision": plan["rubric_revision"],
-        "benchmark_revision": plan["benchmark_revision"],
+        "rubric_revision": rubric_revision,
+        "benchmark_revision": benchmark_revision,
+        "isolation_requirement": isolation_requirement,
+        "judge_policy": judge,
     }
 
 
 def result_map(items: object, label: str) -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
-    for index, item in enumerate(unique_criterion_ids(items, label)):
-        criterion_id = nonempty_string(item.get("criterion_id"), f"{label}[{index}].criterion_id")
+    for index, item in enumerate(criterion_list(items, label)):
+        criterion_id = nonempty_string(
+            item.get("criterion_id"), f"{label}[{index}].criterion_id"
+        )
         state = nonempty_string(item.get("state"), f"{label}[{index}].state")
         if state not in RESULT_STATES:
             raise EvaluationError(f"{label}[{index}].state is unsupported: {state}")
@@ -229,14 +301,18 @@ def validate_report(
 ) -> dict[str, Any]:
     reject_hidden_reasoning(report)
     if report.get("schema_version") != SCHEMA_VERSION:
-        raise EvaluationError(f"evaluation report requires schema_version={SCHEMA_VERSION}")
+        raise EvaluationError(
+            f"evaluation report requires schema_version={SCHEMA_VERSION}"
+        )
     if report.get("artifact_type") != "evaluation_report":
         raise EvaluationError("artifact_type must be evaluation_report")
 
     evaluation_id = nonempty_string(report.get("evaluation_id"), "evaluation_id")
     work_block_id = nonempty_string(report.get("work_block_id"), "work_block_id")
     plan_revision = nonempty_string(report.get("plan_revision"), "plan_revision")
-    nonempty_string(report.get("subject_revision"), "subject_revision")
+    subject_revision = nonempty_string(
+        report.get("subject_revision"), "subject_revision"
+    )
     status = nonempty_string(report.get("status"), "status")
     if status not in {"draft", "review", "complete", "blocked"}:
         raise EvaluationError(f"unsupported evaluation report status: {status}")
@@ -244,33 +320,44 @@ def validate_report(
         value = nonempty_string(report.get(field), field)
         if status == "complete" and value in {"replace-me", "unknown"}:
             raise EvaluationError(f"complete report requires concrete {field}")
+    if status == "complete":
+        nonempty_string(report.get("completed_at"), "completed_at")
 
-    deterministic = result_map(report.get("deterministic_results"), "deterministic_results")
+    deterministic = result_map(
+        report.get("deterministic_results"), "deterministic_results"
+    )
     output = result_map(report.get("output_results"), "output_results")
-    trajectory = result_map(report.get("trajectory_results"), "trajectory_results")
+    trajectory = result_map(
+        report.get("trajectory_results"), "trajectory_results"
+    )
 
     for criterion_id, item in deterministic.items():
-        state = item["state"]
-        if state == "pass":
-            nonempty_string(item.get("evidence"), f"deterministic_results[{criterion_id}].evidence")
+        if item["state"] == "pass":
+            nonempty_string(
+                item.get("evidence"),
+                f"deterministic_results[{criterion_id}].evidence",
+            )
 
     for criterion_id, item in output.items():
         evaluator_type = nonempty_string(
-            item.get("evaluator_type"), f"output_results[{criterion_id}].evaluator_type"
+            item.get("evaluator_type"),
+            f"output_results[{criterion_id}].evaluator_type",
         )
         if evaluator_type not in EVALUATOR_TYPES:
             raise EvaluationError(
                 f"output_results[{criterion_id}].evaluator_type is unsupported"
             )
         if item["state"] == "pass":
-            score = item.get("score")
-            if not isinstance(score, (int, float)) or isinstance(score, bool):
-                raise EvaluationError(f"output_results[{criterion_id}].score must be numeric")
-            nonempty_string(item.get("evidence"), f"output_results[{criterion_id}].evidence")
+            number_value(item.get("score"), f"output_results[{criterion_id}].score")
+            nonempty_string(
+                item.get("evidence"), f"output_results[{criterion_id}].evidence"
+            )
 
+    trajectory_values: dict[str, dict[str, Any]] = {}
     for criterion_id, item in trajectory.items():
-        nonempty_string(
-            item.get("event_source"), f"trajectory_results[{criterion_id}].event_source"
+        event_source = nonempty_string(
+            item.get("event_source"),
+            f"trajectory_results[{criterion_id}].event_source",
         )
         observed = string_list(
             item.get("observed_events"),
@@ -284,6 +371,12 @@ def validate_report(
             item.get("prohibited_events_observed"),
             f"trajectory_results[{criterion_id}].prohibited_events_observed",
         )
+        trajectory_values[criterion_id] = {
+            "event_source": event_source,
+            "observed": observed,
+            "missing": missing,
+            "prohibited": prohibited,
+        }
         if item["state"] == "pass" and (not observed or missing or prohibited):
             raise EvaluationError(
                 f"trajectory result {criterion_id} cannot pass with missing/prohibited/empty observable events"
@@ -301,7 +394,9 @@ def validate_report(
     blocking_failures = string_list(
         aggregate.get("blocking_failures"), "aggregate.blocking_failures"
     )
-    blocked_checks = string_list(aggregate.get("blocked_checks"), "aggregate.blocked_checks")
+    blocked_checks = string_list(
+        aggregate.get("blocked_checks"), "aggregate.blocked_checks"
+    )
     inspection_gaps = string_list(
         aggregate.get("inspection_gaps"), "aggregate.inspection_gaps"
     )
@@ -318,6 +413,10 @@ def validate_report(
             raise EvaluationError("report work_block_id does not match plan")
         if plan_revision != plan_info["revision"]:
             raise EvaluationError("report plan_revision does not match plan revision")
+        if subject_revision != plan_info["subject"]["frozen_revision"]:
+            raise EvaluationError(
+                "report subject_revision does not match plan frozen_revision"
+            )
 
         result_groups = {
             "deterministic": deterministic,
@@ -336,40 +435,110 @@ def validate_report(
                     f"{group_name} result IDs do not exactly match the approved plan"
                 )
 
+        for criterion in plan_info["output"]:
+            criterion_id = criterion["criterion_id"]
+            result = output[criterion_id]
+            if result.get("evaluator_type") != criterion.get("evaluator_type"):
+                raise EvaluationError(
+                    f"output evaluator type does not match plan: {criterion_id}"
+                )
+            if result["state"] == "pass":
+                score = number_value(
+                    result.get("score"), f"output_results[{criterion_id}].score"
+                )
+                threshold = number_value(
+                    criterion.get("threshold"),
+                    f"output_criteria[{criterion_id}].threshold",
+                )
+                if score < threshold:
+                    raise EvaluationError(
+                        f"output result {criterion_id} cannot pass below approved threshold"
+                    )
+            if criterion.get("evaluator_type") == "lm_judge":
+                if not plan_info["judge_policy"].get("lm_judge_allowed"):
+                    raise EvaluationError("LM judge result is not allowed by plan")
+                if result["state"] == "pass" and not judge_evidence:
+                    raise EvaluationError(
+                        f"LM judge pass requires judge_evidence: {criterion_id}"
+                    )
+
+        for criterion in plan_info["trajectory"]:
+            criterion_id = criterion["criterion_id"]
+            result = trajectory[criterion_id]
+            values = trajectory_values[criterion_id]
+            if values["event_source"] != criterion.get("event_source"):
+                raise EvaluationError(
+                    f"trajectory event source does not match plan: {criterion_id}"
+                )
+            required = set(criterion.get("required_events") or [])
+            planned_prohibited = set(criterion.get("prohibited_events") or [])
+            observed = set(values["observed"])
+            actual_missing = required.difference(observed)
+            if set(values["missing"]) != actual_missing:
+                raise EvaluationError(
+                    f"trajectory missing_events does not match required events: {criterion_id}"
+                )
+            if not set(values["prohibited"]).issubset(planned_prohibited):
+                raise EvaluationError(
+                    f"trajectory report lists unplanned prohibited events: {criterion_id}"
+                )
+            if result["state"] == "pass" and (
+                actual_missing or values["prohibited"]
+            ):
+                raise EvaluationError(
+                    f"trajectory result {criterion_id} cannot pass without every required event and zero prohibited events"
+                )
+
         if verdict == "READY":
             if status != "complete":
                 raise EvaluationError("READY verdict requires complete report status")
             if blocking_failures or blocked_checks or inspection_gaps:
-                raise EvaluationError("READY verdict cannot contain blocking failures or gaps")
+                raise EvaluationError(
+                    "READY verdict cannot contain blocking failures or gaps"
+                )
             for group_name, planned in (
                 ("deterministic", plan_info["deterministic"]),
                 ("output", plan_info["output"]),
                 ("trajectory", plan_info["trajectory"]),
             ):
                 for criterion in planned:
-                    if criterion["blocking"] and result_groups[group_name][criterion["criterion_id"]]["state"] != "pass":
+                    if (
+                        criterion["blocking"]
+                        and result_groups[group_name][criterion["criterion_id"]][
+                            "state"
+                        ]
+                        != "pass"
+                    ):
                         raise EvaluationError(
-                            f"READY verdict requires blocking criterion pass: {criterion['criterion_id']}"
+                            "READY verdict requires blocking criterion pass: "
+                            f"{criterion['criterion_id']}"
                         )
             for criterion in plan_info["deterministic"]:
                 result = deterministic[criterion["criterion_id"]]
                 if result.get("evaluator_type") == "lm_judge":
-                    raise EvaluationError("deterministic result cannot rely on an LM judge")
+                    raise EvaluationError(
+                        "deterministic result cannot rely on an LM judge"
+                    )
 
-    if verdict == "READY" and (blocking_failures or blocked_checks or inspection_gaps):
+    if verdict == "READY" and (
+        blocking_failures or blocked_checks or inspection_gaps
+    ):
         raise EvaluationError("READY verdict cannot contain blocking failures or gaps")
 
     return {
         "evaluation_id": evaluation_id,
         "work_block_id": work_block_id,
         "plan_revision": plan_revision,
+        "subject_revision": subject_revision,
         "status": status,
         "verdict": verdict,
         "plan": plan_info,
     }
 
 
-def repo_relative_file(root: Path, raw: object, label: str, prefix: str) -> Path:
+def repo_relative_file(
+    root: Path, raw: object, label: str, prefix: str
+) -> Path:
     value = nonempty_string(raw, label).strip("\"'")
     path = Path(value)
     if path.is_absolute():
@@ -385,7 +554,9 @@ def repo_relative_file(root: Path, raw: object, label: str, prefix: str) -> Path
         raise EvaluationError(f"{label} must be under {prefix}: {normalized}")
     full = root / normalized
     if not full.is_file() or full.stat().st_size == 0:
-        raise EvaluationError(f"{label} does not exist or is empty: {normalized}")
+        raise EvaluationError(
+            f"{label} does not exist or is empty: {normalized}"
+        )
     return full
 
 
@@ -400,11 +571,17 @@ def validate_closeout(root: Path) -> dict[str, Any]:
         raise EvaluationError("active Work Block requires assurance object")
     state = assurance.get("evaluation")
     if not isinstance(state, dict):
-        raise EvaluationError("active Work Block requires assurance.evaluation state")
+        raise EvaluationError(
+            "active Work Block requires assurance.evaluation state"
+        )
 
     required = state.get("required") is True
-    status = nonempty_string(state.get("status"), "assurance.evaluation.status")
-    verdict = nonempty_string(state.get("verdict"), "assurance.evaluation.verdict")
+    status = nonempty_string(
+        state.get("status"), "assurance.evaluation.status"
+    )
+    verdict = nonempty_string(
+        state.get("verdict"), "assurance.evaluation.verdict"
+    )
     skip_reason = str(state.get("skip_reason") or "").strip()
     if status not in ASSURANCE_STATUSES:
         raise EvaluationError(f"unsupported evaluation assurance status: {status}")
@@ -412,27 +589,41 @@ def validate_closeout(root: Path) -> dict[str, Any]:
         raise EvaluationError("required evaluation cannot be SKIPPED")
     if not required and status == "SKIPPED":
         if not skip_reason:
-            raise EvaluationError("skipped optional evaluation requires skip_reason")
+            raise EvaluationError(
+                "skipped optional evaluation requires skip_reason"
+            )
+        if verdict not in {"PENDING", "UNVERIFIED"}:
+            raise EvaluationError(
+                "skipped optional evaluation verdict must be PENDING or UNVERIFIED"
+            )
         return {"required": required, "status": status, "verdict": verdict}
     if status == "PENDING":
         raise EvaluationError("evaluation assurance is still PENDING")
     if verdict not in EVALUATION_VERDICTS:
-        raise EvaluationError(f"evaluation verdict is unresolved or invalid: {verdict}")
+        raise EvaluationError(
+            f"evaluation verdict is unresolved or invalid: {verdict}"
+        )
 
     plan_path = repo_relative_file(
         root, state.get("plan"), "assurance.evaluation.plan", "docs/evals/"
     )
     report_path = repo_relative_file(
-        root, state.get("report"), "assurance.evaluation.report", "docs/reports/"
+        root,
+        state.get("report"),
+        "assurance.evaluation.report",
+        "docs/reports/",
     )
-    isolation = nonempty_string(state.get("isolation"), "assurance.evaluation.isolation")
+    isolation = nonempty_string(
+        state.get("isolation"), "assurance.evaluation.isolation"
+    )
     if isolation == "unknown":
         raise EvaluationError("evaluation isolation must record the actual boundary")
     rubric_revision = nonempty_string(
         state.get("rubric_revision"), "assurance.evaluation.rubric_revision"
     )
     benchmark_revision = nonempty_string(
-        state.get("benchmark_revision"), "assurance.evaluation.benchmark_revision"
+        state.get("benchmark_revision"),
+        "assurance.evaluation.benchmark_revision",
     )
 
     plan = load_json_object(plan_path, str(plan_path))
@@ -440,13 +631,25 @@ def validate_closeout(root: Path) -> dict[str, Any]:
     plan_info = validate_plan(plan, require_approved=True)
     report_info = validate_report(report, plan)
     if plan_info["work_block_id"] != work_block_id:
-        raise EvaluationError("evaluation plan Work Block does not match active Work Block")
+        raise EvaluationError(
+            "evaluation plan Work Block does not match active Work Block"
+        )
     if rubric_revision != plan_info["rubric_revision"]:
-        raise EvaluationError("active Work Block rubric revision does not match plan")
+        raise EvaluationError(
+            "active Work Block rubric revision does not match plan"
+        )
     if benchmark_revision != plan_info["benchmark_revision"]:
-        raise EvaluationError("active Work Block benchmark revision does not match plan")
+        raise EvaluationError(
+            "active Work Block benchmark revision does not match plan"
+        )
     if verdict != report_info["verdict"]:
-        raise EvaluationError("active Work Block evaluation verdict does not match report")
+        raise EvaluationError(
+            "active Work Block evaluation verdict does not match report"
+        )
+    if isolation != report.get("isolation"):
+        raise EvaluationError(
+            "active Work Block evaluation isolation does not match report"
+        )
 
     mode = str(gate.get("closeout_mode") or "")
     if mode == "success-closeout":
@@ -455,7 +658,9 @@ def validate_closeout(root: Path) -> dict[str, Any]:
                 "success-closeout requires required evaluation status/verdict READY"
             )
         if status == "READY" and verdict != "READY":
-            raise EvaluationError("evaluation READY status requires READY verdict")
+            raise EvaluationError(
+                "evaluation READY status requires READY verdict"
+            )
     elif mode != "reporting-only":
         raise EvaluationError(
             "closeout_mode must be success-closeout or reporting-only for evaluation closeout"
