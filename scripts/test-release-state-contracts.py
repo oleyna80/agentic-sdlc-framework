@@ -113,8 +113,10 @@ def project_map(
     visible_override: str | None = None,
 ) -> str:
     completed = completed if completed is not None else [COMPLETED]
-    value = {"completed_work_blocks": completed, "active_work_block": active}
-    block = yaml.safe_dump(value, sort_keys=False).rstrip()
+    block = yaml.safe_dump(
+        {"completed_work_blocks": completed, "active_work_block": active},
+        sort_keys=False,
+    ).rstrip()
     if visible_override is not None:
         visible = visible_override
     elif active is None:
@@ -125,8 +127,7 @@ def project_map(
 
 
 def populate(root: Path, reg: dict | None = None, map_text: str | None = None) -> None:
-    reg = reg or registry()
-    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg, sort_keys=False))
+    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg or registry(), sort_keys=False))
     write(root / "PROJECT_MAP.md", map_text or project_map())
     write(root / "governance/release-state.md", "# contract\n")
     write(root / "scripts/validate-release-state.py", "# validator\n")
@@ -157,16 +158,13 @@ def main() -> int:
         root = Path(temp)
         populate(root, registry(active=ACTIVE), project_map(active=ACTIVE))
         write(root / ACTIVE, work_block("wb-008", "in_progress", pending=True))
-        result = validator.validate_repository(root)
-        assert result["active_work_block"] == ACTIVE
+        assert validator.validate_repository(root)["active_work_block"] == ACTIVE
 
     with tempfile.TemporaryDirectory(prefix="release-state-fixtures-") as temp:
         root = Path(temp)
-        populate(root)
 
-        missing = copy.deepcopy(registry())
-        missing["migration_state"]["completed_work_blocks"] = ["docs/plans/missing.md"]
-        missing["release_state"]["latest_completed_work_block"] = "docs/plans/missing.md"
+        populate(root)
+        missing = registry(["docs/plans/missing.md"])
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(missing, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map(["docs/plans/missing.md"]))
         expect_failure("missing-completed", root, "is missing")
@@ -206,7 +204,7 @@ def main() -> int:
         expect_failure("active-duplicate-id", root, "duplicates a completed Work Block ID")
 
         populate(root)
-        write(root / "PROJECT_MAP.md", project_map([], None))
+        write(root / "PROJECT_MAP.md", project_map([OLDER], None))
         expect_failure("map-completed-drift", root, "completed Work Blocks do not match")
 
         populate(root)
@@ -214,13 +212,16 @@ def main() -> int:
         expect_failure("map-active-drift", root, "active Work Block does not match")
 
         populate(root)
-        write(
-            root / "PROJECT_MAP.md",
-            project_map([COMPLETED], ACTIVE, visible_override="## Migration Work\n\nNo active implementation Work Block.\n"),
-        )
         active_registry = registry(active=ACTIVE)
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(active_registry, sort_keys=False))
         write(root / ACTIVE, work_block("wb-008", "in_progress"))
+        write(
+            root / "PROJECT_MAP.md",
+            project_map(
+                active=ACTIVE,
+                visible_override="## Migration Work\n\nNo active implementation Work Block.\n",
+            ),
+        )
         expect_failure("visible-active-missing", root, "visible migration section omits")
 
         populate(root)
@@ -233,7 +234,12 @@ def main() -> int:
         populate(root)
         write(
             root / "PROJECT_MAP.md",
-            project_map(visible_override="## Migration Work\n\nPR #7 remains Draft.\nNo active implementation Work Block.\n"),
+            project_map(
+                visible_override=(
+                    "## Migration Work\n\nPR #7 remains Draft.\n"
+                    "No active implementation Work Block.\n"
+                )
+            ),
         )
         expect_failure("stale-map-pr", root, "contains stale GitHub state")
 
@@ -265,7 +271,7 @@ def main() -> int:
         expect_failure("closeout-id-substring", root, "does not exactly match")
 
         populate(root)
-        two = registry(completed=[OLDER, COMPLETED])
+        two = registry([OLDER, COMPLETED])
         two["release_state"]["latest_completed_work_block"] = OLDER
         write(root / OLDER, work_block("wb-006", "completed"))
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(two, sort_keys=False))
@@ -273,14 +279,13 @@ def main() -> int:
         expect_failure("latest-not-final", root, "must be the final")
 
         populate(root)
-        traversal = registry(completed=["../outside.md"])
-        traversal["release_state"]["latest_completed_work_block"] = "../outside.md"
+        traversal = registry(["../outside.md"])
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(traversal, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map(["../outside.md"]))
         expect_failure("path-traversal", root, "escapes repository")
 
         populate(root)
-        duplicate = registry(completed=[COMPLETED, COMPLETED])
+        duplicate = registry([COMPLETED, COMPLETED])
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map([COMPLETED, COMPLETED]))
         expect_failure("duplicate-completed", root, "duplicate paths")
@@ -290,9 +295,9 @@ def main() -> int:
         expect_failure("missing-map-block", root, "requires one release-state comment block")
 
         populate(root)
-        wrong_closeout = registry()
-        wrong_closeout["release_state"]["external_vcs_state"] = "tracked_in_closeout"
-        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(wrong_closeout, sort_keys=False))
+        wrong_vcs = registry()
+        wrong_vcs["release_state"]["external_vcs_state"] = "tracked_in_closeout"
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(wrong_vcs, sort_keys=False))
         expect_failure("vcs-boundary", root, "must be non_normative")
 
         populate(root)
