@@ -164,10 +164,16 @@ unrelated work silently.
 - Current source and approved artifacts outrank memory.
 - `.agent/bootstrap-profile.json` and `.agent/active-work-block.default.json` are
   portable when generated.
+- `.agent/bootstrap-profile.json` records required-path kind expectations; a
+  directory must not satisfy a required file path.
 - `.agent/active-work-block.json`, project config, `memory_bank/`, and runtime
   memory are ignored operational state and may be restored locally by the
   generated health check.
-- The portable default must remain blocked and approval-free.
+- The portable default must validate as blocked, approval-free,
+  integration-free, and empty-write-set before active state is restored.
+- Its `coordination_write_set` must exactly match the canonical ordered safe
+  paths; broad or unapproved patterns, source paths, absolute paths, traversal
+  paths, missing entries, additions, and reordering deny restore.
 - Health checks must not replace an existing active Work Block.
 - Durable engineering memory must be evidence-backed and secret-free.
 - Do not store secrets, raw private transcripts, or hidden reasoning.

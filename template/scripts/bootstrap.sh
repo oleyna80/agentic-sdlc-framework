@@ -23,8 +23,8 @@ echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
   exit 1
 }
 
-# Validate portable selected/unselected composition before creating or restoring
-# any ignored local operational state.
+# Validate portable selected/unselected composition and the tracked BLOCKED
+# Work Block default before creating or restoring any ignored local state.
 python3 "$PROFILE_VALIDATOR" "$ROOT"
 
 # Projects may use memory_bank/ (framework default) or memory-bank/ (legacy).

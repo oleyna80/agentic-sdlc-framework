@@ -7,11 +7,13 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "bootstrap/bootstrap_project.py"
+PYTHON = sys.executable
 CATALOG = json.loads((ROOT / "bootstrap/profiles.json").read_text(encoding="utf-8"))
 PROFILE_CASES = {
     "core": "core",
@@ -39,8 +41,20 @@ MODULE = load_engine()
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["python3", str(ENGINE), *args],
+        [PYTHON, str(ENGINE), *args],
         cwd=ROOT,
+        check=check,
+        capture_output=True,
+        text=True,
+    )
+
+
+def run_generated_validator(
+    project: Path, check: bool = True
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [PYTHON, "scripts/validate-installation-profile.py", "."],
+        cwd=project,
         check=check,
         capture_output=True,
         text=True,
@@ -170,6 +184,9 @@ def assert_profile(requested: str, resolved: str, root: Path) -> None:
     assert profile_state["requested_profile"] == requested
     assert profile_state["resolved_profile"] == resolved
     assert "does not grant" in profile_state["authority_note"]
+    required_path_kinds = profile_state.get("required_path_kinds")
+    assert isinstance(required_path_kinds, dict)
+    assert sorted(required_path_kinds) == sorted(profile_state["required_paths"])
 
     selected = set(profile_state["components"])
     for component_id, component in CATALOG["components"].items():
@@ -301,12 +318,31 @@ def fail_closed_fixtures() -> None:
         real = base / "real"
         real.mkdir()
         symlink = base / "symlink"
-        symlink.symlink_to(real, target_is_directory=True)
+        try:
+            symlink.symlink_to(real, target_is_directory=True)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                return
+            raise
         result = run("--profile", "core", str(symlink), check=False)
         assert result.returncode != 0
         assert "symbolic link" in result.stderr
         assert symlink.is_symlink()
         assert not any(real.iterdir())
+
+
+def generated_validator_rejects_wrong_required_kind() -> None:
+    with tempfile.TemporaryDirectory(prefix="bootstrap-kind-") as temp:
+        project = Path(temp) / "project"
+        run("--profile", "core", str(project), "Kind Contract", "kind-contract")
+        profile_state = load_state(project)
+        assert profile_state["required_path_kinds"]["AGENTS.md"] == "file"
+
+        (project / "AGENTS.md").unlink()
+        (project / "AGENTS.md").mkdir()
+        result = run_generated_validator(project, check=False)
+        assert result.returncode != 0
+        assert "missing required paths: AGENTS.md" in result.stderr
 
 
 def main() -> int:
@@ -315,6 +351,7 @@ def main() -> int:
     profile_matrix()
     default_and_listing_fixtures()
     fail_closed_fixtures()
+    generated_validator_rejects_wrong_required_kind()
     print("Bootstrap profile matrix: OK")
     return 0
 

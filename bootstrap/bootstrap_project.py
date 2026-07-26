@@ -84,6 +84,14 @@ def source_for_common_path(framework_root: Path, relative: str) -> Path | None:
     return framework_source
 
 
+def required_path_kind(source: Path | None) -> str:
+    if source is None:
+        return "file"
+    if source.is_dir():
+        return "directory"
+    return "file"
+
+
 def validate_catalog(catalog: dict[str, Any], framework_root: Path) -> None:
     if catalog.get("schema_version") != SCHEMA_VERSION:
         raise BootstrapError(
@@ -222,8 +230,11 @@ def resolve_profile(
 
 
 def resolve_profile_state(
-    catalog: dict[str, Any], requested_profile: str
+    catalog: dict[str, Any],
+    requested_profile: str,
+    framework_root: Path | None = None,
 ) -> dict[str, Any]:
+    framework_root = framework_root or Path(__file__).resolve().parents[1]
     resolved_profile, profile = resolve_profile(catalog, requested_profile)
     components: dict[str, dict[str, Any]] = catalog["components"]
     skill_sets: dict[str, list[str]] = catalog["skill_sets"]
@@ -238,10 +249,19 @@ def resolve_profile_state(
     integrations: list[str] = []
     skill_mirrors: list[str] = []
     required_paths: list[str] = list(catalog["common_required_paths"])
+    required_path_kinds: dict[str, str] = {}
+
+    for relative in required_paths:
+        required_path_kinds[relative] = required_path_kind(
+            source_for_common_path(framework_root, relative)
+        )
 
     for component_id in selected_components:
         component = components[component_id]
         required_paths.extend(component["required_paths"])
+        template_root = framework_root / "template"
+        for relative in component["required_paths"]:
+            required_path_kinds[relative] = required_path_kind(template_root / relative)
         skill_mirrors.extend(component["skill_mirrors"])
         if component["kind"] == "runtime":
             runtimes.append(component["runtime_id"])
@@ -251,6 +271,8 @@ def resolve_profile_state(
     required_paths.extend(f".agent/skills/{skill}/SKILL.md" for skill in skills)
     for mirror in unique(skill_mirrors):
         required_paths.extend(f"{mirror}/{skill}/SKILL.md" for skill in skills)
+    for relative in required_paths:
+        required_path_kinds.setdefault(relative, "file")
 
     forbidden_paths: list[str] = []
     for component_id, component in components.items():
@@ -268,6 +290,9 @@ def resolve_profile_state(
         "skills": skills,
         "skill_mirrors": unique(skill_mirrors),
         "required_paths": unique(required_paths),
+        "required_path_kinds": {
+            relative: required_path_kinds[relative] for relative in unique(required_paths)
+        },
         "forbidden_paths": unique(forbidden_paths),
         "authority_note": (
             "Installation composition does not grant Work Block authority, "
@@ -476,7 +501,7 @@ def main() -> int:
             return 0
 
         requested_profile = str(args.profile).strip()
-        state = resolve_profile_state(catalog, requested_profile)
+        state = resolve_profile_state(catalog, requested_profile, framework_root)
         raw_target = Path(str(args.target_dir)).expanduser()
         target = raw_target if raw_target.is_absolute() else Path.cwd() / raw_target
         target = Path(os.path.abspath(target))

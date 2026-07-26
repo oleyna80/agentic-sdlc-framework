@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major zones.
 # Runtime implementation surfaces are conditional on .agent/bootstrap-profile.json.
 
-version: 4
+version: 5
 scope: generated_project
 project:
   name: "{{PROJECT_NAME}}"
@@ -16,7 +16,9 @@ installation_profile:
   validator: scripts/validate-installation-profile.py
   rules:
     - selected_component_paths_must_exist_in_fresh_scaffold
+    - required_paths_must_match_expected_filesystem_kind
     - known_unselected_component_paths_must_be_absent_in_fresh_scaffold
+    - blocked_default_work_block_must_validate_before_restore
     - installation_does_not_grant_work_block_authority
     - integration_activation_requires_separate_admission
 
@@ -310,7 +312,7 @@ entries:
     owner: verifier
 
   scripts/validate-installation-profile.py:
-    role: generated_installation_profile_validator
+    role: generated_installation_profile_path_kind_and_blocked_default_validator
     status: normative
     owner: verifier
 

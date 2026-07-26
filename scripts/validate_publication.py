@@ -19,6 +19,8 @@ except ImportError as exc:  # pragma: no cover - CI installs PyYAML
 
 ROOT = Path(__file__).resolve().parents[1]
 FAILURES: list[str] = []
+PYTHON = sys.executable
+BASH = os.environ.get("BASH", "bash")
 
 REQUIRED_FILES = [
     "README.md",
@@ -342,7 +344,7 @@ def check_syntax() -> None:
     failed = False
     for relative in BASH_SCRIPTS:
         result = subprocess.run(
-            ["bash", "-n", str(ROOT / relative)], capture_output=True, text=True
+            [BASH, "-n", str(ROOT / relative)], capture_output=True, text=True
         )
         if result.returncode:
             failed = True
@@ -371,6 +373,7 @@ def smoke_profile(profile: str, expected: str) -> None:
         target = Path(temp) / "project"
         result = subprocess.run(
             [
+                BASH,
                 str(ROOT / "bootstrap.sh"),
                 "--profile",
                 profile,
@@ -456,17 +459,17 @@ def main() -> int:
     scan_public_text()
     check_syntax()
 
-    run_check(["bash", "scripts/test-sdd-contract.sh"], "SDLC contract tests")
-    run_check(["python3", "scripts/test-bootstrap-profiles.py"], "bootstrap profile matrix")
-    run_check(["python3", "scripts/test-runtime-conformance.py"], "runtime conformance")
-    run_check(["python3", "scripts/test-integration-contracts.py"], "integration contracts")
+    run_check([BASH, "scripts/test-sdd-contract.sh"], "SDLC contract tests")
+    run_check([PYTHON, "scripts/test-bootstrap-profiles.py"], "bootstrap profile matrix")
+    run_check([PYTHON, "scripts/test-runtime-conformance.py"], "runtime conformance")
+    run_check([PYTHON, "scripts/test-integration-contracts.py"], "integration contracts")
     run_check(
-        ["python3", "scripts/test-integration-admission-evidence.py"],
+        [PYTHON, "scripts/test-integration-admission-evidence.py"],
         "integration admission evidence",
     )
-    run_check(["python3", "scripts/test-codex-adapter.py"], "Codex adapter contracts")
-    run_check(["python3", "scripts/test-codex-hard-stops.py"], "Codex Hard Stop fixtures")
-    run_check(["bash", "scripts/validate-governance.sh"], "governance validation")
+    run_check([PYTHON, "scripts/test-codex-adapter.py"], "Codex adapter contracts")
+    run_check([PYTHON, "scripts/test-codex-hard-stops.py"], "Codex Hard Stop fixtures")
+    run_check([BASH, "scripts/validate-governance.sh"], "governance validation")
 
     smoke_profile("core", "core")
     smoke_profile("multi-runtime", "multi-runtime")

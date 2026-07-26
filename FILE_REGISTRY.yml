@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 8
+version: 9
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -55,6 +55,8 @@ installation_profiles:
   authority: none
   rules:
     - validate_before_target_mutation
+    - required_paths_validate_expected_filesystem_kind
+    - blocked_default_work_block_validates_before_restore
     - selected_runtime_surfaces_only
     - no_automatic_integration_activation
     - no_credentials_or_provider_binding
@@ -66,7 +68,9 @@ migration_state:
     - docs/plans/wb-002-runtime-neutral-template-convergence.md
     - docs/plans/wb-003-codex-native-agents-and-gates.md
     - docs/plans/wb-004-integration-adapter-normalization.md
-  active_work_block: docs/plans/wb-005-profile-aware-bootstrap-conformance.md
+    - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
+    - docs/plans/wb-006-bootstrap-restore-hardening.md
+  active_work_block: null
   planned: []
 
 entries:
@@ -210,10 +214,22 @@ entries:
     owner: orchestrator
 
   docs/plans/wb-005-profile-aware-bootstrap-conformance.md:
-    role: active_profile_aware_bootstrap_and_runtime_conformance_work_block
+    role: completed_profile_aware_bootstrap_and_runtime_conformance_work_block
     status: log
     owner: orchestrator
     related: [bootstrap/**, scripts/test-bootstrap-profiles.py, scripts/test-runtime-conformance.py]
+
+  docs/plans/wb-006-bootstrap-restore-hardening.md:
+    role: completed_bootstrap_restore_hardening_work_block
+    status: log
+    owner: orchestrator
+    related: [template/scripts/validate-installation-profile.py, scripts/test-bootstrap-profiles.py, scripts/test-profile-restore.py]
+
+  docs/reports/reviews/pr-6-final-review.md:
+    role: wb_006_final_review_and_closeout
+    status: evidence
+    owner: reviewer
+    related: [docs/plans/wb-006-bootstrap-restore-hardening.md]
 
   docs/reports/**:
     role: assurance_and_closeout_evidence
@@ -357,7 +373,7 @@ entries:
     owner: verifier
 
   template/scripts/validate-installation-profile.py:
-    role: generated_project_installation_profile_validator
+    role: generated_project_installation_profile_path_kind_and_blocked_default_validator
     status: template
     owner: verifier
 
