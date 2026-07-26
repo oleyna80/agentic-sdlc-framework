@@ -37,6 +37,17 @@
       "isolation": "unknown",
       "skip_reason": ""
     },
+    "evaluation": {
+      "required": false,
+      "status": "PENDING",
+      "verdict": "PENDING",
+      "plan": "",
+      "report": "",
+      "rubric_revision": "",
+      "benchmark_revision": "",
+      "isolation": "unknown",
+      "skip_reason": ""
+    },
     "drift": {
       "required": false,
       "status": "PENDING",
