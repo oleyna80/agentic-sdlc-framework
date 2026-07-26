@@ -86,7 +86,8 @@ migration_state:
     - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
     - docs/plans/wb-006-bootstrap-restore-hardening.md
     - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
-  active_work_block: docs/plans/wb-008-post-merge-ssot-release-gate.md
+    - docs/plans/wb-008-post-merge-ssot-release-gate.md
+  active_work_block: null
   planned: []
 
 release_state:
@@ -94,8 +95,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
-  closeout_report: docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md
+  latest_completed_work_block: docs/plans/wb-008-post-merge-ssot-release-gate.md
+  closeout_report: docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -236,7 +237,7 @@ entries:
     owner: orchestrator
 
   docs/plans/wb-008-post-merge-ssot-release-gate.md:
-    role: active_post_merge_ssot_and_release_gate_work_block
+    role: completed_post_merge_ssot_and_release_gate_work_block
     status: log
     owner: orchestrator
 
