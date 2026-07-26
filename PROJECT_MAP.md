@@ -13,7 +13,8 @@ completed_work_blocks:
   - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
   - docs/plans/wb-006-bootstrap-restore-hardening.md
   - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
-active_work_block: docs/plans/wb-008-post-merge-ssot-release-gate.md
+  - docs/plans/wb-008-post-merge-ssot-release-gate.md
+active_work_block: null
 -->
 
 ## Architecture
@@ -89,7 +90,8 @@ external operational metadata and is queried from GitHub when needed.
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
-| `docs/plans/wb-008-post-merge-ssot-release-gate.md` | active Work Block | SSOT reconciliation and executable release-state gate |
+| `docs/plans/wb-008-post-merge-ssot-release-gate.md` | completed Work Block | SSOT reconciliation and executable release-state gate |
+| `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md` | latest closeout | Repository success-closeout for the migration series |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
 | `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
 | `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
@@ -139,15 +141,12 @@ Completed:
 5. WB-005 — profile-aware bootstrap and runtime conformance.
 6. WB-006 — bootstrap restore hardening.
 7. WB-007 — agent evaluation and trajectory assurance.
+8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
 
-Active:
+No active implementation Work Block.
 
-8. `docs/plans/wb-008-post-merge-ssot-release-gate.md`
-   - reconcile WB-007 lifecycle consumers;
-   - define repository-versus-GitHub state ownership;
-   - add release-state validator and adversarial fixtures;
-   - add dedicated CI release gate;
-   - close with no active implementation Work Block.
+The next major phase is operational proof through a live runtime/product pilot,
+not another unvalidated governance expansion.
 
 ## Boundaries
 
@@ -158,7 +157,7 @@ Active:
 - `.agent/bootstrap-profile.json` is installation evidence, not authority.
 - `.agent/active-work-block.json` is operational authority/gate state.
 - evaluation plans are assurance configuration; reports/events are evidence.
-- release-state evidence reconciles repository SSOT but grants no merge or release authority.
+- release-state evidence reconciles repository SSOT but grants no external authority.
 - GitHub PR/merge state is mutable external operational metadata.
 - operational evidence must exclude hidden reasoning, secrets, and protected payloads.
 - unavailable checks/events remain blocked, not passed.
@@ -168,7 +167,7 @@ Active:
 
 1. workspace `AGENTS.md`, when present;
 2. relevant `governance/` contracts;
-3. active Work Block;
+3. active Work Block, when present;
 4. approved specification and accepted architecture decisions;
 5. implementation/evaluation plan;
 6. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
