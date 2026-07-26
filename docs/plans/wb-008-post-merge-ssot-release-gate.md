@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: work_block
 artifact_id: wb-008-post-merge-ssot-release-gate
-status: in_progress
+status: completed
 owner_role: orchestrator
 work_block_id: wb-008
 created_at: 2026-07-26
@@ -17,85 +17,79 @@ Eliminate lifecycle drift between completed Work Blocks, `PROJECT_MAP.md`,
 `FILE_REGISTRY.yml`, closeout evidence, and repository release state, then add an
 executable release-state gate that fails closed when these sources disagree.
 
-## Problem Statement
+## Delivered Result
 
-After PR #7 was merged, the framework implementation and closeout evidence were
-complete, but several repository SSOT consumers still represented WB-007 as active
-or pending. The defect exists because internal Work Block lifecycle and mutable
-GitHub pull-request lifecycle were mixed in the same documentation without an
-executable consistency contract.
+- normalized completed Work Blocks WB-001 through WB-007;
+- reconciled WB-007 Work Block and closeout evidence;
+- defined repository lifecycle versus mutable GitHub-state ownership;
+- added `governance/release-state.md`;
+- added a machine-readable release-state projection to `PROJECT_MAP.md`;
+- added `FILE_REGISTRY.yml:release_state`;
+- added `scripts/validate-release-state.py`;
+- added positive and adversarial release-state fixtures;
+- added `.github/workflows/release-state-contract.yml`;
+- integrated release-state validation into governance checks;
+- documented the contract in README and project navigation.
 
-## Target Invariants
+## Enforced Invariants
 
-1. A completed Work Block has frontmatter `status: completed` and no pending
-   lifecycle verdicts in its current-state section.
-2. Every path in `FILE_REGISTRY.yml:migration_state.completed_work_blocks` exists
-   and has completed Work Block frontmatter.
-3. `migration_state.active_work_block`, when non-null, exists, is not listed as
-   completed, and has an active status.
-4. `PROJECT_MAP.md` completed/active migration statements agree with
-   `FILE_REGISTRY.yml`.
-5. A successful closeout report describes repository closeout state only. Mutable
-   GitHub PR state is external operational metadata and cannot be a normative
-   release invariant stored in a pre-merge commit.
-6. A repository with no active Work Block must not claim an active migration in
-   maps, registries, or Work Block state.
-7. Release readiness fails closed when required Work Block, closeout, map, or
-   registry evidence is missing or contradictory.
+1. Completed Work Blocks exist, use `status: completed`, and contain no pending
+   final lifecycle markers.
+2. Completed Work Block IDs are unique.
+3. An active Work Block is optional, active, and disjoint from completed paths and
+   IDs.
+4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` agree exactly and in order.
+5. Visible map navigation agrees with its machine block.
+6. Latest completed equals the final ordered completed entry.
+7. Closeout identity exactly matches the latest Work Block.
+8. Review, verification, evaluation when present, drift, and closeout are internally
+   successful.
+9. Release contract assets exist at canonical paths.
+10. Release-state evidence is assurance-only and cannot authorize external actions.
+11. Mutable GitHub status is external operational metadata, not normative closeout.
 
-## Scope
+## Scope Boundary
 
-### In Scope
+WB-008 did not deliver live runtime smoke, production telemetry, automatic
+hosting-platform self-commits, release tags, in-place upgrades, model routing, or
+changes to runtime/evaluation authority.
 
-- reconcile WB-007 Work Block, map, registry, and closeout wording;
-- define the repository-vs-GitHub lifecycle boundary;
-- add `scripts/validate-release-state.py`;
-- add positive and adversarial fixtures;
-- add a dedicated GitHub Actions release-state workflow;
-- register and document the release-state contract;
-- complete review, verification, drift, and closeout for WB-008;
-- keep merge under explicit Owner approval.
+## Evidence
 
-### Out of Scope
+- Governance: `governance/release-state.md`
+- Validator: `scripts/validate-release-state.py`
+- Fixtures: `scripts/test-release-state-contracts.py`
+- Dedicated CI: `.github/workflows/release-state-contract.yml`
+- Final review: `docs/reports/reviews/pr-8-final-review.md`
+- Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
+- Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
+- Framework Contracts run 459: success
+- Release State Contract run 10: success
 
-- live Codex/Claude Code/OpenCode smoke tests;
-- production telemetry or a hosted run ledger;
-- automatic GitHub self-commits after merge;
-- release tagging or publishing v1.0;
-- in-place project upgrades;
-- changing runtime authority or evaluation semantics.
+Release State Contract run 8 remains recorded as a failed fixture-order attempt,
+followed by a scoped correction and successful rerun.
 
-## Implementation Plan
+## Acceptance Result
 
-1. Reconcile WB-007 lifecycle evidence already present in `main`.
-2. Define release-state ownership and prohibit mutable PR status as normative SSOT.
-3. Implement the release-state validator.
-4. Add adversarial fixtures for stale active paths, completed/active overlap,
-   missing Work Blocks, incomplete frontmatter, map drift, and mutable PR claims.
-5. Add a dedicated CI workflow running the validator and fixtures on push/PR.
-6. Synchronize map, registry, README, and Work Block lifecycle.
-7. Perform final review, verification, drift audit, and success closeout.
-8. Mark the PR Ready for review without merging.
+- [x] WB-007 is completed in all repository lifecycle consumers.
+- [x] Historical migration Work Blocks use canonical completed metadata.
+- [x] No repository closeout predicts mutable GitHub state.
+- [x] GitHub state is explicitly non-normative.
+- [x] Release-state validator passes on the repository.
+- [x] Adversarial fixtures cover all declared drift classes.
+- [x] Dedicated release-state CI runs on push and pull request events.
+- [x] Existing Framework Contracts remain green.
+- [x] Final review and drift audit are complete.
+- [x] Repository lifecycle closes with no active implementation Work Block.
 
-## Acceptance Criteria
+## Final State
 
-- [ ] WB-007 is represented as completed in all repository lifecycle consumers.
-- [ ] No repository SSOT states that merged PR #7 is still Draft or unmerged.
-- [ ] Mutable GitHub PR state is explicitly non-normative.
-- [ ] Release-state validator passes on the repository.
-- [ ] Adversarial fixtures fail for every listed drift class.
-- [ ] CI runs the release-state gate on push and pull request events.
-- [ ] Existing Framework Contracts remain green.
-- [ ] Final review, verification, drift, and closeout evidence are synchronized.
-- [ ] PR remains unmerged until explicit Owner approval.
-
-## Current State
-
-- **Stage:** Define
-- **Stage State:** in_progress
-- **Write Gate:** limited to WB-008 branch and documented scope
-- **Review Gate:** PENDING
-- **Verification Verdict:** PENDING
-- **Evaluation:** optional; deterministic release-state contract is primary
-- **Drift Gate:** PENDING
-- **Closeout Mode:** pending
+- **Stage:** Close
+- **Stage State:** completed
+- **Write Gate:** CLOSED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic release-state contract is sufficient
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
