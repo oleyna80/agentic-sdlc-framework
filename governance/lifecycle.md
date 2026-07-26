@@ -17,7 +17,7 @@ Functions:
 3. Architecture and dependency decisions.
 4. Specification and acceptance criteria.
 5. Implementation planning and write-set definition.
-6. Critic review of scope, risks, topology, and verification design.
+6. Critic review of scope, risks, topology, verification, and evaluation design.
 
 Required outcome:
 
@@ -26,6 +26,7 @@ Required outcome:
 - implementation plan and write set;
 - risk, side-effect, and hard-stop classification;
 - verification plan;
+- evaluation plan when output or trajectory evaluation is required;
 - resolved Critic gate or documented permitted fallback.
 
 No implementation write may begin while Stage 0 is blocked.
@@ -37,12 +38,14 @@ Functions:
 1. Scoped implementation by one Coder per write set.
 2. Targeted self-checks.
 3. Scope and side-effect re-evaluation when new information appears.
-4. Diff freeze for assurance.
+4. Observable event and evidence capture required by the approved evaluation plan.
+5. Diff freeze for assurance.
 
 Required outcome:
 
 - implementation matches the approved write set;
 - no unapproved side effect occurred;
+- required observable trajectory evidence is attributable to the Work Block;
 - the diff is frozen or its exact revision is recorded;
 - implementation concerns and unresolved assumptions are reported.
 
@@ -54,20 +57,27 @@ Functions:
 
 1. Independent code review of the frozen diff.
 2. Technical verification against acceptance criteria and contracts.
-3. Specification drift audit when required.
-4. Consolidation of findings and corrective-loop decision.
+3. Output and observable trajectory evaluation when required.
+4. Specification drift audit when required.
+5. Consolidation of findings and corrective-loop decision.
 
 Review asks whether the change is safe and maintainable.
 
 Verification asks whether the required behavior is demonstrated by evidence.
 
+Evaluation asks whether the final artifact and observable execution events meet an
+approved rubric and benchmark revision. Trajectory evaluation inspects tool, gate,
+check, retry, side-effect, and evidence events; it never requires hidden reasoning or
+private chain-of-thought.
+
 Drift audit asks whether specification, architecture decisions, plan, code,
-tests, and documentation still describe the same system.
+tests, evaluation evidence, and documentation still describe the same system.
 
 Required outcome:
 
 - review verdict;
 - verification verdict;
+- evaluation verdict when evaluation is required;
 - drift classification when triggered;
 - residual risks and inspection gaps;
 - corrective action for blocking findings.
@@ -82,10 +92,11 @@ Functions:
 4. Record residual risks and follow-up Work Blocks.
 5. Produce an Owner-facing report.
 
-Only a verification verdict of `READY` permits successful closeout.
+Only a verification verdict of `READY` and every required evaluation verdict of
+`READY` permit successful closeout.
 
-`BLOCKED` or `UNVERIFIED` permits diagnostics, corrective planning, and
-reporting-only closeout. It does not permit merge-ready, deploy-ready,
+`BLOCKED` or `UNVERIFIED` verification/evaluation permits diagnostics, corrective
+planning, and reporting-only closeout. It does not permit merge-ready, deploy-ready,
 release-ready, or completed claims.
 
 ## Lifecycle State
@@ -96,6 +107,7 @@ Track execution state separately from assurance verdict:
 stage: define | execute | assure | close
 execution_state: blocked | ready | in_progress | completed
 verification_verdict: pending | READY | BLOCKED | UNVERIFIED
+evaluation_verdict: pending | READY | BLOCKED | UNVERIFIED | not_required
 closeout_mode: pending | success | reporting_only
 ```
 
@@ -109,23 +121,28 @@ result remains `BLOCKED` or `UNVERIFIED`.
 - Read-only analysis.
 - No implementation write.
 - Same-context critique is acceptable when labeled.
+- Evaluation is normally optional and cannot be represented as independent when it is not.
 
 ### Controlled
 
 - One bounded executor.
 - Explicit scope and write set.
 - Basic review and verification may run sequentially.
+- Deterministic tests are required when applicable; focused evaluation is selected by risk.
 
 ### Managed
 
 - Approved specification and plan.
 - Critic before execution.
 - Reviewer and Verifier contracts after execution.
+- Approved evaluation plan for non-deterministic outputs, agent behavior, or consequential automation.
 - Evidence-based closeout.
 
 ### Assured
 
 - Independent review and verification.
+- Independent output and observable trajectory evaluation when applicable.
+- Fixed rubric and benchmark revisions.
 - Drift audit.
 - Threat model or domain-specific assurance when relevant.
 - Runtime evidence and stronger isolation.
@@ -134,6 +151,7 @@ result remains `BLOCKED` or `UNVERIFIED`.
 
 - Multiple runtimes, sessions, worktrees, or external teams.
 - Formal handoff, consolidation, conflict handling, recovery, and audit trail.
+- Cross-runtime evaluation evidence records source runtime, role, event provenance, and actual isolation.
 
 Governance profile and runtime profile are independent selections.
 
@@ -146,6 +164,7 @@ A quick-fix path may be used only when all of the following are true:
 - there is no material logic, API, schema, auth, security, database, runtime,
   deployment, provider, or governance impact;
 - verification is cheap and deterministic;
+- output/trajectory evaluation is not required by risk or non-determinism;
 - no hard stop is in scope.
 
 The quick-fix contract still requires scope, an explicit result, checks, and a
@@ -158,7 +177,7 @@ When a lifecycle function fails:
 - downstream state-changing functions remain blocked;
 - diagnostics and corrective planning may continue;
 - reporting-only closeout may continue;
-- a failed or unavailable review/verification step must not be represented as a
-  pass;
+- a failed or unavailable review, verification, or evaluation step must not be represented as a pass;
+- a required evaluation with missing observable events remains `BLOCKED` or `UNVERIFIED`;
 - implementation may resume only after the controlling gate is reopened through
   the documented corrective loop.
