@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   patch-seventh-review:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/agent/post-merge-ssot-release-gate'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/agent/post-merge-ssot-release-gate') || (github.event_name == 'pull_request' && github.head_ref == 'agent/post-merge-ssot-release-gate')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
