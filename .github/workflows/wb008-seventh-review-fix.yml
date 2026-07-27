@@ -32,25 +32,16 @@ jobs:
           governance_path = Path("governance/release-state.md")
 
           validator = validator_path.read_text(encoding="utf-8")
-
-          token_anchor = (
-              'MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\\b{MUTABLE_VCS_STATES}\\b", re.IGNORECASE)\n'
-          )
-          token_insert = token_anchor + (
-              'MARKDOWN_MUTABLE_VCS_STATE = '
-              'rf"(?:\\*\\*)?{MUTABLE_VCS_STATES}\\b(?:\\*\\*)?"\n'
-          )
+          token_anchor = 'MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\\b{MUTABLE_VCS_STATES}\\b", re.IGNORECASE)\n'
+          token_insert = token_anchor + 'MARKDOWN_MUTABLE_VCS_STATE = rf"(?:\\*\\*)?{MUTABLE_VCS_STATES}\\b(?:\\*\\*)?"\n'
           assert token_anchor in validator
           validator = validator.replace(token_anchor, token_insert, 1)
 
           pattern_start = validator.index("MUTABLE_CLOSEOUT_PATTERNS = (")
           pattern_end = validator.index("STALE_MAP_PATTERNS = (")
           pattern_region = validator[pattern_start:pattern_end]
-          old_count = pattern_region.count("{MUTABLE_VCS_STATES}\\b")
-          assert old_count == 5, old_count
-          pattern_region = pattern_region.replace(
-              "{MUTABLE_VCS_STATES}\\b", "{MARKDOWN_MUTABLE_VCS_STATE}"
-          )
+          assert pattern_region.count("{MUTABLE_VCS_STATES}\\b") == 5
+          pattern_region = pattern_region.replace("{MUTABLE_VCS_STATES}\\b", "{MARKDOWN_MUTABLE_VCS_STATE}")
           validator = validator[:pattern_start] + pattern_region + validator[pattern_end:]
 
           historical_function = r'''
@@ -111,9 +102,7 @@ def validate_completed_closeout_reports(
                     f"{label} requires {key}={expected}, found {actual!r}"
                 )
 
-        work_block_evaluation = completed_by_id[str(work_block_id)]["markers"].get(
-            "evaluation verdict"
-        )
+        work_block_evaluation = completed_by_id[str(work_block_id)]["markers"].get("evaluation verdict")
         closeout_evaluation = markers.get("evaluation verdict")
         if work_block_evaluation is not None:
             expected_evaluation = evaluation_verdict(
@@ -121,9 +110,7 @@ def validate_completed_closeout_reports(
                 f"completed Work Block {work_block_id} evaluation verdict",
             )
             if closeout_evaluation is None:
-                raise ReleaseStateError(
-                    f"{label} requires evaluation verdict={expected_evaluation}"
-                )
+                raise ReleaseStateError(f"{label} requires evaluation verdict={expected_evaluation}")
             actual_evaluation = evaluation_verdict(
                 closeout_evaluation, f"{label} evaluation verdict"
             )
@@ -143,31 +130,18 @@ def validate_completed_closeout_reports(
           assert closeout_anchor in validator
           validator = validator.replace(closeout_anchor, historical_function + closeout_anchor, 1)
 
-          repository_anchor = (
-              "    validate_release_assets(root, release_state)\n"
-              "    validate_closeout(root, release_state, completed, completed_records)\n"
-          )
-          repository_replacement = (
-              "    validate_release_assets(root, release_state)\n"
-              "    validate_completed_closeout_reports(root, completed_records)\n"
-              "    validate_closeout(root, release_state, completed, completed_records)\n"
-          )
+          repository_anchor = "    validate_release_assets(root, release_state)\n    validate_closeout(root, release_state, completed, completed_records)\n"
+          repository_replacement = "    validate_release_assets(root, release_state)\n    validate_completed_closeout_reports(root, completed_records)\n    validate_closeout(root, release_state, completed, completed_records)\n"
           assert repository_anchor in validator
           validator = validator.replace(repository_anchor, repository_replacement, 1)
           validator_path.write_text(validator, encoding="utf-8")
 
           tests = tests_path.read_text(encoding="utf-8")
-          constants_anchor = (
-              'CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"\n'
-          )
-          constants_replacement = constants_anchor + (
-              'OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"\n'
-          )
+          constants_anchor = 'CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"\n'
           assert constants_anchor in tests
-          tests = tests.replace(constants_anchor, constants_replacement, 1)
+          tests = tests.replace(constants_anchor, constants_anchor + 'OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"\n', 1)
 
-          positive_anchor = '''    with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
-'''
+          positive_anchor = '    with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:\n'
           positive_insert = '''    with tempfile.TemporaryDirectory(prefix="release-state-historical-closeout-") as temp:
         root = Path(temp)
         completed = [OLDER, COMPLETED]
@@ -181,16 +155,15 @@ def validate_completed_closeout_reports(
           tests = tests.replace(positive_anchor, positive_insert + positive_anchor, 1)
 
           bold_anchor = '            ("mutable-pr-bold-colon", "**PR #9:** merged"),\n'
-          bold_replacement = bold_anchor + (
-              '            ("mutable-pr-bold-state", "**PR #9:** **merged**"),\n'
-              '            ("mutable-pr-table-bold-state", "| **PR #9** | **open** |"),\n'
-          )
           assert bold_anchor in tests
+          bold_replacement = (
+              bold_anchor
+              + '            ("mutable-pr-bold-state", "**PR #9:** **merged**"),\n'
+              + '            ("mutable-pr-table-bold-state", "| **PR #9** | **open** |"),\n'
+          )
           tests = tests.replace(bold_anchor, bold_replacement, 1)
 
-          negative_anchor = '''        populate(root)
-        write(root / CLOSEOUT, closeout(include_residual=False))
-'''
+          negative_anchor = '        populate(root)\n        write(root / CLOSEOUT, closeout(include_residual=False))\n'
           negative_insert = '''        populate(root, registry([OLDER, COMPLETED]), project_map([OLDER, COMPLETED]))
         write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
         write(
@@ -209,44 +182,38 @@ def validate_completed_closeout_reports(
           tests_path.write_text(tests, encoding="utf-8")
 
           governance = governance_path.read_text(encoding="utf-8")
-          markdown_anchor = (
-              "- bold Markdown forms such as a pull-request identifier followed by a state;\n"
-          )
-          markdown_replacement = (
-              "- bold Markdown forms such as a pull-request identifier followed by a state, "
-              "including Markdown decoration around the state token itself;\n"
-          )
+          markdown_anchor = "- bold Markdown forms such as a pull-request identifier followed by a state;\n"
           assert markdown_anchor in governance
-          governance = governance.replace(markdown_anchor, markdown_replacement, 1)
+          governance = governance.replace(
+              markdown_anchor,
+              "- bold Markdown forms such as a pull-request identifier followed by a state, including Markdown decoration around the state token itself;\n",
+              1,
+          )
 
-          boundary_anchor = (
-              "A clean non-normative ownership statement remains permitted; a concrete mutable\n"
-              "state assertion does not, including when appended to the boundary marker itself.\n"
-          )
-          boundary_replacement = boundary_anchor + (
-              "\nEvery existing `closeout_report` under `docs/reports/closeout/` that binds to a\n"
-              "completed Work Block ID must retain approved status, exact successful lifecycle\n"
-              "markers, matching evaluation semantics, a non-normative external-state boundary,\n"
-              "and the required residual-risk and follow-up sections. Historical closeout drift\n"
-              "fails closed even when the latest closeout remains valid.\n"
-          )
+          boundary_anchor = "A clean non-normative ownership statement remains permitted; a concrete mutable\nstate assertion does not, including when appended to the boundary marker itself.\n"
           assert boundary_anchor in governance
-          governance = governance.replace(boundary_anchor, boundary_replacement, 1)
-
-          fail_anchor = (
-              "- normative mutable GitHub-state claims anywhere in closeout evidence, including\n"
-              "  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,\n"
-              "  and common Markdown forms.\n"
+          governance = governance.replace(
+              boundary_anchor,
+              boundary_anchor
+              + "\nEvery existing `closeout_report` under `docs/reports/closeout/` that binds to a\n"
+              + "completed Work Block ID must retain approved status, exact successful lifecycle\n"
+              + "markers, matching evaluation semantics, a non-normative external-state boundary,\n"
+              + "and the required residual-risk and follow-up sections. Historical closeout drift\n"
+              + "fails closed even when the latest closeout remains valid.\n",
+              1,
           )
-          fail_replacement = (
+
+          fail_anchor = "- normative mutable GitHub-state claims anywhere in closeout evidence, including\n  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,\n  and common Markdown forms.\n"
+          assert fail_anchor in governance
+          governance = governance.replace(
+              fail_anchor,
               "- normative mutable GitHub-state claims anywhere in the current canonical closeout,\n"
               "  including structured frontmatter, VCS parent-key descendants, boundary-marker\n"
               "  payloads, and common Markdown forms;\n"
               "- adverse or contradictory lifecycle evidence in any existing closeout report bound\n"
-              "  to a completed Work Block ID.\n"
+              "  to a completed Work Block ID.\n",
+              1,
           )
-          assert fail_anchor in governance
-          governance = governance.replace(fail_anchor, fail_replacement, 1)
           governance_path.write_text(governance, encoding="utf-8")
           PY
 
