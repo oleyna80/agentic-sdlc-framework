@@ -26,7 +26,7 @@ executable fail-closed release-state gate.
 - added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state checks into Framework Contracts;
-- resolved three Codex Review rounds with dedicated regressions.
+- resolved four Codex Review rounds with dedicated regressions.
 
 ## Final Invariants
 
@@ -40,8 +40,11 @@ executable fail-closed release-state gate.
 8. Closeout marker keys are unique.
 9. Residual risks and follow-up sections are mandatory and non-empty.
 10. Mutable external-state assertions are rejected throughout the complete closeout
-    document, including YAML frontmatter.
-11. Release-state evidence is assurance-only and cannot authorize external actions.
+    document.
+11. Parsed YAML frontmatter rejects direct and nested PR/pull-request/merge state
+    keys with mutable values after key normalization.
+12. Bold Markdown identifier/state forms and Markdown table rows are rejected.
+13. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
@@ -58,9 +61,9 @@ changes to runtime/integration authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`
-- Release State Contract run 54: success
-- Framework Contracts run 503: success
+- Reviewed implementation revision: `42b31c75f463a6a1ec77dd07b545d1be21175078`
+- Release State Contract run 68: success
+- Framework Contracts run 517: success
 
 ## Acceptance Result
 
@@ -69,8 +72,9 @@ changes to runtime/integration authority.
 - [x] Work Block, map, registry, and closeout are consistent.
 - [x] Exact terminal-value semantics are enforced.
 - [x] Evaluation rationale is restricted to documented skips.
-- [x] Body and frontmatter mutable-state bypasses are closed.
-- [x] Common status assertion forms have regressions.
+- [x] Prose and whole-document mutable-state bypasses are closed.
+- [x] Structured direct and nested frontmatter keys are rejected.
+- [x] Bold Markdown and table state forms have regressions.
 - [x] Required closeout sections are enforced.
 - [x] Dedicated and full-framework CI pass.
 - [x] Review, verification, drift, and closeout are synchronized.
