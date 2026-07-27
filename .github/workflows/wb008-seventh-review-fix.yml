@@ -1,0 +1,269 @@
+name: WB-008 Seventh Review Fix
+
+on:
+  push:
+    branches:
+      - agent/post-merge-ssot-release-gate
+    paths:
+      - .github/workflows/wb008-seventh-review-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout review branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/post-merge-ssot-release-gate
+          fetch-depth: 0
+
+      - name: Patch seventh-review findings
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          validator_path = Path("scripts/validate-release-state.py")
+          tests_path = Path("scripts/test-release-state-contracts.py")
+          governance_path = Path("governance/release-state.md")
+
+          validator = validator_path.read_text(encoding="utf-8")
+
+          token_anchor = (
+              'MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\\b{MUTABLE_VCS_STATES}\\b", re.IGNORECASE)\n'
+          )
+          token_insert = token_anchor + (
+              'MARKDOWN_MUTABLE_VCS_STATE = '
+              'rf"(?:\\*\\*)?{MUTABLE_VCS_STATES}\\b(?:\\*\\*)?"\n'
+          )
+          assert token_anchor in validator
+          validator = validator.replace(token_anchor, token_insert, 1)
+
+          pattern_start = validator.index("MUTABLE_CLOSEOUT_PATTERNS = (")
+          pattern_end = validator.index("STALE_MAP_PATTERNS = (")
+          pattern_region = validator[pattern_start:pattern_end]
+          old_count = pattern_region.count("{MUTABLE_VCS_STATES}\\b")
+          assert old_count == 5, old_count
+          pattern_region = pattern_region.replace(
+              "{MUTABLE_VCS_STATES}\\b", "{MARKDOWN_MUTABLE_VCS_STATE}"
+          )
+          validator = validator[:pattern_start] + pattern_region + validator[pattern_end:]
+
+          historical_function = r'''
+
+def validate_completed_closeout_reports(
+    root: Path, completed_records: dict[str, dict[str, Any]]
+) -> None:
+    reports_root = root / "docs/reports/closeout"
+    if not reports_root.is_dir():
+        return
+
+    completed_by_id = {
+        str(record["frontmatter"]["work_block_id"]): record
+        for record in completed_records.values()
+    }
+    seen: dict[str, str] = {}
+
+    for path in sorted(reports_root.rglob("*.md")):
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise ReleaseStateError(f"cannot read closeout report {path}: {exc}") from exc
+        if not raw.startswith("---\n"):
+            continue
+
+        relative = path.relative_to(root).as_posix()
+        label = f"completed Work Block closeout {relative}"
+        frontmatter, body, _ = parse_frontmatter(path, label)
+        if frontmatter.get("artifact_type") != "closeout_report":
+            continue
+
+        work_block_id = frontmatter.get("work_block_id")
+        if work_block_id not in completed_by_id:
+            continue
+        if work_block_id in seen:
+            raise ReleaseStateError(
+                f"completed Work Block {work_block_id} has multiple closeout reports: "
+                f"{seen[work_block_id]} and {relative}"
+            )
+        seen[str(work_block_id)] = relative
+
+        if frontmatter.get("status") != "approved":
+            raise ReleaseStateError(f"{label} must be approved")
+
+        markers = parse_markers(body, label)
+        required_exact = {
+            "stage execution state": "completed",
+            "review verdict": "READY",
+            "verification verdict": "READY",
+            "drift verdict": "ALIGNED",
+            "closeout classification": "SUCCESS",
+            "task status": "completed",
+        }
+        for key, expected in required_exact.items():
+            actual = markers.get(key)
+            if actual != expected:
+                raise ReleaseStateError(
+                    f"{label} requires {key}={expected}, found {actual!r}"
+                )
+
+        work_block_evaluation = completed_by_id[str(work_block_id)]["markers"].get(
+            "evaluation verdict"
+        )
+        closeout_evaluation = markers.get("evaluation verdict")
+        if work_block_evaluation is not None:
+            expected_evaluation = evaluation_verdict(
+                work_block_evaluation,
+                f"completed Work Block {work_block_id} evaluation verdict",
+            )
+            if closeout_evaluation is None:
+                raise ReleaseStateError(
+                    f"{label} requires evaluation verdict={expected_evaluation}"
+                )
+            actual_evaluation = evaluation_verdict(
+                closeout_evaluation, f"{label} evaluation verdict"
+            )
+            if actual_evaluation != expected_evaluation:
+                raise ReleaseStateError(
+                    f"{label} requires evaluation verdict={expected_evaluation}, "
+                    f"found {actual_evaluation!r}"
+                )
+        elif closeout_evaluation is not None:
+            evaluation_verdict(closeout_evaluation, f"{label} evaluation verdict")
+
+        validate_external_vcs_boundary(markers.get("external vcs state", ""))
+        extract_single_section(body, "Residual Risks and Limitations", label)
+        extract_single_section(body, "Follow-Up Work", label)
+'''
+          closeout_anchor = "\n\ndef validate_closeout(\n"
+          assert closeout_anchor in validator
+          validator = validator.replace(closeout_anchor, historical_function + closeout_anchor, 1)
+
+          repository_anchor = (
+              "    validate_release_assets(root, release_state)\n"
+              "    validate_closeout(root, release_state, completed, completed_records)\n"
+          )
+          repository_replacement = (
+              "    validate_release_assets(root, release_state)\n"
+              "    validate_completed_closeout_reports(root, completed_records)\n"
+              "    validate_closeout(root, release_state, completed, completed_records)\n"
+          )
+          assert repository_anchor in validator
+          validator = validator.replace(repository_anchor, repository_replacement, 1)
+          validator_path.write_text(validator, encoding="utf-8")
+
+          tests = tests_path.read_text(encoding="utf-8")
+          constants_anchor = (
+              'CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"\n'
+          )
+          constants_replacement = constants_anchor + (
+              'OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"\n'
+          )
+          assert constants_anchor in tests
+          tests = tests.replace(constants_anchor, constants_replacement, 1)
+
+          positive_anchor = '''    with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
+'''
+          positive_insert = '''    with tempfile.TemporaryDirectory(prefix="release-state-historical-closeout-") as temp:
+        root = Path(temp)
+        completed = [OLDER, COMPLETED]
+        populate(root, registry(completed), project_map(completed))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(root / OLDER_CLOSEOUT, closeout(work_block_id="wb-006", evaluation=None))
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
+'''
+          assert positive_anchor in tests
+          tests = tests.replace(positive_anchor, positive_insert + positive_anchor, 1)
+
+          bold_anchor = '            ("mutable-pr-bold-colon", "**PR #9:** merged"),\n'
+          bold_replacement = bold_anchor + (
+              '            ("mutable-pr-bold-state", "**PR #9:** **merged**"),\n'
+              '            ("mutable-pr-table-bold-state", "| **PR #9** | **open** |"),\n'
+          )
+          assert bold_anchor in tests
+          tests = tests.replace(bold_anchor, bold_replacement, 1)
+
+          negative_anchor = '''        populate(root)
+        write(root / CLOSEOUT, closeout(include_residual=False))
+'''
+          negative_insert = '''        populate(root, registry([OLDER, COMPLETED]), project_map([OLDER, COMPLETED]))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(
+            root / OLDER_CLOSEOUT,
+            closeout(work_block_id="wb-006", evaluation=None, review="BLOCKED"),
+        )
+        expect_failure(
+            "historical-closeout-blocked-review",
+            root,
+            "review verdict=READY",
+        )
+
+'''
+          assert negative_anchor in tests
+          tests = tests.replace(negative_anchor, negative_insert + negative_anchor, 1)
+          tests_path.write_text(tests, encoding="utf-8")
+
+          governance = governance_path.read_text(encoding="utf-8")
+          markdown_anchor = (
+              "- bold Markdown forms such as a pull-request identifier followed by a state;\n"
+          )
+          markdown_replacement = (
+              "- bold Markdown forms such as a pull-request identifier followed by a state, "
+              "including Markdown decoration around the state token itself;\n"
+          )
+          assert markdown_anchor in governance
+          governance = governance.replace(markdown_anchor, markdown_replacement, 1)
+
+          boundary_anchor = (
+              "A clean non-normative ownership statement remains permitted; a concrete mutable\n"
+              "state assertion does not, including when appended to the boundary marker itself.\n"
+          )
+          boundary_replacement = boundary_anchor + (
+              "\nEvery existing `closeout_report` under `docs/reports/closeout/` that binds to a\n"
+              "completed Work Block ID must retain approved status, exact successful lifecycle\n"
+              "markers, matching evaluation semantics, a non-normative external-state boundary,\n"
+              "and the required residual-risk and follow-up sections. Historical closeout drift\n"
+              "fails closed even when the latest closeout remains valid.\n"
+          )
+          assert boundary_anchor in governance
+          governance = governance.replace(boundary_anchor, boundary_replacement, 1)
+
+          fail_anchor = (
+              "- normative mutable GitHub-state claims anywhere in closeout evidence, including\n"
+              "  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,\n"
+              "  and common Markdown forms.\n"
+          )
+          fail_replacement = (
+              "- normative mutable GitHub-state claims anywhere in the current canonical closeout,\n"
+              "  including structured frontmatter, VCS parent-key descendants, boundary-marker\n"
+              "  payloads, and common Markdown forms;\n"
+              "- adverse or contradictory lifecycle evidence in any existing closeout report bound\n"
+              "  to a completed Work Block ID.\n"
+          )
+          assert fail_anchor in governance
+          governance = governance.replace(fail_anchor, fail_replacement, 1)
+          governance_path.write_text(governance, encoding="utf-8")
+          PY
+
+      - name: Run scoped validation
+        shell: bash
+        run: |
+          python -m py_compile scripts/validate-release-state.py scripts/test-release-state-contracts.py
+          python scripts/test-release-state-contracts.py
+          python scripts/validate-release-state.py
+          bash scripts/validate-governance.sh
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          rm .github/workflows/wb008-seventh-review-fix.yml
+          git config user.name "oleyna80"
+          git config user.email "209451099+oleyna80@users.noreply.github.com"
+          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md .github/workflows/wb008-seventh-review-fix.yml
+          git commit -m "fix: validate historical closeout evidence"
+          git push origin HEAD:agent/post-merge-ssot-release-gate
