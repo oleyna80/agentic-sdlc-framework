@@ -25,17 +25,18 @@ including:
 - requested reviewers and branch deletion state.
 
 Mutable GitHub state may be cited in an external notification or appended by a
-separate post-merge record, but it must not be required as normative content of a
-pre-merge closeout commit. A closeout report records `repository closeout`, not a
-prediction of later GitHub state.
+separate post-merge record, but it must not be normative content of a pre-merge
+closeout commit. A closeout records `repository closeout`, not a prediction or
+copy of later hosting-platform state.
 
 ## Canonical Sources
 
-1. Work Block frontmatter and current-state section define the lifecycle of that
-   Work Block.
+1. Work Block frontmatter and its single `Final State` or legacy `Closeout State`
+   section define the lifecycle of that Work Block.
 2. `FILE_REGISTRY.yml:migration_state` is the machine-readable index of completed
    and active migration Work Blocks.
-3. `PROJECT_MAP.md` is the human-readable projection of the same migration state.
+3. The machine block and visible `Migration Work` section in `PROJECT_MAP.md` are
+   the human-readable projection of the same migration state.
 4. Closeout reports provide evidence and classification; they do not override the
    Work Block or registry.
 5. GitHub PR/merge state is external operational evidence and cannot override
@@ -51,8 +52,15 @@ A path listed in `completed_work_blocks` must:
 - contain Work Block frontmatter;
 - use `status: completed`;
 - not be the active Work Block;
-- not contain a current-state claim that review, verification, evaluation, drift,
-  or closeout is still pending when the corresponding successful closeout exists.
+- contain exactly one terminal state section;
+- declare terminal successful review, verification, drift, and closeout values;
+- reject `PENDING`, `BLOCKED`, `UNVERIFIED`, `MISALIGNED`, or any other adverse or
+  non-terminal value;
+- use `READY` or documented `SKIPPED` when an evaluation verdict is present.
+
+Legacy `Drift Gate: READY` remains accepted for historical Work Blocks created
+before `ALIGNED` became the canonical terminal drift token. New Work Blocks use
+`ALIGNED`.
 
 ### Active Work Block
 
@@ -62,43 +70,54 @@ A non-null `active_work_block` must:
 - not appear in `completed_work_blocks`;
 - have an active frontmatter status such as `draft`, `planned`, `in_progress`, or
   `blocked`;
-- be represented as active in `PROJECT_MAP.md`.
+- be represented as active inside the unique visible `## Migration Work` section
+  of `PROJECT_MAP.md`.
 
-When `active_work_block` is null, the map must explicitly state that there is no
-active implementation Work Block.
+When `active_work_block` is null, that section must explicitly state that there is
+no active implementation Work Block.
 
 ### Closeout
 
 A successful closeout must identify:
 
 - completed repository execution state;
-- review, verification, evaluation when required, and drift verdicts;
-- closeout classification;
-- residual risks and follow-up work.
+- exact `READY` review and verification verdicts;
+- exact `ALIGNED` drift verdict;
+- evaluation evidence whenever the latest Work Block declares an evaluation
+  verdict, with the same terminal `READY` or `SKIPPED` token;
+- `SUCCESS` closeout classification and completed task state;
+- non-normative external VCS state;
+- one non-empty `## Residual Risks and Limitations` section;
+- one non-empty `## Follow-Up Work` section.
 
-A closeout must not claim that a future PR merge already occurred, and it must not
-remain stale after merge by encoding `Draft`, `Ready`, `open`, `not merged`, or
-similar mutable GitHub state as a normative release condition.
+Normalized closeout marker keys must be unique. Contradictory repeated markers fail
+closed rather than using first-value-wins or last-value-wins behavior.
+
+A closeout must not assert ordinary mutable hosting-platform facts such as
+`PR #9 is open`, `PR #9 is Draft`, `PR #9 was merged`, merge timestamps, merge
+commit state, or equivalent pull-request status claims.
 
 ### Fail-Closed Release Readiness
 
 Missing or contradictory evidence yields `BLOCKED`, never `READY`. A release-state
 validator must reject at least:
 
-- missing completed Work Block paths;
-- completed Work Blocks with non-completed frontmatter;
-- active/completed overlap;
+- missing completed Work Block paths or terminal sections;
+- completed Work Blocks with non-completed frontmatter or adverse lifecycle values;
+- active/completed path or Work Block ID overlap;
 - missing or invalid active Work Block paths;
-- map/registry disagreement;
-- successful closeout with pending internal verdicts;
+- map/registry or machine/visible-map disagreement;
+- closeout identity mismatch or duplicate markers;
+- missing required evaluation evidence;
+- missing residual-risk or follow-up sections;
 - normative mutable GitHub-state claims in closeout evidence.
 
 ## Enforcement
 
-`scripts/validate-release-state.py` validates the repository state.
+`scripts/validate-release-state.py` validates repository state.
 `scripts/test-release-state-contracts.py` provides positive and adversarial
 fixtures. `.github/workflows/release-state-contract.yml` runs both on pushes and
-pull requests.
+pull requests, while Framework Contracts invokes the same governance validation.
 
 The release-state gate is assurance evidence only. It does not authorize merge,
 deployment, publication, credentials, or Hard Stop exceptions.
