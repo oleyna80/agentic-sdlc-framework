@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: b451ebb7dd3af9636d35f67d7b9432f4debc93f5
+subject_revision: 9ae16b927aa072a81f4fdc58a773fddeb8aafac8
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -24,11 +24,12 @@ last_verified: 2026-07-27
 ## Result
 
 WB-008 eliminated lifecycle drift between completed Work Blocks, navigation,
-machine registry, closeout evidence, and repository release-state classification.
+machine registry, canonical and historical closeout evidence, and repository
+release-state classification.
 
-The repository now separates versioned lifecycle evidence from mutable external
-hosting-platform metadata and enforces that boundary with a dedicated fail-closed
-validator, adversarial fixtures, and two CI paths.
+The repository separates versioned lifecycle evidence from mutable external
+hosting-platform metadata and enforces that boundary with a fail-closed validator,
+adversarial fixtures, and two CI paths.
 
 ## Delivered Changes
 
@@ -39,7 +40,7 @@ validator, adversarial fixtures, and two CI paths.
 - added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into Framework Contracts;
-- resolved all findings from six Codex Review rounds.
+- resolved all findings from seven Codex Review rounds.
 
 ## Enforced Invariants
 
@@ -50,19 +51,21 @@ validator, adversarial fixtures, and two CI paths.
 - active and completed paths/IDs cannot overlap;
 - map and registry agree exactly and in order;
 - visible migration navigation matches machine state;
-- latest completed and closeout identity bind exactly;
+- latest completed and canonical closeout identity bind exactly;
 - residual-risk and follow-up sections are mandatory and non-empty;
-- the entire closeout document is checked for prohibited mutable external-state
+- the canonical closeout document is checked for prohibited mutable external-state
   assertions;
 - parsed YAML frontmatter rejects normalized direct and compound
   PR/pull-request/merge state keys with mutable values;
-- VCS parent context is preserved during recursion so generic `status` or `state`
-  descendants under `pr`, `pull_request`, `pullrequest`, or `merge` fail closed;
+- VCS parent context is preserved during nested traversal;
 - the non-normative boundary marker cannot append a concrete mutable state;
-- a clean boundary-only marker remains valid;
-- bare identifier-plus-state prose is rejected even without a connector verb;
-- a PR reference without a mutable state remains valid;
-- bold Markdown identifier/state forms and Markdown table rows are rejected;
+- bare identifier-plus-state prose is rejected without a connector verb;
+- Markdown decoration around a mutable state token cannot bypass prose or table
+  detection;
+- existing closeout reports bound to completed Work Block IDs require approved and
+  exact successful lifecycle evidence, matching evaluation semantics, a valid
+  external-state boundary, and required sections;
+- duplicate historical closeouts for one completed Work Block ID fail closed;
 - release-state evidence remains assurance-only.
 
 ## Evidence
@@ -74,12 +77,13 @@ validator, adversarial fixtures, and two CI paths.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `b451ebb7dd3af9636d35f67d7b9432f4debc93f5`
-- Release State Contract run 95: success
-- Framework Contracts run 544: success
+- Reviewed implementation revision: `9ae16b927aa072a81f4fdc58a773fddeb8aafac8`
+- Workflow-restored validation head: `1b46c028fb7e1205dda77820694e8b9a43f2f406`
+- Release State Contract run 134: success
+- Framework Contracts run 583: success
 
-Earlier failed, corrective, and action-required runs remain recorded as their
-actual outcomes. No non-successful run was relabelled as passing evidence.
+Earlier failed, corrective, action-required, and helper-workflow runs remain recorded
+as their actual outcomes. No non-successful run was relabelled as passing evidence.
 
 ## Acceptance Result
 
@@ -88,14 +92,15 @@ actual outcomes. No non-successful run was relabelled as passing evidence.
 - [x] Work Block, map, registry, and closeout agree.
 - [x] Exact non-evaluation verdict semantics are enforced.
 - [x] Evaluation rationale is limited to documented `SKIPPED`.
-- [x] Mutable external-state checks cover prose and the complete document.
+- [x] Mutable external-state checks cover prose and the canonical complete document.
 - [x] Structured direct and compound frontmatter forms are rejected.
 - [x] Parent-key VCS context is preserved through nested YAML traversal.
 - [x] Mutable boundary-marker payloads are rejected.
 - [x] Clean boundary-only markers remain accepted.
 - [x] Bare identifier-plus-state prose is rejected.
 - [x] Clean PR references without state remain accepted.
-- [x] Bold Markdown and table state forms are rejected.
+- [x] Markdown-decorated state values and table forms are rejected.
+- [x] Existing historical closeouts bound to completed Work Blocks are validated.
 - [x] Residual risks and follow-up work are mandatory.
 - [x] Dedicated and full-framework CI pass.
 - [x] Review and drift evidence are synchronized.
@@ -105,6 +110,8 @@ actual outcomes. No non-successful run was relabelled as passing evidence.
 
 - YAML frontmatter and Markdown headings form a versioned schema; future schema
   changes must update validator and fixtures together.
+- Existing historical closeouts are validated when present and bound to known
+  completed Work Block IDs; missing artifacts that never existed are not inferred.
 - Pattern and structured-key assertion detection are governance guardrails, not a
   complete natural-language proof system.
 - Current hosting-platform state is queried externally rather than copied into
