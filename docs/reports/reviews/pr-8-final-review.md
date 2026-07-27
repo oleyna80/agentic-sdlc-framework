@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: b1d79c20781d81a37c1fe2fca1a01979a788cf80
+subject_revision: b451ebb7dd3af9636d35f67d7b9432f4debc93f5
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,7 +15,7 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`b1d79c20781d81a37c1fe2fca1a01979a788cf80` against:
+`b451ebb7dd3af9636d35f67d7b9432f4debc93f5` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
@@ -25,7 +25,7 @@ Reviewed implementation revision
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all five Codex Review rounds on PR #8.
+- all six Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,7 +36,7 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Five Codex Review rounds produced thirteen P1 findings and one P2 finding. All were
+Six Codex Review rounds produced fourteen P1 findings and one P2 finding. All were
 accepted, fixed, and covered by adversarial fixtures.
 
 ### Initial SSOT and parser findings
@@ -121,6 +121,25 @@ Resolution:
 - a fixture rejects the reported appended `merged` form;
 - a dedicated positive fixture preserves a clean boundary-only marker.
 
+### Sixth review finding
+
+#### F-018 — Bare pull-request state assertions were missed
+
+**Severity:** P1  
+**Resolution:** fixed
+
+Terse prose such as `PR #9 merged.` or `Pull request #9 closed.` omitted a colon,
+equals sign, or connector verb and therefore bypassed the existing prose grammar.
+
+Resolution:
+
+- whole-document scanning now rejects a direct pull-request identifier followed by
+  a mutable state token;
+- regressions cover bare open, Draft, merged, Ready for Review, and closed forms;
+- a positive fixture confirms that a PR reference without a mutable state remains
+  permitted;
+- the fix remains scoped to repository evidence and does not alter external state.
+
 ## Contract Review
 
 ### Exact terminal-state semantics
@@ -134,8 +153,9 @@ Resolution:
 ### Repository and hosting-platform boundary
 
 - Work Block lifecycle and closeout remain repository-owned;
-- mutable hosting-platform assertions are rejected in prose, parsed frontmatter,
-  VCS-parent descendants, boundary-marker payloads, bold Markdown, and tables;
+- mutable hosting-platform assertions are rejected in connector prose, terse bare
+  prose, parsed frontmatter, VCS-parent descendants, boundary-marker payloads,
+  bold Markdown, and tables;
 - external state cannot grant authority or redefine closeout.
 
 **Result:** aligned.
@@ -146,11 +166,13 @@ The fixture suite covers:
 
 - Work Block and closeout exact-value suffix attacks;
 - malformed evaluation rationale;
-- prose, structured frontmatter, normalized compound keys, parent-key descendants,
-  bold Markdown, and table PR-state assertions;
+- connector and bare prose, structured frontmatter, normalized compound keys,
+  parent-key descendants, bold Markdown, and table PR-state assertions;
 - mutable state appended to the non-normative marker plus an explicit clean-marker
   positive case;
-- verb, colon, equals, status/state, underscore, hyphen, and space variants;
+- a positive PR reference that carries no mutable state;
+- verb, direct identifier-state, colon, equals, status/state, underscore, hyphen,
+  and space variants;
 - all previously resolved path, identity, marker, section, and map drift classes.
 
 **Result:** aligned.
@@ -158,15 +180,15 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`b1d79c20781d81a37c1fe2fca1a01979a788cf80`.
+`b451ebb7dd3af9636d35f67d7b9432f4debc93f5`.
 
 Successful runs:
 
-- Release State Contract run **82**;
-- Framework Contracts run **531**.
+- Release State Contract run **95**;
+- Framework Contracts run **544**.
 
-Earlier failed runs remain failed evidence and were followed by scoped corrections;
-no failing run was converted into a passing claim.
+Earlier failed, corrective, and action-required runs remain recorded as their actual
+outcomes; no non-successful run was converted into passing evidence.
 
 ## Residual Limitations
 
@@ -181,6 +203,6 @@ no failing run was converted into a passing claim.
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the two
-fifth-round Codex threads, request one final Codex Review, and keep integration
-under explicit Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the sixth-round
+Codex thread, request one final Codex Review, and keep integration under explicit
+Owner approval.
