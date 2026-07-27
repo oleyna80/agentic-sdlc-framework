@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 8ccd56e23e62741eb546c6a3f64e2df746bcf119
+subject_revision: 029a0dd9ac9f48af066f9cc04aac30d186fdb8ea
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,17 +15,17 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`8ccd56e23e62741eb546c6a3f64e2df746bcf119` against:
+`029a0dd9ac9f48af066f9cc04aac30d186fdb8ea` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
-- completed Work Blocks WB-001 through WB-008;
+- normalized Work Blocks WB-001 through WB-008;
 - `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
 - WB-008 closeout evidence;
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- Framework Contracts and both Codex Review submissions on PR #8.
+- all three Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -34,181 +34,132 @@ Reviewed implementation revision
 No known blocking engineering, governance, authority, or release-state findings
 remain on the reviewed implementation revision.
 
-## Resolved Findings
+## Review Convergence
 
-### F-001 — Repository lifecycle and GitHub lifecycle were conflated
+Three Codex Review rounds produced ten P1 findings and one P2 finding. All were
+accepted, fixed, and covered by adversarial fixtures.
+
+### Initial SSOT and parser findings
+
+- WB-007 and earlier Work Blocks retained stale or non-canonical lifecycle state;
+- mutable hosting-platform state was stored as repository closeout SSOT;
+- closeout identity used substring matching;
+- machine and visible map state could disagree;
+- release assets and latest-completed ordering were incompletely bound;
+- drift used substring matching;
+- duplicate closeout markers used last-value-wins behavior;
+- active-path validation was scoped to the whole map document.
+
+### Second review findings
+
+- completed Work Blocks accepted blocked or unverified terminal verdicts;
+- required evaluation could be omitted from closeout;
+- ordinary mutable PR-state assertions were not fully recognized;
+- residual-risk and follow-up closeout sections were not enforced.
+
+### Third review findings
+
+#### F-012 — Non-evaluation verdict suffixes were discarded
 
 **Severity:** P1  
 **Resolution:** fixed
 
-WB-007 had completed internally while map, registry, Work Block, and closeout still
-represented active, Draft, or unmerged states. Repository lifecycle is now
-versioned independently; mutable GitHub state is external operational metadata.
+The prior parser reduced every verdict to a token before a dash. This could turn
+`READY — BLOCKED` or `ALIGNED — MISALIGNED` into an apparent success.
 
-### F-002 — Historical completed Work Blocks used incompatible metadata
+Resolution:
 
-**Severity:** P1  
-**Resolution:** fixed
+- review, verification, drift, stage, classification, task, and closeout values
+  are compared as complete exact strings;
+- only `Evaluation verdict: SKIPPED — <non-empty rationale>` may carry a rationale;
+- `Evaluation verdict: READY` must also be exact;
+- Work Block and closeout suffix fixtures cover every terminal marker class.
 
-WB-001 through WB-007 were normalized sufficiently for an ordered completed
-migration ledger. Completed paths require frontmatter, stable Work Block IDs, and
-a terminal state section.
-
-### F-003 — Identity, ordering, asset, and authority bindings were incomplete
+#### F-013 — Mutable VCS claims in frontmatter bypassed validation
 
 **Severity:** P1  
 **Resolution:** fixed
 
-The validator now requires exact closeout/Work Block identity, unique Work Block
-IDs, ordered latest-completed binding, canonical release assets, repository-safe
-paths, and `assurance_only` release-state authority.
+The previous scan inspected only the Markdown body. An extra frontmatter field such
+as `release_note: "PR #9 is merged"` could therefore pass.
 
-### F-004 — Machine and visible project-map state could disagree
+Resolution:
 
-**Severity:** P2  
+- the validator retains and scans the complete closeout document;
+- YAML frontmatter and Markdown body use the same mutable-state rules;
+- a dedicated frontmatter fixture proves the bypass is closed.
+
+#### F-014 — Colon-form PR status assertions were missed
+
+**Severity:** P1  
 **Resolution:** fixed
 
-Exactly one machine release-state block and one visible `## Migration Work`
-section are required. Active/no-active assertions are evaluated only inside that
-section, so a path mentioned elsewhere cannot satisfy the gate.
+Common shorthand such as `PR #9: merged`, `PR #9: open`, or `PR #9: Draft` did not
+match the prior expressions.
 
-### F-005 — Drift verdict used substring matching
+Resolution:
 
-**Severity:** P1 — Codex Review 1  
-**Resolution:** fixed
-
-`MISALIGNED` previously contained the substring `ALIGNED`. Closeout drift now
-requires exact `ALIGNED`, with dedicated `PENDING` and `MISALIGNED` fixtures.
-
-### F-006 — Duplicate closeout markers used last-value-wins semantics
-
-**Severity:** P1 — Codex Review 1  
-**Resolution:** fixed
-
-Duplicate normalized marker keys now fail closed. A contradictory duplicate
-`Verification verdict` fixture proves that later `READY` cannot hide earlier
-`PENDING`.
-
-### F-007 — Active-path visibility was checked across the whole document
-
-**Severity:** P1 — Codex Review 1  
-**Resolution:** fixed
-
-The validator scopes active/no-active checks to the unique `Migration Work`
-section and rejects contradictions within that section.
-
-### F-008 — Completed Work Blocks allowed adverse terminal verdicts
-
-**Severity:** P1 — Codex Review 2  
-**Resolution:** fixed
-
-The earlier implementation blacklisted only exact `PENDING` strings. It now parses
-one `Final State` or legacy `Closeout State` section and validates terminal values:
-
-- stage/state: `completed`;
-- review: `READY`;
-- verification: `READY`;
-- evaluation when present: `READY` or documented `SKIPPED`;
-- drift: canonical `ALIGNED`, with legacy historical `READY` accepted;
-- closeout: `success-closeout`.
-
-Fixtures reject `BLOCKED`, `UNVERIFIED`, `MISALIGNED`, pending stage, and missing
-terminal sections.
-
-### F-009 — Required evaluation could disappear from closeout
-
-**Severity:** P1 — Codex Review 2  
-**Resolution:** fixed
-
-The latest completed Work Block's evaluation marker is now authoritative for
-closeout requirement. When the Work Block declares evaluation, closeout must
-contain the same terminal token (`READY` or `SKIPPED`). Missing or mismatched
-evaluation fails closed.
-
-### F-010 — Ordinary mutable PR-state assertions were not detected
-
-**Severity:** P1 — Codex Review 2  
-**Resolution:** fixed
-
-The closeout scanner now rejects ordinary assertions such as:
-
-- `PR #9 is open`;
-- `PR #9 is Draft`;
-- `PR #9 was merged`;
-- equivalent pull-request state/status markers.
-
-The non-normative ownership statement remains allowed because it does not assert a
-mutable PR status.
-
-### F-011 — Residual risks and follow-up work were not executable requirements
-
-**Severity:** P2 — Codex Review 2  
-**Resolution:** fixed
-
-Successful closeout now requires exactly one non-empty
-`## Residual Risks and Limitations` section and one non-empty
-`## Follow-Up Work` section. Missing-section fixtures fail independently.
+- the PR-state grammar now accepts verb, state/status, colon, and equals forms;
+- open, Draft, and merged colon-form fixtures are included;
+- the allowed non-normative ownership statement remains valid.
 
 ## Contract Review
 
-### Fail-Closed Lifecycle
+### Exact terminal-state semantics
 
-The validator rejects missing terminal sections, missing required lifecycle
-markers, adverse terminal verdicts, duplicate markers, identity mismatch,
-map/registry drift, unsafe paths, authority broadening, and missing release assets.
-
-**Result:** aligned.
-
-### Evaluation Binding
-
-Evaluation is not globally mandatory, but when the latest Work Block declares an
-evaluation verdict, closeout must preserve its terminal posture exactly. This
-prevents required assurance from disappearing during closeout.
+- non-evaluation terminal values are exact and carry no rationale suffix;
+- evaluation accepts exact `READY` or documented `SKIPPED` only;
+- contradictory suffixes, malformed skips, and adverse tokens fail closed.
 
 **Result:** aligned.
 
-### Hosting-Platform Boundary
+### Repository and hosting-platform boundary
 
-GitHub Draft/Ready/open/closed/merged state remains external operational metadata.
-Closeout may state that external VCS state is non-normative, but cannot record a
-specific mutable PR state as repository truth.
+- Work Block lifecycle and closeout remain repository-owned;
+- mutable hosting-platform assertions are rejected in the complete closeout file,
+  including frontmatter;
+- external state cannot grant authority or redefine closeout.
 
 **Result:** aligned.
 
-### Residual Evidence
+### Regression and CI coverage
 
-Residual risks and follow-up work are now validated artifacts rather than prose-only
-expectations.
+The fixture suite covers:
+
+- Work Block and closeout exact-value suffix attacks;
+- malformed evaluation rationale;
+- body and frontmatter PR-state assertions;
+- verb, colon, equals, and status/state assertion forms;
+- all previously resolved path, identity, marker, section, and map drift classes.
 
 **Result:** aligned.
 
 ## Verification Evidence
 
-Implementation validation before evidence synchronization:
+Implementation revision:
+`029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`.
 
-- Release State Contract run **38** — success;
-- Framework Contracts run **487** — success.
+Successful runs:
 
-Earlier failed Release State Contract run 8 remains recorded as a fixture-order
-failure followed by a scoped correction. No failed run was reclassified as passed.
+- Release State Contract run **54**;
+- Framework Contracts run **503**.
 
-A final evidence-head run is required after this report, drift audit, closeout, and
-Work Block are synchronized.
+Earlier failed runs remain failed evidence and were followed by scoped corrections;
+no failing run was converted into a passing claim.
 
 ## Residual Limitations
 
-- The validator relies on versioned YAML frontmatter, Markdown headings, and
-  explicit lifecycle markers; schema changes require validator and fixture updates.
-- Legacy `Drift Gate: READY` remains accepted only for historical completed Work
-  Blocks; new Work Blocks use `ALIGNED`.
-- Hosting-platform state is queried externally rather than copied into normative
-  closeout.
-- Live runtime smoke, authentication, plugin/MCP behavior, telemetry, and OS
-  isolation remain separate follow-up work.
-- CI and hooks are governance guardrails, not an OS security boundary.
+- Markdown headings and YAML frontmatter form a versioned schema; schema changes
+  must update validator and fixtures together.
+- Pattern-based mutable-state detection is a governance guardrail, not a general
+  natural-language theorem prover.
+- Hosting-platform state is queried externally rather than committed as normative
+  closeout data.
+- This Work Block does not create a release tag or prove live runtime, provider,
+  plugin/MCP, telemetry, or OS isolation behavior.
 
 ## Recommendation
 
-Run both workflows on the final evidence head. After success, reply to and resolve
-the four second-review threads, request one final Codex Review, and keep integration
-under explicit Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the three third-
+round Codex threads, request one final Codex Review, and keep integration under
+explicit Owner approval.
