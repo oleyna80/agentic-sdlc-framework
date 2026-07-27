@@ -35,14 +35,14 @@ jobs:
             from pathlib import Path
             path = Path("scripts/wb008-ninth-evidence.py")
             text = path.read_text(encoding="utf-8")
-            text = text.replace(
-                "- raw syntax-dependent forms are checked before normalization, including\\n  `**Merge status:** open` and `merged_at`;\\n",
-                "- raw syntax-dependent merge-status markers and merge-timestamp keys are checked\\n  before Markdown normalization;\\n",
-            )
-            text = text.replace(
-                "- [x] Raw `Merge status` and `merged_at` hosting-state forms are rejected.\\n",
-                "- [x] Raw merge-status markers and merge-timestamp keys are rejected.\\n",
-            )
+            old_invariant = r'''    "- bare identifier-plus-state prose is rejected without a connector verb;\n- raw syntax-dependent forms are checked before normalization, including\n  `**Merge status:** open` and `merged_at`;\n- asterisk and underscore Markdown emphasis is normalized before mutable-state\n",'''
+            new_invariant = r'''    "- bare identifier-plus-state prose is rejected without a connector verb;\n- raw syntax-dependent merge-status markers and merge-timestamp keys are checked\n  before Markdown normalization;\n- asterisk and underscore Markdown emphasis is normalized before mutable-state\n",'''
+            old_acceptance = r'''    "- [x] Raw `Merge status` and `merged_at` hosting-state forms are rejected.\n- [x] Italic, bold, combined, underscore, and table Markdown state forms are rejected.\n",'''
+            new_acceptance = r'''    "- [x] Raw merge-status markers and merge-timestamp keys are rejected.\n- [x] Italic, bold, combined, underscore, and table Markdown state forms are rejected.\n",'''
+            if old_invariant not in text or old_acceptance not in text:
+                raise RuntimeError("closeout evidence hotfix anchors are missing")
+            text = text.replace(old_invariant, new_invariant, 1)
+            text = text.replace(old_acceptance, new_acceptance, 1)
             path.write_text(text, encoding="utf-8")
             PY
             python scripts/wb008-ninth-evidence.py
