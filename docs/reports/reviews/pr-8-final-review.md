@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 42b31c75f463a6a1ec77dd07b545d1be21175078
+subject_revision: b1d79c20781d81a37c1fe2fca1a01979a788cf80
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,7 +15,7 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`42b31c75f463a6a1ec77dd07b545d1be21175078` against:
+`b1d79c20781d81a37c1fe2fca1a01979a788cf80` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
@@ -25,7 +25,7 @@ Reviewed implementation revision
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all four Codex Review rounds on PR #8.
+- all five Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,7 +36,7 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Four Codex Review rounds produced eleven P1 findings and one P2 finding. All were
+Five Codex Review rounds produced thirteen P1 findings and one P2 finding. All were
 accepted, fixed, and covered by adversarial fixtures.
 
 ### Initial SSOT and parser findings
@@ -79,12 +79,47 @@ Resolution:
 
 - parsed YAML frontmatter is recursively inspected;
 - key spelling is normalized across underscores, hyphens, spaces, and nesting;
-- PR/pull-request/merge `status` and `state` keys reject mutable state values;
+- compound PR/pull-request/merge `status` and `state` keys reject mutable values;
 - bold Markdown identifier/state forms are rejected;
 - Markdown table rows pairing a pull-request identifier with a mutable state are
   rejected;
 - dedicated fixtures cover direct, nested, bold, plain-table, and bold-table forms;
 - the permitted non-normative ownership statement remains valid.
+
+### Fifth review findings
+
+#### F-016 — VCS parent context was lost during YAML recursion
+
+**Severity:** P1  
+**Resolution:** fixed
+
+Natural nested frontmatter such as `pr: {status: merged}` and
+`pull_request: {state: open}` separated the VCS parent from the generic descendant
+key, allowing both forms to bypass the compound-key check.
+
+Resolution:
+
+- recursive structured inspection now carries an explicit VCS-context flag;
+- normalized `pr`, `pull_request`, `pullrequest`, and `merge` parents establish that
+  context for all descendants, including descendants reached through lists;
+- `status` or `state` under that context rejects exact mutable-state values;
+- exact adversarial fixtures cover both reported YAML forms.
+
+#### F-017 — Mutable state could be appended to the boundary marker
+
+**Severity:** P1  
+**Resolution:** fixed
+
+The `External VCS state` marker previously accepted any value beginning with
+`non-normative`, including `non-normative; current state is merged`.
+
+Resolution:
+
+- boundary validation still requires the non-normative prefix;
+- the remainder of the marker is independently scanned for concrete mutable-state
+  tokens;
+- a fixture rejects the reported appended `merged` form;
+- a dedicated positive fixture preserves a clean boundary-only marker.
 
 ## Contract Review
 
@@ -100,7 +135,7 @@ Resolution:
 
 - Work Block lifecycle and closeout remain repository-owned;
 - mutable hosting-platform assertions are rejected in prose, parsed frontmatter,
-  bold Markdown, and table representations;
+  VCS-parent descendants, boundary-marker payloads, bold Markdown, and tables;
 - external state cannot grant authority or redefine closeout.
 
 **Result:** aligned.
@@ -111,8 +146,10 @@ The fixture suite covers:
 
 - Work Block and closeout exact-value suffix attacks;
 - malformed evaluation rationale;
-- prose, structured frontmatter, nested keys, bold Markdown, and table PR-state
-  assertions;
+- prose, structured frontmatter, normalized compound keys, parent-key descendants,
+  bold Markdown, and table PR-state assertions;
+- mutable state appended to the non-normative marker plus an explicit clean-marker
+  positive case;
 - verb, colon, equals, status/state, underscore, hyphen, and space variants;
 - all previously resolved path, identity, marker, section, and map drift classes.
 
@@ -121,12 +158,12 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`42b31c75f463a6a1ec77dd07b545d1be21175078`.
+`b1d79c20781d81a37c1fe2fca1a01979a788cf80`.
 
 Successful runs:
 
-- Release State Contract run **68**;
-- Framework Contracts run **517**.
+- Release State Contract run **82**;
+- Framework Contracts run **531**.
 
 Earlier failed runs remain failed evidence and were followed by scoped corrections;
 no failing run was converted into a passing claim.
@@ -144,6 +181,6 @@ no failing run was converted into a passing claim.
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the fourth-round
-Codex thread, request one final Codex Review, and keep integration under explicit
-Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the two
+fifth-round Codex threads, request one final Codex Review, and keep integration
+under explicit Owner approval.
