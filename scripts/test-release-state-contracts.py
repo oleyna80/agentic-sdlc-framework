@@ -200,6 +200,15 @@ def main() -> int:
         populate(root)
         assert validator.validate_repository(root)["verdict"] == "READY"
 
+    with tempfile.TemporaryDirectory(prefix="release-state-clean-boundary-") as temp:
+        root = Path(temp)
+        populate(root)
+        write(
+            root / CLOSEOUT,
+            closeout(external="non-normative; ownership boundary only"),
+        )
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
     with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
         root = Path(temp)
         populate(root)
@@ -349,6 +358,14 @@ def main() -> int:
                 "mutable-nested-frontmatter-key",
                 "hosting:\n  pull-request-status: Draft\n",
             ),
+            (
+                "mutable-pr-parent-status",
+                "pr: {status: merged}\n",
+            ),
+            (
+                "mutable-pull-request-parent-state",
+                "pull_request: {state: open}\n",
+            ),
         ):
             populate(root)
             write(root / CLOSEOUT, closeout(frontmatter_extra=frontmatter_extra))
@@ -381,6 +398,17 @@ def main() -> int:
         populate(root)
         write(root / CLOSEOUT, closeout(external="tracked in closeout"))
         expect_failure("missing-external-boundary", root, "mark external VCS state non-normative")
+
+        populate(root)
+        write(
+            root / CLOSEOUT,
+            closeout(external="non-normative; current state is merged"),
+        )
+        expect_failure(
+            "mutable-state-in-external-boundary",
+            root,
+            "external VCS state marker contains concrete mutable",
+        )
 
         populate(root)
         write(root / CLOSEOUT, closeout(include_residual=False))
