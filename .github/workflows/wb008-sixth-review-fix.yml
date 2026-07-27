@@ -1,0 +1,132 @@
+name: WB-008 Sixth Review Fix
+
+on:
+  push:
+    branches:
+      - agent/post-merge-ssot-release-gate
+    paths:
+      - .github/workflows/wb008-sixth-review-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout review branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/post-merge-ssot-release-gate
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Apply sixth-review correction
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one replacement target, found {count}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          validator_anchor = '''        re.IGNORECASE,
+              ),
+              re.compile(
+                  rf"\\*\\*(?:PR|pull[ -]?request)\\s*(?:#\\s*\\d+)?\\s*:\\*\\*\\s*"
+          '''
+          validator_replacement = '''        re.IGNORECASE,
+              ),
+              re.compile(
+                  rf"\\b(?:PR|pull[ -]?request)\\s*(?:#\\s*\\d+)?\\s+"
+                  rf"{MUTABLE_VCS_STATES}\\b",
+                  re.IGNORECASE,
+              ),
+              re.compile(
+                  rf"\\*\\*(?:PR|pull[ -]?request)\\s*(?:#\\s*\\d+)?\\s*:\\*\\*\\s*"
+          '''
+          replace_once(
+              "scripts/validate-release-state.py",
+              validator_anchor,
+              validator_replacement,
+          )
+
+          fixture_anchor = '''            ("mutable-pr-merged", "PR #9 was merged."),
+                      ("mutable-pr-colon-open", "PR #9: open."),
+          '''
+          fixture_replacement = '''            ("mutable-pr-merged", "PR #9 was merged."),
+                      ("mutable-pr-bare-open", "PR #9 open."),
+                      ("mutable-pr-bare-draft", "PR #9 Draft."),
+                      ("mutable-pr-bare-merged", "PR #9 merged."),
+                      ("mutable-pr-bare-ready", "PR #9 ready for review."),
+                      ("mutable-pull-request-bare-closed", "Pull request #9 closed."),
+                      ("mutable-pr-colon-open", "PR #9: open."),
+          '''
+          replace_once(
+              "scripts/test-release-state-contracts.py",
+              fixture_anchor,
+              fixture_replacement,
+          )
+
+          positive_anchor = '''    with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
+                  root = Path(temp)
+          '''
+          positive_replacement = '''    with tempfile.TemporaryDirectory(prefix="release-state-pr-reference-") as temp:
+                  root = Path(temp)
+                  populate(root)
+                  write(
+                      root / CLOSEOUT,
+                      closeout("\\nPR #9 review evidence is repository-owned.\\n"),
+                  )
+                  assert validator.validate_repository(root)["verdict"] == "READY"
+
+              with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
+                  root = Path(temp)
+          '''
+          replace_once(
+              "scripts/test-release-state-contracts.py",
+              positive_anchor,
+              positive_replacement,
+          )
+
+          governance_anchor = '''- prose assertions such as a pull request being open, Draft, or merged;
+          - colon and equals forms;
+          '''
+          governance_replacement = '''- prose assertions such as a pull request being open, Draft, or merged;
+          - terse identifier-plus-state assertions such as `PR #9 merged` or
+            `Pull request #9 closed`;
+          - colon and equals forms;
+          '''
+          replace_once(
+              "governance/release-state.md",
+              governance_anchor,
+              governance_replacement,
+          )
+          PY
+
+      - name: Run release-state checks
+        run: |
+          python scripts/test-release-state-contracts.py
+          python scripts/validate-release-state.py
+
+      - name: Commit correction and remove helper workflow
+        run: |
+          rm .github/workflows/wb008-sixth-review-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md .github/workflows/wb008-sixth-review-fix.yml
+          git commit -m "Harden bare pull-request state assertions"
+          git push origin HEAD:agent/post-merge-ssot-release-gate
