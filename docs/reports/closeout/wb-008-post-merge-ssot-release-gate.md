@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: b1d79c20781d81a37c1fe2fca1a01979a788cf80
+subject_revision: b451ebb7dd3af9636d35f67d7b9432f4debc93f5
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -39,7 +39,7 @@ validator, adversarial fixtures, and two CI paths.
 - added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into Framework Contracts;
-- resolved all findings from five Codex Review rounds.
+- resolved all findings from six Codex Review rounds.
 
 ## Enforced Invariants
 
@@ -60,6 +60,8 @@ validator, adversarial fixtures, and two CI paths.
   descendants under `pr`, `pull_request`, `pullrequest`, or `merge` fail closed;
 - the non-normative boundary marker cannot append a concrete mutable state;
 - a clean boundary-only marker remains valid;
+- bare identifier-plus-state prose is rejected even without a connector verb;
+- a PR reference without a mutable state remains valid;
 - bold Markdown identifier/state forms and Markdown table rows are rejected;
 - release-state evidence remains assurance-only.
 
@@ -72,12 +74,12 @@ validator, adversarial fixtures, and two CI paths.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `b1d79c20781d81a37c1fe2fca1a01979a788cf80`
-- Release State Contract run 82: success
-- Framework Contracts run 531: success
+- Reviewed implementation revision: `b451ebb7dd3af9636d35f67d7b9432f4debc93f5`
+- Release State Contract run 95: success
+- Framework Contracts run 544: success
 
-Earlier failed and corrective runs remain recorded as their actual outcomes. No
-failure was relabelled as passing evidence.
+Earlier failed, corrective, and action-required runs remain recorded as their
+actual outcomes. No non-successful run was relabelled as passing evidence.
 
 ## Acceptance Result
 
@@ -91,6 +93,8 @@ failure was relabelled as passing evidence.
 - [x] Parent-key VCS context is preserved through nested YAML traversal.
 - [x] Mutable boundary-marker payloads are rejected.
 - [x] Clean boundary-only markers remain accepted.
+- [x] Bare identifier-plus-state prose is rejected.
+- [x] Clean PR references without state remain accepted.
 - [x] Bold Markdown and table state forms are rejected.
 - [x] Residual risks and follow-up work are mandatory.
 - [x] Dedicated and full-framework CI pass.
