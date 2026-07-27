@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 770d2c4d0cb1805fc111160ed1440182f151e272
+subject_revision: f711781a3a4eae95657813ee81738c29fee54ff1
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,7 +15,7 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`770d2c4d0cb1805fc111160ed1440182f151e272` against:
+`f711781a3a4eae95657813ee81738c29fee54ff1` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
@@ -25,7 +25,7 @@ Reviewed implementation revision
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all eight Codex Review rounds on PR #8.
+- all nine Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,7 +36,7 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Eight Codex Review rounds produced fourteen P1 findings and four P2 findings. All
+Nine Codex Review rounds produced fourteen P1 findings and five P2 findings. All
 were accepted, fixed, and covered by positive or adversarial fixtures.
 
 ### Initial SSOT and parser findings
@@ -190,6 +190,27 @@ Resolution:
   underscore, and decorated table forms;
 - a positive fixture confirms that emphasized non-state review prose remains valid.
 
+### Ninth review finding
+
+#### F-022 — Markdown normalization disabled raw syntax-dependent VCS checks
+
+**Severity:** P2  
+**Resolution:** fixed
+
+The eighth-round normalization ran before every mutable-state regex. That removed the
+asterisks required by the raw `**Merge status:**` pattern and removed the underscore
+from `merged_at`, allowing both hosting-state forms to bypass detection.
+
+Resolution:
+
+- raw syntax-dependent patterns run against the original complete closeout text;
+- semantic PR/pull-request state patterns run separately against the Markdown-
+  normalized copy;
+- exact adversarial fixtures reject `- **Merge status:** open` and a `merged_at`
+  timestamp;
+- all earlier italic, bold, combined-emphasis, underscore, table, and clean non-state
+  fixtures remain green.
+
 ## Contract Review
 
 ### Exact terminal-state semantics
@@ -203,6 +224,7 @@ Resolution:
 ### Repository and hosting-platform boundary
 
 - Work Block lifecycle and closeout remain repository-owned;
+- syntax-dependent raw forms are checked on original text before normalization;
 - mutable hosting-platform assertions are rejected across prose, parsed frontmatter,
   VCS-parent descendants, boundary-marker payloads, and Markdown forms normalized
   before semantic state matching;
@@ -219,6 +241,7 @@ The fixture suite covers:
 - malformed evaluation rationale;
 - connector and bare prose, structured frontmatter, normalized compound keys,
   parent-key descendants, and Markdown/table assertions;
+- raw `**Merge status:** open` and `merged_at` hosting-state forms;
 - italic, bold, combined asterisk, underscore, and combined-underscore state values;
 - a positive emphasized non-state PR reference;
 - mutable state appended to the non-normative marker plus a clean-marker positive;
@@ -230,15 +253,15 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`770d2c4d0cb1805fc111160ed1440182f151e272`.
+`f711781a3a4eae95657813ee81738c29fee54ff1`.
 
 Workflow-restored validation head:
-`7d05b855e03701e15dce6dd522aec050dda10753`.
+`9657b92634463c6fe316ead3909615ff9763621c`.
 
 Successful runs:
 
-- Release State Contract run **153**;
-- Framework Contracts run **602**.
+- Release State Contract run **168**;
+- Framework Contracts run **617**.
 
 Earlier failed, corrective, action-required, and helper-workflow runs remain recorded
 as their actual outcomes; no non-successful run was converted into passing evidence.
@@ -247,9 +270,8 @@ as their actual outcomes; no non-successful run was converted into passing evide
 
 - Markdown headings and YAML frontmatter form a versioned schema; schema changes
   must update validator and fixtures together.
-- Markdown emphasis normalization intentionally removes asterisk and underscore
-  decoration before VCS-state matching; it is a governance parser, not a complete
-  CommonMark renderer.
+- Raw syntax-dependent checks run before Markdown normalization; the normalized
+  semantic pass remains a governance parser, not a complete CommonMark renderer.
 - Historical discovery validates existing closeout reports bound to known completed
   Work Block IDs; it does not infer missing legacy closeouts that were never created.
 - Pattern and structured-key detection are governance guardrails, not a general
@@ -261,6 +283,6 @@ as their actual outcomes; no non-successful run was converted into passing evide
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the eighth-round
+Run both workflows on the final evidence head, reply to and resolve the ninth-round
 Codex thread, request one final Codex Review, and keep integration under explicit
 Owner approval.
