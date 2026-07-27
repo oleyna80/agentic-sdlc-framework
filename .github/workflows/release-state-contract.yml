@@ -7,68 +7,9 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch-eighth-review:
-    if: github.event_name == 'pull_request' && github.head_ref == 'agent/post-merge-ssot-release-gate'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout review branch
-        uses: actions/checkout@v4
-        with:
-          ref: agent/post-merge-ssot-release-gate
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install validation dependency
-        run: python -m pip install --disable-pip-version-check PyYAML
-
-      - name: Apply and verify eighth-review fix
-        shell: bash
-        run: |
-          set +e
-          (
-            if [ ! -f scripts/wb008-eighth-review-fix.py ]; then
-              echo "Eighth-review helper already consumed; no patch required."
-              exit 0
-            fi
-            python scripts/wb008-eighth-review-fix.py
-            python -m py_compile scripts/validate-release-state.py scripts/test-release-state-contracts.py
-            python scripts/test-release-state-contracts.py
-            python scripts/validate-release-state.py
-            bash scripts/validate-governance.sh
-          ) > /tmp/wb008-eighth-review.log 2>&1
-          status=$?
-          cat /tmp/wb008-eighth-review.log
-          exit $status
-
-      - name: Upload patch diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: wb008-eighth-review-diagnostic
-          path: /tmp/wb008-eighth-review.log
-
-      - name: Commit eighth-review fix
-        shell: bash
-        run: |
-          if [ ! -f scripts/wb008-eighth-review-fix.py ]; then
-            echo "Eighth-review helper already consumed; no commit required."
-            exit 0
-          fi
-          rm scripts/wb008-eighth-review-fix.py
-          git config user.name "oleyna80"
-          git config user.email "209451099+oleyna80@users.noreply.github.com"
-          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md scripts/wb008-eighth-review-fix.py
-          git commit -m "fix: normalize markdown before VCS state matching"
-          git push origin HEAD:agent/post-merge-ssot-release-gate
-
   release-state:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
