@@ -23,6 +23,10 @@ MARKER_RE = re.compile(
     r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$", re.MULTILINE
 )
 MUTABLE_VCS_STATES = r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)"
+MUTABLE_VCS_STATE_RE = re.compile(rf"^{MUTABLE_VCS_STATES}$", re.IGNORECASE)
+STRUCTURED_VCS_KEY_RE = re.compile(
+    r"^(?:pr|pull_request|pullrequest|merge)_(?:status|state)$", re.IGNORECASE
+)
 MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
@@ -35,9 +39,19 @@ MUTABLE_CLOSEOUT_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(
+        rf"\*\*(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*:\*\*\s*"
+        rf"{MUTABLE_VCS_STATES}\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s+(?:status|state):\*\*\s*"
         rf"{MUTABLE_VCS_STATES}\b",
         re.IGNORECASE,
+    ),
+    re.compile(
+        rf"^\s*\|\s*(?:\*\*)?(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?"
+        rf"(?:\*\*)?\s*\|\s*{MUTABLE_VCS_STATES}\s*\|",
+        re.IGNORECASE | re.MULTILINE,
     ),
 )
 STALE_MAP_PATTERNS = (
@@ -268,7 +282,31 @@ def validate_release_assets(root: Path, release_state: dict[str, Any]) -> None:
         raise ReleaseStateError("release_state.authority must be assurance_only")
 
 
-def reject_mutable_vcs_claims(text: str, label: str) -> None:
+def normalized_structured_key(value: object) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(value).strip().lower()).strip("_")
+
+
+def reject_structured_vcs_claims(value: object, label: str, path: str = "frontmatter") -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized_key = normalized_structured_key(key)
+            current_path = f"{path}.{key}"
+            if STRUCTURED_VCS_KEY_RE.fullmatch(normalized_key):
+                if isinstance(child, str) and MUTABLE_VCS_STATE_RE.fullmatch(child.strip()):
+                    raise ReleaseStateError(
+                        f"{label} contains mutable GitHub/VCS state at {current_path}"
+                    )
+            reject_structured_vcs_claims(child, label, current_path)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_structured_vcs_claims(child, label, f"{path}[{index}]")
+
+
+def reject_mutable_vcs_claims(
+    text: str, label: str, structured: object | None = None
+) -> None:
+    if structured is not None:
+        reject_structured_vcs_claims(structured, label)
     for pattern in MUTABLE_CLOSEOUT_PATTERNS:
         if pattern.search(text):
             raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
@@ -353,7 +391,7 @@ def validate_closeout(
 
     extract_single_section(body, "Residual Risks and Limitations", "closeout")
     extract_single_section(body, "Follow-Up Work", "closeout")
-    reject_mutable_vcs_claims(full_text, "closeout")
+    reject_mutable_vcs_claims(full_text, "closeout", frontmatter)
 
 
 def migration_section(text: str) -> str:
