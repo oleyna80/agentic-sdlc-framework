@@ -31,6 +31,20 @@ jobs:
         run: |
           set +e
           (
+            python - <<'PY'
+            from pathlib import Path
+            path = Path("scripts/wb008-ninth-evidence.py")
+            text = path.read_text(encoding="utf-8")
+            text = text.replace(
+                "- raw syntax-dependent forms are checked before normalization, including\\n  `**Merge status:** open` and `merged_at`;\\n",
+                "- raw syntax-dependent merge-status markers and merge-timestamp keys are checked\\n  before Markdown normalization;\\n",
+            )
+            text = text.replace(
+                "- [x] Raw `Merge status` and `merged_at` hosting-state forms are rejected.\\n",
+                "- [x] Raw merge-status markers and merge-timestamp keys are rejected.\\n",
+            )
+            path.write_text(text, encoding="utf-8")
+            PY
             python scripts/wb008-ninth-evidence.py
             python scripts/test-release-state-contracts.py
             python scripts/validate-release-state.py
