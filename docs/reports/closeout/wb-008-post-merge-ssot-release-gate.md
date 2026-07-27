@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: 42b31c75f463a6a1ec77dd07b545d1be21175078
+subject_revision: b1d79c20781d81a37c1fe2fca1a01979a788cf80
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -39,7 +39,7 @@ validator, adversarial fixtures, and two CI paths.
 - added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into Framework Contracts;
-- resolved all findings from four Codex Review rounds.
+- resolved all findings from five Codex Review rounds.
 
 ## Enforced Invariants
 
@@ -54,8 +54,12 @@ validator, adversarial fixtures, and two CI paths.
 - residual-risk and follow-up sections are mandatory and non-empty;
 - the entire closeout document is checked for prohibited mutable external-state
   assertions;
-- parsed YAML frontmatter rejects direct and nested PR/pull-request/merge state
-  keys with mutable values;
+- parsed YAML frontmatter rejects normalized direct and compound
+  PR/pull-request/merge state keys with mutable values;
+- VCS parent context is preserved during recursion so generic `status` or `state`
+  descendants under `pr`, `pull_request`, `pullrequest`, or `merge` fail closed;
+- the non-normative boundary marker cannot append a concrete mutable state;
+- a clean boundary-only marker remains valid;
 - bold Markdown identifier/state forms and Markdown table rows are rejected;
 - release-state evidence remains assurance-only.
 
@@ -68,9 +72,9 @@ validator, adversarial fixtures, and two CI paths.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `42b31c75f463a6a1ec77dd07b545d1be21175078`
-- Release State Contract run 68: success
-- Framework Contracts run 517: success
+- Reviewed implementation revision: `b1d79c20781d81a37c1fe2fca1a01979a788cf80`
+- Release State Contract run 82: success
+- Framework Contracts run 531: success
 
 Earlier failed and corrective runs remain recorded as their actual outcomes. No
 failure was relabelled as passing evidence.
@@ -83,7 +87,10 @@ failure was relabelled as passing evidence.
 - [x] Exact non-evaluation verdict semantics are enforced.
 - [x] Evaluation rationale is limited to documented `SKIPPED`.
 - [x] Mutable external-state checks cover prose and the complete document.
-- [x] Structured direct and nested frontmatter forms are rejected.
+- [x] Structured direct and compound frontmatter forms are rejected.
+- [x] Parent-key VCS context is preserved through nested YAML traversal.
+- [x] Mutable boundary-marker payloads are rejected.
+- [x] Clean boundary-only markers remain accepted.
 - [x] Bold Markdown and table state forms are rejected.
 - [x] Residual risks and follow-up work are mandatory.
 - [x] Dedicated and full-framework CI pass.
