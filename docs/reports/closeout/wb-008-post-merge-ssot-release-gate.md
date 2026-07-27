@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: 029a0dd9ac9f48af066f9cc04aac30d186fdb8ea
+subject_revision: 42b31c75f463a6a1ec77dd07b545d1be21175078
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -39,7 +39,7 @@ validator, adversarial fixtures, and two CI paths.
 - added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into Framework Contracts;
-- resolved all findings from three Codex Review rounds.
+- resolved all findings from four Codex Review rounds.
 
 ## Enforced Invariants
 
@@ -52,8 +52,11 @@ validator, adversarial fixtures, and two CI paths.
 - visible migration navigation matches machine state;
 - latest completed and closeout identity bind exactly;
 - residual-risk and follow-up sections are mandatory and non-empty;
-- the entire closeout document, including frontmatter, is checked for prohibited
-  mutable external-state assertions;
+- the entire closeout document is checked for prohibited mutable external-state
+  assertions;
+- parsed YAML frontmatter rejects direct and nested PR/pull-request/merge state
+  keys with mutable values;
+- bold Markdown identifier/state forms and Markdown table rows are rejected;
 - release-state evidence remains assurance-only.
 
 ## Evidence
@@ -65,9 +68,9 @@ validator, adversarial fixtures, and two CI paths.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`
-- Release State Contract run 54: success
-- Framework Contracts run 503: success
+- Reviewed implementation revision: `42b31c75f463a6a1ec77dd07b545d1be21175078`
+- Release State Contract run 68: success
+- Framework Contracts run 517: success
 
 Earlier failed and corrective runs remain recorded as their actual outcomes. No
 failure was relabelled as passing evidence.
@@ -79,8 +82,9 @@ failure was relabelled as passing evidence.
 - [x] Work Block, map, registry, and closeout agree.
 - [x] Exact non-evaluation verdict semantics are enforced.
 - [x] Evaluation rationale is limited to documented `SKIPPED`.
-- [x] Mutable external-state checks cover body and frontmatter.
-- [x] Common status assertion forms have adversarial coverage.
+- [x] Mutable external-state checks cover prose and the complete document.
+- [x] Structured direct and nested frontmatter forms are rejected.
+- [x] Bold Markdown and table state forms are rejected.
 - [x] Residual risks and follow-up work are mandatory.
 - [x] Dedicated and full-framework CI pass.
 - [x] Review and drift evidence are synchronized.
@@ -90,8 +94,8 @@ failure was relabelled as passing evidence.
 
 - YAML frontmatter and Markdown headings form a versioned schema; future schema
   changes must update validator and fixtures together.
-- Pattern-based assertion detection is a governance guardrail, not a complete
-  natural-language proof system.
+- Pattern and structured-key assertion detection are governance guardrails, not a
+  complete natural-language proof system.
 - Current hosting-platform state is queried externally rather than copied into
   normative repository closeout.
 - CI and hooks are not an OS security boundary.
