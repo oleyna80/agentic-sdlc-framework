@@ -7,77 +7,30 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch-seventh-review:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/agent/post-merge-ssot-release-gate') || (github.event_name == 'pull_request' && github.head_ref == 'agent/post-merge-ssot-release-gate')
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout review branch
-        uses: actions/checkout@v4
-        with:
-          ref: agent/post-merge-ssot-release-gate
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install validation dependency
-        run: python -m pip install --disable-pip-version-check PyYAML
-
-      - name: Patch and verify seventh-review findings
-        shell: bash
-        run: |
-          set +e
-          (
-            python scripts/wb008-seventh-review-adjust.py
-            python scripts/wb008-seventh-review-fix.py
-            python -m py_compile scripts/validate-release-state.py scripts/test-release-state-contracts.py
-            python scripts/test-release-state-contracts.py
-            python scripts/validate-release-state.py
-            bash scripts/validate-governance.sh
-          ) > /tmp/wb008-seventh-review.log 2>&1
-          status=$?
-          cat /tmp/wb008-seventh-review.log
-          exit $status
-
-      - name: Upload patch diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: wb008-seventh-review-diagnostic
-          path: /tmp/wb008-seventh-review.log
-
-      - name: Commit verified implementation
-        shell: bash
-        run: |
-          rm -f .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py scripts/wb008-seventh-review-adjust.py
-          git config user.name "oleyna80"
-          git config user.email "209451099+oleyna80@users.noreply.github.com"
-          git add -A scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py scripts/wb008-seventh-review-adjust.py
-          git commit -m "fix: validate historical closeout evidence"
-          git push origin HEAD:agent/post-merge-ssot-release-gate
-
   release-state:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check PyYAML
+
       - name: Check release-state validator syntax
         run: |
           python - <<'PY'
           from pathlib import Path
+
           for relative in (
               "scripts/validate-release-state.py",
               "scripts/test-release-state-contracts.py",
@@ -86,7 +39,9 @@ jobs:
               compile(path.read_text(encoding="utf-8"), relative, "exec")
               print(f"syntax OK: {relative}")
           PY
+
       - name: Run adversarial release-state fixtures
         run: python scripts/test-release-state-contracts.py
+
       - name: Validate repository release state
         run: python scripts/validate-release-state.py
