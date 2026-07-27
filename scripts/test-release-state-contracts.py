@@ -21,6 +21,7 @@ COMPLETED = "docs/plans/wb-007-agent-evaluation-trajectory-assurance.md"
 OLDER = "docs/plans/wb-006-bootstrap-restore-hardening.md"
 ACTIVE = "docs/plans/wb-008-post-merge-ssot-release-gate.md"
 CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"
+OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"
 
 
 def write(path: Path, content: str) -> None:
@@ -218,6 +219,14 @@ def main() -> int:
         )
         assert validator.validate_repository(root)["verdict"] == "READY"
 
+    with tempfile.TemporaryDirectory(prefix="release-state-historical-closeout-") as temp:
+        root = Path(temp)
+        completed = [OLDER, COMPLETED]
+        populate(root, registry(completed), project_map(completed))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(root / OLDER_CLOSEOUT, closeout(work_block_id="wb-006", evaluation=None))
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
     with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
         root = Path(temp)
         populate(root)
@@ -357,6 +366,8 @@ def main() -> int:
             ("mutable-pr-colon-draft", "PR #9: Draft."),
             ("mutable-pr-colon-merged", "PR #9: merged."),
             ("mutable-pr-bold-colon", "**PR #9:** merged"),
+            ("mutable-pr-bold-state", "**PR #9:** **merged**"),
+            ("mutable-pr-table-bold-state", "| **PR #9** | **open** |"),
             ("mutable-pr-table", "| PR #9 | merged |"),
             ("mutable-pr-bold-table", "| **PR #9** | open |"),
         ):
@@ -423,6 +434,19 @@ def main() -> int:
             root,
             "external VCS state marker contains concrete mutable",
         )
+
+        populate(root, registry([OLDER, COMPLETED]), project_map([OLDER, COMPLETED]))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(
+            root / OLDER_CLOSEOUT,
+            closeout(work_block_id="wb-006", evaluation=None, review="BLOCKED"),
+        )
+        expect_failure(
+            "historical-closeout-blocked-review",
+            root,
+            "review verdict=READY",
+        )
+        (root / OLDER_CLOSEOUT).unlink()
 
         populate(root)
         write(root / CLOSEOUT, closeout(include_residual=False))

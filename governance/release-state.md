@@ -118,12 +118,18 @@ frontmatter and Markdown body. It rejects:
   hyphen/space variants when their value is a mutable state;
 - parent-key forms such as `pr: {status: merged}` or
   `pull_request: {state: open}` by carrying VCS context through descendant fields;
-- bold Markdown forms such as a pull-request identifier followed by a state;
+- bold Markdown forms such as a pull-request identifier followed by a state, including Markdown decoration around the state token itself;
 - Markdown table rows that pair a pull-request identifier with a mutable state;
 - merge timestamps, merge commit state, or equivalent hosting-platform facts.
 
 A clean non-normative ownership statement remains permitted; a concrete mutable
 state assertion does not, including when appended to the boundary marker itself.
+
+Every existing `closeout_report` under `docs/reports/closeout/` that binds to a
+completed Work Block ID must retain approved status, exact successful lifecycle
+markers, matching evaluation semantics, a non-normative external-state boundary,
+and the required residual-risk and follow-up sections. Historical closeout drift
+fails closed even when the latest closeout remains valid.
 
 ### Fail-Closed Release Readiness
 
@@ -139,9 +145,11 @@ validator must reject at least:
 - closeout identity mismatch or duplicate markers;
 - missing or malformed required evaluation evidence;
 - missing residual-risk or follow-up sections;
-- normative mutable GitHub-state claims anywhere in closeout evidence, including
-  terse identifier-plus-state prose, structured frontmatter, VCS parent-key
-  descendants, boundary-marker payloads, and common Markdown forms.
+- normative mutable GitHub-state claims anywhere in the current canonical closeout,
+  including terse identifier-plus-state prose, structured frontmatter, VCS parent-key
+  descendants, boundary-marker payloads, and common Markdown forms;
+- adverse or contradictory lifecycle evidence in any existing closeout report bound
+  to a completed Work Block ID.
 
 ## Enforcement
 

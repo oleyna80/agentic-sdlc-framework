@@ -25,6 +25,7 @@ MARKER_RE = re.compile(
 MUTABLE_VCS_STATES = r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)"
 MUTABLE_VCS_STATE_RE = re.compile(rf"^{MUTABLE_VCS_STATES}$", re.IGNORECASE)
 MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\b{MUTABLE_VCS_STATES}\b", re.IGNORECASE)
+MARKDOWN_MUTABLE_VCS_STATE = rf"(?:\*\*)?{MUTABLE_VCS_STATES}\b(?:\*\*)?"
 STRUCTURED_VCS_KEY_RE = re.compile(
     r"^(?:pr|pull_request|pullrequest|merge)_(?:status|state)$", re.IGNORECASE
 )
@@ -40,27 +41,27 @@ MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(
         rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*"
         rf"(?:(?::|=)\s*|(?:is|was|remains?|became|has\s+been)\s*|"
-        rf"(?:status|state)\s*(?:is|=|:)\s*){MUTABLE_VCS_STATES}\b",
+        rf"(?:status|state)\s*(?:is|=|:)\s*){MARKDOWN_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s+"
-        rf"{MUTABLE_VCS_STATES}\b",
+        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*:\*\*\s*"
-        rf"{MUTABLE_VCS_STATES}\b",
+        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s+(?:status|state):\*\*\s*"
-        rf"{MUTABLE_VCS_STATES}\b",
+        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"^\s*\|\s*(?:\*\*)?(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?"
-        rf"(?:\*\*)?\s*\|\s*{MUTABLE_VCS_STATES}\s*\|",
+        rf"(?:\*\*)?\s*\|\s*{MARKDOWN_MUTABLE_VCS_STATE}\s*\|",
         re.IGNORECASE | re.MULTILINE,
     ),
 )
@@ -356,6 +357,101 @@ def validate_external_vcs_boundary(value: str) -> None:
         )
 
 
+def validate_completed_closeout_reports(
+    root: Path,
+    completed_records: dict[str, dict[str, Any]],
+    canonical_closeout: str,
+) -> None:
+    reports_root = root / "docs/reports/closeout"
+    if not reports_root.is_dir():
+        return
+
+    completed_by_id = {
+        str(record["frontmatter"]["work_block_id"]): record
+        for record in completed_records.values()
+    }
+    seen: dict[str, str] = {}
+
+    for path in sorted(reports_root.rglob("*.md")):
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise ReleaseStateError(
+                f"cannot read closeout report {path}: {exc}"
+            ) from exc
+        if not raw.startswith("---\n"):
+            continue
+
+        relative = path.relative_to(root).as_posix()
+        if relative == canonical_closeout:
+            continue
+        label = f"completed Work Block closeout {relative}"
+        frontmatter, body, _ = parse_frontmatter(path, label)
+        if frontmatter.get("artifact_type") != "closeout_report":
+            continue
+
+        work_block_id = frontmatter.get("work_block_id")
+        if work_block_id not in completed_by_id:
+            continue
+        if work_block_id in seen:
+            raise ReleaseStateError(
+                f"completed Work Block {work_block_id} has multiple closeout reports: "
+                f"{seen[work_block_id]} and {relative}"
+            )
+        seen[str(work_block_id)] = relative
+
+        if frontmatter.get("status") != "approved":
+            raise ReleaseStateError(f"{label} must be approved")
+
+        markers = parse_markers(body, label)
+        required_exact = {
+            "stage execution state": "completed",
+            "review verdict": "READY",
+            "verification verdict": "READY",
+            "drift verdict": "ALIGNED",
+            "closeout classification": "SUCCESS",
+            "task status": "completed",
+        }
+        for key, expected in required_exact.items():
+            actual = markers.get(key)
+            if actual != expected:
+                raise ReleaseStateError(
+                    f"{label} requires {key}={expected}, found {actual!r}"
+                )
+
+        work_block_evaluation = completed_by_id[str(work_block_id)][
+            "markers"
+        ].get("evaluation verdict")
+        closeout_evaluation = markers.get("evaluation verdict")
+        if work_block_evaluation is not None:
+            expected_evaluation = evaluation_verdict(
+                work_block_evaluation,
+                f"completed Work Block {work_block_id} evaluation verdict",
+            )
+            if closeout_evaluation is None:
+                raise ReleaseStateError(
+                    f"{label} requires evaluation verdict={expected_evaluation}"
+                )
+            actual_evaluation = evaluation_verdict(
+                closeout_evaluation, f"{label} evaluation verdict"
+            )
+            if actual_evaluation != expected_evaluation:
+                raise ReleaseStateError(
+                    f"{label} requires evaluation verdict={expected_evaluation}, "
+                    f"found {actual_evaluation!r}"
+                )
+        elif closeout_evaluation is not None:
+            evaluation_verdict(
+                closeout_evaluation, f"{label} evaluation verdict"
+            )
+
+        validate_external_vcs_boundary(markers.get("external vcs state", ""))
+        extract_single_section(
+            body, "Residual Risks and Limitations", label
+        )
+        extract_single_section(body, "Follow-Up Work", label)
+
+
 def validate_closeout(
     root: Path,
     release_state: dict[str, Any],
@@ -514,6 +610,9 @@ def validate_repository(root: Path) -> dict[str, Any]:
     if not isinstance(release_state, dict):
         raise ReleaseStateError("FILE_REGISTRY.yml requires release_state")
     validate_release_assets(root, release_state)
+    validate_completed_closeout_reports(
+        root, completed_records, str(release_state.get("closeout_report", ""))
+    )
     validate_closeout(root, release_state, completed, completed_records)
 
     return {
