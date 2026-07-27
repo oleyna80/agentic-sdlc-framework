@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 9ae16b927aa072a81f4fdc58a773fddeb8aafac8
+subject_revision: 770d2c4d0cb1805fc111160ed1440182f151e272
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,7 +15,7 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`9ae16b927aa072a81f4fdc58a773fddeb8aafac8` against:
+`770d2c4d0cb1805fc111160ed1440182f151e272` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
@@ -25,7 +25,7 @@ Reviewed implementation revision
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all seven Codex Review rounds on PR #8.
+- all eight Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,7 +36,7 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Seven Codex Review rounds produced fourteen P1 findings and three P2 findings. All
+Eight Codex Review rounds produced fourteen P1 findings and four P2 findings. All
 were accepted, fixed, and covered by positive or adversarial fixtures.
 
 ### Initial SSOT and parser findings
@@ -169,6 +169,27 @@ Resolution:
   complete-document mutable-state validation;
 - positive and adverse historical-closeout fixtures prove both paths.
 
+### Eighth review finding
+
+#### F-021 — Italic and combined Markdown emphasis bypassed state matching
+
+**Severity:** P2  
+**Resolution:** fixed
+
+The seventh-round fragment recognized plain and optional double-star state tokens,
+but forms such as `PR #9: *merged*`, `**PR #9:** ***merged***`, and underscore
+emphasis still bypassed detection.
+
+Resolution:
+
+- asterisk and underscore Markdown emphasis is normalized out of the canonical
+  closeout text before semantic mutable-state matching;
+- the state patterns operate on normalized text rather than enumerating individual
+  emphasis spellings;
+- adversarial fixtures cover italic, bold-plus-italic, underscore, combined
+  underscore, and decorated table forms;
+- a positive fixture confirms that emphasized non-state review prose remains valid.
+
 ## Contract Review
 
 ### Exact terminal-state semantics
@@ -183,7 +204,8 @@ Resolution:
 
 - Work Block lifecycle and closeout remain repository-owned;
 - mutable hosting-platform assertions are rejected across prose, parsed frontmatter,
-  VCS-parent descendants, boundary-marker payloads, and Markdown forms;
+  VCS-parent descendants, boundary-marker payloads, and Markdown forms normalized
+  before semantic state matching;
 - historical closeouts cannot retain adverse lifecycle evidence unnoticed;
 - external state cannot grant authority or redefine closeout.
 
@@ -196,9 +218,10 @@ The fixture suite covers:
 - Work Block and closeout exact-value suffix attacks;
 - malformed evaluation rationale;
 - connector and bare prose, structured frontmatter, normalized compound keys,
-  parent-key descendants, Markdown-decorated state values, and table assertions;
+  parent-key descendants, and Markdown/table assertions;
+- italic, bold, combined asterisk, underscore, and combined-underscore state values;
+- a positive emphasized non-state PR reference;
 - mutable state appended to the non-normative marker plus a clean-marker positive;
-- a positive PR reference carrying no mutable state;
 - valid and adverse historical closeouts bound to completed Work Blocks;
 - all previously resolved path, identity, marker, section, and map drift classes.
 
@@ -207,15 +230,15 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`9ae16b927aa072a81f4fdc58a773fddeb8aafac8`.
+`770d2c4d0cb1805fc111160ed1440182f151e272`.
 
 Workflow-restored validation head:
-`1b46c028fb7e1205dda77820694e8b9a43f2f406`.
+`7d05b855e03701e15dce6dd522aec050dda10753`.
 
 Successful runs:
 
-- Release State Contract run **134**;
-- Framework Contracts run **583**.
+- Release State Contract run **153**;
+- Framework Contracts run **602**.
 
 Earlier failed, corrective, action-required, and helper-workflow runs remain recorded
 as their actual outcomes; no non-successful run was converted into passing evidence.
@@ -224,6 +247,9 @@ as their actual outcomes; no non-successful run was converted into passing evide
 
 - Markdown headings and YAML frontmatter form a versioned schema; schema changes
   must update validator and fixtures together.
+- Markdown emphasis normalization intentionally removes asterisk and underscore
+  decoration before VCS-state matching; it is a governance parser, not a complete
+  CommonMark renderer.
 - Historical discovery validates existing closeout reports bound to known completed
   Work Block IDs; it does not infer missing legacy closeouts that were never created.
 - Pattern and structured-key detection are governance guardrails, not a general
@@ -235,6 +261,6 @@ as their actual outcomes; no non-successful run was converted into passing evide
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the two
-seventh-round Codex threads, request one final Codex Review, and keep integration
-under explicit Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the eighth-round
+Codex thread, request one final Codex Review, and keep integration under explicit
+Owner approval.
