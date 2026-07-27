@@ -333,17 +333,26 @@ def main() -> int:
             ("mutable-pr-colon-open", "PR #9: open."),
             ("mutable-pr-colon-draft", "PR #9: Draft."),
             ("mutable-pr-colon-merged", "PR #9: merged."),
+            ("mutable-pr-bold-colon", "**PR #9:** merged"),
+            ("mutable-pr-table", "| PR #9 | merged |"),
+            ("mutable-pr-bold-table", "| **PR #9** | open |"),
         ):
             populate(root)
             write(root / CLOSEOUT, closeout(f"\n{assertion}\n"))
             expect_failure(label, root, "mutable GitHub/VCS state")
 
-        populate(root)
-        write(
-            root / CLOSEOUT,
-            closeout(frontmatter_extra='release_note: "PR #9 is merged"\n'),
-        )
-        expect_failure("mutable-pr-frontmatter", root, "mutable GitHub/VCS state")
+        for label, frontmatter_extra in (
+            ("mutable-pr-frontmatter-prose", 'release_note: "PR #9 is merged"\n'),
+            ("mutable-pr-frontmatter-key", "pr_status: merged\n"),
+            ("mutable-pull-request-frontmatter-key", "pull_request_state: open\n"),
+            (
+                "mutable-nested-frontmatter-key",
+                "hosting:\n  pull-request-status: Draft\n",
+            ),
+        ):
+            populate(root)
+            write(root / CLOSEOUT, closeout(frontmatter_extra=frontmatter_extra))
+            expect_failure(label, root, "mutable GitHub/VCS state")
 
         for label, kwargs, expected in (
             ("closeout-review-suffix", {"review": "READY — BLOCKED"}, "review verdict=READY"),
