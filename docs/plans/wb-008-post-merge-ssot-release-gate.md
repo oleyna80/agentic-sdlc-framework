@@ -26,7 +26,7 @@ executable fail-closed release-state gate.
 - added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state checks into Framework Contracts;
-- resolved five Codex Review rounds with dedicated regressions.
+- resolved six Codex Review rounds with dedicated regressions.
 
 ## Final Invariants
 
@@ -47,8 +47,10 @@ executable fail-closed release-state gate.
     such as `pr: {status: merged}` and `pull_request: {state: open}` fail closed.
 13. The `External VCS state` boundary marker may declare only non-normative
     ownership and cannot append a concrete mutable state.
-14. Bold Markdown identifier/state forms and Markdown table rows are rejected.
-15. Release-state evidence is assurance-only and cannot authorize external actions.
+14. Terse identifier-plus-state prose such as `PR #9 merged` and
+    `Pull request #9 closed` is rejected without requiring a connector verb.
+15. Bold Markdown identifier/state forms and Markdown table rows are rejected.
+16. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
@@ -65,9 +67,9 @@ changes to runtime/integration authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `b1d79c20781d81a37c1fe2fca1a01979a788cf80`
-- Release State Contract run 82: success
-- Framework Contracts run 531: success
+- Reviewed implementation revision: `b451ebb7dd3af9636d35f67d7b9432f4debc93f5`
+- Release State Contract run 95: success
+- Framework Contracts run 544: success
 
 ## Acceptance Result
 
@@ -81,6 +83,8 @@ changes to runtime/integration authority.
 - [x] Parent-key VCS context is preserved through nested YAML traversal.
 - [x] Mutable state appended to the non-normative boundary marker is rejected.
 - [x] A clean boundary-only marker remains valid.
+- [x] Bare identifier-plus-state prose has negative regressions.
+- [x] A PR reference without mutable state remains valid.
 - [x] Bold Markdown and table state forms have regressions.
 - [x] Required closeout sections are enforced.
 - [x] Dedicated and full-framework CI pass.
