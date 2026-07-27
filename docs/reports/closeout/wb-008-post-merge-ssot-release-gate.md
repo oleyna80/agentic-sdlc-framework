@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: 9ae16b927aa072a81f4fdc58a773fddeb8aafac8
+subject_revision: 770d2c4d0cb1805fc111160ed1440182f151e272
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -40,7 +40,7 @@ adversarial fixtures, and two CI paths.
 - added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into Framework Contracts;
-- resolved all findings from seven Codex Review rounds.
+- resolved all findings from eight Codex Review rounds.
 
 ## Enforced Invariants
 
@@ -60,8 +60,9 @@ adversarial fixtures, and two CI paths.
 - VCS parent context is preserved during nested traversal;
 - the non-normative boundary marker cannot append a concrete mutable state;
 - bare identifier-plus-state prose is rejected without a connector verb;
-- Markdown decoration around a mutable state token cannot bypass prose or table
-  detection;
+- asterisk and underscore Markdown emphasis is normalized before mutable-state
+  matching, covering italic, bold, combined emphasis, and decorated table cells;
+- emphasized non-state review prose remains permitted;
 - existing closeout reports bound to completed Work Block IDs require approved and
   exact successful lifecycle evidence, matching evaluation semantics, a valid
   external-state boundary, and required sections;
@@ -77,10 +78,10 @@ adversarial fixtures, and two CI paths.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `9ae16b927aa072a81f4fdc58a773fddeb8aafac8`
-- Workflow-restored validation head: `1b46c028fb7e1205dda77820694e8b9a43f2f406`
-- Release State Contract run 134: success
-- Framework Contracts run 583: success
+- Reviewed implementation revision: `770d2c4d0cb1805fc111160ed1440182f151e272`
+- Workflow-restored validation head: `7d05b855e03701e15dce6dd522aec050dda10753`
+- Release State Contract run 153: success
+- Framework Contracts run 602: success
 
 Earlier failed, corrective, action-required, and helper-workflow runs remain recorded
 as their actual outcomes. No non-successful run was relabelled as passing evidence.
@@ -99,7 +100,8 @@ as their actual outcomes. No non-successful run was relabelled as passing eviden
 - [x] Clean boundary-only markers remain accepted.
 - [x] Bare identifier-plus-state prose is rejected.
 - [x] Clean PR references without state remain accepted.
-- [x] Markdown-decorated state values and table forms are rejected.
+- [x] Italic, bold, combined, underscore, and table Markdown state forms are rejected.
+- [x] Markdown-decorated non-state prose remains accepted.
 - [x] Existing historical closeouts bound to completed Work Blocks are validated.
 - [x] Residual risks and follow-up work are mandatory.
 - [x] Dedicated and full-framework CI pass.
@@ -110,6 +112,9 @@ as their actual outcomes. No non-successful run was relabelled as passing eviden
 
 - YAML frontmatter and Markdown headings form a versioned schema; future schema
   changes must update validator and fixtures together.
+- Markdown emphasis normalization removes asterisk and underscore decoration before
+  VCS-state matching; it is a governance parser rather than a complete CommonMark
+  renderer.
 - Existing historical closeouts are validated when present and bound to known
   completed Work Block IDs; missing artifacts that never existed are not inferred.
 - Pattern and structured-key assertion detection are governance guardrails, not a
