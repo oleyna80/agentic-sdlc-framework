@@ -26,7 +26,7 @@ executable fail-closed release-state gate.
 - added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state checks into Framework Contracts;
-- resolved six Codex Review rounds with dedicated regressions.
+- resolved seven Codex Review rounds with dedicated regressions.
 
 ## Final Invariants
 
@@ -39,8 +39,8 @@ executable fail-closed release-state gate.
 7. Latest completed and closeout identity bind exactly.
 8. Closeout marker keys are unique.
 9. Residual risks and follow-up sections are mandatory and non-empty.
-10. Mutable external-state assertions are rejected throughout the complete closeout
-    document.
+10. Mutable external-state assertions are rejected throughout the complete canonical
+    closeout document.
 11. Parsed YAML frontmatter rejects direct and normalized compound
     PR/pull-request/merge state keys with mutable values.
 12. VCS parent context is carried through recursive YAML traversal, so descendants
@@ -49,8 +49,11 @@ executable fail-closed release-state gate.
     ownership and cannot append a concrete mutable state.
 14. Terse identifier-plus-state prose such as `PR #9 merged` and
     `Pull request #9 closed` is rejected without requiring a connector verb.
-15. Bold Markdown identifier/state forms and Markdown table rows are rejected.
-16. Release-state evidence is assurance-only and cannot authorize external actions.
+15. Markdown decoration around either the pull-request identifier or the mutable
+    state token cannot bypass prose or table detection.
+16. Every existing closeout report bound to a completed Work Block ID retains exact
+    successful lifecycle, evaluation, boundary, and required-section evidence.
+17. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
@@ -67,9 +70,10 @@ changes to runtime/integration authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `b451ebb7dd3af9636d35f67d7b9432f4debc93f5`
-- Release State Contract run 95: success
-- Framework Contracts run 544: success
+- Reviewed implementation revision: `9ae16b927aa072a81f4fdc58a773fddeb8aafac8`
+- Workflow-restored validation head: `1b46c028fb7e1205dda77820694e8b9a43f2f406`
+- Release State Contract run 134: success
+- Framework Contracts run 583: success
 
 ## Acceptance Result
 
@@ -85,7 +89,8 @@ changes to runtime/integration authority.
 - [x] A clean boundary-only marker remains valid.
 - [x] Bare identifier-plus-state prose has negative regressions.
 - [x] A PR reference without mutable state remains valid.
-- [x] Bold Markdown and table state forms have regressions.
+- [x] Markdown-decorated state tokens and table forms have regressions.
+- [x] Existing historical closeouts bound to completed Work Blocks are validated.
 - [x] Required closeout sections are enforced.
 - [x] Dedicated and full-framework CI pass.
 - [x] Review, verification, drift, and closeout are synchronized.
