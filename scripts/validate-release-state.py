@@ -24,9 +24,14 @@ MARKER_RE = re.compile(
 )
 MUTABLE_VCS_STATES = r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)"
 MUTABLE_VCS_STATE_RE = re.compile(rf"^{MUTABLE_VCS_STATES}$", re.IGNORECASE)
+MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\b{MUTABLE_VCS_STATES}\b", re.IGNORECASE)
 STRUCTURED_VCS_KEY_RE = re.compile(
     r"^(?:pr|pull_request|pullrequest|merge)_(?:status|state)$", re.IGNORECASE
 )
+STRUCTURED_VCS_PARENT_RE = re.compile(
+    r"^(?:pr|pull_request|pullrequest|merge)$", re.IGNORECASE
+)
+STRUCTURED_STATE_KEY_RE = re.compile(r"^(?:status|state)$", re.IGNORECASE)
 MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
@@ -286,20 +291,42 @@ def normalized_structured_key(value: object) -> str:
     return re.sub(r"[^a-z0-9]+", "_", str(value).strip().lower()).strip("_")
 
 
-def reject_structured_vcs_claims(value: object, label: str, path: str = "frontmatter") -> None:
+def reject_structured_vcs_claims(
+    value: object,
+    label: str,
+    path: str = "frontmatter",
+    vcs_context: bool = False,
+) -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             normalized_key = normalized_structured_key(key)
             current_path = f"{path}.{key}"
-            if STRUCTURED_VCS_KEY_RE.fullmatch(normalized_key):
+            child_vcs_context = vcs_context or bool(
+                STRUCTURED_VCS_PARENT_RE.fullmatch(normalized_key)
+            )
+            is_direct_vcs_key = bool(STRUCTURED_VCS_KEY_RE.fullmatch(normalized_key))
+            is_context_state_key = child_vcs_context and bool(
+                STRUCTURED_STATE_KEY_RE.fullmatch(normalized_key)
+            )
+            if is_direct_vcs_key or is_context_state_key:
                 if isinstance(child, str) and MUTABLE_VCS_STATE_RE.fullmatch(child.strip()):
                     raise ReleaseStateError(
                         f"{label} contains mutable GitHub/VCS state at {current_path}"
                     )
-            reject_structured_vcs_claims(child, label, current_path)
+            reject_structured_vcs_claims(
+                child,
+                label,
+                current_path,
+                child_vcs_context,
+            )
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            reject_structured_vcs_claims(child, label, f"{path}[{index}]")
+            reject_structured_vcs_claims(
+                child,
+                label,
+                f"{path}[{index}]",
+                vcs_context,
+            )
 
 
 def reject_mutable_vcs_claims(
@@ -310,6 +337,18 @@ def reject_mutable_vcs_claims(
     for pattern in MUTABLE_CLOSEOUT_PATTERNS:
         if pattern.search(text):
             raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
+
+
+def validate_external_vcs_boundary(value: str) -> None:
+    normalized = value.strip()
+    prefix = "non-normative"
+    if not normalized.lower().startswith(prefix):
+        raise ReleaseStateError("successful closeout must mark external VCS state non-normative")
+    remainder = normalized[len(prefix) :]
+    if MUTABLE_VCS_STATE_TOKEN_RE.search(remainder):
+        raise ReleaseStateError(
+            "external VCS state marker contains concrete mutable GitHub/VCS state"
+        )
 
 
 def validate_closeout(
@@ -384,8 +423,7 @@ def validate_closeout(
         evaluation_verdict(closeout_evaluation, "closeout evaluation verdict")
 
     external = markers.get("external vcs state", "")
-    if not external.lower().startswith("non-normative"):
-        raise ReleaseStateError("successful closeout must mark external VCS state non-normative")
+    validate_external_vcs_boundary(external)
     if release_state.get("external_vcs_state") != "non_normative":
         raise ReleaseStateError("release_state.external_vcs_state must be non_normative")
 
