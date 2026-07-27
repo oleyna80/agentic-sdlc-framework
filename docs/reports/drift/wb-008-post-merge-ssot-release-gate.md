@@ -5,9 +5,9 @@ artifact_id: wb-008-post-merge-ssot-release-gate-drift
 status: approved
 owner_role: verifier
 work_block_id: wb-008
-subject_revision: 86713e95e42e9d747838e02dd5098c6283aa821f
+subject_revision: 8ccd56e23e62741eb546c6a3f64e2df746bcf119
 created_at: 2026-07-26
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 ---
 
 # WB-008 Specification Drift Audit
@@ -16,92 +16,88 @@ last_verified: 2026-07-26
 
 **ALIGNED**
 
-The approved objective, release-state governance, normalized historical Work
-Blocks, map/registry projection, closeout boundary, validator, adversarial fixtures,
-README, governance validation, dedicated CI, and Codex Review corrections describe
-the same repository release-state model.
+The objective, governance contract, historical Work Block normalization,
+map/registry projection, closeout boundary, validator, adversarial fixtures, and
+two Codex Review correction cycles describe the same fail-closed release-state
+model.
 
 ## Baseline
 
 ```text
 WB-008 objective
   ↔ governance/release-state.md
-  ↔ Work Block frontmatter and final-state markers
+  ↔ completed Work Block terminal-state sections
   ↔ FILE_REGISTRY.yml migration_state/release_state
-  ↔ PROJECT_MAP.md machine block and visible Migration Work section
-  ↔ closeout repository-state boundary and unique markers
+  ↔ PROJECT_MAP.md machine block + visible Migration Work section
+  ↔ closeout verdicts + residual risks + follow-up work
   ↔ validate-release-state.py
   ↔ adversarial fixtures
   ↔ Release State Contract + Framework Contracts
 ```
 
 Reviewed implementation revision:
-`86713e95e42e9d747838e02dd5098c6283aa821f`.
+`8ccd56e23e62741eb546c6a3f64e2df746bcf119`.
 
 ## Alignment Matrix
 
 | Dimension | Expected | Delivered evidence | Classification |
 |---|---|---|---|
-| Completed lifecycle | canonical completed frontmatter and no pending final state | WB-001–WB-007 normalization, validator | ALIGNED |
-| Active lifecycle | one optional active path, active status, no completed overlap | registry/map, active fixtures | ALIGNED |
-| Map/registry | exact ordered machine match and scoped visible Migration Work projection | hidden map block, section parser, fixtures | ALIGNED |
-| Closeout identity | exact latest Work Block ID and approved SUCCESS evidence | closeout parser, substring fixture | ALIGNED |
-| Marker consistency | duplicate normalized markers fail closed | marker parser, contradictory verification fixture | ALIGNED |
-| Drift verdict | exact accepted `ALIGNED` token | validator, PENDING and MISALIGNED fixtures | ALIGNED |
-| Latest ordering | latest completed equals final completed list entry | validator and ordering fixture | ALIGNED |
-| External VCS boundary | GitHub state is non-normative external metadata | governance, README, closeout, stale-state fixtures | ALIGNED |
-| Release assets | exact contract/validator/fixtures/workflow paths exist | registry, validator, missing/wrong asset fixtures | ALIGNED |
-| Authority | release-state assurance cannot authorize integration or publication | governance and `authority: assurance_only` | ALIGNED |
-| CI | independent release gate plus existing full framework suite | runs 28 and 477 | ALIGNED |
-| Privacy/security | no secret/private reasoning requirement added | unchanged publication checks and governance boundary | ALIGNED |
+| Completed lifecycle | terminal successful values, not merely absence of `PENDING` | terminal section parser and adverse-verdict fixtures | ALIGNED |
+| Historical compatibility | legacy completed Work Blocks remain valid without weakening new semantics | legacy drift `READY` fixture | ALIGNED |
+| Active lifecycle | optional active path, disjoint path/ID, scoped visible projection | registry/map and active fixtures | ALIGNED |
+| Map/registry | exact ordered machine match and unique visible migration section | parser and contradiction fixtures | ALIGNED |
+| Closeout identity | exact latest Work Block ID and approved SUCCESS evidence | identity and ordering fixtures | ALIGNED |
+| Evaluation | latest Work Block declaration determines closeout requirement | missing/mismatched evaluation fixtures | ALIGNED |
+| Marker consistency | duplicate normalized markers fail closed | contradictory marker fixture | ALIGNED |
+| Drift | exact closeout `ALIGNED`; terminal Work Block token validated | MISALIGNED/PENDING/BLOCKED fixtures | ALIGNED |
+| Mutable VCS state | ordinary open/Draft/merged assertions rejected | three PR-state fixtures | ALIGNED |
+| Residual evidence | non-empty residual-risk and follow-up sections required | missing-section fixtures | ALIGNED |
+| Release assets/authority | canonical paths exist; assurance-only authority | registry and asset fixtures | ALIGNED |
+| CI | dedicated release gate plus full framework suite | runs 38 and 487 | ALIGNED |
 
 ## Codex Review Convergence
 
-Three P1 findings were accepted and resolved without changing the approved scope:
+### First Review
 
-1. substring drift matching was replaced with exact `ALIGNED` comparison;
-2. duplicate closeout markers now fail instead of using last-value-wins semantics;
-3. active/no-active visibility is checked only inside the unique
-   `## Migration Work` section.
+1. exact drift token validation;
+2. duplicate closeout marker rejection;
+3. active-path checks scoped to `Migration Work`.
 
-Each correction has a dedicated adversarial fixture. These changes strengthen the
-original fail-closed contract rather than introduce new product scope.
+### Second Review
+
+1. completed Work Blocks require successful terminal lifecycle values;
+2. required evaluation cannot disappear from closeout;
+3. ordinary mutable PR-state assertions are rejected;
+4. residual risks and follow-up work are executable closeout requirements.
+
+All seven corrections strengthen the original fail-closed objective. None adds a
+new runtime, integration, provider, deployment, or product capability.
 
 ## Drift Classifications Checked
 
 - `MISSING_IMPLEMENTATION`: none.
-- `UNSPECIFIED_IMPLEMENTATION`: none; every validator invariant derives from the
-  approved SSOT-reconciliation and fail-closed objective.
-- `STALE_PLAN`: none after legacy Work Block normalization and WB-008 closeout.
-- `STALE_TEST`: none after fixture-order correction and Codex P1 regression coverage.
-- `STALE_DOCUMENTATION`: none in README, map, registry, governance, review, or closeout.
+- `UNSPECIFIED_IMPLEMENTATION`: none; each invariant derives from the approved
+  lifecycle-consistency and fail-closed requirements.
+- `STALE_PLAN`: none after Work Block and closeout synchronization.
+- `STALE_TEST`: none after dedicated regressions for both Codex reviews.
+- `STALE_DOCUMENTATION`: none in governance, review, closeout, map, or registry.
 - `SPEC_CHANGE_REQUIRED`: none.
 - `INSPECTION_GAP`: live runtime and hosting-platform operation remain explicitly
-  outside WB-008, not represented as passing release-state evidence.
-
-## Scope Check
-
-The normalization of WB-001, WB-002, WB-003, WB-005, and WB-006 was necessary to
-make the declared completed migration ledger satisfy the new canonical invariant.
-It did not alter their delivered technical scope or authority model.
-
-The Codex P1 corrections change parser strictness and test coverage only. No
-runtime, integration, credential, deployment, model-routing, telemetry, or
-release-tag behavior was added.
+  outside WB-008 and are not represented as passing evidence.
 
 ## Residual Boundary
 
-WB-008 validates repository-owned lifecycle consistency. It does not:
+WB-008 still does not:
 
-- automatically mirror GitHub state into commits;
-- decide whether a PR may be integrated;
-- publish a release or create a tag;
-- prove live runtime or OS isolation behavior.
+- mirror GitHub state into commits;
+- authorize merge or publication;
+- create a release tag;
+- prove live runtime, provider, plugin/MCP, telemetry, or OS isolation behavior.
 
 These are not specification drift.
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the three Codex
-threads after confirming the fixes, and keep integration under explicit Owner
-approval.
+Run both workflows on the final evidence head, resolve the four current review
+threads only after success, then request one final Codex Review. Integration remains
+an explicit Owner decision.
