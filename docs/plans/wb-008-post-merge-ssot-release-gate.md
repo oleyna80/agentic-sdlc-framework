@@ -26,7 +26,7 @@ executable fail-closed release-state gate.
 - added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state checks into Framework Contracts;
-- resolved four Codex Review rounds with dedicated regressions.
+- resolved five Codex Review rounds with dedicated regressions.
 
 ## Final Invariants
 
@@ -41,10 +41,14 @@ executable fail-closed release-state gate.
 9. Residual risks and follow-up sections are mandatory and non-empty.
 10. Mutable external-state assertions are rejected throughout the complete closeout
     document.
-11. Parsed YAML frontmatter rejects direct and nested PR/pull-request/merge state
-    keys with mutable values after key normalization.
-12. Bold Markdown identifier/state forms and Markdown table rows are rejected.
-13. Release-state evidence is assurance-only and cannot authorize external actions.
+11. Parsed YAML frontmatter rejects direct and normalized compound
+    PR/pull-request/merge state keys with mutable values.
+12. VCS parent context is carried through recursive YAML traversal, so descendants
+    such as `pr: {status: merged}` and `pull_request: {state: open}` fail closed.
+13. The `External VCS state` boundary marker may declare only non-normative
+    ownership and cannot append a concrete mutable state.
+14. Bold Markdown identifier/state forms and Markdown table rows are rejected.
+15. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
@@ -61,9 +65,9 @@ changes to runtime/integration authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `42b31c75f463a6a1ec77dd07b545d1be21175078`
-- Release State Contract run 68: success
-- Framework Contracts run 517: success
+- Reviewed implementation revision: `b1d79c20781d81a37c1fe2fca1a01979a788cf80`
+- Release State Contract run 82: success
+- Framework Contracts run 531: success
 
 ## Acceptance Result
 
@@ -73,7 +77,10 @@ changes to runtime/integration authority.
 - [x] Exact terminal-value semantics are enforced.
 - [x] Evaluation rationale is restricted to documented skips.
 - [x] Prose and whole-document mutable-state bypasses are closed.
-- [x] Structured direct and nested frontmatter keys are rejected.
+- [x] Structured direct and normalized compound frontmatter keys are rejected.
+- [x] Parent-key VCS context is preserved through nested YAML traversal.
+- [x] Mutable state appended to the non-normative boundary marker is rejected.
+- [x] A clean boundary-only marker remains valid.
 - [x] Bold Markdown and table state forms have regressions.
 - [x] Required closeout sections are enforced.
 - [x] Dedicated and full-framework CI pass.
