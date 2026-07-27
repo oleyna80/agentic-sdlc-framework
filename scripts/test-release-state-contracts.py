@@ -31,36 +31,28 @@ def write(path: Path, content: str) -> None:
 def work_block(
     work_block_id: str,
     status: str,
-    pending: bool = False,
     *,
+    stage: str = "completed",
     review: str = "READY",
     verification: str = "READY",
     evaluation: str | None = "READY",
     drift: str = "ALIGNED",
     closeout_mode: str = "success-closeout",
+    task_status: str = "completed",
     include_terminal_section: bool = True,
 ) -> str:
     if status == "completed" and include_terminal_section:
-        stage_state = "in_progress" if pending else "completed"
-        review_value = "PENDING" if pending else review
-        verification_value = "PENDING" if pending else verification
-        evaluation_value = "PENDING" if pending and evaluation is not None else evaluation
-        drift_value = "PENDING" if pending else drift
-        closeout_value = "pending" if pending else closeout_mode
-        task_status = "in_progress" if pending else "completed"
         evaluation_line = (
-            f"- **Evaluation Verdict:** {evaluation_value}\n"
-            if evaluation_value is not None
-            else ""
+            f"- **Evaluation Verdict:** {evaluation}\n" if evaluation is not None else ""
         )
         state = (
             "\n## Final State\n\n"
-            f"- **Stage State:** {stage_state}\n"
-            f"- **Review Gate:** {review_value}\n"
-            f"- **Verification Verdict:** {verification_value}\n"
+            f"- **Stage State:** {stage}\n"
+            f"- **Review Gate:** {review}\n"
+            f"- **Verification Verdict:** {verification}\n"
             f"{evaluation_line}"
-            f"- **Drift Gate:** {drift_value}\n"
-            f"- **Closeout Mode:** {closeout_value}\n"
+            f"- **Drift Gate:** {drift}\n"
+            f"- **Closeout Mode:** {closeout_mode}\n"
             f"- **Task Status:** {task_status}\n"
         )
     elif status == "completed":
@@ -89,11 +81,17 @@ def closeout(
     extra: str = "",
     *,
     work_block_id: str = "wb-007",
+    stage: str = "completed",
+    review: str = "READY",
+    verification: str = "READY",
     evaluation: str | None = "READY",
     drift: str = "ALIGNED",
+    classification: str = "SUCCESS",
+    task_status: str = "completed",
     external: str = "non-normative; read from the hosting platform when needed",
     include_residual: bool = True,
     include_follow_up: bool = True,
+    frontmatter_extra: str = "",
 ) -> str:
     evaluation_line = (
         f"- **Evaluation verdict:** {evaluation}\n" if evaluation is not None else ""
@@ -117,16 +115,16 @@ artifact_id: wb-007-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: {work_block_id}
----
+{frontmatter_extra}---
 
 # Closeout
 
-- **Stage execution state:** completed
-- **Review verdict:** READY
-- **Verification verdict:** READY
+- **Stage execution state:** {stage}
+- **Review verdict:** {review}
+- **Verification verdict:** {verification}
 {evaluation_line}- **Drift verdict:** {drift}
-- **Closeout classification:** SUCCESS
-- **Task status:** completed
+- **Closeout classification:** {classification}
+- **Task status:** {task_status}
 - **External VCS state:** {external}
 
 External GitHub pull-request state is non-normative and is read from GitHub when needed.
@@ -200,9 +198,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="release-state-valid-") as temp:
         root = Path(temp)
         populate(root)
-        result = validator.validate_repository(root)
-        assert result["verdict"] == "READY"
-        assert result["active_work_block"] is None
+        assert validator.validate_repository(root)["verdict"] == "READY"
 
     with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
         root = Path(temp)
@@ -238,34 +234,24 @@ def main() -> int:
         expect_failure("completed-status", root, "not status completed")
 
         populate(root)
-        write(
-            root / COMPLETED,
-            work_block("wb-007", "completed", include_terminal_section=False),
-        )
+        write(root / COMPLETED, work_block("wb-007", "completed", include_terminal_section=False))
         expect_failure("missing-terminal-section", root, "requires Final State or Closeout State")
 
-        populate(root)
-        write(root / COMPLETED, work_block("wb-007", "completed", pending=True))
-        expect_failure("completed-pending-stage", root, "requires stage state")
-
-        populate(root)
-        write(root / COMPLETED, work_block("wb-007", "completed", review="BLOCKED"))
-        expect_failure("completed-blocked-review", root, "requires review gate")
-
-        populate(root)
-        write(
-            root / COMPLETED,
-            work_block("wb-007", "completed", verification="UNVERIFIED"),
-        )
-        expect_failure("completed-unverified-verification", root, "requires verification verdict")
-
-        populate(root)
-        write(root / COMPLETED, work_block("wb-007", "completed", evaluation="BLOCKED"))
-        expect_failure("completed-blocked-evaluation", root, "evaluation verdict must be")
-
-        populate(root)
-        write(root / COMPLETED, work_block("wb-007", "completed", drift="MISALIGNED"))
-        expect_failure("completed-misaligned-drift", root, "requires drift gate")
+        for label, kwargs, expected in (
+            ("completed-pending-stage", {"stage": "in_progress"}, "stage state=completed"),
+            ("completed-blocked-review", {"review": "BLOCKED"}, "review gate=READY"),
+            ("completed-review-suffix", {"review": "READY — BLOCKED"}, "review gate=READY"),
+            ("completed-unverified-verification", {"verification": "UNVERIFIED"}, "verification verdict=READY"),
+            ("completed-drift-suffix", {"drift": "ALIGNED — MISALIGNED"}, "drift gate"),
+            ("completed-misaligned-drift", {"drift": "MISALIGNED"}, "drift gate"),
+            ("completed-bad-closeout", {"closeout_mode": "pending"}, "closeout mode=success-closeout"),
+            ("completed-bad-task", {"task_status": "blocked"}, "task status=completed"),
+            ("completed-ready-eval-suffix", {"evaluation": "READY — BLOCKED"}, "evaluation verdict"),
+            ("completed-empty-skip", {"evaluation": "SKIPPED — "}, "evaluation verdict"),
+        ):
+            populate(root)
+            write(root / COMPLETED, work_block("wb-007", "completed", **kwargs))
+            expect_failure(label, root, expected)
 
         populate(root)
         overlap = registry(active=COMPLETED)
@@ -305,13 +291,7 @@ def main() -> int:
         active_registry = registry(active=ACTIVE)
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(active_registry, sort_keys=False))
         write(root / ACTIVE, work_block("wb-008", "in_progress"))
-        write(
-            root / "PROJECT_MAP.md",
-            project_map(
-                active=ACTIVE,
-                visible_override="## Migration Work\n\nNo active implementation Work Block.\n",
-            ),
-        )
+        write(root / "PROJECT_MAP.md", project_map(active=ACTIVE, visible_override="## Migration Work\n\nNo active implementation Work Block.\n"))
         expect_failure("visible-active-contradiction", root, "contradicts active Work Block state")
 
         populate(root)
@@ -329,28 +309,16 @@ def main() -> int:
                 ),
             ),
         )
-        expect_failure(
-            "active-path-outside-migration-section",
-            root,
-            "contradicts active Work Block state",
-        )
+        expect_failure("active-path-outside-migration-section", root, "contradicts active Work Block state")
 
         populate(root)
-        write(
-            root / "PROJECT_MAP.md",
-            project_map(visible_override="## Migration Work\n\nCompleted only.\n"),
-        )
+        write(root / "PROJECT_MAP.md", project_map(visible_override="## Migration Work\n\nCompleted only.\n"))
         expect_failure("visible-none-missing", root, "must state that no active")
 
         populate(root)
         write(
             root / "PROJECT_MAP.md",
-            project_map(
-                visible_override=(
-                    "## Migration Work\n\nPR #7 remains Draft.\n"
-                    "No active implementation Work Block.\n"
-                )
-            ),
+            project_map(visible_override="## Migration Work\n\nPR #7 remains Draft.\nNo active implementation Work Block.\n"),
         )
         expect_failure("stale-map-pr", root, "contains stale GitHub state")
 
@@ -362,6 +330,9 @@ def main() -> int:
             ("mutable-pr-open", "PR #9 is open."),
             ("mutable-pr-draft", "PR #9 is Draft."),
             ("mutable-pr-merged", "PR #9 was merged."),
+            ("mutable-pr-colon-open", "PR #9: open."),
+            ("mutable-pr-colon-draft", "PR #9: Draft."),
+            ("mutable-pr-colon-merged", "PR #9: merged."),
         ):
             populate(root)
             write(root / CLOSEOUT, closeout(f"\n{assertion}\n"))
@@ -370,17 +341,25 @@ def main() -> int:
         populate(root)
         write(
             root / CLOSEOUT,
-            closeout().replace("**Verification verdict:** READY", "**Verification verdict:** PENDING"),
+            closeout(frontmatter_extra='release_note: "PR #9 is merged"\n'),
         )
-        expect_failure("pending-verification", root, "verification verdict=READY")
+        expect_failure("mutable-pr-frontmatter", root, "mutable GitHub/VCS state")
+
+        for label, kwargs, expected in (
+            ("closeout-review-suffix", {"review": "READY — BLOCKED"}, "review verdict=READY"),
+            ("closeout-verification-suffix", {"verification": "READY — BLOCKED"}, "verification verdict=READY"),
+            ("closeout-drift-suffix", {"drift": "ALIGNED — MISALIGNED"}, "drift verdict=ALIGNED"),
+            ("closeout-classification-suffix", {"classification": "SUCCESS — FAILED"}, "closeout classification=SUCCESS"),
+            ("closeout-task-suffix", {"task_status": "completed — blocked"}, "task status=completed"),
+            ("closeout-ready-eval-suffix", {"evaluation": "READY — BLOCKED"}, "closeout evaluation verdict"),
+        ):
+            populate(root)
+            write(root / CLOSEOUT, closeout(**kwargs))
+            expect_failure(label, root, expected)
 
         populate(root)
         write(root / CLOSEOUT, closeout("\n- **Verification verdict:** PENDING\n"))
         expect_failure("duplicate-closeout-marker", root, "duplicate marker: verification verdict")
-
-        populate(root)
-        write(root / CLOSEOUT, closeout(drift="MISALIGNED"))
-        expect_failure("misaligned-is-not-aligned", root, "drift verdict=ALIGNED")
 
         populate(root)
         write(root / CLOSEOUT, closeout(evaluation=None))
@@ -388,7 +367,7 @@ def main() -> int:
 
         populate(root)
         write(root / CLOSEOUT, closeout(evaluation="UNVERIFIED"))
-        expect_failure("unverified-evaluation", root, "requires evaluation verdict=READY")
+        expect_failure("unverified-evaluation", root, "closeout evaluation verdict")
 
         populate(root)
         write(root / CLOSEOUT, closeout(external="tracked in closeout"))
