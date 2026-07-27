@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-closeout
 status: approved
 owner_role: orchestrator
 work_block_id: wb-008
-subject_revision: 8ccd56e23e62741eb546c6a3f64e2df746bcf119
+subject_revision: 029a0dd9ac9f48af066f9cc04aac30d186fdb8ea
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -23,43 +23,38 @@ last_verified: 2026-07-27
 
 ## Result
 
-WB-008 eliminated lifecycle drift between completed Work Blocks, project
-navigation, the machine registry, closeout evidence, and repository release-state
-classification.
+WB-008 eliminated lifecycle drift between completed Work Blocks, navigation,
+machine registry, closeout evidence, and repository release-state classification.
 
-Repository consistency is enforced through a fail-closed validator, positive and
-adversarial fixtures, a dedicated Release State Contract workflow, and the existing
-Framework Contracts suite.
+The repository now separates versioned lifecycle evidence from mutable external
+hosting-platform metadata and enforces that boundary with a dedicated fail-closed
+validator, adversarial fixtures, and two CI paths.
 
 ## Delivered Changes
 
-- normalized the completed migration ledger WB-001 through WB-008;
-- separated repository lifecycle from mutable hosting-platform state;
+- normalized completed Work Blocks WB-001 through WB-008;
+- reconciled Work Block, map, registry, README, and closeout state;
 - added `governance/release-state.md`;
-- added machine and visible release-state projections;
-- added `scripts/validate-release-state.py` and adversarial fixtures;
+- added `scripts/validate-release-state.py`;
+- added `scripts/test-release-state-contracts.py`;
 - added `.github/workflows/release-state-contract.yml`;
-- integrated release-state validation into governance checks;
-- completed two Codex Review correction cycles.
+- integrated release-state validation into Framework Contracts;
+- resolved all findings from three Codex Review rounds.
 
 ## Enforced Invariants
 
-- completed Work Blocks require canonical frontmatter and one terminal state section;
-- terminal review, verification, evaluation when declared, drift, and closeout
-  values are validated rather than inferred from the absence of `PENDING`;
-- adverse or non-terminal lifecycle values fail closed;
-- historical legacy drift terminology remains narrowly compatible;
-- active and completed paths and Work Block IDs are disjoint;
+- completed Work Blocks require exact successful terminal values;
+- non-evaluation terminal values cannot carry suffixes or rationales;
+- evaluation accepts exact `READY` or documented `SKIPPED` only;
+- marker keys are unique;
+- active and completed paths/IDs cannot overlap;
 - map and registry agree exactly and in order;
-- visible active/no-active state is scoped to the unique `Migration Work` section;
-- latest completed and closeout identity are exact;
-- normalized marker keys are unique;
-- Work Block evaluation posture is preserved in closeout;
-- closeout drift uses exact `ALIGNED`;
-- specific mutable hosting-platform status assertions are excluded;
-- residual risks and follow-up work are mandatory non-empty closeout sections;
-- release assets exist at canonical paths;
-- release-state authority remains assurance-only.
+- visible migration navigation matches machine state;
+- latest completed and closeout identity bind exactly;
+- residual-risk and follow-up sections are mandatory and non-empty;
+- the entire closeout document, including frontmatter, is checked for prohibited
+  mutable external-state assertions;
+- release-state evidence remains assurance-only.
 
 ## Evidence
 
@@ -70,57 +65,50 @@ Framework Contracts suite.
 - Validator: `scripts/validate-release-state.py`
 - Fixtures: `scripts/test-release-state-contracts.py`
 - Dedicated workflow: `.github/workflows/release-state-contract.yml`
-- Reviewed implementation revision: `8ccd56e23e62741eb546c6a3f64e2df746bcf119`
-- Release State Contract run 38: success
-- Framework Contracts run 487: success
+- Reviewed implementation revision: `029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`
+- Release State Contract run 54: success
+- Framework Contracts run 503: success
 
-Release State Contract run 8 remains recorded as a failed fixture-order attempt,
-followed by a scoped correction. Both Codex Review rounds produced actionable
-findings that were accepted, fixed, and covered by dedicated regressions.
+Earlier failed and corrective runs remain recorded as their actual outcomes. No
+failure was relabelled as passing evidence.
 
 ## Acceptance Result
 
-- [x] Completed Work Blocks use canonical completed metadata and terminal evidence.
-- [x] Adverse lifecycle verdicts cannot pass by blacklist gaps.
-- [x] Required evaluation cannot disappear during closeout.
-- [x] Machine and visible project navigation remain synchronized.
-- [x] Mutable hosting-platform status is non-normative.
-- [x] Duplicate closeout markers fail closed.
-- [x] Residual-risk and follow-up sections are executable requirements.
-- [x] Dedicated and full framework workflows pass on implementation evidence.
-- [x] Final review and drift audit are synchronized.
-- [x] Repository lifecycle closes with no active implementation Work Block.
+- [x] Completed migration history uses canonical terminal state.
+- [x] Repository and external hosting-platform lifecycle are separated.
+- [x] Work Block, map, registry, and closeout agree.
+- [x] Exact non-evaluation verdict semantics are enforced.
+- [x] Evaluation rationale is limited to documented `SKIPPED`.
+- [x] Mutable external-state checks cover body and frontmatter.
+- [x] Common status assertion forms have adversarial coverage.
+- [x] Residual risks and follow-up work are mandatory.
+- [x] Dedicated and full-framework CI pass.
+- [x] Review and drift evidence are synchronized.
+- [x] No active implementation Work Block remains.
 
 ## Residual Risks and Limitations
 
-- YAML frontmatter, Markdown section headings, and explicit markers form a versioned
-  schema; future schema changes must update validator and fixtures together.
-- Legacy `Drift Gate: READY` remains accepted only for historical completed Work
-  Blocks; new Work Blocks use `ALIGNED`.
-- Hosting-platform state is queried externally rather than copied into normative
-  repository closeout.
-- The release-state gate does not authorize integration, deployment, publication,
-  credentials, or Hard Stop exceptions.
-- No stable release tag is created by this Work Block.
-- Live runtime smoke, authentication, plugin/MCP behavior, telemetry, and OS
-  isolation remain separate follow-up work.
-
-## Knowledge Classification
-
-The release-state contract, validator, fixtures, workflow, normalized Work Blocks,
-and navigation rules are normative framework knowledge. No credentials, protected
-payloads, private runtime data, or hidden reasoning are included.
+- YAML frontmatter and Markdown headings form a versioned schema; future schema
+  changes must update validator and fixtures together.
+- Pattern-based assertion detection is a governance guardrail, not a complete
+  natural-language proof system.
+- Current hosting-platform state is queried externally rather than copied into
+  normative repository closeout.
+- CI and hooks are not an OS security boundary.
+- Live runtime, provider authentication, plugin/MCP, telemetry, and isolation
+  behavior remain outside WB-008.
 
 ## Follow-Up Work
 
-1. run a live Codex/Claude Code/OpenCode pilot on a real product Work Block;
+1. run a live product Work Block through Codex and at least one independent
+   assurance runtime;
 2. define a provider-neutral Agent Run Ledger and observability contract;
 3. consolidate runtime-neutral handoff execution;
-4. add an in-place framework migration/upgrader;
-5. create stable release/versioning only after operational pilot evidence.
+4. add in-place framework migration support;
+5. prepare stable versioning only after operational pilot evidence.
 
 ## Final Decision
 
-WB-008 satisfies repository `success-closeout`. Hosting-platform integration,
-publication, and release actions remain separate Owner-controlled decisions based
-on current external state.
+WB-008 satisfies repository `success-closeout`. Integration, publication, and
+release actions remain separate Owner-controlled decisions based on current
+external state.
