@@ -34,6 +34,7 @@ jobs:
         run: |
           set +e
           (
+            python scripts/wb008-seventh-review-adjust.py
             python scripts/wb008-seventh-review-fix.py
             python -m py_compile scripts/validate-release-state.py scripts/test-release-state-contracts.py
             python scripts/test-release-state-contracts.py
@@ -55,10 +56,10 @@ jobs:
         shell: bash
         run: |
           printf '%s' 'bmFtZTogUmVsZWFzZSBTdGF0ZSBDb250cmFjdAoKb246CiAgcHVzaDoKICAgIGJyYW5jaGVzOgogICAgICAtICIqKiIKICBwdWxsX3JlcXVlc3Q6CgpwZXJtaXNzaW9uczoKICBjb250ZW50czogcmVhZAoKam9iczoKICByZWxlYXNlLXN0YXRlOgogICAgcnVucy1vbjogdWJ1bnR1LTI0LjA0CiAgICB0aW1lb3V0LW1pbnV0ZXM6IDEwCgogICAgc3RlcHM6CiAgICAgIC0gbmFtZTogQ2hlY2tvdXQKICAgICAgICB1c2VzOiBhY3Rpb25zL2NoZWNrb3V0QHY0CgogICAgICAtIG5hbWU6IFNldCB1cCBQeXRob24KICAgICAgICB1c2VzOiBhY3Rpb25zL3NldHVwLXB5dGhvbkB2NQogICAgICAgIHdpdGg6CiAgICAgICAgICBweXRob24tdmVyc2lvbjogIjMuMTIiCgogICAgICAtIG5hbWU6IEluc3RhbGwgdmFsaWRhdGlvbiBkZXBlbmRlbmN5CiAgICAgICAgcnVuOiBweXRob24gLW0gcGlwIGluc3RhbGwgLS1kaXNhYmxlLXBpcC12ZXJzaW9uLWNoZWNrIFB5WUFNTAoKICAgICAgLSBuYW1lOiBDaGVjayByZWxlYXNlLXN0YXRlIHZhbGlkYXRvciBzeW50YXgKICAgICAgICBydW46IHwKICAgICAgICAgIHB5dGhvbiAtIDw8J1BZJwogICAgICAgICAgZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgogICAgICAgICAgZm9yIHJlbGF0aXZlIGluICgKICAgICAgICAgICAgICAic2NyaXB0cy92YWxpZGF0ZS1yZWxlYXNlLXN0YXRlLnB5IiwKICAgICAgICAgICAgICAic2NyaXB0cy90ZXN0LXJlbGVhc2Utc3RhdGUtY29udHJhY3RzLnB5IiwKICAgICAgICAgICk6CiAgICAgICAgICAgICAgcGF0aCA9IFBhdGgocmVsYXRpdmUpCiAgICAgICAgICAgICAgY29tcGlsZShwYXRoLnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKSwgcmVsYXRpdmUsICJleGVjIikKICAgICAgICAgICAgICBwcmludChmInN5bnRheCBPSzoge3JlbGF0aXZlfSIpCiAgICAgICAgICBQWQoKICAgICAgLSBuYW1lOiBSdW4gYWR2ZXJzYXJpYWwgcmVsZWFzZS1zdGF0ZSBmaXh0dXJlcwogICAgICAgIHJ1bjogcHl0aG9uIHNjcmlwdHMvdGVzdC1yZWxlYXNlLXN0YXRlLWNvbnRyYWN0cy5weQoKICAgICAgLSBuYW1lOiBWYWxpZGF0ZSByZXBvc2l0b3J5IHJlbGVhc2Ugc3RhdGUKICAgICAgICBydW46IHB5dGhvbiBzY3JpcHRzL3ZhbGlkYXRlLXJlbGVhc2Utc3RhdGUucHkK' | base64 -d > .github/workflows/release-state-contract.yml
-          rm -f .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py
+          rm -f .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py scripts/wb008-seventh-review-adjust.py
           git config user.name "oleyna80"
           git config user.email "209451099+oleyna80@users.noreply.github.com"
-          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md .github/workflows/release-state-contract.yml .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py
+          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py governance/release-state.md .github/workflows/release-state-contract.yml .github/workflows/wb008-seventh-review-fix.yml scripts/wb008-seventh-review-fix.py scripts/wb008-seventh-review-adjust.py
           git commit -m "fix: validate historical closeout evidence"
           git push origin HEAD:agent/post-merge-ssot-release-gate
 
