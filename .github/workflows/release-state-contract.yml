@@ -27,11 +27,24 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check PyYAML
       - name: Patch and verify evidence
+        shell: bash
         run: |
-          python scripts/wb008-ninth-evidence.py
-          python scripts/test-release-state-contracts.py
-          python scripts/validate-release-state.py
-          bash scripts/validate-governance.sh
+          set +e
+          (
+            python scripts/wb008-ninth-evidence.py
+            python scripts/test-release-state-contracts.py
+            python scripts/validate-release-state.py
+            bash scripts/validate-governance.sh
+          ) > /tmp/wb008-ninth-evidence.log 2>&1
+          status=$?
+          cat /tmp/wb008-ninth-evidence.log
+          exit $status
+      - name: Upload evidence diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wb008-ninth-evidence-diagnostic
+          path: /tmp/wb008-ninth-evidence.log
       - name: Commit evidence
         run: |
           rm scripts/wb008-ninth-evidence.py
