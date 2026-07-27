@@ -140,8 +140,8 @@ validator must reject at least:
 - missing or malformed required evaluation evidence;
 - missing residual-risk or follow-up sections;
 - normative mutable GitHub-state claims anywhere in closeout evidence, including
-  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,
-  and common Markdown forms.
+  terse identifier-plus-state prose, structured frontmatter, VCS parent-key
+  descendants, boundary-marker payloads, and common Markdown forms.
 
 ## Enforcement
 
