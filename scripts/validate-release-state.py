@@ -11,35 +11,32 @@ from typing import Any
 import yaml
 
 ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
-MAP_BLOCK_RE = re.compile(
-    r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL
-)
+MAP_BLOCK_RE = re.compile(r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL)
 MIGRATION_SECTION_RE = re.compile(
-    r"^## Migration Work\s*\n(?P<body>.*?)(?=^##\s|\Z)",
-    re.MULTILINE | re.DOTALL,
+    r"^## Migration Work\s*\n(?P<body>.*?)(?=^##\s|\Z)", re.MULTILINE | re.DOTALL
 )
 WORK_BLOCK_FINAL_SECTION_RE = re.compile(
     r"^## (?:Final State|Closeout State)\s*\n(?P<body>.*?)(?=^##\s|\Z)",
     re.MULTILINE | re.DOTALL,
 )
 MARKER_RE = re.compile(
-    r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$",
-    re.MULTILINE,
+    r"^\s*[-*]\s+\*\*(?P<key>[^*]+):\*\*\s*(?P<value>.+?)\s*$", re.MULTILINE
 )
+MUTABLE_VCS_STATES = r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)"
 MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
     re.compile(r"\bmerge commit\b", re.IGNORECASE),
     re.compile(r"\bmerged_at\b", re.IGNORECASE),
     re.compile(
-        r"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*"
-        r"(?:is|was|remains?|became|has\s+been|status\s*(?:is|=|:)|state\s*(?:is|=|:))\s*"
-        r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)\b",
+        rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*"
+        rf"(?:(?::|=)\s*|(?:is|was|remains?|became|has\s+been)\s*|"
+        rf"(?:status|state)\s*(?:is|=|:)\s*){MUTABLE_VCS_STATES}\b",
         re.IGNORECASE,
     ),
     re.compile(
-        r"\*\*(?:PR|pull[ -]?request)\s+(?:status|state):\*\*\s*"
-        r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)\b",
+        rf"\*\*(?:PR|pull[ -]?request)\s+(?:status|state):\*\*\s*"
+        rf"{MUTABLE_VCS_STATES}\b",
         re.IGNORECASE,
     ),
 )
@@ -53,22 +50,6 @@ CANONICAL_RELEASE_ASSETS = {
     "validator": "scripts/validate-release-state.py",
     "fixtures": "scripts/test-release-state-contracts.py",
     "workflow": ".github/workflows/release-state-contract.yml",
-}
-TERMINAL_WORK_BLOCK_MARKERS = {
-    "stage state": {"completed"},
-    "state": {"completed"},
-    "review gate": {"READY"},
-    "verification verdict": {"READY"},
-    # WB-004 used READY before ALIGNED became the canonical drift token.
-    "drift gate": {"ALIGNED", "READY"},
-    "closeout mode": {"success-closeout"},
-    "task status": {"completed"},
-}
-REQUIRED_WORK_BLOCK_MARKERS = {
-    "review gate",
-    "verification verdict",
-    "drift gate",
-    "closeout mode",
 }
 
 
@@ -86,7 +67,7 @@ def load_yaml_object(path: Path, label: str) -> dict[str, Any]:
     return value
 
 
-def parse_frontmatter(path: Path, label: str) -> tuple[dict[str, Any], str]:
+def parse_frontmatter(path: Path, label: str) -> tuple[dict[str, Any], str, str]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -103,7 +84,7 @@ def parse_frontmatter(path: Path, label: str) -> tuple[dict[str, Any], str]:
         raise ReleaseStateError(f"invalid {label} frontmatter: {exc}") from exc
     if not isinstance(frontmatter, dict):
         raise ReleaseStateError(f"{label} frontmatter must be an object")
-    return frontmatter, body
+    return frontmatter, body, text
 
 
 def safe_repo_path(root: Path, value: object, label: str) -> tuple[str, Path]:
@@ -144,9 +125,16 @@ def parse_markers(body: str, label: str) -> dict[str, str]:
     return result
 
 
-def verdict_token(value: str) -> str:
-    """Return the terminal token before an optional documented rationale."""
-    return re.split(r"\s+[—–-]\s+", value.strip(), maxsplit=1)[0].strip()
+def evaluation_verdict(value: str, label: str) -> str:
+    normalized = value.strip()
+    if normalized == "READY":
+        return "READY"
+    skipped = re.fullmatch(r"SKIPPED\s+[—–-]\s+(?P<reason>\S.*)", normalized)
+    if skipped:
+        return "SKIPPED"
+    raise ReleaseStateError(
+        f"{label} must be READY or SKIPPED with a non-empty rationale, found {normalized!r}"
+    )
 
 
 def extract_single_section(body: str, heading: str, label: str) -> str:
@@ -195,30 +183,41 @@ def completed_work_block_markers(body: str, normalized: str) -> dict[str, str]:
             f"completed Work Block must contain exactly one terminal state section: {normalized}"
         )
     markers = parse_markers(matches[0].group("body"), f"completed Work Block {normalized}")
-    if not ({"stage state", "state"} & markers.keys()):
+    stage_keys = [key for key in ("stage state", "state") if key in markers]
+    if not stage_keys:
         raise ReleaseStateError(
             f"completed Work Block requires stage state=completed: {normalized}"
         )
-    missing = sorted(REQUIRED_WORK_BLOCK_MARKERS - markers.keys())
-    if missing:
-        raise ReleaseStateError(
-            f"completed Work Block is missing terminal lifecycle markers: {normalized}: {missing}"
-        )
-    for key, allowed in TERMINAL_WORK_BLOCK_MARKERS.items():
-        if key not in markers:
-            continue
-        value = verdict_token(markers[key])
-        if value not in allowed:
+    for key in stage_keys:
+        if markers[key] != "completed":
             raise ReleaseStateError(
-                f"completed Work Block requires {key} in {sorted(allowed)}, "
-                f"found {value!r}: {normalized}"
+                f"completed Work Block requires {key}=completed, found {markers[key]!r}: {normalized}"
             )
-    evaluation = markers.get("evaluation verdict")
-    if evaluation is not None and verdict_token(evaluation) not in {"READY", "SKIPPED"}:
+    required_exact = {
+        "review gate": "READY",
+        "verification verdict": "READY",
+        "closeout mode": "success-closeout",
+    }
+    for key, expected in required_exact.items():
+        actual = markers.get(key)
+        if actual != expected:
+            raise ReleaseStateError(
+                f"completed Work Block requires {key}={expected}, found {actual!r}: {normalized}"
+            )
+    drift = markers.get("drift gate")
+    if drift not in {"ALIGNED", "READY"}:
         raise ReleaseStateError(
-            "completed Work Block evaluation verdict must be READY or documented SKIPPED: "
-            f"{normalized}"
+            f"completed Work Block requires drift gate in ['ALIGNED', 'READY'], "
+            f"found {drift!r}: {normalized}"
         )
+    task_status = markers.get("task status")
+    if task_status is not None and task_status != "completed":
+        raise ReleaseStateError(
+            f"completed Work Block requires task status=completed, found {task_status!r}: {normalized}"
+        )
+    evaluation = markers.get("evaluation verdict")
+    if evaluation is not None:
+        evaluation_verdict(evaluation, "completed Work Block evaluation verdict")
     return markers
 
 
@@ -230,7 +229,7 @@ def validate_completed_work_block(
         raise ReleaseStateError(f"completed Work Block must be under docs/plans: {normalized}")
     if not path.is_file():
         raise ReleaseStateError(f"completed Work Block is missing: {normalized}")
-    frontmatter, body = parse_frontmatter(path, f"completed Work Block {normalized}")
+    frontmatter, body, _ = parse_frontmatter(path, f"completed Work Block {normalized}")
     if frontmatter.get("artifact_type") != "work_block":
         raise ReleaseStateError(f"completed path is not a Work Block: {normalized}")
     if frontmatter.get("status") != "completed":
@@ -238,8 +237,7 @@ def validate_completed_work_block(
     work_block_id = frontmatter.get("work_block_id")
     if not isinstance(work_block_id, str) or not work_block_id.strip():
         raise ReleaseStateError(f"completed Work Block lacks work_block_id: {normalized}")
-    markers = completed_work_block_markers(body, normalized)
-    return frontmatter, markers
+    return frontmatter, completed_work_block_markers(body, normalized)
 
 
 def validate_active_work_block(root: Path, relative: str) -> dict[str, Any]:
@@ -248,7 +246,7 @@ def validate_active_work_block(root: Path, relative: str) -> dict[str, Any]:
         raise ReleaseStateError(f"active Work Block must be under docs/plans: {normalized}")
     if not path.is_file():
         raise ReleaseStateError(f"active Work Block is missing: {normalized}")
-    frontmatter, _ = parse_frontmatter(path, f"active Work Block {normalized}")
+    frontmatter, _, _ = parse_frontmatter(path, f"active Work Block {normalized}")
     if frontmatter.get("artifact_type") != "work_block":
         raise ReleaseStateError(f"active path is not a Work Block: {normalized}")
     status = frontmatter.get("status")
@@ -268,6 +266,12 @@ def validate_release_assets(root: Path, release_state: dict[str, Any]) -> None:
             raise ReleaseStateError(f"release-state asset is missing: {expected}")
     if release_state.get("authority") != "assurance_only":
         raise ReleaseStateError("release_state.authority must be assurance_only")
+
+
+def reject_mutable_vcs_claims(text: str, label: str) -> None:
+    for pattern in MUTABLE_CLOSEOUT_PATTERNS:
+        if pattern.search(text):
+            raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
 
 
 def validate_closeout(
@@ -292,7 +296,9 @@ def validate_closeout(
         raise ReleaseStateError("closeout_report must be under docs/reports/closeout/")
     if not closeout_path.is_file():
         raise ReleaseStateError(f"closeout report is missing: {closeout_normalized}")
-    frontmatter, body = parse_frontmatter(closeout_path, f"closeout report {closeout_normalized}")
+    frontmatter, body, full_text = parse_frontmatter(
+        closeout_path, f"closeout report {closeout_normalized}"
+    )
     if frontmatter.get("artifact_type") != "closeout_report":
         raise ReleaseStateError("release_state.closeout_report is not a closeout report")
     if frontmatter.get("status") != "approved":
@@ -313,7 +319,7 @@ def validate_closeout(
         "task status": "completed",
     }
     for key, expected in required_exact.items():
-        actual = verdict_token(markers.get(key, ""))
+        actual = markers.get(key)
         if actual != expected:
             raise ReleaseStateError(
                 f"successful closeout requires {key}={expected}, found {actual!r}"
@@ -322,24 +328,22 @@ def validate_closeout(
     work_block_evaluation = latest_record["markers"].get("evaluation verdict")
     closeout_evaluation = markers.get("evaluation verdict")
     if work_block_evaluation is not None:
-        expected_evaluation = verdict_token(work_block_evaluation)
+        expected_evaluation = evaluation_verdict(
+            work_block_evaluation, "latest Work Block evaluation verdict"
+        )
         if closeout_evaluation is None:
             raise ReleaseStateError(
                 f"successful closeout requires evaluation verdict={expected_evaluation} "
                 "because the latest Work Block declares evaluation"
             )
-        actual_evaluation = verdict_token(closeout_evaluation)
+        actual_evaluation = evaluation_verdict(closeout_evaluation, "closeout evaluation verdict")
         if actual_evaluation != expected_evaluation:
             raise ReleaseStateError(
                 f"successful closeout requires evaluation verdict={expected_evaluation}, "
                 f"found {actual_evaluation!r}"
             )
     elif closeout_evaluation is not None:
-        actual_evaluation = verdict_token(closeout_evaluation)
-        if actual_evaluation not in {"READY", "SKIPPED"}:
-            raise ReleaseStateError(
-                "successful closeout evaluation verdict must be READY or documented SKIPPED"
-            )
+        evaluation_verdict(closeout_evaluation, "closeout evaluation verdict")
 
     external = markers.get("external vcs state", "")
     if not external.lower().startswith("non-normative"):
@@ -349,12 +353,7 @@ def validate_closeout(
 
     extract_single_section(body, "Residual Risks and Limitations", "closeout")
     extract_single_section(body, "Follow-Up Work", "closeout")
-
-    for pattern in MUTABLE_CLOSEOUT_PATTERNS:
-        if pattern.search(body):
-            raise ReleaseStateError(
-                f"closeout contains mutable GitHub/VCS state: {pattern.pattern}"
-            )
+    reject_mutable_vcs_claims(full_text, "closeout")
 
 
 def migration_section(text: str) -> str:
@@ -405,10 +404,7 @@ def validate_repository(root: Path) -> dict[str, Any]:
         if work_block_id in work_block_ids:
             raise ReleaseStateError(f"duplicate completed work_block_id: {work_block_id}")
         work_block_ids.add(work_block_id)
-        completed_records[normalized] = {
-            "frontmatter": frontmatter,
-            "markers": markers,
-        }
+        completed_records[normalized] = {"frontmatter": frontmatter, "markers": markers}
 
     active_value = migration.get("active_work_block")
     active: str | None
@@ -424,8 +420,7 @@ def validate_repository(root: Path) -> dict[str, Any]:
 
     map_state, map_text = parse_map_state(root / "PROJECT_MAP.md")
     map_completed = string_list(
-        map_state.get("completed_work_blocks"),
-        "PROJECT_MAP completed_work_blocks",
+        map_state.get("completed_work_blocks"), "PROJECT_MAP completed_work_blocks"
     )
     map_active = map_state.get("active_work_block")
     if map_completed != completed:
