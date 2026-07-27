@@ -44,6 +44,11 @@ MUTABLE_CLOSEOUT_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(
+        rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s+"
+        rf"{MUTABLE_VCS_STATES}\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*:\*\*\s*"
         rf"{MUTABLE_VCS_STATES}\b",
         re.IGNORECASE,

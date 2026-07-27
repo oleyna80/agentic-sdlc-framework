@@ -209,6 +209,15 @@ def main() -> int:
         )
         assert validator.validate_repository(root)["verdict"] == "READY"
 
+    with tempfile.TemporaryDirectory(prefix="release-state-pr-reference-") as temp:
+        root = Path(temp)
+        populate(root)
+        write(
+            root / CLOSEOUT,
+            closeout("\nPR #9 review evidence is repository-owned.\n"),
+        )
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
     with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
         root = Path(temp)
         populate(root)
@@ -339,6 +348,11 @@ def main() -> int:
             ("mutable-pr-open", "PR #9 is open."),
             ("mutable-pr-draft", "PR #9 is Draft."),
             ("mutable-pr-merged", "PR #9 was merged."),
+            ("mutable-pr-bare-open", "PR #9 open."),
+            ("mutable-pr-bare-draft", "PR #9 Draft."),
+            ("mutable-pr-bare-merged", "PR #9 merged."),
+            ("mutable-pr-bare-ready", "PR #9 ready for review."),
+            ("mutable-pull-request-bare-closed", "Pull request #9 closed."),
             ("mutable-pr-colon-open", "PR #9: open."),
             ("mutable-pr-colon-draft", "PR #9: Draft."),
             ("mutable-pr-colon-merged", "PR #9: merged."),

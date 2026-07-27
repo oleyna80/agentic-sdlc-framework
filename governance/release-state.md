@@ -111,6 +111,8 @@ The mutable-state scan covers the entire closeout document, including parsed YAM
 frontmatter and Markdown body. It rejects:
 
 - prose assertions such as a pull request being open, Draft, or merged;
+- terse identifier-plus-state assertions such as `PR #9 merged` or
+  `Pull request #9 closed`;
 - colon and equals forms;
 - structured keys such as `pr_status`, `pull_request_state`, or equivalent nested
   hyphen/space variants when their value is a mutable state;
