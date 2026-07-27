@@ -45,7 +45,9 @@ validator = validator[:pattern_start] + region + validator[pattern_end:]
 historical_function = r'''
 
 def validate_completed_closeout_reports(
-    root: Path, completed_records: dict[str, dict[str, Any]]
+    root: Path,
+    completed_records: dict[str, dict[str, Any]],
+    canonical_closeout: str,
 ) -> None:
     reports_root = root / "docs/reports/closeout"
     if not reports_root.is_dir():
@@ -68,6 +70,8 @@ def validate_completed_closeout_reports(
             continue
 
         relative = path.relative_to(root).as_posix()
+        if relative == canonical_closeout:
+            continue
         label = f"completed Work Block closeout {relative}"
         frontmatter, body, _ = parse_frontmatter(path, label)
         if frontmatter.get("artifact_type") != "closeout_report":
@@ -145,7 +149,9 @@ validator = replace_once(
     "    validate_release_assets(root, release_state)\n"
     "    validate_closeout(root, release_state, completed, completed_records)\n",
     "    validate_release_assets(root, release_state)\n"
-    "    validate_completed_closeout_reports(root, completed_records)\n"
+    "    validate_completed_closeout_reports(\n"
+    "        root, completed_records, str(release_state.get(\"closeout_report\", \"\"))\n"
+    "    )\n"
     "    validate_closeout(root, release_state, completed, completed_records)\n",
     "historical closeout invocation",
 )
@@ -248,11 +254,11 @@ governance = replace_once(
 governance = replace_once(
     governance,
     "- normative mutable GitHub-state claims anywhere in closeout evidence, including\n"
-    "  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,\n"
-    "  and common Markdown forms.\n",
+    "  terse identifier-plus-state prose, structured frontmatter, VCS parent-key\n"
+    "  descendants, boundary-marker payloads, and common Markdown forms.\n",
     "- normative mutable GitHub-state claims anywhere in the current canonical closeout,\n"
-    "  including structured frontmatter, VCS parent-key descendants, boundary-marker\n"
-    "  payloads, and common Markdown forms;\n"
+    "  including terse identifier-plus-state prose, structured frontmatter, VCS parent-key\n"
+    "  descendants, boundary-marker payloads, and common Markdown forms;\n"
     "- adverse or contradictory lifecycle evidence in any existing closeout report bound\n"
     "  to a completed Work Block ID.\n",
     "historical fail-closed governance",
