@@ -102,6 +102,11 @@ as complete values; strings such as `READY — BLOCKED` or
 Normalized closeout marker keys must be unique. Contradictory repeated markers fail
 closed rather than using first-value-wins or last-value-wins behavior.
 
+The `External VCS state` marker must begin with `non-normative`, and the remainder
+of that marker must not contain a concrete mutable state such as Draft, Ready,
+open, closed, merged, or unmerged. The marker declares an ownership boundary only;
+it must not append a current or predicted hosting-platform state.
+
 The mutable-state scan covers the entire closeout document, including parsed YAML
 frontmatter and Markdown body. It rejects:
 
@@ -109,12 +114,14 @@ frontmatter and Markdown body. It rejects:
 - colon and equals forms;
 - structured keys such as `pr_status`, `pull_request_state`, or equivalent nested
   hyphen/space variants when their value is a mutable state;
+- parent-key forms such as `pr: {status: merged}` or
+  `pull_request: {state: open}` by carrying VCS context through descendant fields;
 - bold Markdown forms such as a pull-request identifier followed by a state;
 - Markdown table rows that pair a pull-request identifier with a mutable state;
 - merge timestamps, merge commit state, or equivalent hosting-platform facts.
 
-A non-normative ownership statement remains permitted; a concrete mutable state
-assertion does not.
+A clean non-normative ownership statement remains permitted; a concrete mutable
+state assertion does not, including when appended to the boundary marker itself.
 
 ### Fail-Closed Release Readiness
 
@@ -131,7 +138,8 @@ validator must reject at least:
 - missing or malformed required evaluation evidence;
 - missing residual-risk or follow-up sections;
 - normative mutable GitHub-state claims anywhere in closeout evidence, including
-  structured frontmatter and common Markdown forms.
+  structured frontmatter, VCS parent-key descendants, boundary-marker payloads,
+  and common Markdown forms.
 
 ## Enforcement
 
