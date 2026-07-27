@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: 029a0dd9ac9f48af066f9cc04aac30d186fdb8ea
+subject_revision: 42b31c75f463a6a1ec77dd07b545d1be21175078
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,7 +15,7 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`029a0dd9ac9f48af066f9cc04aac30d186fdb8ea` against:
+`42b31c75f463a6a1ec77dd07b545d1be21175078` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
@@ -25,7 +25,7 @@ Reviewed implementation revision
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all three Codex Review rounds on PR #8.
+- all four Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,7 +36,7 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Three Codex Review rounds produced ten P1 findings and one P2 finding. All were
+Four Codex Review rounds produced eleven P1 findings and one P2 finding. All were
 accepted, fixed, and covered by adversarial fixtures.
 
 ### Initial SSOT and parser findings
@@ -59,49 +59,32 @@ accepted, fixed, and covered by adversarial fixtures.
 
 ### Third review findings
 
-#### F-012 — Non-evaluation verdict suffixes were discarded
+- non-evaluation terminal suffixes were discarded;
+- mutable VCS claims in YAML frontmatter bypassed body-only scanning;
+- colon-form PR status assertions were missed.
+
+### Fourth review finding
+
+#### F-015 — Structured and Markdown PR-state assertions were missed
 
 **Severity:** P1  
 **Resolution:** fixed
 
-The prior parser reduced every verdict to a token before a dash. This could turn
-`READY — BLOCKED` or `ALIGNED — MISALIGNED` into an apparent success.
+The complete-document text scan still permitted structured keys such as
+`pr_status: merged` or `pull_request_state: open`, as well as common Markdown forms
+that separated the pull-request identifier from its state through bold syntax or a
+table cell.
 
 Resolution:
 
-- review, verification, drift, stage, classification, task, and closeout values
-  are compared as complete exact strings;
-- only `Evaluation verdict: SKIPPED — <non-empty rationale>` may carry a rationale;
-- `Evaluation verdict: READY` must also be exact;
-- Work Block and closeout suffix fixtures cover every terminal marker class.
-
-#### F-013 — Mutable VCS claims in frontmatter bypassed validation
-
-**Severity:** P1  
-**Resolution:** fixed
-
-The previous scan inspected only the Markdown body. An extra frontmatter field such
-as `release_note: "PR #9 is merged"` could therefore pass.
-
-Resolution:
-
-- the validator retains and scans the complete closeout document;
-- YAML frontmatter and Markdown body use the same mutable-state rules;
-- a dedicated frontmatter fixture proves the bypass is closed.
-
-#### F-014 — Colon-form PR status assertions were missed
-
-**Severity:** P1  
-**Resolution:** fixed
-
-Common shorthand such as `PR #9: merged`, `PR #9: open`, or `PR #9: Draft` did not
-match the prior expressions.
-
-Resolution:
-
-- the PR-state grammar now accepts verb, state/status, colon, and equals forms;
-- open, Draft, and merged colon-form fixtures are included;
-- the allowed non-normative ownership statement remains valid.
+- parsed YAML frontmatter is recursively inspected;
+- key spelling is normalized across underscores, hyphens, spaces, and nesting;
+- PR/pull-request/merge `status` and `state` keys reject mutable state values;
+- bold Markdown identifier/state forms are rejected;
+- Markdown table rows pairing a pull-request identifier with a mutable state are
+  rejected;
+- dedicated fixtures cover direct, nested, bold, plain-table, and bold-table forms;
+- the permitted non-normative ownership statement remains valid.
 
 ## Contract Review
 
@@ -116,8 +99,8 @@ Resolution:
 ### Repository and hosting-platform boundary
 
 - Work Block lifecycle and closeout remain repository-owned;
-- mutable hosting-platform assertions are rejected in the complete closeout file,
-  including frontmatter;
+- mutable hosting-platform assertions are rejected in prose, parsed frontmatter,
+  bold Markdown, and table representations;
 - external state cannot grant authority or redefine closeout.
 
 **Result:** aligned.
@@ -128,8 +111,9 @@ The fixture suite covers:
 
 - Work Block and closeout exact-value suffix attacks;
 - malformed evaluation rationale;
-- body and frontmatter PR-state assertions;
-- verb, colon, equals, and status/state assertion forms;
+- prose, structured frontmatter, nested keys, bold Markdown, and table PR-state
+  assertions;
+- verb, colon, equals, status/state, underscore, hyphen, and space variants;
 - all previously resolved path, identity, marker, section, and map drift classes.
 
 **Result:** aligned.
@@ -137,12 +121,12 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`.
+`42b31c75f463a6a1ec77dd07b545d1be21175078`.
 
 Successful runs:
 
-- Release State Contract run **54**;
-- Framework Contracts run **503**.
+- Release State Contract run **68**;
+- Framework Contracts run **517**.
 
 Earlier failed runs remain failed evidence and were followed by scoped corrections;
 no failing run was converted into a passing claim.
@@ -151,7 +135,7 @@ no failing run was converted into a passing claim.
 
 - Markdown headings and YAML frontmatter form a versioned schema; schema changes
   must update validator and fixtures together.
-- Pattern-based mutable-state detection is a governance guardrail, not a general
+- Pattern and structured-key detection are governance guardrails, not a general
   natural-language theorem prover.
 - Hosting-platform state is queried externally rather than committed as normative
   closeout data.
@@ -160,6 +144,6 @@ no failing run was converted into a passing claim.
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the three third-
-round Codex threads, request one final Codex Review, and keep integration under
-explicit Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the fourth-round
+Codex thread, request one final Codex Review, and keep integration under explicit
+Owner approval.
