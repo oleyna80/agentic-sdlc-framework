@@ -2,7 +2,6 @@
 """Positive and adversarial fixtures for repository release-state reconciliation."""
 from __future__ import annotations
 
-import copy
 import importlib.util
 from pathlib import Path
 import tempfile
@@ -29,10 +28,45 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def work_block(work_block_id: str, status: str, pending: bool = False) -> str:
-    current = ""
-    if pending:
-        current = (
+def work_block(
+    work_block_id: str,
+    status: str,
+    pending: bool = False,
+    *,
+    review: str = "READY",
+    verification: str = "READY",
+    evaluation: str | None = "READY",
+    drift: str = "ALIGNED",
+    closeout_mode: str = "success-closeout",
+    include_terminal_section: bool = True,
+) -> str:
+    if status == "completed" and include_terminal_section:
+        stage_state = "in_progress" if pending else "completed"
+        review_value = "PENDING" if pending else review
+        verification_value = "PENDING" if pending else verification
+        evaluation_value = "PENDING" if pending and evaluation is not None else evaluation
+        drift_value = "PENDING" if pending else drift
+        closeout_value = "pending" if pending else closeout_mode
+        task_status = "in_progress" if pending else "completed"
+        evaluation_line = (
+            f"- **Evaluation Verdict:** {evaluation_value}\n"
+            if evaluation_value is not None
+            else ""
+        )
+        state = (
+            "\n## Final State\n\n"
+            f"- **Stage State:** {stage_state}\n"
+            f"- **Review Gate:** {review_value}\n"
+            f"- **Verification Verdict:** {verification_value}\n"
+            f"{evaluation_line}"
+            f"- **Drift Gate:** {drift_value}\n"
+            f"- **Closeout Mode:** {closeout_value}\n"
+            f"- **Task Status:** {task_status}\n"
+        )
+    elif status == "completed":
+        state = ""
+    else:
+        state = (
             "\n## Current State\n\n"
             "- **Stage State:** in_progress\n"
             "- **Review Gate:** PENDING\n"
@@ -48,17 +82,34 @@ work_block_id: {work_block_id}
 ---
 
 # {work_block_id}
-{current}"""
+{state}"""
 
 
 def closeout(
     extra: str = "",
     *,
     work_block_id: str = "wb-007",
-    evaluation: str = "READY",
+    evaluation: str | None = "READY",
     drift: str = "ALIGNED",
     external: str = "non-normative; read from the hosting platform when needed",
+    include_residual: bool = True,
+    include_follow_up: bool = True,
 ) -> str:
+    evaluation_line = (
+        f"- **Evaluation verdict:** {evaluation}\n" if evaluation is not None else ""
+    )
+    residual = (
+        "\n## Residual Risks and Limitations\n\n"
+        "- Runtime and OS isolation remain outside this fixture.\n"
+        if include_residual
+        else ""
+    )
+    follow_up = (
+        "\n## Follow-Up Work\n\n"
+        "1. Run target-environment smoke when live runtimes are admitted.\n"
+        if include_follow_up
+        else ""
+    )
     return f"""---
 schema_version: 1
 artifact_type: closeout_report
@@ -73,14 +124,13 @@ work_block_id: {work_block_id}
 - **Stage execution state:** completed
 - **Review verdict:** READY
 - **Verification verdict:** READY
-- **Evaluation verdict:** {evaluation}
-- **Drift verdict:** {drift}
+{evaluation_line}- **Drift verdict:** {drift}
 - **Closeout classification:** SUCCESS
 - **Task status:** completed
 - **External VCS state:** {external}
 
 External GitHub pull-request state is non-normative and is read from GitHub when needed.
-{extra}
+{extra}{residual}{follow_up}
 """
 
 
@@ -154,10 +204,24 @@ def main() -> int:
         assert result["verdict"] == "READY"
         assert result["active_work_block"] is None
 
+    with tempfile.TemporaryDirectory(prefix="release-state-skipped-") as temp:
+        root = Path(temp)
+        populate(root)
+        write(root / COMPLETED, work_block("wb-007", "completed", evaluation="SKIPPED — deterministic"))
+        write(root / CLOSEOUT, closeout(evaluation="SKIPPED — deterministic"))
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
+    with tempfile.TemporaryDirectory(prefix="release-state-legacy-drift-") as temp:
+        root = Path(temp)
+        completed = [OLDER, COMPLETED]
+        populate(root, registry(completed), project_map(completed))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None, drift="READY"))
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
     with tempfile.TemporaryDirectory(prefix="release-state-active-") as temp:
         root = Path(temp)
         populate(root, registry(active=ACTIVE), project_map(active=ACTIVE))
-        write(root / ACTIVE, work_block("wb-008", "in_progress", pending=True))
+        write(root / ACTIVE, work_block("wb-008", "in_progress"))
         assert validator.validate_repository(root)["active_work_block"] == ACTIVE
 
     with tempfile.TemporaryDirectory(prefix="release-state-fixtures-") as temp:
@@ -170,12 +234,38 @@ def main() -> int:
         expect_failure("missing-completed", root, "is missing")
 
         populate(root)
-        write(root / COMPLETED, work_block("wb-007", "in_progress", pending=True))
+        write(root / COMPLETED, work_block("wb-007", "in_progress"))
         expect_failure("completed-status", root, "not status completed")
 
         populate(root)
+        write(
+            root / COMPLETED,
+            work_block("wb-007", "completed", include_terminal_section=False),
+        )
+        expect_failure("missing-terminal-section", root, "requires Final State or Closeout State")
+
+        populate(root)
         write(root / COMPLETED, work_block("wb-007", "completed", pending=True))
-        expect_failure("completed-pending-body", root, "retains pending lifecycle markers")
+        expect_failure("completed-pending-stage", root, "requires stage state")
+
+        populate(root)
+        write(root / COMPLETED, work_block("wb-007", "completed", review="BLOCKED"))
+        expect_failure("completed-blocked-review", root, "requires review gate")
+
+        populate(root)
+        write(
+            root / COMPLETED,
+            work_block("wb-007", "completed", verification="UNVERIFIED"),
+        )
+        expect_failure("completed-unverified-verification", root, "requires verification verdict")
+
+        populate(root)
+        write(root / COMPLETED, work_block("wb-007", "completed", evaluation="BLOCKED"))
+        expect_failure("completed-blocked-evaluation", root, "evaluation verdict must be")
+
+        populate(root)
+        write(root / COMPLETED, work_block("wb-007", "completed", drift="MISALIGNED"))
+        expect_failure("completed-misaligned-drift", root, "requires drift gate")
 
         populate(root)
         overlap = registry(active=COMPLETED)
@@ -266,7 +356,16 @@ def main() -> int:
 
         populate(root)
         write(root / CLOSEOUT, closeout("\n- **Merge status:** not merged\n"))
-        expect_failure("mutable-vcs-state", root, "mutable GitHub/VCS state")
+        expect_failure("mutable-vcs-marker", root, "mutable GitHub/VCS state")
+
+        for label, assertion in (
+            ("mutable-pr-open", "PR #9 is open."),
+            ("mutable-pr-draft", "PR #9 is Draft."),
+            ("mutable-pr-merged", "PR #9 was merged."),
+        ):
+            populate(root)
+            write(root / CLOSEOUT, closeout(f"\n{assertion}\n"))
+            expect_failure(label, root, "mutable GitHub/VCS state")
 
         populate(root)
         write(
@@ -276,27 +375,32 @@ def main() -> int:
         expect_failure("pending-verification", root, "verification verdict=READY")
 
         populate(root)
-        write(
-            root / CLOSEOUT,
-            closeout("\n- **Verification verdict:** PENDING\n"),
-        )
+        write(root / CLOSEOUT, closeout("\n- **Verification verdict:** PENDING\n"))
         expect_failure("duplicate-closeout-marker", root, "duplicate marker: verification verdict")
-
-        populate(root)
-        write(root / CLOSEOUT, closeout(drift="PENDING"))
-        expect_failure("pending-drift", root, "drift verdict=ALIGNED")
 
         populate(root)
         write(root / CLOSEOUT, closeout(drift="MISALIGNED"))
         expect_failure("misaligned-is-not-aligned", root, "drift verdict=ALIGNED")
 
         populate(root)
+        write(root / CLOSEOUT, closeout(evaluation=None))
+        expect_failure("required-evaluation-missing", root, "requires evaluation verdict=READY")
+
+        populate(root)
         write(root / CLOSEOUT, closeout(evaluation="UNVERIFIED"))
-        expect_failure("unverified-evaluation", root, "READY or documented SKIPPED")
+        expect_failure("unverified-evaluation", root, "requires evaluation verdict=READY")
 
         populate(root)
         write(root / CLOSEOUT, closeout(external="tracked in closeout"))
         expect_failure("missing-external-boundary", root, "mark external VCS state non-normative")
+
+        populate(root)
+        write(root / CLOSEOUT, closeout(include_residual=False))
+        expect_failure("missing-residual-risks", root, "requires section: Residual Risks and Limitations")
+
+        populate(root)
+        write(root / CLOSEOUT, closeout(include_follow_up=False))
+        expect_failure("missing-follow-up", root, "requires section: Follow-Up Work")
 
         populate(root)
         write(root / CLOSEOUT, closeout(work_block_id="wb-00"))
@@ -305,7 +409,7 @@ def main() -> int:
         populate(root)
         two = registry([OLDER, COMPLETED])
         two["release_state"]["latest_completed_work_block"] = OLDER
-        write(root / OLDER, work_block("wb-006", "completed"))
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(two, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map([OLDER, COMPLETED]))
         expect_failure("latest-not-final", root, "must be the final")
