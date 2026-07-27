@@ -31,21 +31,8 @@ jobs:
         run: |
           set +e
           (
-            python - <<'PY'
-            from pathlib import Path
-            path = Path("scripts/wb008-ninth-evidence.py")
-            text = path.read_text(encoding="utf-8")
-            old_invariant = r'''    "- bare identifier-plus-state prose is rejected without a connector verb;\n- raw syntax-dependent forms are checked before normalization, including\n  `**Merge status:** open` and `merged_at`;\n- asterisk and underscore Markdown emphasis is normalized before mutable-state\n",'''
-            new_invariant = r'''    "- bare identifier-plus-state prose is rejected without a connector verb;\n- raw syntax-dependent merge-status markers and merge-timestamp keys are checked\n  before Markdown normalization;\n- asterisk and underscore Markdown emphasis is normalized before mutable-state\n",'''
-            old_acceptance = r'''    "- [x] Raw `Merge status` and `merged_at` hosting-state forms are rejected.\n- [x] Italic, bold, combined, underscore, and table Markdown state forms are rejected.\n",'''
-            new_acceptance = r'''    "- [x] Raw merge-status markers and merge-timestamp keys are rejected.\n- [x] Italic, bold, combined, underscore, and table Markdown state forms are rejected.\n",'''
-            if old_invariant not in text or old_acceptance not in text:
-                raise RuntimeError("closeout evidence hotfix anchors are missing")
-            text = text.replace(old_invariant, new_invariant, 1)
-            text = text.replace(old_acceptance, new_acceptance, 1)
-            path.write_text(text, encoding="utf-8")
-            PY
             python scripts/wb008-ninth-evidence.py
+            python scripts/wb008-ninth-closeout-sanitize.py
             python scripts/test-release-state-contracts.py
             python scripts/validate-release-state.py
             bash scripts/validate-governance.sh
@@ -61,10 +48,10 @@ jobs:
           path: /tmp/wb008-ninth-evidence.log
       - name: Commit evidence
         run: |
-          rm scripts/wb008-ninth-evidence.py
+          rm scripts/wb008-ninth-evidence.py scripts/wb008-ninth-closeout-sanitize.py
           git config user.name "oleyna80"
           git config user.email "209451099+oleyna80@users.noreply.github.com"
-          git add docs/plans/wb-008-post-merge-ssot-release-gate.md docs/reports/reviews/pr-8-final-review.md docs/reports/drift/wb-008-post-merge-ssot-release-gate.md docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md scripts/wb008-ninth-evidence.py
+          git add docs/plans/wb-008-post-merge-ssot-release-gate.md docs/reports/reviews/pr-8-final-review.md docs/reports/drift/wb-008-post-merge-ssot-release-gate.md docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md scripts/wb008-ninth-evidence.py scripts/wb008-ninth-closeout-sanitize.py
           git commit -m "docs: record ninth review correction"
           git push origin HEAD:agent/post-merge-ssot-release-gate
 
