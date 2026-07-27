@@ -118,7 +118,8 @@ frontmatter and Markdown body. It rejects:
   hyphen/space variants when their value is a mutable state;
 - parent-key forms such as `pr: {status: merged}` or
   `pull_request: {state: open}` by carrying VCS context through descendant fields;
-- bold Markdown forms such as a pull-request identifier followed by a state, including Markdown decoration around the state token itself;
+- Markdown-emphasized forms after normalizing asterisk and underscore decoration,
+  including italic, bold, and combined emphasis around mutable state tokens;
 - Markdown table rows that pair a pull-request identifier with a mutable state;
 - merge timestamps, merge commit state, or equivalent hosting-platform facts.
 
@@ -147,7 +148,8 @@ validator must reject at least:
 - missing residual-risk or follow-up sections;
 - normative mutable GitHub-state claims anywhere in the current canonical closeout,
   including terse identifier-plus-state prose, structured frontmatter, VCS parent-key
-  descendants, boundary-marker payloads, and common Markdown forms;
+  descendants, boundary-marker payloads, and Markdown forms normalized before
+  semantic state matching;
 - adverse or contradictory lifecycle evidence in any existing closeout report bound
   to a completed Work Block ID.
 

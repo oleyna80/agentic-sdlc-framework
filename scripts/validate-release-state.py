@@ -25,7 +25,8 @@ MARKER_RE = re.compile(
 MUTABLE_VCS_STATES = r"(?:draft|ready(?:\s+for\s+review)?|open|closed|merged|unmerged)"
 MUTABLE_VCS_STATE_RE = re.compile(rf"^{MUTABLE_VCS_STATES}$", re.IGNORECASE)
 MUTABLE_VCS_STATE_TOKEN_RE = re.compile(rf"\b{MUTABLE_VCS_STATES}\b", re.IGNORECASE)
-MARKDOWN_MUTABLE_VCS_STATE = rf"(?:\*\*)?{MUTABLE_VCS_STATES}\b(?:\*\*)?"
+MARKDOWN_DECORATION_RE = re.compile(r"[*_]+")
+NORMALIZED_MUTABLE_VCS_STATE = rf"{MUTABLE_VCS_STATES}\b"
 STRUCTURED_VCS_KEY_RE = re.compile(
     r"^(?:pr|pull_request|pullrequest|merge)_(?:status|state)$", re.IGNORECASE
 )
@@ -41,27 +42,27 @@ MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(
         rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*"
         rf"(?:(?::|=)\s*|(?:is|was|remains?|became|has\s+been)\s*|"
-        rf"(?:status|state)\s*(?:is|=|:)\s*){MARKDOWN_MUTABLE_VCS_STATE}",
+        rf"(?:status|state)\s*(?:is|=|:)\s*){NORMALIZED_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s+"
-        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
+        rf"{NORMALIZED_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*:\*\*\s*"
-        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
+        rf"{NORMALIZED_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"\*\*(?:PR|pull[ -]?request)\s+(?:status|state):\*\*\s*"
-        rf"{MARKDOWN_MUTABLE_VCS_STATE}",
+        rf"{NORMALIZED_MUTABLE_VCS_STATE}",
         re.IGNORECASE,
     ),
     re.compile(
         rf"^\s*\|\s*(?:\*\*)?(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?"
-        rf"(?:\*\*)?\s*\|\s*{MARKDOWN_MUTABLE_VCS_STATE}\s*\|",
+        rf"(?:\*\*)?\s*\|\s*{NORMALIZED_MUTABLE_VCS_STATE}\s*\|",
         re.IGNORECASE | re.MULTILINE,
     ),
 )
@@ -335,13 +336,19 @@ def reject_structured_vcs_claims(
             )
 
 
+def normalize_markdown_decoration(text: str) -> str:
+    """Remove Markdown emphasis markers before semantic VCS-state matching."""
+    return MARKDOWN_DECORATION_RE.sub("", text)
+
+
 def reject_mutable_vcs_claims(
     text: str, label: str, structured: object | None = None
 ) -> None:
     if structured is not None:
         reject_structured_vcs_claims(structured, label)
+    normalized_text = normalize_markdown_decoration(text)
     for pattern in MUTABLE_CLOSEOUT_PATTERNS:
-        if pattern.search(text):
+        if pattern.search(normalized_text):
             raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
 
 
