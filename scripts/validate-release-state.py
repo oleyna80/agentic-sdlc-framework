@@ -34,11 +34,13 @@ STRUCTURED_VCS_PARENT_RE = re.compile(
     r"^(?:pr|pull_request|pullrequest|merge)$", re.IGNORECASE
 )
 STRUCTURED_STATE_KEY_RE = re.compile(r"^(?:status|state)$", re.IGNORECASE)
-MUTABLE_CLOSEOUT_PATTERNS = (
+RAW_MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
     re.compile(r"\bmerge commit\b", re.IGNORECASE),
     re.compile(r"\bmerged_at\b", re.IGNORECASE),
+)
+NORMALIZED_MUTABLE_CLOSEOUT_PATTERNS = (
     re.compile(
         rf"\b(?:PR|pull[ -]?request)\s*(?:#\s*\d+)?\s*"
         rf"(?:(?::|=)\s*|(?:is|was|remains?|became|has\s+been)\s*|"
@@ -346,8 +348,11 @@ def reject_mutable_vcs_claims(
 ) -> None:
     if structured is not None:
         reject_structured_vcs_claims(structured, label)
+    for pattern in RAW_MUTABLE_CLOSEOUT_PATTERNS:
+        if pattern.search(text):
+            raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
     normalized_text = normalize_markdown_decoration(text)
-    for pattern in MUTABLE_CLOSEOUT_PATTERNS:
+    for pattern in NORMALIZED_MUTABLE_CLOSEOUT_PATTERNS:
         if pattern.search(normalized_text):
             raise ReleaseStateError(f"{label} contains mutable GitHub/VCS state: {pattern.pattern}")
 

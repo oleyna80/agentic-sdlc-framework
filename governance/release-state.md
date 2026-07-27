@@ -108,7 +108,9 @@ open, closed, merged, or unmerged. The marker declares an ownership boundary onl
 it must not append a current or predicted hosting-platform state.
 
 The mutable-state scan covers the entire closeout document, including parsed YAML
-frontmatter and Markdown body. It rejects:
+frontmatter and Markdown body. Syntax-dependent raw patterns run against the original
+document before asterisk/underscore normalization; semantic state patterns then run
+against the normalized copy. It rejects:
 
 - prose assertions such as a pull request being open, Draft, or merged;
 - terse identifier-plus-state assertions such as `PR #9 merged` or
@@ -118,6 +120,8 @@ frontmatter and Markdown body. It rejects:
   hyphen/space variants when their value is a mutable state;
 - parent-key forms such as `pr: {status: merged}` or
   `pull_request: {state: open}` by carrying VCS context through descendant fields;
+- raw syntax-dependent forms such as `**Merge status:** open` and keys such as
+  `merged_at` before Markdown normalization can erase their syntax;
 - Markdown-emphasized forms after normalizing asterisk and underscore decoration,
   including italic, bold, and combined emphasis around mutable state tokens;
 - Markdown table rows that pair a pull-request identifier with a mutable state;

@@ -363,6 +363,8 @@ def main() -> int:
         expect_failure("mutable-vcs-marker", root, "mutable GitHub/VCS state")
 
         for label, assertion in (
+            ("mutable-merge-status-open", "- **Merge status:** open"),
+            ("mutable-merged-at", "merged_at: 2026-07-27T19:45:39Z"),
             ("mutable-pr-open", "PR #9 is open."),
             ("mutable-pr-draft", "PR #9 is Draft."),
             ("mutable-pr-merged", "PR #9 was merged."),
