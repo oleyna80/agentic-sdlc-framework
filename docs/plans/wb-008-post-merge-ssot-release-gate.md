@@ -6,7 +6,7 @@ status: completed
 owner_role: orchestrator
 work_block_id: wb-008
 created_at: 2026-07-26
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 ---
 
 # WB-008 — Post-Merge SSOT Reconciliation and Release Gate
@@ -19,34 +19,38 @@ executable release-state gate that fails closed when these sources disagree.
 
 ## Delivered Result
 
-- normalized completed Work Blocks WB-001 through WB-007;
-- reconciled WB-007 Work Block and closeout evidence;
-- defined repository lifecycle versus mutable GitHub-state ownership;
+- normalized the completed migration ledger WB-001 through WB-008;
+- reconciled Work Block, map, registry, and closeout state;
+- separated repository lifecycle from mutable hosting-platform state;
 - added `governance/release-state.md`;
-- added a machine-readable release-state projection to `PROJECT_MAP.md`;
-- added `FILE_REGISTRY.yml:release_state`;
+- added machine and visible release-state projections;
 - added `scripts/validate-release-state.py`;
 - added positive and adversarial release-state fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state validation into governance checks;
-- documented the contract in README and project navigation.
+- resolved two Codex Review correction cycles.
 
 ## Enforced Invariants
 
-1. Completed Work Blocks exist, use `status: completed`, and contain no pending
-   final lifecycle markers.
-2. Completed Work Block IDs are unique.
-3. An active Work Block is optional, active, and disjoint from completed paths and
-   IDs.
-4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` agree exactly and in order.
-5. Visible map navigation agrees with its machine block.
-6. Latest completed equals the final ordered completed entry.
-7. Closeout identity exactly matches the latest Work Block.
-8. Review, verification, evaluation when present, drift, and closeout are internally
-   successful.
-9. Release contract assets exist at canonical paths.
-10. Release-state evidence is assurance-only and cannot authorize external actions.
-11. Mutable GitHub status is external operational metadata, not normative closeout.
+1. Completed Work Blocks exist, use `status: completed`, and contain exactly one
+   `Final State` or legacy `Closeout State` section.
+2. Terminal review, verification, evaluation when declared, drift, closeout, and
+   task values are validated explicitly.
+3. `BLOCKED`, `UNVERIFIED`, `MISALIGNED`, pending, missing, or contradictory
+   lifecycle evidence fails closed.
+4. Completed Work Block paths and IDs are unique and disjoint from active state.
+5. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` agree exactly and in order.
+6. Visible active/no-active navigation is scoped to the unique `Migration Work`
+   section.
+7. Latest completed and closeout identity match exactly.
+8. Duplicate normalized closeout markers are rejected.
+9. Evaluation declared by the latest Work Block is mandatory in closeout with the
+   same terminal `READY` or `SKIPPED` token.
+10. Closeout drift requires exact `ALIGNED`.
+11. Mutable hosting-platform status assertions are excluded from normative closeout.
+12. Residual risks and follow-up work are mandatory non-empty closeout sections.
+13. Release contract assets exist at canonical paths.
+14. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
@@ -63,23 +67,26 @@ changes to runtime/evaluation authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Framework Contracts run 459: success
-- Release State Contract run 10: success
+- Reviewed implementation revision: `8ccd56e23e62741eb546c6a3f64e2df746bcf119`
+- Release State Contract run 38: success
+- Framework Contracts run 487: success
 
 Release State Contract run 8 remains recorded as a failed fixture-order attempt,
-followed by a scoped correction and successful rerun.
+followed by a scoped correction. Both Codex Review rounds were handled through
+new implementation and dedicated regression evidence.
 
 ## Acceptance Result
 
-- [x] WB-007 is completed in all repository lifecycle consumers.
-- [x] Historical migration Work Blocks use canonical completed metadata.
-- [x] No repository closeout predicts mutable GitHub state.
-- [x] GitHub state is explicitly non-normative.
-- [x] Release-state validator passes on the repository.
-- [x] Adversarial fixtures cover all declared drift classes.
+- [x] Completed Work Blocks use canonical completed metadata and terminal evidence.
+- [x] Adverse lifecycle verdicts cannot pass through exact-string blacklist gaps.
+- [x] Required evaluation cannot disappear during closeout.
+- [x] Machine and visible navigation remain synchronized.
+- [x] Hosting-platform state is explicitly non-normative.
+- [x] Duplicate closeout markers fail closed.
+- [x] Residual-risk and follow-up sections are executable requirements.
 - [x] Dedicated release-state CI runs on push and pull request events.
 - [x] Existing Framework Contracts remain green.
-- [x] Final review and drift audit are complete.
+- [x] Final review, drift, and closeout evidence are synchronized.
 - [x] Repository lifecycle closes with no active implementation Work Block.
 
 ## Final State
