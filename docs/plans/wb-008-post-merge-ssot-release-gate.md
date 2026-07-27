@@ -15,48 +15,39 @@ last_verified: 2026-07-27
 
 Eliminate lifecycle drift between completed Work Blocks, `PROJECT_MAP.md`,
 `FILE_REGISTRY.yml`, closeout evidence, and repository release state, then add an
-executable release-state gate that fails closed when these sources disagree.
+executable fail-closed release-state gate.
 
 ## Delivered Result
 
-- normalized the completed migration ledger WB-001 through WB-008;
-- reconciled Work Block, map, registry, and closeout state;
-- separated repository lifecycle from mutable hosting-platform state;
+- normalized completed Work Blocks WB-001 through WB-008;
+- reconciled map, registry, README, Work Block, and closeout state;
+- separated repository lifecycle from mutable hosting-platform metadata;
 - added `governance/release-state.md`;
-- added machine and visible release-state projections;
-- added `scripts/validate-release-state.py`;
-- added positive and adversarial release-state fixtures;
+- added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
-- integrated release-state validation into governance checks;
-- resolved two Codex Review correction cycles.
+- integrated release-state checks into Framework Contracts;
+- resolved three Codex Review rounds with dedicated regressions.
 
-## Enforced Invariants
+## Final Invariants
 
-1. Completed Work Blocks exist, use `status: completed`, and contain exactly one
-   `Final State` or legacy `Closeout State` section.
-2. Terminal review, verification, evaluation when declared, drift, closeout, and
-   task values are validated explicitly.
-3. `BLOCKED`, `UNVERIFIED`, `MISALIGNED`, pending, missing, or contradictory
-   lifecycle evidence fails closed.
-4. Completed Work Block paths and IDs are unique and disjoint from active state.
-5. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` agree exactly and in order.
-6. Visible active/no-active navigation is scoped to the unique `Migration Work`
-   section.
-7. Latest completed and closeout identity match exactly.
-8. Duplicate normalized closeout markers are rejected.
-9. Evaluation declared by the latest Work Block is mandatory in closeout with the
-   same terminal `READY` or `SKIPPED` token.
-10. Closeout drift requires exact `ALIGNED`.
-11. Mutable hosting-platform status assertions are excluded from normative closeout.
-12. Residual risks and follow-up work are mandatory non-empty closeout sections.
-13. Release contract assets exist at canonical paths.
-14. Release-state evidence is assurance-only and cannot authorize external actions.
+1. Completed Work Blocks use canonical frontmatter and one terminal state section.
+2. Non-evaluation terminal markers are compared as complete exact values.
+3. Evaluation accepts exact `READY` or `SKIPPED — <non-empty rationale>` only.
+4. Active and completed paths/IDs are disjoint.
+5. Map and registry agree exactly and in order.
+6. Visible migration navigation agrees with machine state.
+7. Latest completed and closeout identity bind exactly.
+8. Closeout marker keys are unique.
+9. Residual risks and follow-up sections are mandatory and non-empty.
+10. Mutable external-state assertions are rejected throughout the complete closeout
+    document, including YAML frontmatter.
+11. Release-state evidence is assurance-only and cannot authorize external actions.
 
 ## Scope Boundary
 
 WB-008 did not deliver live runtime smoke, production telemetry, automatic
 hosting-platform self-commits, release tags, in-place upgrades, model routing, or
-changes to runtime/evaluation authority.
+changes to runtime/integration authority.
 
 ## Evidence
 
@@ -67,27 +58,23 @@ changes to runtime/evaluation authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `8ccd56e23e62741eb546c6a3f64e2df746bcf119`
-- Release State Contract run 38: success
-- Framework Contracts run 487: success
-
-Release State Contract run 8 remains recorded as a failed fixture-order attempt,
-followed by a scoped correction. Both Codex Review rounds were handled through
-new implementation and dedicated regression evidence.
+- Reviewed implementation revision: `029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`
+- Release State Contract run 54: success
+- Framework Contracts run 503: success
 
 ## Acceptance Result
 
-- [x] Completed Work Blocks use canonical completed metadata and terminal evidence.
-- [x] Adverse lifecycle verdicts cannot pass through exact-string blacklist gaps.
-- [x] Required evaluation cannot disappear during closeout.
-- [x] Machine and visible navigation remain synchronized.
-- [x] Hosting-platform state is explicitly non-normative.
-- [x] Duplicate closeout markers fail closed.
-- [x] Residual-risk and follow-up sections are executable requirements.
-- [x] Dedicated release-state CI runs on push and pull request events.
-- [x] Existing Framework Contracts remain green.
-- [x] Final review, drift, and closeout evidence are synchronized.
-- [x] Repository lifecycle closes with no active implementation Work Block.
+- [x] Historical migration Work Blocks use canonical completed state.
+- [x] Repository and hosting-platform lifecycle are separated.
+- [x] Work Block, map, registry, and closeout are consistent.
+- [x] Exact terminal-value semantics are enforced.
+- [x] Evaluation rationale is restricted to documented skips.
+- [x] Body and frontmatter mutable-state bypasses are closed.
+- [x] Common status assertion forms have regressions.
+- [x] Required closeout sections are enforced.
+- [x] Dedicated and full-framework CI pass.
+- [x] Review, verification, drift, and closeout are synchronized.
+- [x] No active implementation Work Block remains.
 
 ## Final State
 
