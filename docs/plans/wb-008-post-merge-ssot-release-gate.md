@@ -26,7 +26,7 @@ executable fail-closed release-state gate.
 - added `scripts/validate-release-state.py` and adversarial fixtures;
 - added `.github/workflows/release-state-contract.yml`;
 - integrated release-state checks into Framework Contracts;
-- resolved seven Codex Review rounds with dedicated regressions.
+- resolved eight Codex Review rounds with dedicated regressions.
 
 ## Final Invariants
 
@@ -49,8 +49,9 @@ executable fail-closed release-state gate.
     ownership and cannot append a concrete mutable state.
 14. Terse identifier-plus-state prose such as `PR #9 merged` and
     `Pull request #9 closed` is rejected without requiring a connector verb.
-15. Markdown decoration around either the pull-request identifier or the mutable
-    state token cannot bypass prose or table detection.
+15. Asterisk and underscore Markdown emphasis is normalized before semantic state
+    matching, so italic, bold, combined emphasis, and decorated table cells cannot
+    bypass mutable-state detection.
 16. Every existing closeout report bound to a completed Work Block ID retains exact
     successful lifecycle, evaluation, boundary, and required-section evidence.
 17. Release-state evidence is assurance-only and cannot authorize external actions.
@@ -70,10 +71,10 @@ changes to runtime/integration authority.
 - Final review: `docs/reports/reviews/pr-8-final-review.md`
 - Drift audit: `docs/reports/drift/wb-008-post-merge-ssot-release-gate.md`
 - Closeout: `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md`
-- Reviewed implementation revision: `9ae16b927aa072a81f4fdc58a773fddeb8aafac8`
-- Workflow-restored validation head: `1b46c028fb7e1205dda77820694e8b9a43f2f406`
-- Release State Contract run 134: success
-- Framework Contracts run 583: success
+- Reviewed implementation revision: `770d2c4d0cb1805fc111160ed1440182f151e272`
+- Workflow-restored validation head: `7d05b855e03701e15dce6dd522aec050dda10753`
+- Release State Contract run 153: success
+- Framework Contracts run 602: success
 
 ## Acceptance Result
 
@@ -89,7 +90,8 @@ changes to runtime/integration authority.
 - [x] A clean boundary-only marker remains valid.
 - [x] Bare identifier-plus-state prose has negative regressions.
 - [x] A PR reference without mutable state remains valid.
-- [x] Markdown-decorated state tokens and table forms have regressions.
+- [x] Italic, bold, combined, underscore, and table Markdown state forms have regressions.
+- [x] Markdown-decorated non-state prose remains valid.
 - [x] Existing historical closeouts bound to completed Work Blocks are validated.
 - [x] Required closeout sections are enforced.
 - [x] Dedicated and full-framework CI pass.
