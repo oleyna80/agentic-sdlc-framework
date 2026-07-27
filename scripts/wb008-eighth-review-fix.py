@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -14,16 +13,17 @@ tests_path = Path("scripts/test-release-state-contracts.py")
 governance_path = Path("governance/release-state.md")
 
 validator = validator_path.read_text(encoding="utf-8")
-validator, count = re.subn(
-    r'^MARKDOWN_MUTABLE_VCS_STATE = .+$',
-    'MARKDOWN_DECORATION_RE = re.compile(r"[*_]+")\n'
-    'NORMALIZED_MUTABLE_VCS_STATE = rf"{MUTABLE_VCS_STATES}\\b"',
-    validator,
-    count=1,
-    flags=re.MULTILINE,
-)
-if count != 1:
+lines = validator.splitlines()
+for index, line in enumerate(lines):
+    if line.startswith("MARKDOWN_MUTABLE_VCS_STATE = "):
+        lines[index : index + 1] = [
+            'MARKDOWN_DECORATION_RE = re.compile(r"[*_]+")',
+            'NORMALIZED_MUTABLE_VCS_STATE = rf"{MUTABLE_VCS_STATES}\\b"',
+        ]
+        break
+else:
     raise RuntimeError("missing patch anchor: Markdown mutable-state fragment")
+validator = "\n".join(lines) + "\n"
 if "MARKDOWN_MUTABLE_VCS_STATE" not in validator:
     raise RuntimeError("missing patch anchor: Markdown mutable-state uses")
 validator = validator.replace(
@@ -100,14 +100,14 @@ tests_path.write_text(tests, encoding="utf-8")
 governance = governance_path.read_text(encoding="utf-8")
 governance = replace_once(
     governance,
-    "- bold Markdown forms such as a pull-request identifier followed by a state;\n",
+    "- bold Markdown forms such as a pull-request identifier followed by a state, including Markdown decoration around the state token itself;\n",
     "- Markdown-emphasized forms after normalizing asterisk and underscore decoration,\n  including italic, bold, and combined emphasis around mutable state tokens;\n",
     "governance Markdown normalization rule",
 )
 governance = replace_once(
     governance,
-    "  descendants, boundary-marker payloads, and common Markdown forms.\n",
-    "  descendants, boundary-marker payloads, and Markdown forms normalized before\n  semantic state matching.\n",
+    "  descendants, boundary-marker payloads, and common Markdown forms;\n",
+    "  descendants, boundary-marker payloads, and Markdown forms normalized before\n  semantic state matching;\n",
     "governance fail-closed Markdown rule",
 )
 governance_path.write_text(governance, encoding="utf-8")
