@@ -53,10 +53,14 @@ A path listed in `completed_work_blocks` must:
 - use `status: completed`;
 - not be the active Work Block;
 - contain exactly one terminal state section;
-- declare terminal successful review, verification, drift, and closeout values;
+- declare exact terminal successful review, verification, drift, closeout, and
+  optional task-state values;
+- reject suffixes, rationales, or contradictory text appended to non-evaluation
+  terminal values;
 - reject `PENDING`, `BLOCKED`, `UNVERIFIED`, `MISALIGNED`, or any other adverse or
   non-terminal value;
-- use `READY` or documented `SKIPPED` when an evaluation verdict is present.
+- use exact `READY` or `SKIPPED — <non-empty rationale>` when an evaluation verdict
+  is present.
 
 Legacy `Drift Gate: READY` remains accepted for historical Work Blocks created
 before `ALIGNED` became the canonical terminal drift token. New Work Blocks use
@@ -80,22 +84,29 @@ no active implementation Work Block.
 
 A successful closeout must identify:
 
-- completed repository execution state;
+- exact `completed` repository execution state;
 - exact `READY` review and verification verdicts;
 - exact `ALIGNED` drift verdict;
 - evaluation evidence whenever the latest Work Block declares an evaluation
-  verdict, with the same terminal `READY` or `SKIPPED` token;
-- `SUCCESS` closeout classification and completed task state;
+  verdict, with exact `READY` or `SKIPPED — <non-empty rationale>` semantics;
+- exact `SUCCESS` closeout classification and `completed` task state;
 - non-normative external VCS state;
 - one non-empty `## Residual Risks and Limitations` section;
 - one non-empty `## Follow-Up Work` section.
 
+Only an evaluation `SKIPPED` verdict may carry a dash-separated rationale. Review,
+verification, drift, classification, execution, and task-state values are compared
+as complete values; strings such as `READY — BLOCKED` or
+`ALIGNED — MISALIGNED` fail closed.
+
 Normalized closeout marker keys must be unique. Contradictory repeated markers fail
 closed rather than using first-value-wins or last-value-wins behavior.
 
-A closeout must not assert ordinary mutable hosting-platform facts such as
-`PR #9 is open`, `PR #9 is Draft`, `PR #9 was merged`, merge timestamps, merge
-commit state, or equivalent pull-request status claims.
+The mutable-state scan covers the entire closeout document, including YAML
+frontmatter and Markdown body. A closeout must not assert ordinary mutable
+hosting-platform facts such as `PR #9 is open`, `PR #9: merged`, `PR #9 was
+merged`, a frontmatter field containing an equivalent assertion, merge timestamps,
+merge commit state, or other pull-request status claims.
 
 ### Fail-Closed Release Readiness
 
@@ -104,13 +115,14 @@ validator must reject at least:
 
 - missing completed Work Block paths or terminal sections;
 - completed Work Blocks with non-completed frontmatter or adverse lifecycle values;
+- non-evaluation terminal values containing suffixes or contradictory text;
 - active/completed path or Work Block ID overlap;
 - missing or invalid active Work Block paths;
 - map/registry or machine/visible-map disagreement;
 - closeout identity mismatch or duplicate markers;
-- missing required evaluation evidence;
+- missing or malformed required evaluation evidence;
 - missing residual-risk or follow-up sections;
-- normative mutable GitHub-state claims in closeout evidence.
+- normative mutable GitHub-state claims anywhere in closeout evidence.
 
 ## Enforcement
 
