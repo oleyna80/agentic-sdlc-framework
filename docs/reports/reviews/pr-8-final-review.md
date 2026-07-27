@@ -5,7 +5,7 @@ artifact_id: pr-8-final-review
 status: approved
 owner_role: reviewer
 work_block_id: wb-008
-subject_revision: b451ebb7dd3af9636d35f67d7b9432f4debc93f5
+subject_revision: 9ae16b927aa072a81f4fdc58a773fddeb8aafac8
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -15,17 +15,17 @@ last_verified: 2026-07-27
 ## Scope
 
 Reviewed implementation revision
-`b451ebb7dd3af9636d35f67d7b9432f4debc93f5` against:
+`9ae16b927aa072a81f4fdc58a773fddeb8aafac8` against:
 
 - `docs/plans/wb-008-post-merge-ssot-release-gate.md`;
 - `governance/release-state.md`;
 - normalized Work Blocks WB-001 through WB-008;
 - `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
-- WB-008 closeout evidence;
+- existing closeout reports bound to completed Work Blocks;
 - `scripts/validate-release-state.py`;
 - `scripts/test-release-state-contracts.py`;
 - `.github/workflows/release-state-contract.yml`;
-- all six Codex Review rounds on PR #8.
+- all seven Codex Review rounds on PR #8.
 
 ## Review Verdict
 
@@ -36,8 +36,8 @@ remain on the reviewed implementation revision.
 
 ## Review Convergence
 
-Six Codex Review rounds produced fourteen P1 findings and one P2 finding. All were
-accepted, fixed, and covered by adversarial fixtures.
+Seven Codex Review rounds produced fourteen P1 findings and three P2 findings. All
+were accepted, fixed, and covered by positive or adversarial fixtures.
 
 ### Initial SSOT and parser findings
 
@@ -70,21 +70,17 @@ accepted, fixed, and covered by adversarial fixtures.
 **Severity:** P1  
 **Resolution:** fixed
 
-The complete-document text scan still permitted structured keys such as
+The complete-document text scan permitted structured keys such as
 `pr_status: merged` or `pull_request_state: open`, as well as common Markdown forms
-that separated the pull-request identifier from its state through bold syntax or a
-table cell.
+that separated the pull-request identifier from its state.
 
 Resolution:
 
 - parsed YAML frontmatter is recursively inspected;
 - key spelling is normalized across underscores, hyphens, spaces, and nesting;
 - compound PR/pull-request/merge `status` and `state` keys reject mutable values;
-- bold Markdown identifier/state forms are rejected;
-- Markdown table rows pairing a pull-request identifier with a mutable state are
-  rejected;
-- dedicated fixtures cover direct, nested, bold, plain-table, and bold-table forms;
-- the permitted non-normative ownership statement remains valid.
+- bold Markdown identifier/state forms and table rows are rejected;
+- dedicated fixtures cover direct, nested, bold, plain-table, and bold-table forms.
 
 ### Fifth review findings
 
@@ -95,31 +91,28 @@ Resolution:
 
 Natural nested frontmatter such as `pr: {status: merged}` and
 `pull_request: {state: open}` separated the VCS parent from the generic descendant
-key, allowing both forms to bypass the compound-key check.
+key.
 
 Resolution:
 
-- recursive structured inspection now carries an explicit VCS-context flag;
+- recursive structured inspection carries an explicit VCS-context flag;
 - normalized `pr`, `pull_request`, `pullrequest`, and `merge` parents establish that
-  context for all descendants, including descendants reached through lists;
-- `status` or `state` under that context rejects exact mutable-state values;
-- exact adversarial fixtures cover both reported YAML forms.
+  context through dictionary and list descendants;
+- `status` or `state` under that context rejects exact mutable-state values.
 
 #### F-017 — Mutable state could be appended to the boundary marker
 
 **Severity:** P1  
 **Resolution:** fixed
 
-The `External VCS state` marker previously accepted any value beginning with
-`non-normative`, including `non-normative; current state is merged`.
+The `External VCS state` marker accepted any value beginning with `non-normative`,
+including a concrete appended merge state.
 
 Resolution:
 
 - boundary validation still requires the non-normative prefix;
-- the remainder of the marker is independently scanned for concrete mutable-state
-  tokens;
-- a fixture rejects the reported appended `merged` form;
-- a dedicated positive fixture preserves a clean boundary-only marker.
+- the remainder is independently scanned for mutable-state tokens;
+- negative and clean-marker positive fixtures preserve the ownership boundary.
 
 ### Sixth review finding
 
@@ -129,16 +122,52 @@ Resolution:
 **Resolution:** fixed
 
 Terse prose such as `PR #9 merged.` or `Pull request #9 closed.` omitted a colon,
-equals sign, or connector verb and therefore bypassed the existing prose grammar.
+equals sign, or connector verb and bypassed the prose grammar.
 
 Resolution:
 
-- whole-document scanning now rejects a direct pull-request identifier followed by
-  a mutable state token;
-- regressions cover bare open, Draft, merged, Ready for Review, and closed forms;
-- a positive fixture confirms that a PR reference without a mutable state remains
-  permitted;
-- the fix remains scoped to repository evidence and does not alter external state.
+- direct identifier-plus-state prose is rejected;
+- regressions cover open, Draft, merged, Ready for Review, and closed forms;
+- a positive fixture preserves a PR reference without a mutable state.
+
+### Seventh review findings
+
+#### F-019 — Markdown decoration around the state token bypassed detection
+
+**Severity:** P2  
+**Resolution:** fixed
+
+A closeout could format both sides of the assertion, for example
+`**PR #9:** **merged**`, because the state matcher expected the token immediately
+after whitespace.
+
+Resolution:
+
+- a shared Markdown-aware mutable-state fragment permits optional `**` around the
+  state token;
+- prose, bold-label, status/state-label, and Markdown-table patterns use the same
+  fragment;
+- regressions cover bold state values in prose and table cells.
+
+#### F-020 — Historical completed-Work-Block closeouts were not validated
+
+**Severity:** P2  
+**Resolution:** fixed
+
+The release gate validated only the canonical latest closeout. An existing earlier
+closeout could therefore retain adverse lifecycle evidence while the latest closeout
+remained valid.
+
+Resolution:
+
+- the validator scans existing `docs/reports/closeout/**/*.md` artifacts;
+- closeout reports bound to completed Work Block IDs require approved status, exact
+  successful lifecycle markers, matching evaluation semantics, a non-normative
+  external-state boundary, and mandatory residual-risk and follow-up sections;
+- duplicate historical closeouts for the same completed Work Block ID fail closed;
+- the canonical latest closeout remains subject to its stricter identity and
+  complete-document mutable-state validation;
+- positive and adverse historical-closeout fixtures prove both paths.
 
 ## Contract Review
 
@@ -153,9 +182,9 @@ Resolution:
 ### Repository and hosting-platform boundary
 
 - Work Block lifecycle and closeout remain repository-owned;
-- mutable hosting-platform assertions are rejected in connector prose, terse bare
-  prose, parsed frontmatter, VCS-parent descendants, boundary-marker payloads,
-  bold Markdown, and tables;
+- mutable hosting-platform assertions are rejected across prose, parsed frontmatter,
+  VCS-parent descendants, boundary-marker payloads, and Markdown forms;
+- historical closeouts cannot retain adverse lifecycle evidence unnoticed;
 - external state cannot grant authority or redefine closeout.
 
 **Result:** aligned.
@@ -167,12 +196,10 @@ The fixture suite covers:
 - Work Block and closeout exact-value suffix attacks;
 - malformed evaluation rationale;
 - connector and bare prose, structured frontmatter, normalized compound keys,
-  parent-key descendants, bold Markdown, and table PR-state assertions;
-- mutable state appended to the non-normative marker plus an explicit clean-marker
-  positive case;
-- a positive PR reference that carries no mutable state;
-- verb, direct identifier-state, colon, equals, status/state, underscore, hyphen,
-  and space variants;
+  parent-key descendants, Markdown-decorated state values, and table assertions;
+- mutable state appended to the non-normative marker plus a clean-marker positive;
+- a positive PR reference carrying no mutable state;
+- valid and adverse historical closeouts bound to completed Work Blocks;
 - all previously resolved path, identity, marker, section, and map drift classes.
 
 **Result:** aligned.
@@ -180,20 +207,25 @@ The fixture suite covers:
 ## Verification Evidence
 
 Implementation revision:
-`b451ebb7dd3af9636d35f67d7b9432f4debc93f5`.
+`9ae16b927aa072a81f4fdc58a773fddeb8aafac8`.
+
+Workflow-restored validation head:
+`1b46c028fb7e1205dda77820694e8b9a43f2f406`.
 
 Successful runs:
 
-- Release State Contract run **95**;
-- Framework Contracts run **544**.
+- Release State Contract run **134**;
+- Framework Contracts run **583**.
 
-Earlier failed, corrective, and action-required runs remain recorded as their actual
-outcomes; no non-successful run was converted into passing evidence.
+Earlier failed, corrective, action-required, and helper-workflow runs remain recorded
+as their actual outcomes; no non-successful run was converted into passing evidence.
 
 ## Residual Limitations
 
 - Markdown headings and YAML frontmatter form a versioned schema; schema changes
   must update validator and fixtures together.
+- Historical discovery validates existing closeout reports bound to known completed
+  Work Block IDs; it does not infer missing legacy closeouts that were never created.
 - Pattern and structured-key detection are governance guardrails, not a general
   natural-language theorem prover.
 - Hosting-platform state is queried externally rather than committed as normative
@@ -203,6 +235,6 @@ outcomes; no non-successful run was converted into passing evidence.
 
 ## Recommendation
 
-Run both workflows on the final evidence head, reply to and resolve the sixth-round
-Codex thread, request one final Codex Review, and keep integration under explicit
-Owner approval.
+Run both workflows on the final evidence head, reply to and resolve the two
+seventh-round Codex threads, request one final Codex Review, and keep integration
+under explicit Owner approval.
