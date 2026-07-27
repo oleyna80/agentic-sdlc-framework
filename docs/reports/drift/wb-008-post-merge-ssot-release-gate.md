@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-drift
 status: approved
 owner_role: verifier
 work_block_id: wb-008
-subject_revision: 9ae16b927aa072a81f4fdc58a773fddeb8aafac8
+subject_revision: 770d2c4d0cb1805fc111160ed1440182f151e272
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -18,7 +18,7 @@ last_verified: 2026-07-27
 
 The approved objective, release-state governance, normalized migration history,
 map/registry projection, closeout boundary, validator, adversarial fixtures,
-dedicated CI, and seven Codex Review correction rounds describe the same
+dedicated CI, and eight Codex Review correction rounds describe the same
 fail-closed repository release-state model.
 
 ## Baseline
@@ -30,17 +30,17 @@ WB-008 objective
   ↔ FILE_REGISTRY.yml migration_state/release_state
   ↔ PROJECT_MAP.md machine block and visible Migration Work section
   ↔ canonical and historical closeout evidence
-  ↔ prose, structured, parent-context, boundary-marker, Markdown, and table detection
+  ↔ prose, structured, parent-context, boundary-marker, Markdown-normalized, and table detection
   ↔ validate-release-state.py
   ↔ adversarial fixtures
   ↔ Release State Contract + Framework Contracts
 ```
 
 Reviewed implementation revision:
-`9ae16b927aa072a81f4fdc58a773fddeb8aafac8`.
+`770d2c4d0cb1805fc111160ed1440182f151e272`.
 
 Workflow-restored validation head:
-`1b46c028fb7e1205dda77820694e8b9a43f2f406`.
+`7d05b855e03701e15dce6dd522aec050dda10753`.
 
 ## Alignment Matrix
 
@@ -56,14 +56,14 @@ Workflow-restored validation head:
 | Terse prose | bare identifier plus mutable state rejected | negative forms plus clean PR-reference case | ALIGNED |
 | Structured frontmatter | normalized direct/compound and parent-context state rejected | direct, nested, inline-map, and list-aware recursion | ALIGNED |
 | Boundary marker | non-normative declaration with no concrete mutable payload | negative appended-state and positive clean-marker fixtures | ALIGNED |
-| Markdown forms | identifier and state decoration cannot bypass detection | bold-state prose and table fixtures | ALIGNED |
+| Markdown forms | all asterisk/underscore emphasis normalized before state matching | italic, bold, combined, underscore, table, and non-state positive fixtures | ALIGNED |
 | Closeout completeness | residual risks and follow-up required | canonical and historical section validation | ALIGNED |
 | Authority | release-state remains assurance-only | governance and registry | ALIGNED |
-| CI | dedicated and full framework gates | runs 134 and 583 | ALIGNED |
+| CI | dedicated and full framework gates | runs 153 and 602 | ALIGNED |
 
 ## Codex Review Convergence
 
-All seven review rounds strengthened the same approved fail-closed objective:
+All eight review rounds strengthened the same approved fail-closed objective:
 
 1. exact drift and duplicate-marker semantics;
 2. terminal Work Block state, evaluation inheritance, broader mutable-state
@@ -72,7 +72,9 @@ All seven review rounds strengthened the same approved fail-closed objective:
 4. parsed structured frontmatter plus common bold Markdown and table forms;
 5. VCS parent-context propagation and boundary-marker payload validation;
 6. direct identifier-plus-state prose without connector verbs;
-7. Markdown-decorated state tokens and validation of existing historical closeouts.
+7. bold state-token decoration and validation of existing historical closeouts;
+8. normalization of italic, bold, combined, and underscore Markdown emphasis before
+   semantic state matching.
 
 No correction expanded runtime authority, activated integrations, changed provider
 or model routing, or introduced deployment/publication behavior.
@@ -80,10 +82,10 @@ or model routing, or introduced deployment/publication behavior.
 ## Drift Classifications Checked
 
 - `MISSING_IMPLEMENTATION`: none.
-- `UNSPECIFIED_IMPLEMENTATION`: none; historical closeout validation derives from
-  the approved repository-wide SSOT and fail-closed objective.
+- `UNSPECIFIED_IMPLEMENTATION`: none; Markdown normalization derives from the
+  approved whole-document fail-closed mutable-state boundary.
 - `STALE_PLAN`: none.
-- `STALE_TEST`: none after seventh-round regression coverage.
+- `STALE_TEST`: none after eighth-round regression coverage.
 - `STALE_DOCUMENTATION`: none after governance, review, drift, closeout, and Work
   Block synchronization.
 - `SPEC_CHANGE_REQUIRED`: none.
@@ -102,6 +104,6 @@ WB-008 validates versioned repository evidence. It does not:
 
 ## Recommendation
 
-Run both workflows on the final evidence head, resolve the two seventh-round review
-threads after confirming their fixes, request final Codex Review, and retain
+Run both workflows on the final evidence head, resolve the eighth-round review
+thread after confirming its fix, request final Codex Review, and retain
 Owner-controlled integration.
