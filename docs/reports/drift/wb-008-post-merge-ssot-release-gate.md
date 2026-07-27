@@ -5,7 +5,7 @@ artifact_id: wb-008-post-merge-ssot-release-gate-drift
 status: approved
 owner_role: verifier
 work_block_id: wb-008
-subject_revision: 029a0dd9ac9f48af066f9cc04aac30d186fdb8ea
+subject_revision: 42b31c75f463a6a1ec77dd07b545d1be21175078
 created_at: 2026-07-26
 last_verified: 2026-07-27
 ---
@@ -18,7 +18,7 @@ last_verified: 2026-07-27
 
 The approved objective, release-state governance, normalized migration history,
 map/registry projection, closeout boundary, validator, adversarial fixtures,
-dedicated CI, and three Codex Review correction rounds describe the same
+dedicated CI, and four Codex Review correction rounds describe the same
 fail-closed repository release-state model.
 
 ## Baseline
@@ -29,14 +29,15 @@ WB-008 objective
   ↔ exact Work Block terminal markers
   ↔ FILE_REGISTRY.yml migration_state/release_state
   ↔ PROJECT_MAP.md machine block and visible Migration Work section
-  ↔ complete closeout document, including YAML frontmatter
+  ↔ complete closeout document and parsed YAML frontmatter
+  ↔ prose, structured, bold Markdown, and table assertion detection
   ↔ validate-release-state.py
   ↔ adversarial fixtures
   ↔ Release State Contract + Framework Contracts
 ```
 
 Reviewed implementation revision:
-`029a0dd9ac9f48af066f9cc04aac30d186fdb8ea`.
+`42b31c75f463a6a1ec77dd07b545d1be21175078`.
 
 ## Alignment Matrix
 
@@ -47,20 +48,22 @@ Reviewed implementation revision:
 | Map/registry | exact ordered machine and visible projection | map parser and drift fixtures | ALIGNED |
 | Closeout identity | exact latest Work Block binding | closeout parser and identity fixture | ALIGNED |
 | Marker consistency | unique keys and exact complete values | duplicate and suffix fixtures | ALIGNED |
-| External VCS boundary | no normative mutable assertion anywhere in closeout | full-document scan, frontmatter/body fixtures | ALIGNED |
-| PR assertion grammar | verb, status/state, colon, and equals forms blocked | open/Draft/merged fixtures | ALIGNED |
+| External VCS boundary | no normative mutable assertion anywhere in closeout | full-document and parsed-frontmatter inspection | ALIGNED |
+| Structured frontmatter | normalized direct/nested PR-state keys rejected | underscore, hyphen, space, and nested fixtures | ALIGNED |
+| Markdown forms | bold identifier/state and table rows rejected | bold, plain-table, and bold-table fixtures | ALIGNED |
 | Closeout completeness | residual risks and follow-up required | section validator and fixtures | ALIGNED |
 | Authority | release-state remains assurance-only | governance and registry | ALIGNED |
-| CI | dedicated and full framework gates | runs 54 and 503 | ALIGNED |
+| CI | dedicated and full framework gates | runs 68 and 517 | ALIGNED |
 
 ## Codex Review Convergence
 
-All three review rounds strengthened the same approved fail-closed objective:
+All four review rounds strengthened the same approved fail-closed objective:
 
 1. exact drift and duplicate-marker semantics;
 2. terminal Work Block state, evaluation inheritance, broader mutable-state
    recognition, and mandatory closeout sections;
-3. exact non-evaluation values, frontmatter scanning, and colon-form PR assertions.
+3. exact non-evaluation values, whole-document scanning, and colon-form assertions;
+4. parsed structured frontmatter plus common bold Markdown and table forms.
 
 No correction expanded runtime authority, activated integrations, changed provider
 or model routing, or introduced deployment/publication behavior.
@@ -71,7 +74,7 @@ or model routing, or introduced deployment/publication behavior.
 - `UNSPECIFIED_IMPLEMENTATION`: none; parser hardening derives from the normative
   fail-closed and repository/hosting-platform separation requirements.
 - `STALE_PLAN`: none.
-- `STALE_TEST`: none after third-round regression coverage.
+- `STALE_TEST`: none after fourth-round regression coverage.
 - `STALE_DOCUMENTATION`: none after governance, review, drift, closeout, and Work
   Block synchronization.
 - `SPEC_CHANGE_REQUIRED`: none.
@@ -89,6 +92,6 @@ WB-008 validates versioned repository evidence. It does not:
 
 ## Recommendation
 
-Run both workflows on the final evidence head, resolve the remaining third-round
-review threads after confirming their fixes, request final Codex Review, and retain
+Run both workflows on the final evidence head, resolve the fourth-round review
+thread after confirming its fix, request final Codex Review, and retain
 Owner-controlled integration.
