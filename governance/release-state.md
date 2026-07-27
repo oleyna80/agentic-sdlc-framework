@@ -102,11 +102,19 @@ as complete values; strings such as `READY — BLOCKED` or
 Normalized closeout marker keys must be unique. Contradictory repeated markers fail
 closed rather than using first-value-wins or last-value-wins behavior.
 
-The mutable-state scan covers the entire closeout document, including YAML
-frontmatter and Markdown body. A closeout must not assert ordinary mutable
-hosting-platform facts such as `PR #9 is open`, `PR #9: merged`, `PR #9 was
-merged`, a frontmatter field containing an equivalent assertion, merge timestamps,
-merge commit state, or other pull-request status claims.
+The mutable-state scan covers the entire closeout document, including parsed YAML
+frontmatter and Markdown body. It rejects:
+
+- prose assertions such as a pull request being open, Draft, or merged;
+- colon and equals forms;
+- structured keys such as `pr_status`, `pull_request_state`, or equivalent nested
+  hyphen/space variants when their value is a mutable state;
+- bold Markdown forms such as a pull-request identifier followed by a state;
+- Markdown table rows that pair a pull-request identifier with a mutable state;
+- merge timestamps, merge commit state, or equivalent hosting-platform facts.
+
+A non-normative ownership statement remains permitted; a concrete mutable state
+assertion does not.
 
 ### Fail-Closed Release Readiness
 
@@ -122,7 +130,8 @@ validator must reject at least:
 - closeout identity mismatch or duplicate markers;
 - missing or malformed required evaluation evidence;
 - missing residual-risk or follow-up sections;
-- normative mutable GitHub-state claims anywhere in closeout evidence.
+- normative mutable GitHub-state claims anywhere in closeout evidence, including
+  structured frontmatter and common Markdown forms.
 
 ## Enforcement
 
