@@ -1,23 +1,22 @@
 name: Release State Contract
 
 on:
+  push:
+    branches:
+      - "**"
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  terminal-patch:
-    if: github.head_ref == 'agent/post-merge-ssot-release-gate'
+  release-state:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
-      - name: Checkout review branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: agent/post-merge-ssot-release-gate
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,83 +26,22 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check PyYAML
 
-      - name: Apply bounded terminal patch
+      - name: Check release-state validator syntax
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          validator = Path("scripts/validate-release-state.py")
-          text = validator.read_text(encoding="utf-8")
-          old_pattern = '    re.compile(r"^\\s*[-*]?\\s*\\*\\*Merge status:\\*\\*", re.IGNORECASE | re.MULTILINE),'
-          new_pattern = '    re.compile(r"^\\s*[-*]?\\s*(?:\\*\\*)?Merge status:(?:\\*\\*)?", re.IGNORECASE | re.MULTILINE),'
-          if text.count(old_pattern) == 1:
-              text = text.replace(old_pattern, new_pattern)
-          elif text.count(new_pattern) != 1:
-              raise SystemExit("unexpected raw Merge status pattern state")
-
-          lines = text.splitlines()
-          canonical_skip = "        if relative == canonical_closeout:"
-          seen_line = "        seen[str(work_block_id)] = relative"
-          if lines.count(canonical_skip) != 1 or lines.count(seen_line) != 1:
-              raise SystemExit("unexpected canonical duplicate-tracking state")
-          skip_index = lines.index(canonical_skip)
-          seen_index = lines.index(seen_line)
-          if skip_index < seen_index:
-              if lines[skip_index + 1] != "            continue":
-                  raise SystemExit("canonical closeout skip has unexpected shape")
-              del lines[skip_index:skip_index + 2]
-              seen_index = lines.index(seen_line)
-              lines[seen_index + 1:seen_index + 1] = [
-                  "        if relative == canonical_closeout:",
-                  "            continue",
-              ]
-          validator.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-          fixtures = Path("scripts/test-release-state-contracts.py")
-          tests = fixtures.read_text(encoding="utf-8")
-          old_case = '            ("mutable-merge-status-open", "- **Merge status:** open"),\n'
-          plain_case = '            ("mutable-merge-status-plain-open", "- Merge status: open"),\n'
-          if plain_case not in tests:
-              if tests.count(old_case) != 1:
-                  raise SystemExit("expected exactly one decorated Merge status fixture")
-              tests = tests.replace(old_case, old_case + plain_case)
-
-          fixture_name = '            "canonical-plus-additional-closeout",\n'
-          if fixture_name not in tests:
-              anchor = "        (root / OLDER_CLOSEOUT).unlink()\n\n"
-              if tests.count(anchor) != 1:
-                  raise SystemExit("expected exactly one historical-closeout fixture anchor")
-              duplicate_fixture = (
-                  anchor
-                  + "        populate(root)\n"
-                  + '        duplicate_closeout = "docs/reports/closeout/wb-007-duplicate.md"\n'
-                  + "        write(root / duplicate_closeout, closeout())\n"
-                  + "        expect_failure(\n"
-                  + fixture_name
-                  + "            root,\n"
-                  + '            "multiple closeout reports",\n'
-                  + "        )\n"
-                  + "        (root / duplicate_closeout).unlink()\n\n"
-              )
-              tests = tests.replace(anchor, duplicate_fixture)
-          fixtures.write_text(tests, encoding="utf-8")
+          for relative in (
+              "scripts/validate-release-state.py",
+              "scripts/test-release-state-contracts.py",
+          ):
+              path = Path(relative)
+              compile(path.read_text(encoding="utf-8"), relative, "exec")
+              print(f"syntax OK: {relative}")
           PY
 
-      - name: Verify bounded patch
-        run: |
-          git diff --check
-          python scripts/test-release-state-contracts.py
-          python scripts/validate-release-state.py
-          bash scripts/validate-governance.sh
+      - name: Run adversarial release-state fixtures
+        run: python scripts/test-release-state-contracts.py
 
-      - name: Commit target files only
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/validate-release-state.py scripts/test-release-state-contracts.py
-          if git diff --cached --quiet; then
-            echo "Target patch already present"
-            exit 0
-          fi
-          git commit -m "fix: close release-state detection gaps"
-          git push origin HEAD:agent/post-merge-ssot-release-gate
+      - name: Validate repository release state
+        run: python scripts/validate-release-state.py
