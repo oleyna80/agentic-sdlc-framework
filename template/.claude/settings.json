@@ -1,17 +1,4 @@
 {
-  "enabledMcpjsonServers": [
-    "codex"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__codex__codex"
-    ]
-  },
-  "autoMode": {
-    "allow": [
-      "$defaults"
-    ]
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -19,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/hard-stop.sh",
+            "command": "python3 .agent/hooks/hard_stop_policy.py",
             "timeout": 5000
           }
         ]
@@ -29,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/critic-gate.sh",
+            "command": "python3 .claude/hooks/work_block_gate.py",
             "timeout": 5000
           }
         ]
@@ -52,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/verification-gate.sh",
+            "command": "python3 .claude/hooks/assurance_gate.py",
             "timeout": 5000
           }
         ]
@@ -61,36 +48,24 @@
   },
   "agents": {
     "solution-architect": {
-      "description": "Pre-implementation research (read-only)",
+      "description": "Architecture and technical discovery for the Architect function (read-only)",
       "color": "green"
     },
     "critic": {
-      "description": "Independent review of Control Tower decisions, Stage 0\u21921 (read-only)",
+      "description": "Challenges Define-stage scope, assumptions, risk, and assurance design (read-only)",
       "color": "yellow"
     },
-    "gpt-critic": {
-      "description": "External adversarial review of Control Tower decisions via Codex MCP (read-only)",
-      "color": "orange"
-    },
     "reviewer": {
-      "description": "Read-only multi-dimension review across code, docs, architecture, drift, and security triage",
+      "description": "Independent engineering review of the frozen diff (read-only)",
       "color": "yellow"
     },
     "scoped-coder": {
-      "description": "Approved-scope implementation only; one write-capable coder per write-set",
+      "description": "Implementation inside one approved Work Block write-set",
       "color": "blue"
     },
     "verifier": {
-      "description": "Post-implementation verification gate (read-only)",
+      "description": "Acceptance-criteria and runtime verification with evidence (read-only)",
       "color": "red"
-    },
-    "gpt-verifier": {
-      "description": "External adversarial verification via Codex MCP (read-only)",
-      "color": "purple"
-    },
-    "codex-reviewer": {
-      "description": "Optional extra-deep Codex MCP review beyond the default GPT verifier",
-      "color": "blue"
     }
   }
 }

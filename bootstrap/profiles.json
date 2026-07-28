@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "default_profile": "multi-runtime",
+  "aliases": {
+    "minimal": "core",
+    "full": "multi-runtime",
+    "generic": "core"
+  },
+  "common_required_paths": [
+    ".gitignore",
+    "AGENTS.md",
+    "PROJECT_MAP.md",
+    "FILE_REGISTRY.yml",
+    "governance/README.md",
+    "governance/authority.md",
+    "governance/lifecycle.md",
+    "governance/artifacts.md",
+    "governance/evaluation.md",
+    "governance/runtime-capabilities.md",
+    "runtimes/README.md",
+    "runtimes/codex/README.md",
+    "runtimes/claude-code/README.md",
+    "runtimes/opencode/README.md",
+    "runtimes/generic/README.md",
+    "integrations/README.md",
+    "integrations/claude-code-codex-plugin/README.md",
+    "integrations/mcp/README.md",
+    "integrations/file-handoff/README.md",
+    ".agent/bootstrap-profile.json",
+    ".agent/ROSTER.md",
+    ".agent/active-work-block.default.json",
+    ".agent/hooks/hard_stop_policy.py",
+    ".agent/workflows/sdd-protocol.md",
+    ".agent/skills/README.md",
+    "docs/session-bootstrap.md",
+    "docs/engineering-memory/README.md",
+    "docs/evals/README.md",
+    "docs/plans/README.md",
+    "docs/specs/README.md",
+    "docs/tasklist/README.md",
+    "docs/reports/README.md",
+    "docs/reports/evaluations/README.md",
+    "docs/templates/work-block-template.md",
+    "docs/templates/spec-drift-report-template.md",
+    "docs/templates/integration-admission-template.md",
+    "docs/templates/evaluation-plan-template.json",
+    "docs/templates/evaluation-report-template.json",
+    "docs/templates/trajectory-event-template.json",
+    "scripts/bootstrap.sh",
+    "scripts/validate-installation-profile.py",
+    "scripts/validate-evaluation.py"
+  ],
+  "components": {
+    "runtime:codex": {
+      "kind": "runtime",
+      "runtime_id": "codex",
+      "paths": [
+        ".codex"
+      ],
+      "required_paths": [
+        ".codex/config.toml.template",
+        ".codex/hooks.json",
+        ".codex/agents/architect.toml",
+        ".codex/agents/critic.toml",
+        ".codex/agents/coder.toml",
+        ".codex/agents/reviewer.toml",
+        ".codex/agents/verifier.toml",
+        ".codex/hooks/hard_stop_policy.py",
+        ".codex/hooks/pre_tool_use_policy.py",
+        ".codex/hooks/stage0_write_gate.py",
+        ".codex/hooks/subagent_context.py"
+      ],
+      "skill_mirrors": []
+    },
+    "runtime:claude-code": {
+      "kind": "runtime",
+      "runtime_id": "claude-code",
+      "paths": [
+        "CLAUDE.md",
+        ".claude"
+      ],
+      "required_paths": [
+        "CLAUDE.md",
+        ".claude/settings.json",
+        ".claude/agents/solution-architect.md",
+        ".claude/agents/critic.md",
+        ".claude/agents/scoped-coder.md",
+        ".claude/agents/reviewer.md",
+        ".claude/agents/verifier.md",
+        ".claude/hooks/work_block_gate.py",
+        ".claude/hooks/assurance_gate.py",
+        ".claude/hooks/critic-gate.sh",
+        ".claude/hooks/hard-stop.sh",
+        ".claude/hooks/typecheck.sh",
+        ".claude/hooks/verification-gate.sh",
+        ".claude/skills/README.md"
+      ],
+      "skill_mirrors": [
+        ".claude/skills"
+      ]
+    },
+    "runtime:opencode": {
+      "kind": "runtime",
+      "runtime_id": "opencode",
+      "paths": [
+        "opencode.json",
+        ".opencode"
+      ],
+      "required_paths": [
+        "opencode.json",
+        ".opencode/agents/architect.md",
+        ".opencode/agents/critic.md",
+        ".opencode/agents/coder.md",
+        ".opencode/agents/reviewer.md",
+        ".opencode/agents/verifier.md"
+      ],
+      "skill_mirrors": []
+    },
+    "integration:mcp-config": {
+      "kind": "integration",
+      "integration_id": "mcp-config",
+      "paths": [
+        ".mcp.json"
+      ],
+      "required_paths": [
+        ".mcp.json"
+      ],
+      "skill_mirrors": []
+    }
+  },
+  "skill_sets": {
+    "core": [
+      "architecture-discovery",
+      "technical-discovery",
+      "task-decomposition",
+      "scoped-coder",
+      "reviewer",
+      "verifier",
+      "spec-drift-audit",
+      "memory-bank-manager",
+      "ssot-sync-closeout",
+      "subagent-mission-brief",
+      "orchestrator-log",
+      "context-snapshot",
+      "critic-review",
+      "scoped-commit-guard",
+      "shell-context-guard"
+    ],
+    "engineering": [
+      "project-estimation",
+      "systematic-debugging",
+      "webapp-testing",
+      "agent-operations-review",
+      "output-skill",
+      "merge-protocol",
+      "security-audit-triage",
+      "security-verification-gate"
+    ],
+    "codex": [
+      "codex-verification"
+    ],
+    "claude-code": [
+      "handoff-live-smoke"
+    ]
+  },
+  "profiles": {
+    "core": {
+      "description": "Runtime-neutral governance, artifacts, generic guidance, and portable core skills without runtime-specific executable surfaces.",
+      "components": [],
+      "skill_sets": [
+        "core"
+      ]
+    },
+    "codex": {
+      "description": "Core scaffold plus Codex project agents, hooks, and operational skills.",
+      "components": [
+        "runtime:codex"
+      ],
+      "skill_sets": [
+        "core",
+        "engineering",
+        "codex"
+      ]
+    },
+    "claude-code": {
+      "description": "Core scaffold plus Claude Code logical-role agents, hooks, memory, and skill mirror.",
+      "components": [
+        "runtime:claude-code"
+      ],
+      "skill_sets": [
+        "core",
+        "engineering",
+        "claude-code"
+      ]
+    },
+    "opencode": {
+      "description": "Core scaffold plus OpenCode project configuration and logical-role subagents.",
+      "components": [
+        "runtime:opencode"
+      ],
+      "skill_sets": [
+        "core",
+        "engineering"
+      ]
+    },
+    "multi-runtime": {
+      "description": "Backward-compatible complete scaffold with Codex, Claude Code, OpenCode, and an empty opt-in MCP registry.",
+      "components": [
+        "runtime:codex",
+        "runtime:claude-code",
+        "runtime:opencode",
+        "integration:mcp-config"
+      ],
+      "skill_sets": [
+        "core",
+        "engineering",
+        "codex",
+        "claude-code"
+      ]
+    }
+  }
+}

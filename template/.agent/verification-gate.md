@@ -1,97 +1,110 @@
-Status: PENDING
-Work Block: [wb-id]
-Verification Tier: PENDING
-New Domain: PENDING
-Sensitive Domains: PENDING
-Claude Verifier Verdict: PENDING
-Verification Report: [docs/reports/verification-[wb-id].md]
-Verifier: PENDING
-Required Verifier Isolation: PENDING
-Verifier Isolation: PENDING
-GPT Verifier Status: PENDING
-GPT Verifier Reason: [why NOT_REQUIRED, READY, or DEGRADED]
-GPT Verifier Report: [docs/reports/gpt-verifier-[wb-id].md]
-GPT Verifier Degraded Reason: [none]
-Quick-Fix: false
-Stage 3 Mode: PENDING
+# Assurance Gate — Compatibility View
 
-# Verification Gate
+> Human-readable view only. The executable source of truth is
+> `.agent/active-work-block.json`.
 
-> Control Tower updates this file before final closeout. Use
-> `Sensitive Domains: none` or a comma-separated subset of
-> `auth,payments,db-schema,middleware,hooks,runtime-config,deploy,credentials,live-data,external-provider`.
-> The `verification-gate.sh` Stop hook blocks final response until
-> verification and GPT verifier decisions are resolved.
+## Default State
 
-## Control Boundary
+- **Review:** PENDING
+- **Verification:** PENDING
+- **Evaluation:** PENDING
+- **Drift:** PENDING
+- **Closeout mode:** pending
 
-The gate controls closeout evidence, not Claude Code's private internal
-process. It must verify that implementation was checked, verifier outcomes
-were recorded, and GPT verifier triggers were either completed or degraded with
-an explicit reason.
+## Machine Fields
 
-It must not require a fixed internal subagent sequence or private chain of
-thought. It requires artifacts and decisions that an external orchestrator can
-audit.
+The active Work Block records four independent assurance functions:
 
-## Gate Status
+```json
+"assurance": {
+  "review": {
+    "required": true,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "report": "",
+    "isolation": "unknown",
+    "skip_reason": ""
+  },
+  "verification": {
+    "required": true,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "report": "",
+    "isolation": "unknown",
+    "skip_reason": ""
+  },
+  "evaluation": {
+    "required": false,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "plan": "",
+    "report": "",
+    "rubric_revision": "",
+    "benchmark_revision": "",
+    "isolation": "unknown",
+    "skip_reason": ""
+  },
+  "drift": {
+    "required": false,
+    "status": "PENDING",
+    "verdict": "PENDING",
+    "report": "",
+    "isolation": "unknown",
+    "skip_reason": ""
+  }
+},
+"closeout_mode": "pending"
+```
 
-| Status | Meaning | Closeout |
-|---|---|---|
-| PENDING | Verification not resolved | BLOCKED |
-| READY | Verification report exists and GPT verifier decision is resolved | ALLOWED |
-| SKIPPED | Quick-Fix verifier-agent dispatch skipped; inline verification still required | ALLOWED only with inline `READY` |
+## Verdicts
 
-`READY` means the evidence decision is resolved; it does not imply successful
-verification. It requires `Verification Report` to point to an existing
-non-empty file under `docs/reports/`. `Claude Verifier Verdict` must be
-`READY`, `BLOCKED`, or `UNVERIFIED`.
+- Review: `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED`
+- Verification: `READY | BLOCKED | UNVERIFIED`
+- Evaluation: `READY | BLOCKED | UNVERIFIED`
+- Drift: `ALIGNED | ALIGNMENT_REQUIRED | BLOCKED | UNVERIFIED`
 
-## Verifier and Isolation
+`SKIPPED` is a function status, not a passing report verdict, and is allowed only
+when the function is not required and `skip_reason` is concrete. Required evaluation
+cannot be skipped.
 
-Set `Verifier` to `ct-inline` for same-session inline verification or
-`subagent` for a separate verifier. Record both fields using this ordered
-vocabulary:
+## Evaluation Evidence
 
-`same-session-degraded` < `independent-readonly-root` < `os-isolated`.
+Evaluation state additionally binds:
 
-`ct-inline` is allowed only for `Sensitive Domains: none` and must use
-`same-session-degraded`. A `subagent` formal `READY` must use at least
-`independent-readonly-root`; same-session subagent feedback is advisory.
-Full-tier and sensitive work require at least `independent-readonly-root`.
-`credentials`, `live-data`, `deploy`, and `external-provider` require
-`os-isolated`. The report must name the launch mechanism and residual limits:
-the hook validates fields, not the process, credential, or network boundary.
+- approved plan under `docs/evals/`;
+- report under `docs/reports/`;
+- rubric and benchmark/dataset revisions;
+- actual runtime/model-class/isolation boundary;
+- deterministic, output, and observable trajectory result matrices.
 
-## GPT Verifier Status
+Trajectory evidence contains observable tool, gate, check, retry, side-effect, and
+artifact events only. It must not contain or require hidden reasoning, private
+chain-of-thought, or model scratchpads.
 
-| Status | Meaning | Closeout |
-|---|---|---|
-| PENDING | GPT verifier trigger not resolved | BLOCKED |
-| NOT_REQUIRED | No Full/new-domain/sensitive-domain/non-READY trigger matched | ALLOWED |
-| READY | `gpt-verifier` completed and findings were merged | ALLOWED |
-| DEGRADED | Codex MCP unavailable; degraded reason recorded | ALLOWED |
+## Evidence
 
-GPT verifier is required when `Verification Tier: full`, `New Domain: true`,
-`Sensitive Domains` includes auth, payments, db-schema, or middleware, or
-`Claude Verifier Verdict` is `BLOCKED`/`UNVERIFIED`. `READY` requires `GPT Verifier Report` to
-point to an existing non-empty file under `docs/reports/`. `DEGRADED` requires
-`GPT Verifier Degraded Reason: review-degraded:codex-mcp-unavailable` and a
-matching orchestrator-log entry. `NOT_REQUIRED` requires `GPT Verifier Reason`
-to explain why no trigger matched.
+A resolved required function records:
 
-## Stage 3 Mode
+- report under `docs/reports/`;
+- actual runtime/integration and isolation in the Work Block/report;
+- inspected and uninspected areas;
+- commands/checks and outcomes where applicable;
+- residual risks;
+- non-pending verdict.
 
-- `success-closeout` requires `Claude Verifier Verdict: READY`.
-- `reporting-only` is required for `BLOCKED` or `UNVERIFIED`; the task remains
-  blocked and no promotion, merge, deploy, release-ready, successful closure,
-  or completed task state is allowed.
-- GPT status `DEGRADED` never upgrades the Claude verifier verdict.
+Provider or model names do not define the gate. Claude Code, Codex, OpenCode,
+file handoff, MCP, plugin, or human review may supply a function when the active
+Work Block records the binding and actual boundary.
 
-## Skip Record (if SKIPPED)
+## Closeout
 
-Only valid for `Quick-Fix: true`, `Claude Verifier Verdict: READY`, an inline
-verification report, and `Stage 3 Mode: success-closeout`. `SKIPPED` skips the
-verifier-agent dispatch, not verification or the authoritative verdict.
-Must match orchestrator-log entry exactly.
-Format: `verification: SKIPPED — Quick-Fix — [reason]`
+- `success-closeout` requires passing results for every required function:
+  Review `READY`, Verification `READY`, Evaluation `READY` when required, and
+  Drift `ALIGNED` when required.
+- `reporting-only` is allowed only after required functions are resolved and
+  evidence-backed. The Work Block remains blocked and is not merge-, deploy-, or
+  release-ready.
+- `pending` blocks Claude Code Stop.
+
+Do not edit this Markdown file to change closeout state. Update the machine gate,
+approved evaluation plan, and referenced reports.

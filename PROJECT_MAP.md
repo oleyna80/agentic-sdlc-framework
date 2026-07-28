@@ -1,118 +1,180 @@
 # Project Map
 
-This file is the first human-authored map for the Agentic SDLC Framework
-repository. It helps humans and agents orient before reading the full project.
+Human-readable navigation for the Agentic SDLC Framework. Use it to locate
+authority, installation composition, runtime/integration adapters, active work,
+and evidence without loading the full repository.
 
-## Purpose
+<!-- release-state
+completed_work_blocks:
+  - docs/plans/wb-001-runtime-neutral-control-plane.md
+  - docs/plans/wb-002-runtime-neutral-template-convergence.md
+  - docs/plans/wb-003-codex-native-agents-and-gates.md
+  - docs/plans/wb-004-integration-adapter-normalization.md
+  - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
+  - docs/plans/wb-006-bootstrap-restore-hardening.md
+  - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
+  - docs/plans/wb-008-post-merge-ssot-release-gate.md
+active_work_block: null
+-->
 
-This repository provides a project-agnostic Agentic SDLC scaffold with three
-separable layers:
+## Architecture
 
-1. **Core SDLC layer**: runtime-neutral process, authority model, skills,
-   engineering memory, operational memory bank conventions, Work Blocks,
-   review, and verification.
-2. **Inter-agent handoff layer**: file-based Codex -> Claude Code delegation
-   with runner scripts, queue directories, logs, and scope audit.
-3. **Claude Code team runtime layer**: Claude Code-specific agents, hooks,
-   skills, and per-agent memory for teams that choose that runtime.
+The framework has five coordinated layers:
 
-## Authority Model
+1. **Governance Core** — authority, lifecycle, artifacts, runtime capabilities,
+   evaluation, release state, assurance, and closeout under `governance/`.
+2. **Runtime Adapters** — Codex, Claude Code, OpenCode, and generic execution
+   mappings under `runtimes/`.
+3. **Integration Adapters** — optional bridges, MCP, and audited file transport
+   under `integrations/` and `handoff/`.
+4. **Project Artifacts and Evidence** — specifications, decisions, plans,
+   evaluation plans, observable events, reports, memory, and Work Block state.
+5. **Installation Composition** — `bootstrap/profiles.json` selects which runtime
+   implementation surfaces and skills are copied into a generated project.
 
-When files conflict, use this order:
+Installation composition, release-state evidence, and evaluation evidence do not
+grant authority or integration admission. Accepted architectural direction:
+`docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
-1. Explicit Owner instruction for the current task.
-2. Active workspace `AGENTS.md` when present.
-3. Approved Work Block plan and write-set.
-4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`.
-5. Runtime-specific policy files such as `.codex/critic.md`,
-   `.codex/write-gate.md`, `.claude/settings.json`, hooks, and agent prompts.
-6. Reference docs, examples, logs, and generated/discovery artifacts.
+## Authority Order
 
-Generated or discovery artifacts may help locate information, but they do not
-override normative instructions, Owner decisions, or approved scope.
+1. Explicit Owner instruction for the active Work Block.
+2. Active workspace `AGENTS.md` and approved governance policy.
+3. Approved specification and acceptance criteria.
+4. Accepted architecture decisions and external/public contracts.
+5. Approved implementation/evaluation plans and write-set.
+6. Active task decomposition.
+7. Review, verification, evaluation, drift, integration, release-state, and closeout evidence.
+8. Durable engineering memory.
+9. Operational logs, runtime memory, generated context, integrations, examples.
 
-## Operating Modes
+Runtime settings, prompts, plugins, models, tools, judges, scores, installation
+profiles, and hosting-platform PR state implement, measure, or transport the model.
+They do not override it.
 
-Use `docs/profiles.md` to choose the smallest sufficient mode:
+## Evaluation Assurance
 
-- **Minimal Codex-only**: one local agent, scope control, logs, review,
-  verification, no Claude Code, no MCP, no handoff.
-- **Standard Codex SDLC**: full Work Block flow with reusable skills and
-  stronger closeout evidence.
-- **Claude Code Team Runtime**: Claude Code acts as its own local team with
-  agents, hooks, skills, memory, and provider configuration.
-- **Codex -> Claude Code Handoff**: Codex delegates scoped work to Claude Code
-  as an external team through file-based handoff.
-- **Codex model routing overlay**: optional user-level Codex profiles keep
-  strong models on orchestration/critic decisions and cheaper or local models
-  on bounded executor tasks. It does not change the authority model.
-- **OpenCode runtime spike**: optional experimental lane for evaluating
-  OpenCode as an alternate worker/reviewer runtime. It is reference knowledge
-  only until a project Work Block explicitly approves installation, provider
-  auth, permissions, and verification.
+`governance/evaluation.md` defines three evidence classes:
+
+- deterministic tests for objectively checkable behavior;
+- output evaluation against an approved rubric;
+- observable trajectory evaluation for tool, gate, check, retry, side-effect,
+  and evidence events.
+
+Trajectory assurance never requires private chain-of-thought, hidden reasoning,
+or model scratchpads. An LM judge cannot prove deterministic correctness, waive
+failing checks, or open write/integration/deployment/Hard Stop gates.
+
+Generated projects receive evaluation plan/report/event templates,
+`scripts/validate-evaluation.py`, and dedicated evaluation evidence boundaries.
+
+## Release-State Assurance
+
+`governance/release-state.md` separates repository-owned lifecycle state from
+mutable GitHub state. Repository release readiness is derived from Work Block
+frontmatter, `FILE_REGISTRY.yml`, the machine-readable block in this map, and
+approved closeout evidence.
+
+`scripts/validate-release-state.py` fails closed when completed/active Work Blocks,
+map, registry, or closeout disagree. GitHub Draft/open/closed/integrated state is
+external operational metadata and is queried from GitHub when needed.
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
-| active workspace `AGENTS.md` | normative | Operating rules for the current agent session when present. |
-| `README.md` | normative | Public overview and first entry point. |
-| `SETUP.md` | normative | Installation and runtime mode setup guide. |
-| `PROJECT_MAP.md` | normative | Human-readable repository map. |
-| `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
-| `docs/` | mixed | Onboarding, profiles, policies, plans, templates, and session bootstrap. |
-| `framework/memory/project-engineering-memory.md` | reference | Durable engineering memory rules for generated projects. |
-| `.claude/settings.json` | normative runtime | Project-scoped Claude Code maintainer plugin profile; does not define generated-project defaults. |
-| `template/AGENTS.md` | normative template | Primary generated-project operating contract. |
-| `template/docs/engineering-memory/` | normative template | Committed project engineering memory starter files. |
-| `template/.agent/workflows/sdd-protocol.md` | normative template | Canonical generated-project lifecycle contract and stage semantics. |
-| `template/docs/templates/{verification-report,closeout-report}-template.md` | normative template | Verification evidence and success/reporting-only closeout contracts. |
-| `template/` | normative template | Files copied into generated projects. |
-| `skills/` | normative library | Portable skill library; `skills/catalog.yml` is the metadata-only domain index. |
-| `framework/` | reference | Background knowledge and lessons learned. |
-| `framework/knowledge/` | reference | Runtime knowledge for Claude Code, Codex routing, OpenCode experiments, plugins, and external agent tools. |
-| `handoff/` | normative runtime | Handoff runner, queues, templates, and logs policy. |
-| `examples/` | example | Synthetic scenario guides, not mandatory process. |
-| `archive/` | local/private | Ignored material; not part of public publication. |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifacts, evaluation, release-state, and capability contracts |
+| `governance/evaluation.md` | normative | Deterministic, output, and observable trajectory assurance |
+| `governance/release-state.md` | normative | Repository SSOT reconciliation and hosting-platform boundary |
+| `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded mode |
+| `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
+| `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
+| `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
+| `docs/plans/wb-008-post-merge-ssot-release-gate.md` | completed Work Block | SSOT reconciliation and executable release-state gate |
+| `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md` | latest closeout | Repository success-closeout for the migration series |
+| `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
+| `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
+| `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
+| `scripts/validate-release-state.py` | repository validator | Work Block, map, registry, closeout, and release-state consistency |
+| `scripts/test-release-state-contracts.py` | contract test | Positive and adversarial release-state fixtures |
+| `.github/workflows/release-state-contract.yml` | CI evidence | Dedicated release-state and fixture validation |
+| `.github/workflows/framework-contracts.yml` | CI evidence | Full contract, profile, adapter, evaluation, and disposable-scaffold validation |
+| `README.md` / `SETUP.md` | public guidance | Architecture, setup, and safe activation |
+| `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine path/authority maps |
 
-## Generated, Log, and Local-Only Boundaries
+## Installation Profiles
 
-- `examples/**` are examples, not policy.
-- `docs/templates/**` are reusable framework coordination templates.
-- Generated `docs/engineering-memory/**` is committed durable project memory;
-  keep it evidence-backed and secret-free.
-- `docs/plans/**` are Work Block evidence and plans; the current approved plan
-  matters more than older plans.
-- `handoff/logs/**`, `handoff/done/**`, `handoff/failed/**`, and runtime status
-  files are operational evidence, not authority.
-- `archive/**`, `.env*`, credentials, provider tokens, caches, build output,
-  and local machine state must not become public framework content.
-- `.claude/settings.json` is publishable project policy; `.claude/plugins/**`
-  and other downloaded plugin state remain local-only.
-- Future graph/discovery outputs such as `graphify-out/**` should be treated as
-  derived context only.
+| Profile | Runtime implementation surfaces | Status |
+|---|---|---|
+| `core` | none; generic guidance only | smallest portable scaffold |
+| `codex` | `.codex/` | Codex-primary baseline |
+| `claude-code` | `CLAUDE.md`, `.claude/` | Claude Code-primary baseline |
+| `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline; live smoke required |
+| `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default |
 
-## New-Session Bootstrap
+Every profile includes runtime-neutral evaluation governance and templates. Aliases:
+`minimal`/`generic` → `core`; `full` → `multi-runtime`.
 
-For framework repository work, read in this order:
+## Runtime and Integration Adapters
 
-1. Active workspace `AGENTS.md` when present
-2. `PROJECT_MAP.md`
-3. `FILE_REGISTRY.yml`
-4. `docs/session-bootstrap.md`
-5. The current task or Work Block plan
-6. Relevant engineering memory entries
-7. `git status --short --branch`
-8. Relevant diffs and target files
+| Surface | Path | Default state |
+|---|---|---|
+| Codex | `runtimes/codex/`, conditional `.codex/` | selected by profile; authority from Work Block only |
+| Claude Code | `runtimes/claude-code/`, conditional `.claude/` | selected by profile; closeout gate implemented |
+| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | selected by profile; explicit permission baseline |
+| Generic | `runtimes/generic/` | always available as documented fallback |
+| Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | not installed; optional admission |
+| MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
+| File handoff | `integrations/file-handoff/` | disabled until configured |
+| Existing handoff runner | `handoff/` | compatibility transport; no automatic service start |
 
-Do not assume memory from a previous session is current when repository files
-are cheap to verify.
+External runtime invocation admission does not grant child-runtime write authority.
 
-## Map Maintenance
+## Migration Work
 
-Update this file and `FILE_REGISTRY.yml` when a change:
+Completed:
 
-- adds, moves, or removes a top-level directory;
-- changes authority, write gates, review gates, or verification gates;
-- changes generated/local-only boundaries;
-- adds a new runtime layer, profile, or publication requirement.
+1. WB-001 — runtime-neutral control plane.
+2. WB-002 — portable template convergence.
+3. WB-003 — Codex-native agents and gates.
+4. WB-004 — integration adapter normalization.
+5. WB-005 — profile-aware bootstrap and runtime conformance.
+6. WB-006 — bootstrap restore hardening.
+7. WB-007 — agent evaluation and trajectory assurance.
+8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
+
+No active implementation Work Block.
+
+The next major phase is operational proof through a live runtime/product pilot,
+not another unvalidated governance expansion.
+
+## Boundaries
+
+- `governance/**` is normative and runtime-neutral.
+- `bootstrap/**` controls scaffold composition only.
+- `runtimes/**` and runtime implementation files cannot redefine authority.
+- integrations require admission and active Work Block scope.
+- `.agent/bootstrap-profile.json` is installation evidence, not authority.
+- `.agent/active-work-block.json` is operational authority/gate state.
+- evaluation plans are assurance configuration; reports/events are evidence.
+- release-state evidence reconciles repository SSOT but grants no external authority.
+- GitHub PR/merge state is mutable external operational metadata.
+- operational evidence must exclude hidden reasoning, secrets, and protected payloads.
+- unavailable checks/events remain blocked, not passed.
+- specifications and accepted decisions remain above plans and evidence.
+
+## Framework Read Order
+
+1. workspace `AGENTS.md`, when present;
+2. relevant `governance/` contracts;
+3. active Work Block, when present;
+4. approved specification and accepted architecture decisions;
+5. implementation/evaluation plan;
+6. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
+7. installed runtime and admitted integration adapters;
+8. current Git state, diff, target files, and evidence;
+9. reference knowledge and operational logs only when relevant.
+
+Update this map and `FILE_REGISTRY.yml` whenever authority, lifecycle,
+evaluation, release state, profile composition, evidence boundaries, adapters,
+migration state, or publication requirements change.

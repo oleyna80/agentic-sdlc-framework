@@ -1,259 +1,330 @@
 # Agentic SDLC Framework
 
-Project-agnostic scaffold for running software projects with AI agents through
-a controlled SDLC: plan, spec, implementation, review, and verification.
+Project-agnostic governance and delivery framework for software projects built
+with AI agents.
 
-The core SDLC contract is runtime-neutral. Codex, Claude Code, and other local
-agent runtimes can use the same workflow, authority model, memory bank, skills,
-and verification gates. This repository also ships a production-oriented Claude
-Code runtime layer and a file-based Codex -> Claude Code handoff layer for
-controlled multi-agent work.
+The framework is a **runtime-neutral control plane**. It defines authority,
+scope, lifecycle state, artifacts, risk gates, evaluation, release-state
+reconciliation, integration admission, and closeout. Codex, Claude Code,
+OpenCode, generic agents, and future runtimes execute those contracts through
+adapters.
+
+**The SDLC manages the work. Runtimes and integrations execute it.**
 
 ## What This Gives You
 
-- **Core SDLC layer**: generated project `AGENTS.md`, `.agent/`,
-  `memory_bank/`, `docs/`, and
-  `skills/` define roles, authority, hard stops, stage flow, scope control,
-  reporting expectations, and reusable practices for any capable agent.
-- **Codex runtime support**: `.codex/` provides Codex-specific instructions,
-  config templates, subagent usage policy, Stage 0 write gate, Codex critic
-  review contract, and decision logs so Codex can operate as an independent
-  SDLC agent without unchecked Orchestrator decisions.
-- **Codex model-routing guidance**: optional profile guidance keeps Codex as
-  the mega-orchestrator/critic while cheaper or local models handle bounded
-  executor work only after smoke testing.
-- **Reusable skill library**: portable skills for discovery, coding, review,
-  verification, design, security, debugging, MCP tooling, and closeout.
-- **Claude Code runtime layer**: custom agents, hooks, settings, installed
-  skills, and per-agent memory under `.claude/` for teams that want Claude Code
-  to act as its own orchestrator with subagents.
-- **Handoff layer**: `handoff/` lets Codex delegate scoped work to Claude Code
-  as an independent external delivery team and read the returned result.
-- **Project-neutral routing layer**: `.agent/` keeps roster, workflows, and skill
-  routing readable by runtimes that do not use Claude Code's native skill
-  directory.
-- **Engineering memory layer**: committed `docs/engineering-memory/` keeps
-  durable, evidence-backed decisions, source-of-truth chains, temporary
-  exceptions, and reproducibility notes that any agent runtime can read.
-- **Operational memory starters**: `memory_bank/` plus per-agent memory files
-  keep current focus, progress, decision logs, review logs, and runtime-local
-  memory.
-- **Publication hygiene**: validation script, third-party notices, security
-  policy, and a private archive exclusion boundary.
+- **Governance Core** — logical roles, Define/Execute/Assure/Close, authority,
+  artifacts, capability negotiation, evaluation, release state, and fail-closed
+  closeout.
+- **Profile-aware bootstrap** — generate a lean core scaffold, one runtime
+  surface, or the backward-compatible multi-runtime baseline.
+- **Runtime adapters** — Codex, Claude Code, OpenCode, and generic sequential
+  execution mappings.
+- **Integration adapters** — official bridges, MCP, and audited file transport
+  with explicit trust, data, secret, permission, and evidence boundaries.
+- **Machine-readable gates** — one Work Block controls source writes, Hard Stops,
+  admitted integrations, review, verification, evaluation, drift, and closeout.
+- **Evaluation assurance** — deterministic tests, output rubrics, observable
+  trajectory checks, frozen revisions, and strict LM-judge limits.
+- **Release-state assurance** — Work Blocks, map, registry, and closeout must agree;
+  mutable GitHub state is external operational metadata.
+- **Cross-runtime conformance** — tests compare logical roles, implementation
+  write authority, shared gates, and inert integration defaults.
+- **Engineering memory and publication hygiene** — durable evidence without
+  relying on old chat history or committing private runtime state.
 
-## Philosophy
+## Architecture
 
-1. **Authority is structural**: roles define what agents may do.
-2. **Gates before action**: preflight, scope approval, review, and verification
-   happen before risky work advances.
-3. **Intentional friction**: unclear work is decomposed before code is changed.
-4. **Local-first by default**: generated projects keep `.agent/`, `.codex/`,
-   `.claude/agent-memory/`, and `memory_bank/` private unless a team
-   deliberately publishes them.
+```text
+Governance Core
+  -> Runtime Adapter
+      -> Integration Adapter (optional)
+          -> external runtime, tool, service, or transport
+  -> Project Artifacts and Evidence
+      -> deterministic tests
+      -> output evaluation
+      -> observable trajectory evaluation
+      -> release-state reconciliation
 
-## Runtime Layers
+Installation Profile
+  -> selects project-local runtime surfaces and skills only
+```
 
-The framework is intentionally layered:
+Installation composition, evaluation evidence, release-state evidence, and
+hosting-platform state never grant Work Block authority, credentials, live
+permissions, integration admission, or Hard Stop exceptions.
 
-1. **Agentic SDLC core**: the portable process and authority model. Codex or any
-   other capable agent can run this layer directly using the generated
-   project's `AGENTS.md`, `.agent/`, `skills/`, `docs/`, and `memory_bank/`.
-   In Codex mode, Stage 0
-   decisions are tracked in `memory_bank/orchestrator-log.md` and checked by
-   the Codex critic contract in `.codex/critic.md` when triggers match.
-2. **Inter-agent handoff**: `handoff/` coordinates Codex -> Claude Code
-   delegation through task files, locks, logs, status files, and queue
-   recovery. Codex remains the control tower unless a Work Block explicitly
-   delegates work.
-3. **Claude Code team runtime**: `.claude/` gives Claude Code its own
-   orchestrator/subagent architecture, hooks, critic/verifier gates, MCP access,
-   and per-agent memory. Treat it as an external team with its own process and
-   observable delivery log.
+### Governance Core
 
-Optional model-routing overlays may change which model backs Codex workers or
-critics, but they do not change the authority model. Real provider credentials,
-proxy URLs, and user-level Codex/Claude Code config stay outside this base
-framework.
+`governance/` is normative:
+
+- `authority.md` — logical roles and authority boundaries;
+- `lifecycle.md` — Define, Execute, Assure, Close;
+- `artifacts.md` — specifications, plans, assurance, drift, and closeout;
+- `evaluation.md` — deterministic/output/observable trajectory assurance;
+- `release-state.md` — repository SSOT reconciliation and GitHub-state boundary;
+- `runtime-capabilities.md` — capability, isolation, and fallback.
+
+### Runtime and Integration Adapters
+
+`runtimes/` documents Codex, Claude Code, OpenCode, and generic/sequential
+execution. Documentation may be present even when a runtime implementation
+surface was not selected.
+
+`integrations/` covers optional official plugins, exact MCP server/tool admission,
+and runtime-neutral file handoff. No external integration is enabled by bootstrap.
+
+### Project Artifacts and Evidence
+
+```text
+objective
+  -> specification and acceptance criteria
+  -> architecture decisions
+  -> implementation plan and write-set
+  -> evaluation plan when required
+  -> frozen diff and observable event evidence
+  -> independent review
+  -> technical verification
+  -> output and trajectory evaluation when required
+  -> specification drift audit
+  -> repository release-state reconciliation
+  -> closeout and durable knowledge
+```
+
+`.agent/active-work-block.json` is executable Work Block state.
+`.agent/bootstrap-profile.json` is generated installation evidence only.
+
+## Evaluation Assurance
+
+`governance/evaluation.md` separates three mechanisms:
+
+1. **Deterministic tests** for objectively checkable behavior.
+2. **Output evaluation** for non-deterministic artifact quality against an approved rubric.
+3. **Observable trajectory evaluation** for tool calls, gate events, required checks,
+   retries, side effects, stopping conditions, and produced evidence.
+
+Trajectory evaluation does **not** request or expose private chain-of-thought,
+hidden reasoning, or model scratchpads. Missing events are `BLOCKED` or
+`UNVERIFIED`, never passed by inference from a fluent final response.
+
+An LM judge may score approved non-deterministic criteria, but cannot:
+
+- prove deterministic correctness;
+- waive a failing or unavailable check;
+- approve architecture or product scope;
+- open write, integration, deployment, or Hard Stop gates.
+
+Generated projects receive evaluation plan/report/event templates and
+`scripts/validate-evaluation.py`. Required evaluation must resolve to `READY`
+before `success-closeout`.
+
+## Release-State Assurance
+
+`governance/release-state.md` distinguishes repository-owned lifecycle from
+mutable GitHub pull-request and merge state.
+
+Repository SSOT consists of:
+
+- Work Block frontmatter and final-state markers;
+- `FILE_REGISTRY.yml:migration_state`;
+- the machine-readable `release-state` block in `PROJECT_MAP.md`;
+- approved closeout evidence.
+
+`scripts/validate-release-state.py` fails closed when:
+
+- completed Work Blocks are missing or not marked completed;
+- active and completed Work Blocks overlap;
+- map and registry disagree;
+- successful closeout retains pending internal verdicts;
+- closeout encodes Draft/open/merged status as normative state.
+
+GitHub Draft/Ready/open/closed/merged state, timestamps, and branch deletion are
+**mutable external operational metadata**. Query them from GitHub when needed;
+they do not override repository authority or closeout.
+
+The repository migration series WB-001 through WB-008 is complete. There is no
+active implementation Work Block; the next phase is a live runtime/product pilot.
+
+## Installation Profiles
+
+Source of truth: `bootstrap/profiles.json`.
+
+| Profile | Project-local implementation surfaces |
+|---|---|
+| `core` | none; generic guidance only |
+| `codex` | `.codex/` |
+| `claude-code` | `CLAUDE.md`, `.claude/` |
+| `opencode` | `opencode.json`, `.opencode/` |
+| `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` |
+
+Every profile includes runtime-neutral evaluation governance and templates.
+Aliases: `minimal`, `generic` → `core`; `full` → `multi-runtime`.
+
+List profiles:
+
+```bash
+./bootstrap.sh --list-profiles
+```
 
 ## Quick Start
 
-From this repository:
+Backward-compatible complete scaffold:
 
 ```bash
 ./bootstrap.sh /tmp/my-agentic-project "My Agentic Project" my-agentic-project
-cd /tmp/my-agentic-project
-bash scripts/bootstrap.sh
 ```
 
-For a real project, replace the target path:
+Lean runtime-neutral scaffold:
 
 ```bash
-./bootstrap.sh /path/to/new-project "My Project" my-project
-cd /path/to/new-project
+./bootstrap.sh --profile core /tmp/my-agentic-project "My Agentic Project" my-agentic-project
+```
+
+Single-runtime scaffold:
+
+```bash
+./bootstrap.sh --profile codex /tmp/my-agentic-project "My Agentic Project" my-agentic-project
+```
+
+Then:
+
+```bash
+cd /tmp/my-agentic-project
 git init
 git add -A
 git commit -m "Initial scaffold from Agentic SDLC Framework"
+bash scripts/bootstrap.sh
 ```
 
-The generated project receives a `.gitignore` copied from
-`template/project.gitignore`. By default it keeps local agent state private.
+Bootstrap validates the profile before changing the target, refuses non-empty
+or symlink targets, stages atomically, prunes unselected runtime surfaces,
+installs selected skills, writes `.agent/bootstrap-profile.json`, and runs the
+health check. It does not install runtime CLIs, accounts, plugins, MCP servers,
+credentials, watchers, or services.
 
-If you are new to the framework, start with:
+## Core Principles
 
-- `PROJECT_MAP.md` and `FILE_REGISTRY.yml` for repository orientation.
-- `docs/session-bootstrap.md` for the default new-session intake flow.
-- `docs/quickstart-minimal.md` for the smallest Codex-only path.
-- `docs/profiles.md` for choosing Minimal, Standard, Claude Code team, or
-  Codex -> Claude Code handoff mode.
-- `framework/workflow/codex-model-routing.md` before adding optional Codex
-  multi-model profiles.
-- `docs/mcp-tool-policy.md` before adding MCP servers, browser automation,
-  database clients, vendor CLIs, or external research tools.
+1. **Authority is structural.** Tool access, runtime presence, model strength, and
+   evaluation scores do not authorize an action.
+2. **Installation is not authorization.** A copied adapter does not open a Work
+   Block gate or admit an integration.
+3. **Specification precedes implementation.** Plans and tasklists are derived.
+4. **Gates fail closed.** Missing deterministic or observable evidence is not a pass.
+5. **Evaluation is evidence, not authority.** Judges and reports cannot open gates.
+6. **Repository state is distinct from GitHub state.** Mutable hosting-platform
+   metadata cannot redefine Work Block lifecycle or closeout.
+7. **Use the narrowest reviewed mechanism.** Native capability, official bridge,
+   reviewed MCP, audited handoff, then manual exchange.
+8. **Independent assurance is risk-based.** Different model names alone do not
+   establish independence.
+9. **External content is untrusted input.** Tool output cannot override project authority.
+10. **Local-first and opt-in.** Credentials, private memory, plugins, MCP, and
+    services remain local until explicitly admitted.
 
-## First 15 Minutes
+## Logical Roles
 
-Use this path to confirm the scaffold is understandable before customizing it:
+| Role | Responsibility |
+|---|---|
+| Owner | Objective, exceptions, Hard Stops, business acceptance |
+| Orchestrator | Scope, topology, transitions, consolidation, closeout |
+| Architect | Discovery, architecture, specification, approved drafts |
+| Critic | Pre-execution challenge of scope, risk, verification/evaluation design |
+| Coder | Approved implementation write-set |
+| Reviewer | Frozen-diff engineering and risk review |
+| Verifier | Acceptance criteria, tests, evaluation synthesis, observable evidence |
 
-1. **Bootstrap a clean project.**
+Evaluator and Drift Auditor are assurance specializations, not new authority roles.
+Only Coder has implementation/source write authority.
 
-   ```bash
-   ./bootstrap.sh /tmp/my-agentic-project "My Agentic Project" my-agentic-project
-   cd /tmp/my-agentic-project
-   bash scripts/bootstrap.sh
-   ```
+## Safe Runtime Defaults
 
-2. **Choose the operating mode.**
+- **Codex:** project-scoped logical agents and layered Work Block/Hard Stop hooks;
+  no public model pin.
+- **Claude Code:** logical-role agents only; no provider-named authority agents or
+  pre-authorized MCP tools; Stop gate enforces required evaluation.
+- **OpenCode:** external-directory denial, read-only assurance roles, explicit
+  denial of commit/push/reset/clean/`rm`, empty MCP/plugin collections.
+- **Generic:** separate documented passes/sessions with degraded independence
+  recorded honestly.
 
-   | Mode | Use when | Start here |
-   |---|---|---|
-   | Minimal Codex-only | You want the smallest useful path with no Claude Code, MCP, hooks, or handoff | `docs/quickstart-minimal.md` |
-   | Codex-only SDLC | You want Codex or another agent to run the core workflow directly | `AGENTS.md`, `.codex/write-gate.md`, `.codex/critic.md` |
-   | Claude Code team | You want Claude Code to act as its own orchestrator with agents, hooks, and memory | `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/` |
-   | Codex -> Claude Code swarm | Codex should delegate scoped work to Claude Code as an external team | framework `handoff/README.md` |
-   | Codex model routing | You want strong Codex reasoning plus cheaper/local executor profiles | `framework/workflow/codex-model-routing.md` |
+Static configuration is not live runtime proof or OS isolation. Run target smoke
+before relying on a runtime for Managed or Assured work.
 
-3. **Open the operating contract.**
+## Where to Start
 
-   Read `AGENTS.md` first, then `PROJECT_MAP.md`, `FILE_REGISTRY.yml`, and
-   `docs/session-bootstrap.md`. Then read relevant
-   `docs/engineering-memory/` entries before operational logs. `AGENTS.md`
-   defines roles, Stage 0 preflight, write gates, critic review, verification,
-   hard stops, and closeout expectations. The map and registry explain which
-   files are normative, template, reference, example, log, derived, or local
-   state.
+For framework architecture:
 
-4. **Run one local health check.**
+1. `governance/README.md`, `governance/evaluation.md`, and `governance/release-state.md`;
+2. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
+3. `docs/bootstrap-profiles.md`;
+4. `docs/profiles.md`;
+5. active Work Block under `docs/plans/`, when present.
 
-   ```bash
-   bash scripts/bootstrap.sh
-   ```
+For a generated project:
 
-   Expected result: required workflow files print `OK`, followed by
-   `Workflow layer: OK`. Warnings about missing `node_modules/` or
-   `DATABASE_URL` are normal for a fresh scaffold before project-specific setup.
+1. `AGENTS.md`;
+2. `.agent/bootstrap-profile.json`;
+3. approved specification and active Work Block;
+4. approved evaluation plan when required;
+5. `docs/session-bootstrap.md`;
+6. installed/approved runtime adapter;
+7. integration adapter only when admitted.
 
-5. **Know where evidence goes.**
+## Important Paths
 
-   - `docs/engineering-memory/`: durable decisions, source-of-truth chains,
-     temporary exceptions, and reproducibility notes
-   - `memory_bank/orchestrator-log.md`: why the orchestrator made decisions
-   - `memory_bank/review-log.md`: what critics/reviewers/verifiers found
-   - `memory_bank/external-team-log.md`: how delegated Claude Code teams worked
-   - `docs/templates/work-block-template.md`: expected final result, execution
-     log, verification plan, and retrospective closeout
+| Need | Path |
+|---|---|
+| Governance | `governance/` |
+| Evaluation contract | `governance/evaluation.md` |
+| Release-state contract | `governance/release-state.md` |
+| Installation profiles | `bootstrap/profiles.json`, `docs/bootstrap-profiles.md` |
+| Runtime adapters | `runtimes/` |
+| Integration admission | `integrations/`, `docs/mcp-tool-policy.md` |
+| Evaluation templates | `template/docs/templates/evaluation-*.json` |
+| Evaluation validator | `template/scripts/validate-evaluation.py` |
+| Evaluation fixtures | `scripts/test-evaluation-contracts.py` |
+| Release-state validator | `scripts/validate-release-state.py` |
+| Release-state fixtures | `scripts/test-release-state-contracts.py` |
+| Release-state CI | `.github/workflows/release-state-contract.yml` |
+| Profile matrix | `scripts/test-bootstrap-profiles.py` |
+| Clone/restore contract | `scripts/test-profile-restore.py` |
+| Runtime conformance | `scripts/test-runtime-conformance.py` |
+| Publication validation | `scripts/validate-publication.sh` |
+| Latest completed migration | `docs/plans/wb-008-post-merge-ssot-release-gate.md` |
+| Active migration | none; `FILE_REGISTRY.yml:migration_state.active_work_block` is null |
 
-6. **Keep secrets local.**
-
-   Do not commit `.env`, provider tokens, private memory, MCP credentials,
-   generated logs with secrets, or user-level Claude Code env files.
-
-## Directory Structure
-
-```text
-agentic-sdlc-framework/
-├── README.md
-├── SETUP.md
-├── PROJECT_MAP.md              # human-readable repository navigation map
-├── FILE_REGISTRY.yml           # machine-readable key file/path registry
-├── bootstrap.sh
-├── scripts/validate-publication.sh
-├── docs/                       # first-user onboarding and framework plans
-├── examples/                   # synthetic scenario guides
-├── template/
-│   ├── project.gitignore        # copied to generated projects as .gitignore
-│   ├── AGENTS.md
-│   ├── CLAUDE.md
-│   ├── .agent/                  # runtime-neutral routing layer
-│   ├── .claude/                 # Claude Code runtime team layer
-│   ├── .codex/                  # Codex runtime config, instructions, write gate
-│   ├── memory_bank/
-│   ├── docs/{engineering-memory,plans,reports,specs,tasklist,templates,reference}/
-│   └── scripts/
-├── framework/                   # reference documentation
-├── skills/                      # portable skill library
-└── archive/                     # private examples, ignored for publication
-```
-
-## Requirements
-
-- Linux, WSL, or macOS shell environment
-- `bash`, `git`, `find`, `sed`, `grep`, `chmod`
-- `jq` for Claude Code runtime hooks
-- Optional: `python3` for the Codex write-gate hook and publication validation
-- Optional: `node`/`npx` for MCP servers and JavaScript/TypeScript projects
-
-The hook scripts assume a Unix-like environment. Windows users should run them
-from WSL or Git Bash.
-
-## Skill Locations
-
-The framework keeps skills in `skills/<name>/`.
-
-`skills/catalog.yml` is the metadata-only navigation index. It groups skills
-into planning, design, implementation, review and verification, security, and
-DevOps/integration domains without loading their bodies into an agent context.
-Use it to select a small set of skills for a project or Work Block.
-
-This repository is intended to become the GitHub source for the shared library.
-Consumer projects should eventually commit only `.agent/skills.lock.yml` with
-an immutable source revision and selected names; their resolved cache stays
-local and ignored. Keep project-specific skills in the project until they are
-ready for deliberate promotion. The future Obsidian knowledge vault is a
-separate, relevance-loaded layer rather than a skill directory.
-
-Bootstrap installs the core set into both:
-
-- `.agent/skills/<name>/` for project-neutral routing and tool-agnostic review
-- `.claude/skills/<name>/` for Claude Code runtime loading
-
-Keep both directories aligned when adding or removing project-local skills.
-
-## Local vs Team-Published Mode
-
-Generated projects start in **local-first mode**. Their `.gitignore` excludes
-agent state and memory directories so private context does not get committed by
-accident.
-
-For a team-published workflow, deliberately edit the generated `.gitignore` and
-decide which files are safe to publish. Do not publish secrets, private memory,
-credentials, MCP tokens, or environment files.
-
-## Publication Check
-
-Before publishing this framework repository:
+## Validation
 
 ```bash
+bash scripts/test-sdd-contract.sh
+python scripts/test-evaluation-contracts.py
+python scripts/test-release-state-contracts.py
+python scripts/validate-release-state.py
+python scripts/test-bootstrap-profiles.py
+python scripts/test-profile-restore.py
+python scripts/test-runtime-conformance.py
+python scripts/test-integration-contracts.py
+python scripts/test-integration-admission-evidence.py
+python scripts/test-codex-adapter.py
+python scripts/test-codex-hard-stops.py
+bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-The check verifies required scaffold files, script syntax, placeholder
-replacement, absence of generated Python bytecode, and scans public paths for
-known project-specific private markers. The `archive/` directory is intentionally
-ignored by `.gitignore` and must not be published.
+Framework CI bootstraps disposable profiles, validates evaluation inventory,
+checks selected/unselected surfaces, verifies clone/restore, preserves a blocked
+active Work Block default, and independently validates repository release state.
+
+## Requirements
+
+- Linux, WSL, or macOS shell environment;
+- `bash`, `git`, and `python3`;
+- PyYAML for repository governance/release-state validation;
+- `jq` for remaining compatibility hooks/runner utilities;
+- optional runtime binaries only when used;
+- optional integration dependencies only after admission.
 
 ## License
 
-MIT. See `LICENSE`.
-
-Bundled third-party skills may retain their own license files. See
-`THIRD_PARTY_NOTICES.md`.
+MIT. See `LICENSE`. Bundled third-party skills may retain their own license files;
+see `THIRD_PARTY_NOTICES.md`.

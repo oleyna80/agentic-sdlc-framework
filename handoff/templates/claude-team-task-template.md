@@ -1,80 +1,145 @@
 ---
-task_id: YYYYMMDDTHHMMSSZ-codex-to-claude-001
-from: codex
-to: claude
-timeout_seconds: 1800
+schema_version: 1
+artifact_type: runtime_task
+task_id: YYYYMMDDTHHMMSSZ-claude-runner-001
+work_block_id: wb-xxx
+from_runtime: orchestrator-runtime
+to_runtime: claude-code
+logical_function: coder
+status: queued
+created_at: YYYY-MM-DDTHH:MM:SSZ
+source_revision: commit-or-snapshot
 project_root: /path/to/project
+timeout_seconds: 1800
+retry_policy: none
+authority: approved-write-set
+side_effect_class: production-code
+transport_implementation: claude-code-runner
 allowed_scope:
   - src/**
   - tests/**
-  - docs/**
+  - docs/reports/**
   - memory_bank/external-team-log.md
-  # Include this block when Claude Code is expected to operate as a full
-  # independent team with its own orchestrator, critic, verifier, and memory.
+forbidden_scope:
+  - .env
+  - .env.*
+  - secrets/**
+  - credentials/**
+  - "*.pem"
+  - "*.key"
+hard_stop_approvals: []
+result_destination: handoff/done/
+log_destination: handoff/logs/
+---
+
+# Claude Code Runner Task — Compatibility Template
+
+> Compatibility specialization for the current Claude Code runner. New generic
+> orchestration should start with `runtime-task-template.md`.
+
+## Objective
+
+[One concrete outcome for Claude Code.]
+
+## Acceptance Criteria
+
+- [ ] [Observable result]
+- [ ] [Required evidence]
+
+## Runtime and Function Binding
+
+- **Target runtime:** Claude Code
+- **Transport:** file handoff / `claude-code-runner`
+- **Logical function:** [Architect | Critic | Coder | Reviewer | Verifier | Drift Auditor]
+- **Authority:** [read-only | approved write-set | reports only]
+- **Isolation:** separate runtime, same user/machine unless otherwise established
+- **Acceptance owner:** [Orchestrator/Owner reference]
+
+Claude Code is an external runtime implementation, not a new authority layer.
+Its internal agents, hooks, and memory remain bounded by this task and the active
+Work Block.
+
+## Normative Inputs
+
+- **AGENTS:** `AGENTS.md`
+- **Specification:** [path/revision]
+- **Architecture decisions:** [paths]
+- **Implementation plan:** [path]
+- **Source revision/frozen diff:** [reference]
+
+## Context
+
+[Only required project context. Do not include private reasoning or secrets.]
+
+## Scope Notes
+
+Explain the frontmatter patterns. Add Claude process/evidence paths only when the
+runtime is expected to update them, for example:
+
+```yaml
+allowed_scope:
   - memory_bank/orchestrator-log.md
   - memory_bank/review-log.md
   - .agent/critic-gate.md
   - .agent/verification-gate.md
   - .claude/agent-memory/**
-forbidden_scope:
-  - .env
-  - .env.*
-  - secrets/**
----
+```
 
-# Objective
+These are project files and will be scope-audited. Do not add them by default.
 
-Concrete task for Claude Code as an independent external delivery team.
+## Hard Stops
 
-# Operating Model
+Do not commit, push, deploy, access credentials, mutate live systems/data, send
+communications, install unapproved dependencies, or expand scope unless the
+frontmatter and referenced Owner approval explicitly permit it.
 
-You are an external team with your own internal lead/architect/coder/reviewer
-process. Codex is the Control Tower and will not manage your internal steps.
-Work autonomously inside the approved scope and return concise evidence.
+## Required Checks
 
-# Context
+```text
+[Exact commands or runtime checks]
+```
 
-Relevant project context, constraints, and links to files.
+Unavailable checks are blocked/not run, never pass.
 
-# Decision Summary
+## External Team Log
 
-Why this task was delegated, what is already decided, and what remains unknown.
-Do not include private chain-of-thought.
+When `memory_bank/external-team-log.md` is allowed, append a concise delivery
+entry containing:
 
-# Work Log Contract
+- task/Work Block IDs;
+- accepted objective and scope;
+- logical functions/subagents used;
+- source/result revision;
+- actions and changed paths;
+- checks and outcomes;
+- findings/verdicts;
+- scope-audit result;
+- result/log paths;
+- blockers, residual risks, and next action.
 
-Append or update a concise entry in `memory_bank/external-team-log.md` when
-that path is inside `allowed_scope`.
+Do not log private chain-of-thought, secrets, environment values, or full command
+transcripts.
 
-Claude Code may also update its own internal process files when those paths are
-inside `allowed_scope`, for example `memory_bank/orchestrator-log.md`,
-`memory_bank/review-log.md`, `.agent/critic-gate.md`, and
-`.claude/agent-memory/**`. Treat those files as the internal audit trail of the
-external team, not as the final handoff report.
+## Response Contract
 
-The entry must summarize:
-- accepted objective and scope
-- internal role/phase summary, for example lead/architect/coder/reviewer
-- subagents, critics, reviewers, or verifiers used
-- skipped internal review reason, if any
-- actions taken
-- files changed
-- checks run
-- task_id, runner result path, and runner log path when available
-- blockers, risks, and follow-up
+Return:
 
-Do not log private chain-of-thought, secrets, raw environment values, or full
-command transcripts.
+1. `DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED | FAILED`;
+2. source revision inspected and resulting revision;
+3. concise action summary;
+4. changed paths;
+5. checks and outcomes;
+6. required review/verification/drift verdict;
+7. inspected/uninspected areas;
+8. scope-audit result;
+9. residual risks;
+10. session/result/log identifiers;
+11. recommended next action.
 
-# Response Contract
+## Recovery
 
-Print:
-- status
-- actions taken
-- files changed
-- checks run
-- subagents/reviewers used
-- critic/reviewer verdicts or skip reasons
-- risks
-- next step
-- external-team-log entry path, if updated
+- stale source revision: return `NEEDS_CONTEXT`;
+- timeout/cancellation: leave a non-success result and recover through runner
+  state;
+- retry: use a fresh task ID or explicit retry record;
+- partial writes: quarantine or roll back according to the Work Block.

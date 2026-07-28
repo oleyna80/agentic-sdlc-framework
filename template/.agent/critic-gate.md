@@ -1,84 +1,62 @@
-Status: PENDING
-Work Block: [wb-id]
-Verification Tier: PENDING
-New Domain: PENDING
-Subagent Topology Status: PENDING
-Critic Verdict: PENDING
-Critic Report: [docs/reports/critic-[wb-id].md]
-GPT Critic Status: PENDING
-GPT Critic Reason: [why NOT_REQUIRED, READY, or DEGRADED]
-GPT Critic Report: [docs/reports/gpt-critic-[wb-id].md]
-GPT Critic Degraded Reason: [none]
+# Critic Gate — Compatibility View
 
-# Critic Gate
+> Human-readable view only. The executable source of truth is
+> `.agent/active-work-block.json`.
 
-Approved Write-Set:
-- [path/pattern]
+## Default State
 
-> Control Tower updates this file after Stage 0 Preflight.
-> The `critic-gate.sh` hook blocks Edit/Write until critic review,
-> subagent topology, GPT critic decision, and write-set are resolved.
+- **Work Block:** unset
+- **Critic required:** true
+- **Critic status:** PENDING
+- **Critic verdict:** PENDING
+- **Critic report:** unset
+- **Critic isolation:** unknown
+- **Approved write-set:** empty
+- **Write gate:** BLOCKED
 
-## Control Boundary
+## Machine Fields
 
-The gate controls the phase boundary for Claude Code, not the internal team
-process. It must verify that the orchestrator resolved critic review,
-subagent topology, GPT critic decision, and the approved write-set before
-source edits begin.
+The active Work Block records:
 
-It must not require a specific private reasoning chain, force a fixed internal
-subagent sequence, or block a valid Work Block because Claude Code chose a
-different implementation order after the required review decisions were made.
+```json
+"critic": {
+  "required": true,
+  "status": "PENDING",
+  "verdict": "PENDING",
+  "report": "",
+  "isolation": "unknown",
+  "skip_reason": ""
+}
+```
 
-## Gate Status
+Valid Critic verdicts:
 
-| Status | Meaning | Edit/Write |
-|---|---|---|
-| PENDING | Critic not yet launched | BLOCKED |
-| READY | Critic completed, report in `docs/reports/` | ALLOWED |
-| SKIPPED | Owner approval + orchestrator-log entry + no-skip domain check passed | ALLOWED |
+- `APPROVE`;
+- `SUPPLEMENT`;
+- `RECONSIDER`.
 
-`READY` requires `Critic Report` to point to an existing non-empty file under
-`docs/reports/`, and `Critic Verdict` to be `APPROVE` or `SUPPLEMENT`.
-`RECONSIDER` means Stage 0 must be corrected before edits.
+Valid operational statuses include `PENDING`, `READY`, `DEGRADED`, `FALLBACK`,
+and `SKIPPED`. A required Critic must resolve to an evidence-backed state before
+source writes. `RECONSIDER` blocks the write gate until Define is rerun.
 
-## Subagent Topology Status
+## Runtime and Integration Independence
 
-| Status | Meaning | Edit/Write |
-|---|---|---|
-| PENDING | Stage 0 did not classify topology yet | BLOCKED |
-| SINGLE_AGENT | Work Block does not match Subagent-Required triggers | ALLOWED |
-| PLANNED | Subagent dispatch plan recorded for this Work Block | ALLOWED |
-| BLOCKED | Subagent dispatch unavailable; inline fallback recorded | ALLOWED |
+The Critic may run as:
 
-## GPT Critic Status
+- a Claude Code subagent;
+- a Codex custom agent;
+- an OpenCode subagent;
+- a separate session or runtime;
+- an admitted plugin, MCP, or file-handoff integration;
+- a human reviewer.
 
-| Status | Meaning | Edit/Write |
-|---|---|---|
-| PENDING | GPT critic trigger not resolved | BLOCKED |
-| NOT_REQUIRED | Not Full tier, not first domain Work Block, and Claude critic did not return SUPPLEMENT/RECONSIDER | ALLOWED |
-| READY | `gpt-critic` completed and findings were merged | ALLOWED |
-| DEGRADED | Codex MCP unavailable; degraded reason recorded | ALLOWED |
+Record the actual runtime, integration, and isolation in the Work Block. Provider
+or model names do not create a new gate or authority class.
 
-GPT critic is required when `Verification Tier: full`, `New Domain: true`, or
-`Critic Verdict` is `SUPPLEMENT`/`RECONSIDER`. `READY` requires
-`GPT Critic Report` to point to an existing non-empty file under
-`docs/reports/`. `DEGRADED` requires `GPT Critic Degraded Reason:
-review-degraded:codex-mcp-unavailable` and a matching orchestrator-log entry.
-`NOT_REQUIRED` requires `GPT Critic Reason` to explain why no trigger matched.
+## Write Authority
 
-## No-Skip Domain
+Claude Code and Codex hooks read the machine gate, specification, expiry,
+`base_commit`, Critic state, and `write_set`.
 
-If this WB touches auth, payments, DB migration, new service, or deploy
-for the first time → `No-Skip: true` (critic mandatory, no SKIPPED possible).
-
-No-Skip: [true/false]
-
-## Triggers Active
-
-[List active triggers from AGENTS.md § Critic Review Gate]
-
-## Skip Record (if SKIPPED)
-
-Must match orchestrator-log entry exactly.
-Format: `critic: SKIPPED — Owner approval — [reason]`
+Do not edit this Markdown file to authorize a write. Update the active Work Block
+only after the required review and approvals exist.

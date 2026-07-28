@@ -1,0 +1,251 @@
+name: Framework Contracts
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "agent/**"
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Check syntax and parse configuration
+        run: |
+          bash -n bootstrap.sh
+          bash -n scripts/test-sdd-contract.sh
+          bash -n scripts/validate-governance.sh
+          bash -n scripts/validate-publication.sh
+          bash -n template/scripts/bootstrap.sh
+          bash -n template/.claude/hooks/critic-gate.sh
+          bash -n template/.claude/hooks/hard-stop.sh
+          bash -n template/.claude/hooks/typecheck.sh
+          bash -n template/.claude/hooks/verification-gate.sh
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          python_paths = [
+              Path("bootstrap/bootstrap_project.py"),
+              Path("scripts/test-bootstrap-profiles.py"),
+              Path("scripts/test-profile-restore.py"),
+              Path("scripts/test-runtime-conformance.py"),
+              Path("scripts/test-evaluation-contracts.py"),
+              Path("scripts/test-codex-adapter.py"),
+              Path("scripts/test-codex-hard-stops.py"),
+              Path("scripts/test-integration-contracts.py"),
+              Path("scripts/test-integration-admission-evidence.py"),
+              Path("scripts/validate_publication.py"),
+              Path("scripts/validate_evaluation_publication.py"),
+              Path("template/scripts/validate-installation-profile.py"),
+              Path("template/scripts/validate-evaluation.py"),
+              Path("template/.agent/hooks/hard_stop_policy.py"),
+              Path("template/.claude/hooks/work_block_gate.py"),
+              Path("template/.claude/hooks/assurance_gate.py"),
+              Path("template/.codex/hooks/hard_stop_policy.py"),
+              Path("template/.codex/hooks/pre_tool_use_policy.py"),
+              Path("template/.codex/hooks/stage0_write_gate.py"),
+              Path("template/.codex/hooks/subagent_context.py"),
+          ]
+          for path in python_paths:
+              compile(path.read_text(encoding="utf-8"), str(path), "exec")
+              print(f"syntax OK: {path}")
+
+          for path in (
+              Path("bootstrap/profiles.json"),
+              Path("template/.claude/settings.json"),
+              Path("template/.mcp.json"),
+              Path("template/.agent/active-work-block.json"),
+              Path("template/.agent/active-work-block.default.json"),
+              Path("template/docs/templates/evaluation-plan-template.json"),
+              Path("template/docs/templates/evaluation-report-template.json"),
+              Path("template/docs/templates/trajectory-event-template.json"),
+              Path("docs/evals/wb-007/plan.json"),
+              Path("template/opencode.json"),
+          ):
+              value = json.loads(path.read_text(encoding="utf-8"))
+              if not isinstance(value, dict):
+                  raise SystemExit(f"{path} must parse to an object")
+              print(f"JSON OK: {path}")
+          PY
+
+      - name: Validate runtime-neutral SDLC contracts
+        id: sdlc_contract
+        continue-on-error: true
+        run: bash scripts/test-sdd-contract.sh > "$RUNNER_TEMP/sdlc-contract.log" 2>&1
+
+      - name: Upload SDLC contract failure log
+        if: steps.sdlc_contract.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdlc-contract-failure
+          path: ${{ runner.temp }}/sdlc-contract.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce SDLC contract result
+        if: steps.sdlc_contract.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/sdlc-contract.log"
+          exit 1
+
+      - name: Validate evaluation contracts
+        run: python scripts/test-evaluation-contracts.py
+
+      - name: Validate installation profiles and runtime conformance
+        id: profile_conformance
+        continue-on-error: true
+        run: |
+          empty_git_config="$RUNNER_TEMP/empty-gitconfig"
+          : > "$empty_git_config"
+          export GIT_CONFIG_GLOBAL="$empty_git_config"
+          export GIT_CONFIG_NOSYSTEM=1
+          python scripts/test-bootstrap-profiles.py > "$RUNNER_TEMP/profile-conformance.log" 2>&1
+          python scripts/test-profile-restore.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
+          python scripts/test-runtime-conformance.py >> "$RUNNER_TEMP/profile-conformance.log" 2>&1
+
+      - name: Upload profile conformance failure log
+        if: steps.profile_conformance.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-conformance-failure
+          path: ${{ runner.temp }}/profile-conformance.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce profile conformance result
+        if: steps.profile_conformance.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/profile-conformance.log"
+          exit 1
+
+      - name: Validate integration adapters
+        id: integration_adapters
+        continue-on-error: true
+        run: |
+          python scripts/test-integration-contracts.py > "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
+          python scripts/test-integration-admission-evidence.py >> "$RUNNER_TEMP/integration-adapter-test.log" 2>&1
+
+      - name: Upload integration adapter failure log
+        if: steps.integration_adapters.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-adapter-failure
+          path: ${{ runner.temp }}/integration-adapter-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce integration adapter result
+        if: steps.integration_adapters.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/integration-adapter-test.log"
+          exit 1
+
+      - name: Validate Codex adapter gates
+        id: codex_adapter
+        continue-on-error: true
+        run: |
+          python scripts/test-codex-adapter.py > "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+          python scripts/test-codex-hard-stops.py >> "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+
+      - name: Upload Codex adapter failure log
+        if: steps.codex_adapter.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-adapter-failure
+          path: ${{ runner.temp }}/codex-adapter-test.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce Codex adapter result
+        if: steps.codex_adapter.outcome == 'failure'
+        run: |
+          cat "$RUNNER_TEMP/codex-adapter-test.log"
+          exit 1
+
+      - name: Validate governance structure
+        run: bash scripts/validate-governance.sh
+
+      - name: Validate publication scaffold
+        id: publication
+        continue-on-error: true
+        run: bash scripts/validate-publication.sh > "$RUNNER_TEMP/publication-validation.log" 2>&1
+
+      - name: Upload publication validation failure log
+        if: steps.publication.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-validation-failure
+          path: ${{ runner.temp }}/publication-validation.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce publication validation result
+        if: steps.publication.outcome == 'failure'
+        run: |
+          tail -n 300 "$RUNNER_TEMP/publication-validation.log"
+          exit 1
+
+      - name: Bootstrap disposable default generated project
+        run: |
+          target="$(mktemp -d)"
+          ./bootstrap.sh --profile multi-runtime "$target" "Contract Smoke" contract-smoke
+          test -f "$target/AGENTS.md"
+          test -f "$target/governance/evaluation.md"
+          test -f "$target/.agent/bootstrap-profile.json"
+          test -f "$target/.agent/active-work-block.default.json"
+          test -f "$target/.agent/active-work-block.json"
+          test -f "$target/scripts/validate-installation-profile.py"
+          test -f "$target/scripts/validate-evaluation.py"
+          test -f "$target/docs/evals/README.md"
+          test -f "$target/docs/reports/evaluations/README.md"
+          test -f "$target/docs/templates/evaluation-plan-template.json"
+          test -f "$target/docs/templates/evaluation-report-template.json"
+          test -f "$target/docs/templates/trajectory-event-template.json"
+          test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
+          test -f "$target/.agent/hooks/hard_stop_policy.py"
+          test -f "$target/.claude/hooks/work_block_gate.py"
+          test -f "$target/.codex/hooks.json"
+          test -f "$target/opencode.json"
+          python - "$target" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          root = pathlib.Path(sys.argv[1])
+          profile = json.loads((root / ".agent/bootstrap-profile.json").read_text())
+          default_gate = json.loads((root / ".agent/active-work-block.default.json").read_text())
+          active_gate = json.loads((root / ".agent/active-work-block.json").read_text())
+          assert profile["resolved_profile"] == "multi-runtime"
+          assert set(profile["runtimes"]) == {"generic", "codex", "claude-code", "opencode"}
+          assert profile["integrations"] == ["mcp-config"]
+          assert default_gate == active_gate
+          assert active_gate["write_gate"]["status"] == "BLOCKED"
+          assert active_gate["assurance"]["evaluation"]["required"] is False
+          assert active_gate["assurance"]["evaluation"]["status"] == "PENDING"
+          assert json.loads((root / ".mcp.json").read_text()) == {"mcpServers": {}}
+          print("generated default installation profile OK")
+          PY
+          grep -q "Contract Smoke" "$target/AGENTS.md"
+          grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
+          rm -rf "$target"

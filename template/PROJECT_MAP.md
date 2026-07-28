@@ -1,100 +1,186 @@
 # Project Map
 
-This file is the first human-authored map for `{{PROJECT_NAME}}`. It helps
-humans and agents orient before reading the full project.
+First human-readable map for `{{PROJECT_NAME}}`. It explains authority, the
+resolved installation profile, major repository zones, and what an agent should
+read next.
 
-## Purpose
+## Architecture
 
-`{{PROJECT_NAME}}` uses the Agentic SDLC scaffold to run scoped Work Blocks with
-explicit roles, approved write-sets, review, verification, and durable logs.
+`{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane with four
+separable layers:
 
-## Authority Model
+1. **Governance Core** — authority, lifecycle, artifacts, evaluation, risk gates,
+   capability negotiation, assurance, and closeout.
+2. **Portable workflow** — specifications, decisions, Work Blocks, implementation
+   and evaluation plans, tasks, reports, skills, memory, and observable evidence.
+3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic, or another
+   approved execution runtime.
+4. **Integration adapters** — optional plugins, MCP servers, external runtime
+   CLIs, hosted tools, and audited file transport.
 
-When files conflict, use this order:
+Runtime, model, judge, integration, or installation-profile selection never
+changes governance authority.
 
-1. Explicit Owner instruction for the current task.
-2. `AGENTS.md` in this project.
-3. Approved Work Block plan and write-set.
-4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`.
-5. Current `docs/engineering-memory/` entries.
-6. Runtime-specific policy files such as `.codex/critic.md`,
-   `.codex/write-gate.md`, `.claude/settings.json`, hooks, and agent prompts.
-7. Reference docs, examples, logs, and generated/discovery artifacts.
+## Installation Profile
 
-Generated or discovery artifacts may help locate information, but they do not
-override normative instructions, Owner decisions, or approved scope.
+Read `.agent/bootstrap-profile.json` first when runtime availability matters. It
+records which runtime implementation surfaces and skills were installed. It is
+installation evidence only and does not grant Work Block authority, integration
+admission, credentials, side-effect permission, or a passing evaluation verdict.
 
-## Operating Modes
+Possible conditional surfaces:
 
-Start with the smallest mode that can safely deliver the Work Block:
+- `.codex/` for Codex;
+- `CLAUDE.md` and `.claude/` for Claude Code;
+- `opencode.json` and `.opencode/` for OpenCode;
+- `.mcp.json` as an inert MCP configuration surface.
 
-- **Minimal Codex-only**: one local agent, scope control, logs, review,
-  verification, no Claude Code, no MCP, no handoff.
-- **Standard Codex SDLC**: full Work Block flow with reusable skills and
-  stronger closeout evidence.
-- **Claude Code Team Runtime**: Claude Code acts as its own local team with
-  agents, hooks, skills, memory, and provider configuration.
-- **Codex -> Claude Code Handoff**: Codex delegates scoped work to Claude Code
-  as an external team through file-based handoff.
-- **Codex model routing overlay**: optional user-level Codex profiles keep
-  strong models on orchestration/critic decisions and cheaper or local models
-  on bounded executor tasks. Real provider settings stay outside the generated
-  project unless the team deliberately adds private local config.
+Absence of an unselected runtime surface is expected.
+
+## Authority Order
+
+1. current Owner instruction or approved change request;
+2. `AGENTS.md` and Governance Core;
+3. approved specification and acceptance criteria;
+4. accepted architecture decisions and external contracts;
+5. approved implementation and evaluation plans and write-set;
+6. active tasklist;
+7. review, verification, evaluation, drift, integration, and closeout evidence;
+8. durable engineering memory;
+9. runtime/integration policy, operational logs, generated output, references.
+
+Reports, scores, judges, and logs are evidence; they do not silently revise product
+requirements or open authority gates.
+
+## Work Block Profiles
+
+Each Work Block selects independently:
+
+- **Governance profile:** Advisory, Controlled, Managed, Assured, Distributed.
+- **Runtime profile:** one installed or otherwise approved runtime adapter.
+- **Integration profile:** none or an admitted bridge/tool/transport.
+- **Model class:** task-appropriate capability class.
+- **Isolation:** actual boundary from same context to OS-isolated.
+- **Evaluation posture:** not required or an approved deterministic/output/trajectory plan.
+
+The installation profile constrains local availability; it does not activate a
+runtime, integration, or evaluation authority.
+
+## Evaluation Assurance
+
+`governance/evaluation.md` distinguishes:
+
+- deterministic tests for objective contracts;
+- output evaluation against an approved rubric;
+- observable trajectory evaluation for tool, gate, check, retry, side-effect,
+  and evidence events.
+
+Trajectory evidence never requires private chain-of-thought, hidden reasoning,
+or model scratchpads. Missing events are blocked/unverified, not passed. An LM
+judge cannot waive deterministic failures or open write/integration/deployment gates.
+
+Use:
+
+```text
+docs/evals/<evaluation-id>/plan.json
+docs/evals/<evaluation-id>/events.jsonl
+docs/reports/evaluations/<evaluation-id>.json
+scripts/validate-evaluation.py
+```
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
-| `AGENTS.md` | normative | Root operating rules for agents in this project. |
-| `PROJECT_MAP.md` | normative | Human-readable project map. |
-| `FILE_REGISTRY.yml` | normative | Machine-readable key file/path registry. |
-| `.codex/` | normative runtime | Codex write gate, critic contract, and hooks. |
-| `.agent/` | normative routing | Runtime-neutral roster, workflows, gates, and skills. |
-| `.agent/workflows/sdd-protocol.md` | normative | Canonical lifecycle contract and stage semantics. |
-| `.claude/` | runtime-specific | Claude Code agents, hooks, skills, settings, and memory. |
-| `docs/engineering-memory/` | normative | Durable project engineering memory for all agent runtimes. |
-| `memory_bank/` | mixed local | Operational context, decision summaries, logs, and external team reports. |
-| `docs/` | mixed | Plans, specs, tasklists, reports, templates, and references. |
-| `docs/templates/{verification-report,closeout-report}-template.md` | normative | Verification evidence and success/reporting-only closeout contracts. |
-| `scripts/` | project-specific | Bootstrap and project automation scripts. |
-| source directories | project-specific | Application or service code. See `AGENTS.md`. |
+| `AGENTS.md` | normative | Compact project operating contract |
+| `.agent/bootstrap-profile.json` | generated | Resolved installation profile and path contract |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifacts, evaluation, capabilities |
+| `governance/evaluation.md` | normative | Deterministic/output/observable trajectory contract |
+| `.agent/workflows/sdd-protocol.md` | normative | Define / Execute / Assure / Close semantics |
+| `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, isolation |
+| `.agent/active-work-block.json` | operational gate | Specification, write-set, integrations, assurance, closeout |
+| `.agent/active-work-block.default.json` | portable default | Fail-closed restore state including optional PENDING evaluation |
+| `.agent/verification-gate.md` | compatibility view | Review, verification, evaluation, drift, closeout summary |
+| `.agent/hooks/` | shared runtime policy | Provider-neutral consequential-action guards |
+| `docs/specs/` | normative | Approved product and technical behavior |
+| `docs/architecture/` | normative | Accepted architecture decisions and contracts |
+| `docs/plans/` | derived/log | Approved plans and Work Blocks |
+| `docs/tasklist/` | derived | Active task decomposition |
+| `docs/evals/` | evidence/config | Approved evaluation plans, fixtures, observable events |
+| `docs/reports/evaluations/` | evidence | Evaluation matrices, gaps, risks, verdicts |
+| `docs/reports/` | evidence | All assurance, integration, and closeout evidence |
+| `docs/templates/` | normative templates | Work Block, evaluation, reports, integration admission |
+| `docs/engineering-memory/` | durable reference | Evidence-backed reusable decisions |
+| `memory_bank/` | operational/local | Current focus, progress, pending decisions, logs |
+| `runtimes/` | adapter documentation | Capability, activation, limitation, fallback |
+| `integrations/` | adapter documentation | Optional bridge/tool/transport admission |
+| `scripts/bootstrap.sh` | health check | Validates profile/default and restores local state |
+| `scripts/validate-installation-profile.py` | validator | Selected paths, kinds, absent surfaces, blocked default |
+| `scripts/validate-evaluation.py` | validator | Evaluation plan/report consistency and closeout binding |
+| source/test directories | source | Controlled by approved Work Block write-sets |
 
-## Generated, Log, and Local-Only Boundaries
+## Safe Defaults
 
-- `docs/plans/**` and `docs/reports/**` are Work Block evidence and reports;
-  the current approved plan matters more than older plans.
-- `docs/templates/**` are reusable coordination and Work Block templates.
-- `docs/engineering-memory/**` is committed durable project memory; keep it
-  evidence-backed and secret-free.
-- `memory_bank/orchestrator-log.md`, `memory_bank/review-log.md`, and
-  `memory_bank/external-team-log.md` are evidence logs, not current authority.
-- `.claude/agent-memory/**` is project-local agent memory unless deliberately
-  reviewed for publication.
-- `.env*`, credentials, provider tokens, caches, build output, and local
-  machine state must not be committed.
-- Future graph/discovery outputs should be treated as derived context only.
+- no plugin, external bridge, MCP server, or watcher is enabled automatically;
+- no provider-named authority agent is installed;
+- external runtime calls require active integration approval;
+- blocked default evaluation is optional, `PENDING`, unbound, and has no authority;
+- credentials and private runtime state remain local;
+- observable evidence must exclude secrets, protected payloads, and hidden reasoning.
 
-## New-Session Bootstrap
+## Core Lifecycle
 
-For project work, read in this order:
+```text
+Define
+  discovery -> architecture -> specification -> implementation/evaluation plans -> critic
 
-1. `AGENTS.md`
-2. `PROJECT_MAP.md`
-3. `FILE_REGISTRY.yml`
-4. `docs/session-bootstrap.md`
-5. The current task or Work Block plan
-6. Relevant `docs/engineering-memory/` entries
-7. `git status --short --branch`
-8. Relevant diffs and target files
+Execute
+  scoped implementation -> self-check -> observable event capture -> frozen diff
 
-Do not assume memory from a previous session is current when repository files
-are cheap to verify.
+Assure
+  independent review -> technical verification -> agent evaluation -> drift audit
 
-## Map Maintenance
+Close
+  SSOT sync -> engineering memory -> closeout report
+```
 
-Update this file and `FILE_REGISTRY.yml` when a change:
+Required evaluation must be `READY` for `success-closeout`. Optional evaluation
+may be skipped only with a concrete reason.
 
-- adds, moves, or removes a major directory;
-- changes authority, write gates, review gates, or verification gates;
-- changes generated/local-only boundaries;
-- adds a new runtime layer, profile, or project-specific governance rule.
+## Generated, Derived, Evidence, and Local Boundaries
+
+- specifications and accepted architecture decisions are normative;
+- implementation/evaluation plans and tasklists are derived/configuration;
+- reports and observable events are evidence, not requirement authority;
+- `.agent/bootstrap-profile.json` is generated installation evidence;
+- engineering memory is durable only when evidence-backed and secret-free;
+- `memory_bank/**` and runtime memory are operational/local by default;
+- provider auth, downloaded plugins, browser sessions, local IDE state, `.env*`,
+  tokens, cookies, credentials, keys, and live customer data must not be committed.
+
+## New-Session Read Strategy
+
+Always for non-trivial work:
+
+1. `AGENTS.md`;
+2. `.agent/bootstrap-profile.json` when runtime availability matters;
+3. active Work Block;
+4. active specification and revision;
+5. approved implementation/evaluation plans;
+6. relevant architecture decisions;
+7. repository status and current diff.
+
+Read conditionally:
+
+- relevant Governance Core contract, especially `evaluation.md`;
+- detailed SDLC protocol and role/skill roster;
+- installed/approved runtime adapter;
+- selected integration adapter and admission record;
+- evaluation evidence required by the Work Block;
+- relevant skills, engineering memory, and operational logs.
+
+Do not treat an absent unselected runtime surface as corruption.
+
+Update this map and `FILE_REGISTRY.yml` when installation composition, authority,
+source-of-truth order, lifecycle, evaluation, integration, gates, adapters, or
+normative/evidence/local boundaries change.
