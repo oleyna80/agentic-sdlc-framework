@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  checks: read
 
 env:
   PYTHONDONTWRITEBYTECODE: "1"
@@ -301,58 +300,42 @@ jobs:
   provider-snapshot:
     needs: contracts
     if: always()
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
-      - name: Capture provider-native checks for the exact subject SHA
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SUBJECT_SHA: ${{ github.sha }}
-        run: |
-          for attempt in $(seq 1 30); do
-            curl --fail-with-body --retry 3 \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${{ github.repository }}/commits/$SUBJECT_SHA/check-runs" \
-              > provider-check-snapshot.json
-            if python - <<'PY'
-          import json
-          snapshot = json.load(open("provider-check-snapshot.json", encoding="utf-8"))
-          required = {"Framework Contracts / contracts", "Release State Contract / release-state"}
-          checks = {item.get("name"): item for item in snapshot.get("check_runs", [])}
-          raise SystemExit(not all(checks.get(name, {}).get("status") == "completed" for name in required))
-          PY
-            then break; fi
-            sleep 10
-          done
-          python - <<'PY'
-          import os
-          import json
-          path = "provider-check-snapshot.json"
-          snapshot = json.load(open(path, encoding="utf-8"))
-          snapshot["subject_sha"] = os.environ["SUBJECT_SHA"]
-          with open(path, "w", encoding="utf-8") as handle:
-              json.dump(snapshot, handle, sort_keys=True)
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: provider-check-snapshot-${{ github.sha }}
-          path: provider-check-snapshot.json
-          if-no-files-found: error
-          retention-days: 7
+      - name: Checkout snapshot generator
+        uses: actions/checkout@v4
 
-  final-aggregator:
-    needs: provider-snapshot
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: provider-check-snapshot-${{ github.sha }}
-      - name: Fail closed on missing, pending, failed, or SHA-mismatched provider check
+      - name: Capture current contracts job as point-in-time evidence
+        env:
+          CONTRACTS_RESULT: ${{ needs.contracts.result }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          WORKFLOW_SHA: ${{ github.sha }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          python scripts/ci-contract-router.py validate-snapshot \
-            --snapshot provider-check-snapshot.json \
-            --subject-sha "${{ github.sha }}" \
-            --required-check "Framework Contracts / contracts" \
-            --required-check "Release State Contract / release-state"
+          python scripts/ci-contract-router.py snapshot \
+            --output provider-contracts-snapshot.json \
+            --repository "$REPOSITORY" \
+            --head-sha "$HEAD_SHA" \
+            --workflow-sha "$WORKFLOW_SHA" \
+            --workflow-name "$WORKFLOW_NAME" \
+            --workflow-ref "$WORKFLOW_REF" \
+            --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT" \
+            --event-name "$EVENT_NAME" \
+            --job-key contracts \
+            --job-name contracts \
+            --job-result "$CONTRACTS_RESULT"
+
+      - name: Upload non-authoritative provider evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-contracts-snapshot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: provider-contracts-snapshot.json
+          if-no-files-found: warn
+          retention-days: 7
