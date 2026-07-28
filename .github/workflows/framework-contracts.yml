@@ -9,12 +9,41 @@ on:
 
 permissions:
   contents: read
+  checks: read
 
 env:
   PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
+  route:
+    runs-on: ubuntu-latest
+    outputs:
+      suite: ${{ steps.route.outputs.suite }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: route
+        name: Fail-closed contract route
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+          fi
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null || ! git merge-base --is-ancestor "$base" "${{ github.sha }}"; then
+            result="$(python scripts/ci-contract-router.py route)"
+          else
+            git diff --name-only -z "$base" "${{ github.sha }}" > "$RUNNER_TEMP/changed-paths"
+            result="$(python scripts/ci-contract-router.py route --paths-file "$RUNNER_TEMP/changed-paths")"
+          fi
+          suite="$(python -c 'import json,sys; print(json.load(sys.stdin)["suite"])' <<< "$result")"
+          echo "suite=$suite" >> "$GITHUB_OUTPUT"
+          echo "CI contract route: $result"
+
   contracts:
+    needs: route
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -56,9 +85,13 @@ jobs:
               Path("scripts/test-integration-contracts.py"),
               Path("scripts/test-integration-admission-evidence.py"),
               Path("scripts/validate_publication.py"),
+              Path("scripts/ci-contract-router.py"),
+              Path("scripts/test-ci-contract-router.py"),
+              Path("scripts/test-repair-lifecycle-contracts.py"),
               Path("scripts/validate_evaluation_publication.py"),
               Path("template/scripts/validate-installation-profile.py"),
               Path("template/scripts/validate-evaluation.py"),
+              Path("template/scripts/repair-lifecycle.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
               Path("template/.claude/hooks/work_block_gate.py"),
               Path("template/.claude/hooks/assurance_gate.py"),
@@ -112,7 +145,13 @@ jobs:
       - name: Validate evaluation contracts
         run: python scripts/test-evaluation-contracts.py
 
-      - name: Validate installation profiles and runtime conformance
+      - name: Validate NDR and CI routing contracts
+        run: |
+          python scripts/test-repair-lifecycle-contracts.py
+          python scripts/test-ci-contract-router.py
+
+      - name: Validate installation profiles and runtime conformance (full suite)
+        if: needs.route.outputs.suite == 'full'
         id: profile_conformance
         continue-on-error: true
         run: |
@@ -139,7 +178,8 @@ jobs:
           cat "$RUNNER_TEMP/profile-conformance.log"
           exit 1
 
-      - name: Validate integration adapters
+      - name: Validate integration adapters (full suite)
+        if: needs.route.outputs.suite == 'full'
         id: integration_adapters
         continue-on-error: true
         run: |
@@ -161,7 +201,8 @@ jobs:
           cat "$RUNNER_TEMP/integration-adapter-test.log"
           exit 1
 
-      - name: Validate Codex adapter gates
+      - name: Validate Codex adapter gates (full suite)
+        if: needs.route.outputs.suite == 'full'
         id: codex_adapter
         continue-on-error: true
         run: |
@@ -186,6 +227,9 @@ jobs:
       - name: Validate governance structure
         run: bash scripts/validate-governance.sh
 
+      - name: Validate release-state contract
+        run: python scripts/validate-release-state.py
+
       - name: Validate publication scaffold
         id: publication
         continue-on-error: true
@@ -206,7 +250,8 @@ jobs:
           tail -n 300 "$RUNNER_TEMP/publication-validation.log"
           exit 1
 
-      - name: Bootstrap disposable default generated project
+      - name: Bootstrap disposable default generated project (full suite)
+        if: needs.route.outputs.suite == 'full'
         run: |
           target="$(mktemp -d)"
           ./bootstrap.sh --profile multi-runtime "$target" "Contract Smoke" contract-smoke
@@ -217,11 +262,14 @@ jobs:
           test -f "$target/.agent/active-work-block.json"
           test -f "$target/scripts/validate-installation-profile.py"
           test -f "$target/scripts/validate-evaluation.py"
+          test -f "$target/scripts/repair-lifecycle.py"
           test -f "$target/docs/evals/README.md"
           test -f "$target/docs/reports/evaluations/README.md"
           test -f "$target/docs/templates/evaluation-plan-template.json"
           test -f "$target/docs/templates/evaluation-report-template.json"
           test -f "$target/docs/templates/trajectory-event-template.json"
+          test -f "$target/docs/templates/repair-record-template.md"
+          test -f "$target/docs/templates/combined-assurance-report-template.md"
           test -f "$target/.agent/skills/spec-drift-audit/SKILL.md"
           test -f "$target/.agent/hooks/hard_stop_policy.py"
           test -f "$target/.claude/hooks/work_block_gate.py"
@@ -249,3 +297,62 @@ jobs:
           grep -q "Contract Smoke" "$target/AGENTS.md"
           grep -q "contract-smoke" "$target/FILE_REGISTRY.yml"
           rm -rf "$target"
+
+  provider-snapshot:
+    needs: contracts
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Capture provider-native checks for the exact subject SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUBJECT_SHA: ${{ github.sha }}
+        run: |
+          for attempt in $(seq 1 30); do
+            curl --fail-with-body --retry 3 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/commits/$SUBJECT_SHA/check-runs" \
+              > provider-check-snapshot.json
+            if python - <<'PY'
+          import json
+          snapshot = json.load(open("provider-check-snapshot.json", encoding="utf-8"))
+          required = {"Framework Contracts / contracts", "Release State Contract / release-state"}
+          checks = {item.get("name"): item for item in snapshot.get("check_runs", [])}
+          raise SystemExit(not all(checks.get(name, {}).get("status") == "completed" for name in required))
+          PY
+            then break; fi
+            sleep 10
+          done
+          python - <<'PY'
+          import os
+          import json
+          path = "provider-check-snapshot.json"
+          snapshot = json.load(open(path, encoding="utf-8"))
+          snapshot["subject_sha"] = os.environ["SUBJECT_SHA"]
+          with open(path, "w", encoding="utf-8") as handle:
+              json.dump(snapshot, handle, sort_keys=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: provider-check-snapshot-${{ github.sha }}
+          path: provider-check-snapshot.json
+          if-no-files-found: error
+          retention-days: 7
+
+  final-aggregator:
+    needs: provider-snapshot
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: provider-check-snapshot-${{ github.sha }}
+      - name: Fail closed on missing, pending, failed, or SHA-mismatched provider check
+        run: |
+          python scripts/ci-contract-router.py validate-snapshot \
+            --snapshot provider-check-snapshot.json \
+            --subject-sha "${{ github.sha }}" \
+            --required-check "Framework Contracts / contracts" \
+            --required-check "Release State Contract / release-state"

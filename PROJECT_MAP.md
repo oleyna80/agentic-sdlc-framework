@@ -79,6 +79,16 @@ approved closeout evidence.
 map, registry, or closeout disagree. GitHub Draft/open/closed/integrated state is
 external operational metadata and is queried from GitHub when needed.
 
+## Risk-Tiered Repair Assurance
+
+NDR is a `Controlled` submode, not a new profile. It admits only deterministic,
+reversible CI/bootstrap/runtime-validation repairs with exact allowlists, one
+repair record, one implementation pass, deterministic checks, and independent
+combined assurance. Integration Stabilization is a bounded envelope of no more
+than three eligible items and two correction rounds. CI snapshots provider-native
+checks for the exact subject SHA as an uploaded JSON artifact; dynamic counters
+are never tracked closeout authority.
+
 ## Key Paths
 
 | Path | Status | Purpose |
@@ -99,6 +109,7 @@ external operational metadata and is queried from GitHub when needed.
 | `scripts/test-release-state-contracts.py` | contract test | Positive and adversarial release-state fixtures |
 | `.github/workflows/release-state-contract.yml` | CI evidence | Dedicated release-state and fixture validation |
 | `.github/workflows/framework-contracts.yml` | CI evidence | Full contract, profile, adapter, evaluation, and disposable-scaffold validation |
+| `scripts/ci-contract-router.py` | CI control | Unknown paths run full suite; required contracts never skip |
 | `README.md` / `SETUP.md` | public guidance | Architecture, setup, and safe activation |
 | `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine path/authority maps |
 

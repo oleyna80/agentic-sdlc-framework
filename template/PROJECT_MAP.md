@@ -66,6 +66,14 @@ Each Work Block selects independently:
 The installation profile constrains local availability; it does not activate a
 runtime, integration, or evaluation authority.
 
+## Narrow Deterministic Repair
+
+NDR is a constrained `Controlled` submode for deterministic, reversible
+CI/bootstrap/runtime-validation repairs. It uses one repair record, one Coder
+pass, deterministic checks, and one independent combined assurance report. It
+permits one correction. Integration Stabilization may group at most three eligible
+items and two correction rounds; both ceilings fail closed to an Owner decision.
+
 ## Evaluation Assurance
 
 `governance/evaluation.md` distinguishes:
@@ -117,6 +125,9 @@ scripts/validate-evaluation.py
 | `scripts/bootstrap.sh` | health check | Validates profile/default and restores local state |
 | `scripts/validate-installation-profile.py` | validator | Selected paths, kinds, absent surfaces, blocked default |
 | `scripts/validate-evaluation.py` | validator | Evaluation plan/report consistency and closeout binding |
+| `scripts/repair-lifecycle.py` | validator | Fail-closed NDR record limit validation |
+| `docs/templates/repair-record-template.md` | normative template | NDR scope, verification, and stop-condition record |
+| `docs/templates/combined-assurance-report-template.md` | normative template | Independent NDR review and verification evidence |
 | source/test directories | source | Controlled by approved Work Block write-sets |
 
 ## Safe Defaults

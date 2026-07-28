@@ -212,6 +212,23 @@ Successful closeout requires:
 
 Otherwise use reporting-only closeout and keep the Work Block blocked.
 
+## Narrow Deterministic Repair Artifacts
+
+An eligible Controlled NDR uses exactly one `repair record` and one independent
+`combined assurance report` in place of separate review, verification, and drift
+documents. The repair record must capture the deterministic root cause, exact
+allowlist, prohibited domains, verification commands, correction count, and stop
+condition. Combined assurance binds its review and verification observations to
+the frozen subject revision and records its independent session/agent boundary.
+
+NDR permits one implementation pass and at most one correction. Integration
+Stabilization may contain at most three repair records and two correction rounds.
+The ceiling is an escalation boundary, not a reason to omit evidence.
+
+Tracked closeout reports must not copy dynamic Git or CI counters. CI state is
+authoritative only from provider-native checks bound to the subject SHA; an
+uploaded JSON snapshot is portable evidence and never release authority.
+
 ## Source-of-Truth Order
 
 Resolve conflicts in this order:

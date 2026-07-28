@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 11
+version: 12
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -75,6 +75,14 @@ evaluation_assurance:
   publication_validator: scripts/validate_evaluation_publication.py
   evidence_boundary: observable_events_only
   hidden_reasoning_required: false
+  authority: none
+
+repair_assurance:
+  mode: controlled_ndr_only
+  repair_record_template: template/docs/templates/repair-record-template.md
+  combined_assurance_template: template/docs/templates/combined-assurance-report-template.md
+  validator: template/scripts/repair-lifecycle.py
+  provider_snapshot: ci_artifact_only
   authority: none
 
 migration_state:
@@ -180,6 +188,16 @@ entries:
     status: installation_manifest
     owner: architect
     authority: none
+
+  template/scripts/repair-lifecycle.py:
+    role: generated_fail_closed_ndr_repair_record_validator
+    status: template
+    owner: maintainer
+
+  scripts/ci-contract-router.py:
+    role: fail_closed_ci_contract_path_router_and_snapshot_validator
+    status: normative
+    owner: maintainer
 
   bootstrap/bootstrap_project.py:
     role: validated_profile_aware_scaffold_engine
