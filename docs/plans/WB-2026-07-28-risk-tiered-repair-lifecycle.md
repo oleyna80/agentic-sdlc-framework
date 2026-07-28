@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-009-risk-tiered-repair-lifecycle
 work_block_id: wb-009
-status: changes_required
+status: in_progress
 owner_role: orchestrator
 created_at: 2026-07-28
 last_verified: 2026-07-28
@@ -21,7 +21,8 @@ last_verified: 2026-07-28
 | Governance profile for this WB | `Managed` — this changes framework contracts and CI gates |
 | Target profile | `Controlled / Narrow Deterministic Repair` |
 | Stage | Stage 1 — Execute |
-| Execution state | `changes_required` |
+| Execution state | `in_progress` |
+| Current verdict | `CHANGES_REQUIRED` pending WB-009.2 and final parent verification |
 | Base revision | `f83afc1041e5bd33bf9ef8f0c50dd8d29e5a72cb` |
 | Implementation passes | one |
 | Correction rounds | one for this WB; Integration Stabilization permits at most two |
