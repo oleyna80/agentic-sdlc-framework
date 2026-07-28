@@ -4,11 +4,11 @@ artifact_type: work_block
 artifact_id: wb-009-2-provider-evidence-temporal-semantics
 work_block_id: wb-009.2
 parent_work_block_id: wb-009
-status: in_progress
+status: changes_required
 governance_profile: managed
 owner_role: orchestrator
 created_at: 2026-07-28
-write_gate: open
+write_gate: closed
 risk: medium
 ---
 
@@ -111,3 +111,22 @@ python -c "import yaml; yaml.safe_load(open('.github/workflows/framework-contrac
 The repository-level contract suite and live required checks must then pass on
 the resulting PR head. The uploaded provider snapshot is inspected as evidence,
 not as an authority or gate.
+
+## Final State
+
+- Implementation of the two authorized MEDIUM findings: complete.
+- Independent Review: `READY`.
+- Local deterministic Verification: `READY`.
+- Provider snapshot on head `b5ce0072d0b007bba182febc8ed0096ef55041d9`:
+  `PARTIAL`, `authority: none`, current `contracts` result `failure`, exact PR
+  head and workflow SHA recorded.
+- Required `release-state`: `SUCCESS`.
+- Required `contracts`: `FAILED` because publication validation detected the
+  real repository identifier in `scripts/test-ci-contract-router.py` as a
+  private-project marker.
+- Correction round 1 corrected the parent active-Work-Block frontmatter from an
+  invalid `changes_required` status back to `in_progress`.
+- Removing the real repository identifier from the test fixture would require a
+  second correction round. The lifecycle ceiling therefore stops this Work Block
+  as `CHANGES_REQUIRED` for Owner decision.
+- PR #9 remains unmerged and merge is not authorized by this Work Block.
