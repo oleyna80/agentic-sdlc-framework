@@ -87,7 +87,7 @@ migration_state:
     - docs/plans/wb-006-bootstrap-restore-hardening.md
     - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
     - docs/plans/wb-008-post-merge-ssot-release-gate.md
-  active_work_block: null
+  active_work_block: docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
   planned: []
 
 release_state:
@@ -238,6 +238,11 @@ entries:
 
   docs/plans/wb-008-post-merge-ssot-release-gate.md:
     role: completed_post_merge_ssot_and_release_gate_work_block
+    status: log
+    owner: orchestrator
+
+  docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md:
+    role: active_risk_tiered_repair_lifecycle_work_block
     status: log
     owner: orchestrator
 

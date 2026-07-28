@@ -14,7 +14,7 @@ completed_work_blocks:
   - docs/plans/wb-006-bootstrap-restore-hardening.md
   - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
   - docs/plans/wb-008-post-merge-ssot-release-gate.md
-active_work_block: null
+active_work_block: docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
 -->
 
 ## Architecture
@@ -143,10 +143,11 @@ Completed:
 7. WB-007 — agent evaluation and trajectory assurance.
 8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
 
-No active implementation Work Block.
+Active: `docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md` — WB-009,
+risk-tiered deterministic repair lifecycle and machine-derived CI evidence.
 
-The next major phase is operational proof through a live runtime/product pilot,
-not another unvalidated governance expansion.
+WB-009 turns the HardwareLab pilot finding into a bounded framework contract;
+it does not reopen HardwareLab or alter the completed release-state migration.
 
 ## Boundaries
 
