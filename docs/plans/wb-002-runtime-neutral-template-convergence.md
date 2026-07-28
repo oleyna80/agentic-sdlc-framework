@@ -1,162 +1,65 @@
-# Work Block WB-002 — Runtime-Neutral Template Convergence
+---
+schema_version: 1
+artifact_type: work_block
+artifact_id: wb-002-runtime-neutral-template-convergence
+status: completed
+owner_role: orchestrator
+work_block_id: wb-002
+created_at: 2026-07-25
+last_verified: 2026-07-26
+---
 
-## Status
-
-- **Stage:** Assure
-- **State:** in_progress
-- **Branch:** `agent/runtime-neutral-control-plane`
-- **Governance profile:** Managed
-- **Side-effect class:** public repository change
-- **Verification tier:** standard
-- **Parent decision:** `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`
+# WB-002 — Runtime-Neutral Template Convergence
 
 ## Objective
 
-Align the generated-project contract with the runtime-neutral governance core.
-The scaffold must describe management functions, authority, artifacts, and
-evidence without requiring Codex, Claude Code, OpenCode, a specific model family,
-or native subagents.
+Align the generated-project contract with the runtime-neutral Governance Core so
+that project scaffolds describe authority, lifecycle, artifacts, and evidence
+without making a provider or runtime authoritative.
 
-## Expected Final Result
+## Delivered Result
 
-A newly bootstrapped project contains:
+- Normalized generated `AGENTS.md` around logical roles.
+- Converged the lifecycle on Define / Execute / Assure / Close.
+- Separated Critic, Reviewer, Verifier, and Specification Drift functions.
+- Placed approved specifications above plans and tasklists in the SSOT order.
+- Added portable capability, model-class, runtime, and isolation fields to Work
+  Block templates.
+- Added the reusable specification-drift audit skill and report template.
+- Copied Governance Core and runtime-adapter documentation into generated projects.
+- Normalized generated map, registry, and session-bootstrap navigation.
+- Added runtime-neutral structural contract checks and GitHub Actions execution.
 
-- the portable governance core and runtime adapter documentation;
-- a concise runtime-neutral `AGENTS.md`;
-- a Define / Execute / Assure / Close lifecycle;
-- distinct Critic, Reviewer, Verifier, and Specification Drift functions;
-- specification-first SSOT rules;
-- Work Blocks that record governance, runtime, model class, capability, and
-  isolation separately;
-- structural contract tests that reject provider-authoritative core terminology.
+## Scope Boundary
 
-## Normative Inputs
+WB-002 did not add executable Codex hooks, final runtime-specific agents,
+profile-aware selective bootstrap, or live cross-runtime smoke. Those items were
+handled by later Work Blocks.
 
-- `governance/authority.md`
-- `governance/lifecycle.md`
-- `governance/artifacts.md`
-- `governance/runtime-capabilities.md`
-- `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`
-
-## In Scope
-
-- shorten and normalize `template/AGENTS.md`;
-- replace provider-named core roles with logical roles;
-- converge the lifecycle on Define / Execute / Assure / Close;
-- separate Critic, Reviewer, Verifier, and Specification Drift responsibilities;
-- place approved specifications above plans and tasklists in the SSOT;
-- add portable runtime capability and isolation fields to Work Blocks;
-- add the reusable `spec-drift-audit` skill and report template;
-- reframe framework profiles as governance levels plus runtime/integration
-  adapters;
-- copy governance and runtime adapter documentation into generated projects;
-- normalize generated-project navigation, registry, and session bootstrap;
-- update structural SDLC contract checks;
-- add GitHub Actions verification for framework contracts.
-
-## Out of Scope
-
-- executable Codex write/scope hooks;
-- final Codex custom-agent TOML definitions;
-- replacement or removal of existing Claude Code hooks and agents;
-- deletion of the file-based handoff runtime;
-- provider/model benchmarking;
-- profile-aware selective bootstrap;
-- claiming cross-runtime conformance before smoke tests.
-
-## Write Set
-
-```text
-.github/workflows/framework-contracts.yml
-docs/plans/wb-001-runtime-neutral-control-plane.md
-docs/plans/wb-002-runtime-neutral-template-convergence.md
-docs/profiles.md
-docs/session-bootstrap.md
-template/AGENTS.md
-template/PROJECT_MAP.md
-template/FILE_REGISTRY.yml
-template/.agent/ROSTER.md
-template/.agent/workflows/sdd-protocol.md
-template/docs/session-bootstrap.md
-template/docs/templates/work-block-template.md
-template/docs/templates/spec-drift-report-template.md
-skills/spec-drift-audit/SKILL.md
-skills/catalog.yml
-bootstrap.sh
-template/scripts/bootstrap.sh
-scripts/test-sdd-contract.sh
-scripts/validate-governance.sh
-scripts/validate-publication.sh
-PROJECT_MAP.md
-FILE_REGISTRY.yml
-```
-
-## Acceptance Criteria
+## Acceptance Result
 
 - [x] No provider-named role is required by the generated-project core contract.
-- [x] Core logical roles are Owner, Orchestrator, Architect, Critic, Coder,
-      Reviewer, and Verifier.
-- [x] Standard lifecycle explicitly includes independent review, technical
-      verification, and specification drift audit.
-- [x] Specification authority is higher than implementation plans and tasklists.
-- [x] A Work Block records governance, runtime, capability, model class, and
-      isolation separately.
-- [x] `spec-drift-audit` exists in the skill library and catalog.
-- [x] Bootstrap copies governance and runtime adapter documentation into generated
-      projects.
-- [x] Generated-project map, registry, and session bootstrap use progressive,
-      runtime-neutral navigation.
-- [x] Existing `.codex/`, `.claude/`, MCP, plugin, and handoff layers remain
-      available as adapters.
-- [x] GitHub Actions executes contract, governance, and publication checks.
-- [ ] Structural and publication checks pass on the final branch snapshot.
-- [ ] The complete PR diff receives final review and verification.
+- [x] Logical authority roles are runtime-neutral.
+- [x] Review, verification, and drift are distinct assurance functions.
+- [x] Specification authority remains above derived plans and tasklists.
+- [x] Generated Work Blocks record runtime and assurance dimensions separately.
+- [x] Generated navigation and bootstrap are progressive and runtime-neutral.
+- [x] Existing runtime and integration surfaces remain adapters.
+- [x] Framework Contracts execute governance, structural, and publication checks.
 
-## Assurance Plan
+## Evidence
 
-### Review
+- Generated contract: `template/AGENTS.md`
+- SDLC protocol: `template/.agent/workflows/sdd-protocol.md`
+- Structural validation: `scripts/test-sdd-contract.sh`
+- Framework workflow: `.github/workflows/framework-contracts.yml`
 
-Inspect:
+## Final State
 
-- role/runtime/model separation;
-- duplicated or conflicting SSOT statements;
-- distinction between Review, Verification, and Drift Audit;
-- bootstrap path correctness;
-- compatibility with existing runtime adapters and hooks;
-- provider-specific language remaining in portable core files.
-
-### Verification
-
-Run through GitHub Actions and, when available, a normal checkout:
-
-```bash
-bash scripts/validate-governance.sh
-bash scripts/test-sdd-contract.sh
-bash scripts/validate-publication.sh
-```
-
-Also bootstrap a disposable project and confirm required paths:
-
-```bash
-./bootstrap.sh /tmp/agentic-sdlc-wb002-smoke "WB002 Smoke" wb002-smoke
-```
-
-### Drift Audit
-
-Compare the accepted ADR and governance core against generated project contracts,
-bootstrap behavior, profiles, skill catalog, navigation, and CI checks.
-
-## Current Verification State
-
-- GitHub compare confirms the branch is based on current `main` and is not behind.
-- `Framework Contracts` GitHub Actions completed successfully on an earlier branch snapshot.
-- A fresh workflow run is required after the latest contract cleanup.
-- The GitHub connector does not provide a local checkout for the disposable bootstrap smoke.
-- PR remains draft until final CI and diff review are complete.
-
-## Follow-up
-
-- WB-003 — Codex-native custom agents and executable write/scope gates.
-- WB-004 — normalize Claude Code plugins, MCP, OpenCode, and file handoff as
-  explicit integrations/adapters.
-- WB-005 — profile-aware bootstrap and cross-runtime conformance tests.
+- **Stage:** Close
+- **Stage State:** completed
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed

@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 10
+version: 11
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -12,7 +12,7 @@ statuses:
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
   installation_manifest: "scaffold composition data; grants no authority"
   reference: "background knowledge; does not override policy"
-  evidence: "review, verification, evaluation, drift, CI, integration, or closeout evidence"
+  evidence: "review, verification, evaluation, drift, release-state, CI, integration, or closeout evidence"
   log: "active or historical Work Block state; not general policy"
   example: "illustrative scenario; never mandatory policy"
   generated: "derived output; verify against current source"
@@ -25,7 +25,7 @@ artifact_authority_order:
   - accepted_architecture_decisions_and_external_contracts
   - approved_implementation_and_evaluation_plans_and_write_set
   - active_task_decomposition
-  - review_verification_evaluation_drift_integration_and_closeout_evidence
+  - review_verification_evaluation_drift_release_state_integration_and_closeout_evidence
   - durable_engineering_memory
   - runtime_integration_operational_logs_generated_context_and_examples
 
@@ -42,6 +42,7 @@ role_dimensions:
     - tool_availability
     - integration
     - provider
+    - hosting_platform_state
 
 installation_profiles:
   source: bootstrap/profiles.json
@@ -84,8 +85,20 @@ migration_state:
     - docs/plans/wb-004-integration-adapter-normalization.md
     - docs/plans/wb-005-profile-aware-bootstrap-conformance.md
     - docs/plans/wb-006-bootstrap-restore-hardening.md
-  active_work_block: docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
+    - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
+    - docs/plans/wb-008-post-merge-ssot-release-gate.md
+  active_work_block: null
   planned: []
+
+release_state:
+  contract: governance/release-state.md
+  validator: scripts/validate-release-state.py
+  fixtures: scripts/test-release-state-contracts.py
+  workflow: .github/workflows/release-state-contract.yml
+  latest_completed_work_block: docs/plans/wb-008-post-merge-ssot-release-gate.md
+  closeout_report: docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md
+  external_vcs_state: non_normative
+  authority: assurance_only
 
 entries:
   governance/**:
@@ -119,7 +132,12 @@ entries:
     status: normative
     owner: architect
     authority: assurance_only
-    related: [governance/lifecycle.md, governance/artifacts.md, template/scripts/validate-evaluation.py]
+
+  governance/release-state.md:
+    role: repository_ssot_reconciliation_and_external_vcs_boundary
+    status: normative
+    owner: architect
+    authority: assurance_only
 
   governance/runtime-capabilities.md:
     role: runtime_capability_negotiation
@@ -214,10 +232,14 @@ entries:
     owner: orchestrator
 
   docs/plans/wb-007-agent-evaluation-trajectory-assurance.md:
-    role: active_agent_evaluation_and_trajectory_assurance_work_block
+    role: completed_agent_evaluation_and_trajectory_assurance_work_block
     status: log
     owner: orchestrator
-    related: [governance/evaluation.md, scripts/test-evaluation-contracts.py]
+
+  docs/plans/wb-008-post-merge-ssot-release-gate.md:
+    role: completed_post_merge_ssot_and_release_gate_work_block
+    status: log
+    owner: orchestrator
 
   docs/evals/**:
     role: approved_evaluation_plans_benchmarks_and_observable_event_evidence
@@ -235,6 +257,11 @@ entries:
     status: evidence
     owner: verifier
 
+  docs/reports/closeout/**:
+    role: repository_closeout_evidence_without_mutable_vcs_state
+    status: evidence
+    owner: orchestrator
+
   README.md:
     role: public_entrypoint
     status: normative
@@ -246,12 +273,12 @@ entries:
     owner: maintainer
 
   PROJECT_MAP.md:
-    role: human_readable_repository_map
+    role: human_readable_repository_map_and_release_state_projection
     status: normative
     owner: architect
 
   FILE_REGISTRY.yml:
-    role: machine_readable_navigation_registry
+    role: machine_readable_navigation_and_release_state_registry
     status: normative
     owner: architect
 
@@ -280,6 +307,17 @@ entries:
     status: normative
     owner: verifier
 
+  scripts/test-release-state-contracts.py:
+    role: release_state_positive_and_adversarial_fixtures
+    status: normative
+    owner: verifier
+
+  scripts/validate-release-state.py:
+    role: repository_work_block_map_registry_and_closeout_validator
+    status: normative
+    owner: verifier
+    authority: assurance_only
+
   scripts/test-integration-contracts.py:
     role: runtime_integration_static_and_executable_fixture_test
     status: normative
@@ -301,7 +339,7 @@ entries:
     owner: verifier
 
   scripts/validate-governance.sh:
-    role: governance_structure_validation
+    role: governance_structure_and_release_state_validation
     status: normative
     owner: verifier
 
@@ -322,6 +360,11 @@ entries:
 
   .github/workflows/framework-contracts.yml:
     role: framework_contract_profile_adapter_evaluation_and_bootstrap_ci
+    status: evidence
+    owner: verifier
+
+  .github/workflows/release-state-contract.yml:
+    role: dedicated_release_state_reconciliation_ci
     status: evidence
     owner: verifier
 
