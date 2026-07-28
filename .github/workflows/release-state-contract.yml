@@ -37,87 +37,57 @@ jobs:
 
           validator = Path("scripts/validate-release-state.py")
           text = validator.read_text(encoding="utf-8")
+
           old_pattern = '    re.compile(r"^\\s*[-*]?\\s*\\*\\*Merge status:\\*\\*", re.IGNORECASE | re.MULTILINE),'
           new_pattern = '    re.compile(r"^\\s*[-*]?\\s*(?:\\*\\*)?Merge status:(?:\\*\\*)?", re.IGNORECASE | re.MULTILINE),'
           if text.count(old_pattern) != 1:
               raise SystemExit("expected exactly one raw Merge status pattern")
           text = text.replace(old_pattern, new_pattern)
 
-          old_scan = '''        relative = path.relative_to(root).as_posix()
-          if relative == canonical_closeout:
-              continue
-          label = f"completed Work Block closeout {relative}"
-          frontmatter, body, _ = parse_frontmatter(path, label)
-          if frontmatter.get("artifact_type") != "closeout_report":
-              continue
+          lines = text.splitlines()
+          canonical_skip = "        if relative == canonical_closeout:"
+          if lines.count(canonical_skip) != 1:
+              raise SystemExit("expected exactly one early canonical closeout skip")
+          skip_index = lines.index(canonical_skip)
+          if lines[skip_index + 1] != "            continue":
+              raise SystemExit("canonical closeout skip has unexpected shape")
+          del lines[skip_index:skip_index + 2]
 
-          work_block_id = frontmatter.get("work_block_id")
-          if work_block_id not in completed_by_id:
-              continue
-          if work_block_id in seen:
-              raise ReleaseStateError(
-                  f"completed Work Block {work_block_id} has multiple closeout reports: "
-                  f"{seen[work_block_id]} and {relative}"
-              )
-          seen[str(work_block_id)] = relative
-
-          if frontmatter.get("status") != "approved":
-          '''
-          new_scan = '''        relative = path.relative_to(root).as_posix()
-          label = f"completed Work Block closeout {relative}"
-          frontmatter, body, _ = parse_frontmatter(path, label)
-          if frontmatter.get("artifact_type") != "closeout_report":
-              continue
-
-          work_block_id = frontmatter.get("work_block_id")
-          if work_block_id not in completed_by_id:
-              continue
-          if work_block_id in seen:
-              raise ReleaseStateError(
-                  f"completed Work Block {work_block_id} has multiple closeout reports: "
-                  f"{seen[work_block_id]} and {relative}"
-              )
-          seen[str(work_block_id)] = relative
-          if relative == canonical_closeout:
-              continue
-
-          if frontmatter.get("status") != "approved":
-          '''
-          if text.count(old_scan) != 1:
-              raise SystemExit("expected exactly one canonical closeout scan block")
-          validator.write_text(text.replace(old_scan, new_scan), encoding="utf-8")
+          seen_line = "        seen[str(work_block_id)] = relative"
+          if lines.count(seen_line) != 1:
+              raise SystemExit("expected exactly one duplicate-tracking seed")
+          seen_index = lines.index(seen_line)
+          lines[seen_index + 1:seen_index + 1] = [
+              "        if relative == canonical_closeout:",
+              "            continue",
+          ]
+          validator.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
           fixtures = Path("scripts/test-release-state-contracts.py")
           tests = fixtures.read_text(encoding="utf-8")
+
           old_case = '            ("mutable-merge-status-open", "- **Merge status:** open"),\n'
           new_case = old_case + '            ("mutable-merge-status-plain-open", "- Merge status: open"),\n'
           if tests.count(old_case) != 1:
               raise SystemExit("expected exactly one decorated Merge status fixture")
           tests = tests.replace(old_case, new_case)
 
-          old_anchor = '''        (root / OLDER_CLOSEOUT).unlink()
-
-          populate(root)
-          write(root / CLOSEOUT, closeout(include_residual=False))
-          '''
-          new_anchor = '''        (root / OLDER_CLOSEOUT).unlink()
-
-          populate(root)
-          duplicate_closeout = "docs/reports/closeout/wb-007-duplicate.md"
-          write(root / duplicate_closeout, closeout())
-          expect_failure(
-              "canonical-plus-additional-closeout",
-              root,
-              "multiple closeout reports",
-          )
-          (root / duplicate_closeout).unlink()
-
-          populate(root)
-          write(root / CLOSEOUT, closeout(include_residual=False))
-          '''
-          if tests.count(old_anchor) != 1:
+          anchor = "        (root / OLDER_CLOSEOUT).unlink()\n\n"
+          if tests.count(anchor) != 1:
               raise SystemExit("expected exactly one historical-closeout fixture anchor")
-          fixtures.write_text(tests.replace(old_anchor, new_anchor), encoding="utf-8")
+          duplicate_fixture = (
+              anchor
+              + "        populate(root)\n"
+              + '        duplicate_closeout = "docs/reports/closeout/wb-007-duplicate.md"\n'
+              + "        write(root / duplicate_closeout, closeout())\n"
+              + "        expect_failure(\n"
+              + '            "canonical-plus-additional-closeout",\n'
+              + "            root,\n"
+              + '            "multiple closeout reports",\n'
+              + "        )\n"
+              + "        (root / duplicate_closeout).unlink()\n\n"
+          )
+          fixtures.write_text(tests.replace(anchor, duplicate_fixture), encoding="utf-8")
           PY
 
       - name: Restore workflow and verify
