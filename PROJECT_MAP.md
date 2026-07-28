@@ -14,7 +14,8 @@ completed_work_blocks:
   - docs/plans/wb-006-bootstrap-restore-hardening.md
   - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
   - docs/plans/wb-008-post-merge-ssot-release-gate.md
-active_work_block: docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
+  - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
+active_work_block: null
 -->
 
 ## Architecture
@@ -32,8 +33,9 @@ The framework has five coordinated layers:
 5. **Installation Composition** — `bootstrap/profiles.json` selects which runtime
    implementation surfaces and skills are copied into a generated project.
 
-Installation composition, release-state evidence, and evaluation evidence do not
-grant authority or integration admission. Accepted architectural direction:
+Installation composition, release-state evidence, evaluation evidence, and
+provider snapshots do not grant authority or integration admission. Accepted
+architectural direction:
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
 ## Authority Order
@@ -44,13 +46,14 @@ grant authority or integration admission. Accepted architectural direction:
 4. Accepted architecture decisions and external/public contracts.
 5. Approved implementation/evaluation plans and write-set.
 6. Active task decomposition.
-7. Review, verification, evaluation, drift, integration, release-state, and closeout evidence.
+7. Review, verification, evaluation, drift, integration, release-state, and
+   closeout evidence.
 8. Durable engineering memory.
 9. Operational logs, runtime memory, generated context, integrations, examples.
 
 Runtime settings, prompts, plugins, models, tools, judges, scores, installation
-profiles, and hosting-platform PR state implement, measure, or transport the model.
-They do not override it.
+profiles, provider artifacts, and hosting-platform state implement, measure, or
+transport the model. They do not override it.
 
 ## Evaluation Assurance
 
@@ -71,23 +74,27 @@ Generated projects receive evaluation plan/report/event templates,
 ## Release-State Assurance
 
 `governance/release-state.md` separates repository-owned lifecycle state from
-mutable GitHub state. Repository release readiness is derived from Work Block
-frontmatter, `FILE_REGISTRY.yml`, the machine-readable block in this map, and
-approved closeout evidence.
+mutable hosting-platform state. Repository release readiness is derived from
+Work Block frontmatter, `FILE_REGISTRY.yml`, the machine-readable block in this
+map, and approved closeout evidence.
 
-`scripts/validate-release-state.py` fails closed when completed/active Work Blocks,
-map, registry, or closeout disagree. GitHub Draft/open/closed/integrated state is
-external operational metadata and is queried from GitHub when needed.
+`scripts/validate-release-state.py` fails closed when completed/active Work
+Blocks, map, registry, or closeout disagree. Hosting-platform lifecycle is
+external operational metadata and is queried when needed.
 
 ## Risk-Tiered Repair Assurance
 
 NDR is a `Controlled` submode, not a new profile. It admits only deterministic,
 reversible CI/bootstrap/runtime-validation repairs with exact allowlists, one
-repair record, one implementation pass, deterministic checks, and independent
-combined assurance. Integration Stabilization is a bounded envelope of no more
-than three eligible items and two correction rounds. CI snapshots provider-native
-checks for the exact subject SHA as an uploaded JSON artifact; dynamic counters
-are never tracked closeout authority.
+repair record, bounded implementation/correction accounting, deterministic
+checks, and independent combined assurance.
+
+Integration Stabilization is a bounded execution envelope. The Framework
+Contracts workflow fails closed on unknown paths and keeps required contract
+families active. Its non-required `provider-snapshot` job records the current
+`contracts` job identity and result as point-in-time `PARTIAL` evidence, or
+`UNVERIFIED` when evidence cannot be bound. The artifact has `authority: none`;
+ruleset-required checks remain the sole live merge authority.
 
 ## Key Paths
 
@@ -100,15 +107,16 @@ are never tracked closeout authority.
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
-| `docs/plans/wb-008-post-merge-ssot-release-gate.md` | completed Work Block | SSOT reconciliation and executable release-state gate |
-| `docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md` | latest closeout | Repository success-closeout for the migration series |
+| `docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md` | latest completed Work Block | NDR, Integration Stabilization, CI routing, and provider evidence semantics |
+| `docs/reports/closeout/wb-009-risk-tiered-repair-lifecycle.md` | latest closeout | Repository success-closeout for WB-009 |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
 | `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
 | `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
+| `template/scripts/repair-lifecycle.py` | generated validator | NDR eligibility, repair records, and combined assurance contracts |
 | `scripts/validate-release-state.py` | repository validator | Work Block, map, registry, closeout, and release-state consistency |
 | `scripts/test-release-state-contracts.py` | contract test | Positive and adversarial release-state fixtures |
 | `.github/workflows/release-state-contract.yml` | CI evidence | Dedicated release-state and fixture validation |
-| `.github/workflows/framework-contracts.yml` | CI evidence | Full contract, profile, adapter, evaluation, and disposable-scaffold validation |
+| `.github/workflows/framework-contracts.yml` | CI evidence | Contract routing, validation, and non-authoritative provider snapshot |
 | `scripts/ci-contract-router.py` | CI control | Unknown paths run full suite; required contracts never skip |
 | `README.md` / `SETUP.md` | public guidance | Architecture, setup, and safe activation |
 | `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine path/authority maps |
@@ -123,7 +131,7 @@ are never tracked closeout authority.
 | `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline; live smoke required |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default |
 
-Every profile includes runtime-neutral evaluation governance and templates. Aliases:
+Every profile includes runtime-neutral evaluation and repair governance. Aliases:
 `minimal`/`generic` → `core`; `full` → `multi-runtime`.
 
 ## Runtime and Integration Adapters
@@ -131,15 +139,16 @@ Every profile includes runtime-neutral evaluation governance and templates. Alia
 | Surface | Path | Default state |
 |---|---|---|
 | Codex | `runtimes/codex/`, conditional `.codex/` | selected by profile; authority from Work Block only |
-| Claude Code | `runtimes/claude-code/`, conditional `.claude/` | selected by profile; closeout gate implemented |
-| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | selected by profile; explicit permission baseline |
-| Generic | `runtimes/generic/` | always available as documented fallback |
-| Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | not installed; optional admission |
+| Claude Code | `runtimes/claude-code/`, conditional `.claude/` | Claude Code-primary baseline |
+| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | explicit permission baseline |
+| Generic | `runtimes/generic/` | documented sequential fallback |
+| Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | optional admission |
 | MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
 | File handoff | `integrations/file-handoff/` | disabled until configured |
 | Existing handoff runner | `handoff/` | compatibility transport; no automatic service start |
 
-External runtime invocation admission does not grant child-runtime write authority.
+External runtime invocation admission does not grant child-runtime write
+authority.
 
 ## Migration Work
 
@@ -153,12 +162,9 @@ Completed:
 6. WB-006 — bootstrap restore hardening.
 7. WB-007 — agent evaluation and trajectory assurance.
 8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
+9. WB-009 — risk-tiered deterministic repair lifecycle and provider evidence.
 
-Active: `docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md` — WB-009,
-risk-tiered deterministic repair lifecycle and machine-derived CI evidence.
-
-WB-009 turns the HardwareLab pilot finding into a bounded framework contract;
-it does not reopen HardwareLab or alter the completed release-state migration.
+No active implementation Work Block.
 
 ## Boundaries
 
@@ -169,9 +175,9 @@ it does not reopen HardwareLab or alter the completed release-state migration.
 - `.agent/bootstrap-profile.json` is installation evidence, not authority.
 - `.agent/active-work-block.json` is operational authority/gate state.
 - evaluation plans are assurance configuration; reports/events are evidence.
-- release-state evidence reconciles repository SSOT but grants no external authority.
-- GitHub PR/merge state is mutable external operational metadata.
-- operational evidence must exclude hidden reasoning, secrets, and protected payloads.
+- provider snapshots and release-state evidence grant no external authority.
+- hosting-platform lifecycle is mutable external operational metadata.
+- operational evidence excludes hidden reasoning, secrets, and protected payloads.
 - unavailable checks/events remain blocked, not passed.
 - specifications and accepted decisions remain above plans and evidence.
 

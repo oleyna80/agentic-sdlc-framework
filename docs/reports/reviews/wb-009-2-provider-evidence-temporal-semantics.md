@@ -2,9 +2,13 @@
 
 ## Scope and subject
 
-Read-only review was performed after freezing the implementation manifest at
-SHA-256 `bcbe59b2494527de40f17974991308a64527256d80f0039e288a26b8ef96ec0d`.
-The reviewed subject contains only:
+The independent read-only review covered the provider-snapshot implementation,
+workflow routing, parent authority semantics, and the final administrative
+publication corrections. The implementation subject was frozen before review;
+the later corrections only replaced repository-specific prose/test data and did
+not change executable semantics.
+
+Reviewed paths:
 
 ```text
 .github/workflows/framework-contracts.yml
@@ -14,18 +18,18 @@ docs/plans/WB-009-2-provider-evidence-temporal-semantics.md
 docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
 ```
 
-No file was edited during this review pass.
-
 ## Review questions
 
-1. Does the repair remain inside the Owner-approved WB-009.2 write-set?
-2. Does it preserve `contracts` and `release-state` as the only live ruleset
-   checks and avoid any replacement merge verdict?
+1. Does the repair preserve `contracts` and `release-state` as the only live
+   ruleset checks?
+2. Does it avoid any replacement merge verdict?
 3. Does the snapshot identify the current `contracts` job and result without
-   conflating the PR head with the pull-request synthetic merge SHA?
+   conflating the PR head with the synthetic workflow SHA?
 4. Does incomplete evidence become `UNVERIFIED` rather than a false pass?
-5. Does the workflow remain non-blocking outside the required `contracts` job?
-6. Does the parent plan accurately describe temporal and authority semantics?
+5. Does snapshot capture remain non-required and non-blocking?
+6. Do the parent plan and closeout describe temporal and authority semantics
+   consistently?
+7. Are publication-facing fixtures and evidence project-neutral?
 
 ## Findings
 
@@ -43,27 +47,33 @@ None requiring correction.
 
 ## Observations
 
-- The workflow preserves the required `contracts` job unchanged and removes only
-  the non-required aggregate verdict path.
+- The required `contracts` job remains the validation authority supplied to the
+  repository ruleset.
 - `provider-snapshot` records `needs.contracts.result`, workflow name/ref, run ID
-  and attempt, job key/name, repository, PR head SHA, and workflow SHA. Within a
-  workflow run, the tuple of run ID, attempt, and job key identifies the current
-  job deterministically.
-- The artifact is deliberately `PARTIAL` even for a successful terminal result,
-  because it covers only the current workflow job and is not complete merge
-  authority. Missing identity or result becomes `UNVERIFIED`.
+  and attempt, job key/name, repository, PR head SHA, and workflow SHA.
+- A successful or failed terminal current-job result is deliberately `PARTIAL`,
+  because the artifact covers only that job and is not complete merge authority.
+- Missing identity or result becomes `UNVERIFIED`.
 - `authority: none`, point-in-time semantics, current-job-only coverage, and the
-  lack of any merge verdict are mechanically present in the generated JSON.
+  absence of a merge verdict are mechanically present in generated JSON.
 - Job-level `continue-on-error: true` and a non-required check context prevent
   snapshot capture from becoming a live merge gate.
-- Removing `checks: read` is consistent with eliminating Checks API polling and
-  reduces workflow token permissions.
-- The parent plan now names ruleset `19916164` plus required checks `contracts`
-  and `release-state` as the sole live merge authority. Historical
-  `final-aggregator` state is explicitly non-required and non-authoritative.
+- Checks API polling, `checks: read`, and `final-aggregator` were removed.
+- The parent plan names ruleset `19916164` plus required checks `contracts` and
+  `release-state` as the sole live merge authority.
+- Final administrative corrections anonymized the fixture and historical report
+  reference without modifying implementation behavior.
+
+## Provider evidence reviewed
+
+Framework Contracts run 675 and Release State Contract run 242 completed
+successfully for implementation revision
+`49b9f137c8e6f994bf169e56301ee4934c7f4537`. The associated snapshot artifact
+recorded current job result `success` as `PARTIAL`, with `authority: none`.
 
 ## Verdict
 
-**APPROVED** for Verification. The implementation closes the two authorized
-MEDIUM findings without widening scope, changing required checks, rewriting
-WB-009.1 evidence, mixing WB-009.3, or authorizing merge of PR #9.
+**APPROVED / READY.** The implementation closes the authorized MEDIUM findings,
+preserves required-check authority, remains project-neutral, and introduces no
+replacement merge gate. External integration or merge is not authorized by this
+review.

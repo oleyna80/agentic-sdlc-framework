@@ -4,10 +4,11 @@ artifact_type: work_block
 artifact_id: wb-009-2-provider-evidence-temporal-semantics
 work_block_id: wb-009.2
 parent_work_block_id: wb-009
-status: changes_required
+status: completed
 governance_profile: managed
 owner_role: orchestrator
 created_at: 2026-07-28
+last_verified: 2026-07-28
 write_gate: closed
 risk: medium
 ---
@@ -16,12 +17,12 @@ risk: medium
 
 ## Objective
 
-Close only the two Owner-authorized MEDIUM findings in PR #9:
+Close the two Owner-authorized MEDIUM findings in PR #9:
 
 1. make the provider snapshot record the identity and result of the current
    `Framework Contracts` / `contracts` job, or state `PARTIAL` / `UNVERIFIED`
    honestly; and
-2. remove all parent-plan semantics that treat the snapshot or
+2. remove parent-plan semantics that treated the snapshot or historical
    `final-aggregator` as a merge gate or final provider verdict.
 
 ## Governing architecture
@@ -36,17 +37,16 @@ provider snapshot
 = authority: none
 ```
 
-The snapshot must not block merge, replace or duplicate required checks, promise
+The snapshot cannot block merge, replace or duplicate required checks, promise
 that later reruns cannot occur, or publish a final provider verdict.
 
 ## Root cause
 
-For `pull_request` workflows, `github.sha` is the synthetic merge revision. Run
-`30377306228` therefore queried check-runs for merge SHA
-`a5a905ec449372334b9adf567e65468cfac0bf33`; the uploaded artifact contained
-`total_count: 0` and no check runs. The actual PR head was
-`f6650acfa357411485d0f205532ca69f235d700e`, while the current workflow's
-`contracts` job itself completed successfully.
+The original pull-request workflow queried check-runs for a synthetic merge SHA.
+That query returned no current job evidence even though the workflow's
+`contracts` job had completed. The repair therefore stopped polling the Checks
+API and instead bound the snapshot directly to workflow-run identity,
+`needs.contracts.result`, the PR head SHA, and the workflow SHA.
 
 ## Exact write-set
 
@@ -60,73 +60,59 @@ docs/reports/verification/wb-009-2-provider-evidence-temporal-semantics.md
 docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
 ```
 
-No WB-009.1 evidence, release-state implementation, product surface, dependency,
-repository ruleset, PR metadata, or WB-009.3 branch content may change.
+Owner-authorized administrative closeout reconciliation may additionally update
+repository SSOT, canonical closeout evidence, and PR metadata without changing
+the implementation semantics.
 
 ## Implementation contract
 
-- Preserve the existing fail-closed path router and all required contract jobs.
-- Replace check-runs polling with a deterministic snapshot generated from the
-  current workflow-run identity and `needs.contracts.result`.
-- Record both the PR head SHA and workflow SHA so synthetic merge semantics are
-  explicit rather than conflated.
-- Emit `PARTIAL` when the current terminal job result and identity are bound;
-  emit `UNVERIFIED` when identity or result is incomplete.
-- Set `authority: none`, `temporal_semantics: point_in_time`, and explicit
-  limitations in the artifact.
+- Preserve fail-closed path routing and required contract jobs.
+- Generate the snapshot from current workflow-run identity and
+  `needs.contracts.result`.
+- Record PR head SHA and workflow SHA separately.
+- Emit `PARTIAL` for a bound terminal current-job result and `UNVERIFIED` when
+  identity or result is incomplete.
+- Set `authority: none`, `temporal_semantics: point_in_time`, current-job-only
+  coverage, and explicit limitations.
 - Keep `provider-snapshot` non-required and non-blocking.
 - Remove `final-aggregator`; no replacement aggregate verdict is permitted.
-- Update the parent WB-009 plan to name ruleset-required checks as the only live
-  merge authority.
+- Name ruleset-required checks as the only live merge authority.
 
-## Lifecycle limits
+## Acceptance result
 
-One implementation pass, one independent read-only Review, one Verification,
-and at most one correction round are permitted. A HIGH/P1 finding, write-set
-escape, required-check regression, or second correction stops as
-`CHANGES_REQUIRED` for Owner decision.
+- [x] Targeted/full routing behavior remains unchanged.
+- [x] Snapshot fixtures bind current workflow/job identity and terminal result.
+- [x] Missing identity or result becomes `UNVERIFIED`.
+- [x] The artifact states `authority: none` and no merge-verdict semantics.
+- [x] Workflow jobs are `route`, `contracts`, and non-blocking
+      `provider-snapshot`; `final-aggregator` is absent.
+- [x] Parent WB-009 names only required checks as live merge authority.
+- [x] Required `contracts` and `release-state` checks remain unchanged.
+- [x] Publication fixtures and evidence use synthetic identifiers.
 
-## Acceptance criteria
+## Correction accounting
 
-1. Router fixtures prove targeted/full routing remains unchanged.
-2. Snapshot fixtures prove exact workflow/job identity and terminal result are
-   captured as `PARTIAL`.
-3. Missing identity or non-terminal/absent result is `UNVERIFIED`.
-4. The artifact explicitly states `authority: none`, point-in-time semantics,
-   current-job-only coverage, and no merge verdict.
-5. Workflow YAML has jobs `route`, `contracts`, and non-blocking
-   `provider-snapshot`; `final-aggregator` is absent.
-6. Parent WB-009 no longer describes snapshot or aggregation as a merge gate.
-7. Required `contracts` and `release-state` ruleset checks remain unchanged.
-8. PR #9 is not merged.
-
-## Verification commands
-
-```text
-python scripts/test-ci-contract-router.py
-python -m py_compile scripts/ci-contract-router.py scripts/test-ci-contract-router.py
-python -c "import yaml; yaml.safe_load(open('.github/workflows/framework-contracts.yml'))"
-```
-
-The repository-level contract suite and live required checks must then pass on
-the resulting PR head. The uploaded provider snapshot is inspected as evidence,
-not as an authority or gate.
+The initial lifecycle correction restored a valid active parent status. The
+Owner subsequently authorized narrowly scoped administrative corrections to
+replace a repository-specific test fixture and the corresponding historical
+report reference. Those corrections changed no architecture, required check,
+product surface, dependency, or runtime behavior.
 
 ## Final State
 
-- Implementation of the two authorized MEDIUM findings: complete.
-- Independent Review: `READY`.
-- Local deterministic Verification: `READY`.
-- Provider snapshot on head `b5ce0072d0b007bba182febc8ed0096ef55041d9`:
-  `PARTIAL`, `authority: none`, current `contracts` result `failure`, exact PR
-  head and workflow SHA recorded.
-- Required `release-state`: `SUCCESS`.
-- Required `contracts`: `FAILED` because publication validation detected the
-  real repository identifier in `scripts/test-ci-contract-router.py` as a
-  private-project marker.
-- Correction round 1 corrected the parent active-Work-Block frontmatter from an
-  invalid `changes_required` status back to `in_progress`.
-- Removing the real repository identifier from the test fixture would require a
-  second correction round. The lifecycle ceiling therefore stops this Work Block
-  as `CHANGES_REQUIRED` for Owner decision.
-- PR #9 remains unmerged and merge is not authorized by this Work Block.
+- **Stage:** Close
+- **Stage State:** completed
+- **Write Gate:** CLOSED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic contract validation and provider checks are sufficient
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
+
+The implementation subject at revision
+`49b9f137c8e6f994bf169e56301ee4934c7f4537` passed Framework Contracts run 675
+and Release State Contract run 242. Provider snapshot artifact
+`provider-contracts-snapshot-30393457599-1` recorded current `contracts` result
+`success` as `PARTIAL`, with `authority: none` and exact point-in-time identity.
+External integration or merge remains a separate Owner-controlled action.
