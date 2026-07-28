@@ -2,13 +2,15 @@
 
 **Tier:** focused Managed repair verification  
 **Work Block:** WB-009.2 provider evidence temporal semantics  
-**Verdict:** LOCAL_SUCCESS / PROVIDER_PENDING
+**Verdict:** CHANGES_REQUIRED
 
 ## Subject
 
-The verification subject is the frozen implementation manifest with SHA-256
+The initial frozen implementation manifest had SHA-256
 `bcbe59b2494527de40f17974991308a64527256d80f0039e288a26b8ef96ec0d`, based on
-PR #9 head `f6650acfa357411485d0f205532ca69f235d700e` before this repair.
+PR #9 head `f6650acfa357411485d0f205532ca69f235d700e`. Provider verification and the
+single authorized correction round ended at head
+`b5ce0072d0b007bba182febc8ed0096ef55041d9`.
 
 ## Scope verification
 
@@ -66,16 +68,42 @@ permission `checks: read` is no longer requested.
 [PASS] Parent WB-009 no longer assigns gate or final-verdict semantics to the
 snapshot or historical `final-aggregator`.
 
-## Provider checks pending
+## Provider verification
 
-The resulting PR head must still demonstrate:
+Run `30392046357` on exact head
+`b5ce0072d0b007bba182febc8ed0096ef55041d9` produced:
 
-- required `contracts`: success;
-- required `release-state`: success;
-- `provider-snapshot`: successful artifact upload or an honestly non-blocking
-  capture failure;
-- uploaded JSON bound to the new workflow run and exact PR head.
+- [PASS] required `release-state`: success in run `30392044344`;
+- [PASS] `provider-snapshot`: success and artifact
+  `provider-contracts-snapshot-30392046357-1` uploaded;
+- [PASS] artifact identity: PR head `b5ce0072d0b007bba182febc8ed0096ef55041d9`,
+  workflow SHA `8d89a716f6a8121a06bd3387e12e8ea9f4ad2152`, run ID
+  `30392046357`, attempt `1`, job key/name `contracts`;
+- [PASS] artifact semantics: `evidence_status: PARTIAL`, `authority: none`,
+  `temporal_semantics: point_in_time`, current-job-only coverage, result
+  `failure`, and explicit no-merge-verdict/future-rerun limitations;
+- [FAIL] required `contracts`: publication validation found a private-project
+  marker in `scripts/test-ci-contract-router.py` because the fixture used the
+  real repository identifier `oleyna80/agentic-sdlc-framework`.
 
-This report will be updated in place with the final provider result. Until then,
-WB-009.2 remains `IN_PROGRESS`, parent WB-009 remains `CHANGES_REQUIRED`, and
-merge remains prohibited without separate Owner approval.
+## Correction accounting
+
+Correction round 1 was consumed after provider `release-state` rejected the
+parent active Work Block's frontmatter `status: changes_required`. The correction
+restored the machine lifecycle state to `status: in_progress` and preserved the
+separate parent verdict `CHANGES_REQUIRED` in prose. Required `release-state`
+then passed.
+
+The publication failure requires changing the test fixture to a synthetic
+repository identifier such as `example/framework`. That is a second
+implementation correction. WB-009.2 permits at most one correction round, so no
+further mutation is authorized in this Work Block.
+
+## Final verdict
+
+**CHANGES_REQUIRED.** The two original MEDIUM findings are implemented and the
+new snapshot behaves honestly, including on a failed current job. Nevertheless,
+the required `contracts` gate is red and a second correction would exceed the
+Owner-approved lifecycle ceiling. Parent WB-009 remains `CHANGES_REQUIRED`.
+PR #9 remains open and unmerged; merge is prohibited without separate Owner
+direction.
