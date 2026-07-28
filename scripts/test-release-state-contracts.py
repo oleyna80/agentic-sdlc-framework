@@ -364,6 +364,7 @@ def main() -> int:
 
         for label, assertion in (
             ("mutable-merge-status-open", "- **Merge status:** open"),
+            ("mutable-merge-status-plain-open", "- Merge status: open"),
             ("mutable-merged-at", "merged_at: 2026-07-27T19:45:39Z"),
             ("mutable-pr-open", "PR #9 is open."),
             ("mutable-pr-draft", "PR #9 is Draft."),
@@ -462,6 +463,16 @@ def main() -> int:
             "review verdict=READY",
         )
         (root / OLDER_CLOSEOUT).unlink()
+
+        populate(root)
+        duplicate_closeout = "docs/reports/closeout/wb-007-duplicate.md"
+        write(root / duplicate_closeout, closeout())
+        expect_failure(
+            "canonical-plus-additional-closeout",
+            root,
+            "multiple closeout reports",
+        )
+        (root / duplicate_closeout).unlink()
 
         populate(root)
         write(root / CLOSEOUT, closeout(include_residual=False))

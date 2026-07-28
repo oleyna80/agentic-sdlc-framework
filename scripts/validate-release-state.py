@@ -35,7 +35,7 @@ STRUCTURED_VCS_PARENT_RE = re.compile(
 )
 STRUCTURED_STATE_KEY_RE = re.compile(r"^(?:status|state)$", re.IGNORECASE)
 RAW_MUTABLE_CLOSEOUT_PATTERNS = (
-    re.compile(r"^\s*[-*]?\s*\*\*Merge status:\*\*", re.IGNORECASE | re.MULTILINE),
+    re.compile(r"^\s*[-*]?\s*(?:\*\*)?Merge status:(?:\*\*)?", re.IGNORECASE | re.MULTILINE),
     re.compile(r"\bnot merged\b", re.IGNORECASE),
     re.compile(r"\bmerge commit\b", re.IGNORECASE),
     re.compile(r"\bmerged_at\b", re.IGNORECASE),
@@ -395,8 +395,6 @@ def validate_completed_closeout_reports(
             continue
 
         relative = path.relative_to(root).as_posix()
-        if relative == canonical_closeout:
-            continue
         label = f"completed Work Block closeout {relative}"
         frontmatter, body, _ = parse_frontmatter(path, label)
         if frontmatter.get("artifact_type") != "closeout_report":
@@ -411,6 +409,8 @@ def validate_completed_closeout_reports(
                 f"{seen[work_block_id]} and {relative}"
             )
         seen[str(work_block_id)] = relative
+        if relative == canonical_closeout:
+            continue
 
         if frontmatter.get("status") != "approved":
             raise ReleaseStateError(f"{label} must be approved")
