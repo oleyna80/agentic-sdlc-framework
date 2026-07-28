@@ -18,11 +18,11 @@ assert MODULE.route(["template/a path.py"])["suite"] == "targeted"
 assert MODULE.route(["scripts/test-sdd-contract.sh"])["required"] == ["sdd", "governance", "publication", "release-state"]
 
 base = {
-    "repository": "oleyna80/agentic-sdlc-framework",
+    "repository": "example/framework",
     "head_sha": "head123",
     "workflow_sha": "merge456",
     "workflow_name": "Framework Contracts",
-    "workflow_ref": "oleyna80/agentic-sdlc-framework/.github/workflows/framework-contracts.yml@refs/pull/9/merge",
+    "workflow_ref": "example/framework/.github/workflows/framework-contracts.yml@refs/pull/9/merge",
     "run_id": "30377306228",
     "run_attempt": "2",
     "event_name": "pull_request",
