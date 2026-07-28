@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-009-risk-tiered-repair-lifecycle
 work_block_id: wb-009
-status: in_progress
+status: changes_required
 owner_role: orchestrator
 created_at: 2026-07-28
 last_verified: 2026-07-28
@@ -21,7 +21,7 @@ last_verified: 2026-07-28
 | Governance profile for this WB | `Managed` — this changes framework contracts and CI gates |
 | Target profile | `Controlled / Narrow Deterministic Repair` |
 | Stage | Stage 1 — Execute |
-| Execution state | `ready` |
+| Execution state | `changes_required` |
 | Base revision | `f83afc1041e5bd33bf9ef8f0c50dd8d29e5a72cb` |
 | Implementation passes | one |
 | Correction rounds | one for this WB; Integration Stabilization permits at most two |
@@ -103,14 +103,20 @@ stops for Owner decision rather than silently creating a new gate cycle.
 
 ### CI and closeout evidence
 
-- The provider-native check/workflow API bound to the subject SHA is authoritative
-  for current CI state.
-- A JSON artifact is a portable snapshot, not repository release authority.
+- GitHub ruleset `19916164`, with required checks `contracts` and
+  `release-state`, is the sole live merge authority for `main`.
+- Provider-native required-check state is read live from GitHub and remains
+  time-dependent; a later rerun may change it.
+- A JSON provider snapshot is a portable point-in-time artifact with
+  `authority: none`. It records the current `contracts` job identity and result
+  as `PARTIAL`, or reports `UNVERIFIED` when that evidence cannot be bound.
+- The snapshot does not block merge, replace or duplicate required checks,
+  guarantee the absence of future reruns, or provide a final provider verdict.
 - Dynamic Git/CI counters are never copied manually into tracked closeout files.
 - An unknown path classification fails closed to the full suite.
 - Required SDD, governance, publication, and release-state contracts always run.
-- A final aggregator validates the subject SHA and required provider checks;
-  it cannot turn a missing, pending, or failed check into a pass.
+- No `final-aggregator` is a merge gate. Historical aggregator results are
+  non-required and non-authoritative.
 
 ## Exact Implementation Write-Set
 
@@ -167,7 +173,7 @@ is not committed.
 | --- | --- | --- | --- |
 | Define NDR and Integration Stabilization | Coder | governance/docs/template protocol | eligibility and escalation contracts agree |
 | Publish repair and assurance artifacts | Coder | template docs/scripts/bootstrap inventory | generated project contains deterministic tools |
-| Implement CI routing/evidence | Coder | router/tests/workflow | unknown path selects full suite; subject-SHA snapshot is validated |
+| Implement CI routing/evidence | Coder | router/tests/workflow | unknown path selects full suite; snapshot records current `contracts` job as `PARTIAL` or `UNVERIFIED` |
 | Freeze and assure | Reviewer/Verifier | read-only diff and CI artifact | one independent combined assurance verdict |
 
 ## Acceptance Criteria
@@ -181,8 +187,11 @@ is not committed.
    the installation manifest.
 5. Unknown CI paths select the full suite; SDD, governance, publication, and
    release-state checks never skip.
-6. The final CI aggregator validates a provider-native check snapshot bound to
-   the exact subject SHA, while tracked closeout avoids dynamic Git/CI counters.
+6. The provider snapshot binds the current `Framework Contracts` / `contracts`
+   job identity and result to the workflow run and PR head as time-bounded
+   `PARTIAL` evidence, or reports `UNVERIFIED`. It has no merge authority; only
+   ruleset-required `contracts` and `release-state` checks determine live merge
+   readiness.
 7. Normal Managed/Assured lifecycle and existing Hard Stops remain unchanged.
 
 ## Hard Stops and Stop Conditions
@@ -216,12 +225,15 @@ bash scripts/validate-publication.sh
 python scripts/validate-release-state.py
 ```
 
-CI then supplies the provider-native, SHA-bound check snapshot and final
-aggregator result. A clean generated-project bootstrap is included in Framework
-Contracts.
+CI supplies the live ruleset-required `contracts` and `release-state` checks.
+The non-required `provider-snapshot` job uploads time-bounded evidence only; it
+is explicitly non-blocking and no final aggregator supplies a merge verdict. A
+clean generated-project bootstrap remains included in Framework Contracts.
 
 ## Current State
 
-Stage 0 decisions are complete. The exact write-set above opens the Stage 1
-implementation gate under this Owner instruction. No additional Owner approval
-is needed while every change remains inside it.
+WB-009.1 remains a historical `CHANGES_REQUIRED` result and its evidence is not
+rewritten. WB-009.3 is `SUCCESS` on its separate durable branch and is not mixed
+into PR #9. WB-009.2 is the only resumed repair scope. Parent WB-009 remains
+`CHANGES_REQUIRED` until WB-009.2 completes and a final parent verification is
+recorded; PR #9 must not be merged without separate Owner approval.
