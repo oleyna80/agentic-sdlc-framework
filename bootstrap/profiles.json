@@ -46,9 +46,13 @@
     "docs/templates/evaluation-plan-template.json",
     "docs/templates/evaluation-report-template.json",
     "docs/templates/trajectory-event-template.json",
+    "docs/templates/closeout-report-template.md",
+    "docs/templates/combined-assurance-report-template.md",
+    "docs/templates/repair-record-template.md",
     "scripts/bootstrap.sh",
     "scripts/validate-installation-profile.py",
-    "scripts/validate-evaluation.py"
+    "scripts/validate-evaluation.py",
+    "scripts/repair-lifecycle.py"
   ],
   "components": {
     "runtime:codex": {

@@ -130,6 +130,31 @@ result remains `BLOCKED` or `UNVERIFIED`.
 - Basic review and verification may run sequentially.
 - Deterministic tests are required when applicable; focused evaluation is selected by risk.
 
+#### Narrow Deterministic Repair (NDR)
+
+NDR is a mechanically constrained submode of `Controlled`, not a governance
+profile. It is available only for a deterministic, reversible low- or
+medium-risk repair with no architecture decision and an exact approved path
+allowlist wholly inside CI, bootstrap, or runtime-validation surfaces. Product,
+auth, security-boundary, public API, schema, data, deploy, and dependency-upgrade
+changes are ineligible.
+
+An eligible NDR has one repair record, one Coder implementation pass, and one
+independent read-only combined assurance pass. The repair record names the root
+cause, allowlist, prohibited changes, deterministic commands, and stop condition.
+Combined assurance records logical review, deterministic verification, and its
+final verdict. NDR allows at most one correction round; a failed eligibility
+condition or second correction requires an Owner decision.
+
+#### Integration Stabilization
+
+Integration Stabilization is a bounded execution envelope, not a profile. It may
+group at most three sequentially discovered eligible NDR items and at most two
+correction rounds. Every item keeps its own exact CI/bootstrap/runtime-validation
+allowlist. Exceeding either ceiling, changing a prohibited domain, or requiring an
+architecture decision stops for Owner decision rather than creating another gate
+cycle.
+
 ### Managed
 
 - Approved specification and plan.

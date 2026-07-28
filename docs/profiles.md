@@ -81,6 +81,20 @@ Output/trajectory evaluation becomes required when behavior is materially
 non-deterministic, autonomous tool selection matters, or process compliance is an
 acceptance condition.
 
+#### Narrow Deterministic Repair
+
+NDR is a Controlled submode for a deterministic and reversible compatibility
+repair. It requires an exact CI/bootstrap/runtime-validation allowlist, one repair
+record, deterministic commands, and one independent combined assurance report.
+It excludes architecture, product, auth, security-boundary, public API, schema,
+data, deploy, and dependency-upgrade work. One implementation pass and one
+correction are permitted; otherwise the Owner decides whether to stop, open a new
+Work Block, change the specification, or accept residual risk.
+
+Integration Stabilization may group no more than three sequentially discovered
+eligible NDR items and two correction rounds. It is an execution envelope, not a
+new governance profile, and it never widens an item's exact allowlist.
+
 ### Managed
 
 Default for non-trivial product and engineering work.

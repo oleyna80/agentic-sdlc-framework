@@ -17,6 +17,7 @@
 
 ### Evidence
 - **Frozen subject revision:** [commit/hash/version]
+- **Provider-native check snapshot:** [artifact path and subject SHA | not applicable]
 - **Deterministic checks:** [commands/results]
 - **Output evaluation:** [criteria/results | not required]
 - **Observable trajectory evaluation:** [event sources/results | not required]
@@ -25,6 +26,8 @@
 
 Trajectory evidence references observable events only. Do not include private
 chain-of-thought, hidden reasoning, model scratchpads, secrets, or protected data.
+Do not copy dynamic Git commit counts, check counts, or CI counters into this
+tracked report; use the SHA-bound provider snapshot artifact instead.
 
 ### Engineering Memory
 - **Classification:** [promoted | operational-only | not-applicable]

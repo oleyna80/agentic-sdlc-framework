@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 11
+version: 13
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -77,6 +77,14 @@ evaluation_assurance:
   hidden_reasoning_required: false
   authority: none
 
+repair_assurance:
+  mode: controlled_ndr_only
+  repair_record_template: template/docs/templates/repair-record-template.md
+  combined_assurance_template: template/docs/templates/combined-assurance-report-template.md
+  validator: template/scripts/repair-lifecycle.py
+  provider_snapshot: ci_artifact_only
+  authority: none
+
 migration_state:
   completed_work_blocks:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
@@ -87,6 +95,7 @@ migration_state:
     - docs/plans/wb-006-bootstrap-restore-hardening.md
     - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
     - docs/plans/wb-008-post-merge-ssot-release-gate.md
+    - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
   active_work_block: null
   planned: []
 
@@ -95,8 +104,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-008-post-merge-ssot-release-gate.md
-  closeout_report: docs/reports/closeout/wb-008-post-merge-ssot-release-gate.md
+  latest_completed_work_block: docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
+  closeout_report: docs/reports/closeout/wb-009-risk-tiered-repair-lifecycle.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -181,6 +190,16 @@ entries:
     owner: architect
     authority: none
 
+  template/scripts/repair-lifecycle.py:
+    role: generated_fail_closed_ndr_repair_record_validator
+    status: template
+    owner: maintainer
+
+  scripts/ci-contract-router.py:
+    role: fail_closed_ci_contract_path_router_and_snapshot_validator
+    status: normative
+    owner: maintainer
+
   bootstrap/bootstrap_project.py:
     role: validated_profile_aware_scaffold_engine
     status: normative
@@ -238,6 +257,11 @@ entries:
 
   docs/plans/wb-008-post-merge-ssot-release-gate.md:
     role: completed_post_merge_ssot_and_release_gate_work_block
+    status: log
+    owner: orchestrator
+
+  docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md:
+    role: completed_risk_tiered_repair_lifecycle_work_block
     status: log
     owner: orchestrator
 

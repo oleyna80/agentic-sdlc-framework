@@ -87,7 +87,10 @@ for path in \
   "template/docs/templates/evaluation-plan-template.json" \
   "template/docs/templates/evaluation-report-template.json" \
   "template/docs/templates/trajectory-event-template.json" \
+  "template/docs/templates/repair-record-template.md" \
+  "template/docs/templates/combined-assurance-report-template.md" \
   "template/scripts/validate-installation-profile.py" \
+  "template/scripts/repair-lifecycle.py" \
   "template/scripts/validate-evaluation.py" \
   "skills/spec-drift-audit/SKILL.md"; do
   require_file "$path"
@@ -227,6 +230,14 @@ require_contains "template/.agent/verification-gate.md" 'Drift:.*PENDING'
 require_contains "template/.claude/agents/verifier.md" 'READY.*BLOCKED.*UNVERIFIED'
 require_contains "skills/verifier/SKILL.md" 'READY.*BLOCKED.*UNVERIFIED'
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
+require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
+require_contains "governance/lifecycle.md" 'at most three sequentially discovered eligible NDR items'
+require_contains "governance/artifacts.md" 'dynamic Git or CI counters'
+require_contains "template/AGENTS.md" 'NDR is a `Controlled` submode'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'one independent'
+require_contains "template/docs/templates/repair-record-template.md" 'machine-readable'
+require_contains "template/docs/templates/combined-assurance-report-template.md" 'Assurance isolation'
+require_contains "bootstrap/profiles.json" 'scripts/repair-lifecycle.py'
 
 # Reject old collapsed or provider-authoritative terminology in portable core.
 for path in \

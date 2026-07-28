@@ -58,6 +58,19 @@ The Work Block selects the smallest sufficient governance profile:
 
 Runtime choice is separate from governance profile.
 
+### Narrow Deterministic Repair
+
+NDR is a Controlled submode for deterministic, reversible low- or medium-risk
+repairs only. The Work Block must define an exact CI/bootstrap/runtime-validation
+allowlist, prohibited domains, root cause, deterministic verification commands,
+and stop condition in one repair record. It excludes architecture, product, auth,
+security-boundary, public API, schema, data, deploy, and dependency-upgrade work.
+
+NDR has one implementation pass, at most one correction, and one independent
+read-only combined assurance report covering review and verification. Integration
+Stabilization may group at most three eligible repair records and two correction
+rounds; a limit or eligibility failure returns to Owner decision.
+
 ---
 
 # Stage 0 — Define

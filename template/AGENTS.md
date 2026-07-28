@@ -140,6 +140,19 @@ Select the smallest sufficient profile:
 
 Governance profile is independent of runtime and installation profile.
 
+### Narrow Deterministic Repair
+
+NDR is a `Controlled` submode, never a new profile. Use it only for deterministic,
+reversible low- or medium-risk CI/bootstrap/runtime-validation repairs with an
+exact approved allowlist and no architecture, product, auth, security-boundary,
+public API, schema, data, deploy, or dependency-upgrade change. It requires one
+repair record, one Coder pass, deterministic checks, and one independent combined
+assurance report. At most one correction is allowed.
+
+Integration Stabilization is a bounded NDR envelope: at most three eligible items
+and two correction rounds. A ceiling breach or ineligible discovery stops for an
+Owner decision.
+
 ## 8. Session Start
 
 Always for non-trivial work:

@@ -67,6 +67,9 @@ REQUIRED_FILES = [
     "scripts/test-integration-admission-evidence.py",
     "scripts/test-codex-adapter.py",
     "scripts/test-codex-hard-stops.py",
+    "scripts/test-repair-lifecycle-contracts.py",
+    "scripts/test-ci-contract-router.py",
+    "scripts/ci-contract-router.py",
     "scripts/validate-governance.sh",
     "scripts/validate-publication.sh",
     "scripts/validate_publication.py",
@@ -81,6 +84,7 @@ REQUIRED_FILES = [
     "template/.agent/workflows/sdd-protocol.md",
     "template/scripts/bootstrap.sh",
     "template/scripts/validate-installation-profile.py",
+    "template/scripts/repair-lifecycle.py",
     "template/.mcp.json",
     "template/.claude/settings.json",
     "template/.claude/hooks/work_block_gate.py",
@@ -97,6 +101,9 @@ REQUIRED_FILES = [
     "template/docs/templates/work-block-template.md",
     "template/docs/templates/spec-drift-report-template.md",
     "template/docs/templates/integration-admission-template.md",
+    "template/docs/templates/closeout-report-template.md",
+    "template/docs/templates/repair-record-template.md",
+    "template/docs/templates/combined-assurance-report-template.md",
 ]
 
 FORBIDDEN_PATHS = [
@@ -137,7 +144,11 @@ PYTHON_FILES = [
     "scripts/test-integration-contracts.py",
     "scripts/test-integration-admission-evidence.py",
     "scripts/validate_publication.py",
+    "scripts/ci-contract-router.py",
+    "scripts/test-ci-contract-router.py",
+    "scripts/test-repair-lifecycle-contracts.py",
     "template/scripts/validate-installation-profile.py",
+    "template/scripts/repair-lifecycle.py",
     "template/.agent/hooks/hard_stop_policy.py",
     "template/.claude/hooks/work_block_gate.py",
     "template/.claude/hooks/assurance_gate.py",
@@ -469,6 +480,8 @@ def main() -> int:
     )
     run_check([PYTHON, "scripts/test-codex-adapter.py"], "Codex adapter contracts")
     run_check([PYTHON, "scripts/test-codex-hard-stops.py"], "Codex Hard Stop fixtures")
+    run_check([PYTHON, "scripts/test-repair-lifecycle-contracts.py"], "repair lifecycle contracts")
+    run_check([PYTHON, "scripts/test-ci-contract-router.py"], "CI contract router")
     run_check([BASH, "scripts/validate-governance.sh"], "governance validation")
 
     smoke_profile("core", "core")

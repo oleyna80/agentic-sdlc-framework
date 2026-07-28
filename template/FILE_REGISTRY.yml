@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major zones.
 # Runtime implementation surfaces are conditional on .agent/bootstrap-profile.json.
 
-version: 6
+version: 7
 scope: generated_project
 project:
   name: "{{PROJECT_NAME}}"
@@ -68,6 +68,14 @@ evaluation_assurance:
     - docs/templates/trajectory-event-template.json
   evidence_boundary: observable_events_only
   hidden_reasoning_required: false
+  authority: none
+
+repair_assurance:
+  mode: controlled_ndr_only
+  repair_record_template: docs/templates/repair-record-template.md
+  combined_assurance_template: docs/templates/combined-assurance-report-template.md
+  validator: scripts/repair-lifecycle.py
+  limits: {implementation_passes: 1, ndr_corrections: 1, stabilization_items: 3, stabilization_corrections: 2}
   authority: none
 
 entries:
@@ -218,6 +226,21 @@ entries:
     role: closeout_report_contract
     status: normative
     owner: orchestrator
+
+  docs/templates/repair-record-template.md:
+    role: controlled_ndr_repair_record_contract
+    status: normative
+    owner: orchestrator
+
+  docs/templates/combined-assurance-report-template.md:
+    role: independent_ndr_combined_review_and_verification_contract
+    status: normative
+    owner: verifier
+
+  scripts/repair-lifecycle.py:
+    role: fail_closed_ndr_repair_record_validator
+    status: normative
+    owner: maintainer
 
   docs/templates/integration-admission-template.md:
     role: integration_admission_trust_permission_and_evidence_contract
