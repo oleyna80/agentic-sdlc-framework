@@ -84,7 +84,7 @@ Run `30392046357` on exact head
   `failure`, and explicit no-merge-verdict/future-rerun limitations;
 - [FAIL] required `contracts`: publication validation found a private-project
   marker in `scripts/test-ci-contract-router.py` because the fixture used the
-  real repository identifier `oleyna80/agentic-sdlc-framework`.
+  previously non-synthetic repository identifier.
 
 ## Correction accounting
 
