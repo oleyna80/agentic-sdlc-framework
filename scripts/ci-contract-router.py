@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed routing and provider-check snapshot validation for CI contracts."""
+"""Fail-closed CI routing and non-authoritative provider evidence capture."""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +14,7 @@ ALLOWLISTS = {
         "FILE_REGISTRY.yml", "PROJECT_MAP.md",
     ),
 }
+TERMINAL_JOB_RESULTS = {"success", "failure", "cancelled", "skipped"}
 
 
 def route(paths: Iterable[str]) -> dict[str, object]:
@@ -32,35 +33,97 @@ def route(paths: Iterable[str]) -> dict[str, object]:
     }
 
 
-def validate_snapshot(snapshot: dict, subject_sha: str, required_checks: Iterable[str]) -> list[str]:
-    errors: list[str] = []
-    if snapshot.get("subject_sha") != subject_sha:
-        errors.append("snapshot subject_sha does not match the CI subject SHA")
-    checks = snapshot.get("check_runs")
-    if not isinstance(checks, list):
-        return errors + ["snapshot check_runs must be a list"]
-    by_name = {item.get("name"): item for item in checks if isinstance(item, dict)}
-    for name in required_checks:
-        check = by_name.get(name)
-        if not check:
-            errors.append(f"required provider check missing: {name}")
-        elif check.get("head_sha") != subject_sha:
-            errors.append(f"required provider check is not bound to subject SHA: {name}")
-        elif check.get("status") != "completed" or check.get("conclusion") != "success":
-            errors.append(f"required provider check is not successful: {name}")
-    return errors
+def build_provider_snapshot(
+    *,
+    repository: str,
+    head_sha: str,
+    workflow_sha: str,
+    workflow_name: str,
+    workflow_ref: str,
+    run_id: str,
+    run_attempt: str,
+    event_name: str,
+    job_key: str,
+    job_name: str,
+    job_result: str,
+) -> dict[str, object]:
+    identity_values = (
+        repository,
+        head_sha,
+        workflow_sha,
+        workflow_name,
+        workflow_ref,
+        run_id,
+        run_attempt,
+        event_name,
+        job_key,
+        job_name,
+    )
+    evidence_status = (
+        "PARTIAL"
+        if all(identity_values) and job_result in TERMINAL_JOB_RESULTS
+        else "UNVERIFIED"
+    )
+    return {
+        "schema_version": 1,
+        "artifact_type": "provider_job_snapshot",
+        "authority": "none",
+        "temporal_semantics": "point_in_time",
+        "evidence_status": evidence_status,
+        "repository": repository,
+        "subject": {
+            "head_sha": head_sha,
+            "workflow_sha": workflow_sha,
+        },
+        "workflow_run": {
+            "name": workflow_name,
+            "ref": workflow_ref,
+            "run_id": run_id,
+            "run_attempt": run_attempt,
+            "event_name": event_name,
+            "url": f"https://github.com/{repository}/actions/runs/{run_id}" if repository and run_id else None,
+        },
+        "job": {
+            "key": job_key,
+            "name": job_name,
+            "result": job_result or "unknown",
+            "result_source": "github-actions-needs-context",
+        },
+        "coverage": {
+            "scope": "current_workflow_job_only",
+            "complete_merge_authority": False,
+        },
+        "limitations": [
+            "This artifact records only the current Framework Contracts job result at capture time.",
+            "It does not replace or duplicate repository required checks.",
+            "It is not a merge verdict and cannot block merge.",
+            "It does not guarantee the absence of later reruns or provider-state changes.",
+        ],
+    }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
+
     routing = sub.add_parser("route")
     routing.add_argument("paths", nargs="*")
     routing.add_argument("--paths-file", type=Path, help="NUL-delimited changed-path list")
-    snapshot = sub.add_parser("validate-snapshot")
-    snapshot.add_argument("--snapshot", type=Path, required=True)
-    snapshot.add_argument("--subject-sha", required=True)
-    snapshot.add_argument("--required-check", action="append", required=True)
+
+    snapshot = sub.add_parser("snapshot")
+    snapshot.add_argument("--output", type=Path, required=True)
+    snapshot.add_argument("--repository", required=True)
+    snapshot.add_argument("--head-sha", required=True)
+    snapshot.add_argument("--workflow-sha", required=True)
+    snapshot.add_argument("--workflow-name", required=True)
+    snapshot.add_argument("--workflow-ref", required=True)
+    snapshot.add_argument("--run-id", required=True)
+    snapshot.add_argument("--run-attempt", required=True)
+    snapshot.add_argument("--event-name", required=True)
+    snapshot.add_argument("--job-key", required=True)
+    snapshot.add_argument("--job-name", required=True)
+    snapshot.add_argument("--job-result", default="")
+
     args = parser.parse_args()
     if args.command == "route":
         paths = args.paths
@@ -68,16 +131,22 @@ def main() -> int:
             paths += [path.decode("utf-8") for path in args.paths_file.read_bytes().split(b"\0") if path]
         print(json.dumps(route(paths), sort_keys=True))
         return 0
-    try:
-        value = json.loads(args.snapshot.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        print(f"BLOCKED: unreadable provider snapshot: {exc}")
-        return 1
-    errors = validate_snapshot(value, args.subject_sha, args.required_check)
-    if errors:
-        print("BLOCKED: " + "; ".join(errors))
-        return 1
-    print("READY: provider-native snapshot matches subject SHA and required checks")
+
+    value = build_provider_snapshot(
+        repository=args.repository,
+        head_sha=args.head_sha,
+        workflow_sha=args.workflow_sha,
+        workflow_name=args.workflow_name,
+        workflow_ref=args.workflow_ref,
+        run_id=args.run_id,
+        run_attempt=args.run_attempt,
+        event_name=args.event_name,
+        job_key=args.job_key,
+        job_name=args.job_name,
+        job_result=args.job_result,
+    )
+    args.output.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"{value['evidence_status']}: wrote non-authoritative provider snapshot to {args.output}")
     return 0
 
 
