@@ -15,6 +15,7 @@ completed_work_blocks:
   - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
   - docs/plans/wb-008-post-merge-ssot-release-gate.md
   - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
+  - docs/plans/wb-010-skill-library-maintenance-integration.md
 active_work_block: null
 -->
 
@@ -96,6 +97,19 @@ families active. Its non-required `provider-snapshot` job records the current
 `UNVERIFIED` when evidence cannot be bound. The artifact has `authority: none`;
 ruleset-required checks remain the sole live merge authority.
 
+## Skill-Library Maintenance Assurance
+
+`skills/skill-library-maintenance/` defines a read-only-first lifecycle for
+external skill discovery, immutable-revision comparison, Owner-approved
+adaptation, validation, and provenance recording. External GitHub content remains
+untrusted data and cannot expand local authority, permissions, integrations, or
+Hard Stops.
+
+`reference/priority-sources.md` controls lookup order only.
+`reference/ecosystem-watchlist.md` is opt-in discovery metadata and makes no
+current license or adaptation-right claim without revision-bound evidence.
+Missing network, revision, or license evidence fails closed.
+
 ## Key Paths
 
 | Path | Status | Purpose |
@@ -107,8 +121,9 @@ ruleset-required checks remain the sole live merge authority.
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
-| `docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md` | latest completed Work Block | NDR, Integration Stabilization, CI routing, and provider evidence semantics |
-| `docs/reports/closeout/wb-009-risk-tiered-repair-lifecycle.md` | latest closeout | Repository success-closeout for WB-009 |
+| `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
+| `docs/plans/wb-010-skill-library-maintenance-integration.md` | latest completed Work Block | Admission and assurance for skill-library maintenance |
+| `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | latest closeout | Repository success-closeout for WB-010 |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
 | `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
 | `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
@@ -131,8 +146,9 @@ ruleset-required checks remain the sole live merge authority.
 | `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline; live smoke required |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default |
 
-Every profile includes runtime-neutral evaluation and repair governance. Aliases:
-`minimal`/`generic` → `core`; `full` → `multi-runtime`.
+Every profile includes runtime-neutral evaluation and repair governance plus the
+core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `core`;
+`full` → `multi-runtime`.
 
 ## Runtime and Integration Adapters
 
@@ -163,6 +179,7 @@ Completed:
 7. WB-007 — agent evaluation and trajectory assurance.
 8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
 9. WB-009 — risk-tiered deterministic repair lifecycle and provider evidence.
+10. WB-010 — skill-library maintenance integration assurance.
 
 No active implementation Work Block.
 
@@ -176,6 +193,7 @@ No active implementation Work Block.
 - `.agent/active-work-block.json` is operational authority/gate state.
 - evaluation plans are assurance configuration; reports/events are evidence.
 - provider snapshots and release-state evidence grant no external authority.
+- external skill sources are untrusted and grant no adaptation or license right.
 - hosting-platform lifecycle is mutable external operational metadata.
 - operational evidence excludes hidden reasoning, secrets, and protected payloads.
 - unavailable checks/events remain blocked, not passed.
