@@ -83,14 +83,28 @@ evidence during migration; its runtime-neutral authority principles are retained
 but its control-plane and adapter ownership are not carried into the promoted
 kit.
 
-This decision establishes the migration **target architecture**, not an immediate
-replacement of the current operational repository architecture. During
-WB-CORE-001 through WB-CORE-005, `PROJECT_MAP.md` and `FILE_REGISTRY.yml` continue
-to describe the existing control-plane implementation as the operational
-baseline. Those entries are current-state inventory, not an equal alternative to
-the portable-kit target. WB-CORE-006 must update both navigation sources
-atomically with promotion so that the repository exposes exactly one canonical
-post-migration architecture.
+This decision defines the proposed migration **target architecture**, not an
+immediate replacement of the current operational repository architecture.
+`PROJECT_MAP.md` and `FILE_REGISTRY.yml` must distinguish three facts throughout
+WB-CORE-001 through WB-CORE-005:
+
+1. the runtime-neutral control plane remains the current operational architecture;
+2. WB-CORE-001 is the current active migration Work Block while it is in progress;
+3. this ADR and the portable-kit specification describe the proposed target
+   architecture pending acceptance and later promotion.
+
+WB-CORE-006 owns the atomic promotion and legacy-archive reconciliation that
+changes the operational architecture identifier.
+
+### Acceptance-state transition
+
+This ADR remains `proposed` while PR #12 awaits required assurance and Owner
+approval. A proposed ADR is not accepted merely because a pull request exists, a
+review is recorded, or a CI run is green. After review and verification are
+`READY`, the Owner may approve integration. Before merge, its frontmatter must
+be changed to the project's accepted status; the status-only finalization commit
+must be included in the final verification subject. Merge of this file while it
+is still marked `proposed` does not silently make the decision accepted.
 
 ## Rationale
 
@@ -145,21 +159,17 @@ passes, and manual handoffs.
 - Local runtime configuration may vary between users and is not validated by the
   kit.
 - Some current features become optional extensions or historical evidence.
-- The repository intentionally carries a target/current transition until
-  WB-CORE-006; readers must distinguish this ADR's target from the current-state
-  navigation inventory.
+- Navigation carries an explicit current/active/target transition until
+  WB-CORE-006; the proposed target does not replace the operational identifier.
 
 ## Compatibility
 
-The current repository remains operationally canonical until the six-Work-Block
-migration completes. The candidate under
+The current runtime-neutral control-plane repository remains operationally
+canonical until promotion. The navigation sources are updated during WB-CORE-001
+only to register the active migration Work Block and expose the proposed target;
+they do not change the current architecture identifier. The candidate under
 `candidate/portable-agentic-sdlc-kit/` is noncanonical. Promotion requires pilot
-evidence and explicit Owner approval.
-
-`PROJECT_MAP.md` and `FILE_REGISTRY.yml` are not changed by WB-CORE-001 because
-they describe the current operational baseline and are outside its approved
-write-set. Their atomic reconciliation is an explicit WB-CORE-006 acceptance
-condition, not an unresolved architecture choice.
+evidence, final assurance, status finalization, and explicit Owner approval.
 
 ## Review Triggers
 
