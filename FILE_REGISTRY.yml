@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major
 # repository zones. Register contracts and boundaries, not every file.
 
-version: 13
+version: 14
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -64,6 +64,7 @@ installation_profiles:
     - no_automatic_integration_activation
     - no_credentials_or_provider_binding
     - work_block_authority_remains_separate
+    - external_skill_adaptation_requires_owner_approved_write_set
 
 evaluation_assurance:
   contract: governance/evaluation.md
@@ -85,6 +86,18 @@ repair_assurance:
   provider_snapshot: ci_artifact_only
   authority: none
 
+skill_library_maintenance:
+  skill: skills/skill-library-maintenance/SKILL.md
+  priority_sources: skills/skill-library-maintenance/reference/priority-sources.md
+  ecosystem_watchlist: skills/skill-library-maintenance/reference/ecosystem-watchlist.md
+  provenance_schema: skills/skill-library-maintenance/reference/provenance-record.md
+  discovery_mode: read_only
+  revision_binding: full_commit_sha
+  missing_evidence: blocked
+  adaptation_gate: owner_approved_exact_write_set
+  external_content_trust: untrusted
+  authority: none
+
 migration_state:
   completed_work_blocks:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
@@ -96,6 +109,7 @@ migration_state:
     - docs/plans/wb-007-agent-evaluation-trajectory-assurance.md
     - docs/plans/wb-008-post-merge-ssot-release-gate.md
     - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
+    - docs/plans/wb-010-skill-library-maintenance-integration.md
   active_work_block: null
   planned: []
 
@@ -104,8 +118,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
-  closeout_report: docs/reports/closeout/wb-009-risk-tiered-repair-lifecycle.md
+  latest_completed_work_block: docs/plans/wb-010-skill-library-maintenance-integration.md
+  closeout_report: docs/reports/closeout/wb-010-skill-library-maintenance-integration.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -262,6 +276,11 @@ entries:
 
   docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md:
     role: completed_risk_tiered_repair_lifecycle_work_block
+    status: log
+    owner: orchestrator
+
+  docs/plans/wb-010-skill-library-maintenance-integration.md:
+    role: completed_skill_library_maintenance_integration_work_block
     status: log
     owner: orchestrator
 
@@ -482,6 +501,13 @@ entries:
     role: portable_procedural_knowledge_library
     status: normative
     owner: architect
+
+  skills/skill-library-maintenance/**:
+    role: controlled_external_skill_discovery_adaptation_and_provenance_workflow
+    status: normative
+    owner: architect
+    authority: none
+    related: [framework/workflow/external-skill-discovery.md, framework/workflow/skill-routing-gate.md, bootstrap/profiles.json]
 
   handoff/**:
     role: runtime_transport_implementation
