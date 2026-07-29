@@ -91,6 +91,7 @@ domains:
     skills:
       - graphify-code-map
       - skill-creator
+      - skill-library-maintenance
 
 consumer_contract:
   committed_file: .agent/skills.lock.yml

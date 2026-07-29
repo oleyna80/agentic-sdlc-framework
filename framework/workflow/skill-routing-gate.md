@@ -33,4 +33,8 @@ execute the Hard Stop action without approval.
 For unfamiliar domains, public/vendor skill libraries may be used as research
 inputs only. They never expand: approved scope, file-change authority, tool
 authority, DB authority, or Hard Stop boundaries. Verify source, license, and
-side effects before adapting.
+side effects before adapting. Route requests to check GitHub skill updates,
+refresh an upstream skill, or import a candidate skill through
+`skill-library-maintenance`. In Stage 0, record source, requested ref, local
+skill, read-only versus adaptation phase, and whether an Owner-approved
+write-set exists. Resolve any accepted update to an immutable SHA.

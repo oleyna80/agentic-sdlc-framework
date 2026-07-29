@@ -97,6 +97,7 @@ Trajectory evaluation also records the actual observable-event source.
 | `context-snapshot` | State must be frozen before parallel work/stage transition |
 | `scoped-commit-guard` | Staging/commit scope must be protected |
 | `shell-context-guard` | Shell location/target/side effects need explicit checking |
+| `skill-library-maintenance` | GitHub source checks and safe skill adaptation |
 
 ## Evaluation Routing Rules
 

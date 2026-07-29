@@ -148,7 +148,8 @@
       "context-snapshot",
       "critic-review",
       "scoped-commit-guard",
-      "shell-context-guard"
+      "shell-context-guard",
+      "skill-library-maintenance"
     ],
     "engineering": [
       "project-estimation",
