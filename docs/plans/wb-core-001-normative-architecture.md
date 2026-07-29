@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-core-001-normative-architecture
 work_block_id: WB-CORE-001
-status: review_requested
+status: planned
 owner_role: orchestrator
 created_at: 2026-07-29
 base_revision: 0fce7389d27690482e910e942a1f3138c2fef123
@@ -49,7 +49,12 @@ start. No intervening `main` change required scope adjustment.
 - **Merge authority:** none. Merge requires separate explicit Owner approval.
 - **Deployment/data/secrets:** none.
 - **Final verification:** independent Verifier pass after the PR exists; no final
-  verification report is created in this Work Block.
+  verification report is created by the current Architect / Documentation Coder
+  pass.
+- **Post-PR Verifier artifact:** the independent pass must use a separately
+  approved write-set for
+  `docs/reports/verification/wb-core-001-normative-architecture.md` and verify the
+  final PR head. That artifact is intentionally not created in this Work Block.
 
 ## Approved Write-Set
 
@@ -63,6 +68,20 @@ docs/reports/reviews/wb-core-001-critic-review.md
 
 Creating missing parent directories for those paths is allowed.
 
+## Legacy Release-State Boundary
+
+This file is a **planned migration Work Block proposal**, not the registered
+active Work Block of the current control-plane release-state ledger.
+`PROJECT_MAP.md` and `FILE_REGISTRY.yml` therefore continue to record no active
+Work Block for the current operational baseline. Modifying those projections is
+outside this Work Block's approved write-set.
+
+Consequently, a green legacy release-state check proves that the current
+operational ledger remains internally consistent; it does not constitute final
+verification or closeout of WB-CORE-001. WB-CORE-001 becomes normative only after
+the independent post-PR assurance artifact exists and the Owner separately
+approves merge.
+
 ## Out of Scope
 
 - `candidate/portable-agentic-sdlc-kit/` content;
@@ -73,7 +92,8 @@ Creating missing parent directories for those paths is allowed.
   runtime profiles;
 - repository settings, secrets, credentials, deployment, live state, or data;
 - default-branch writes or merge;
-- final verification report.
+- final verification report in the current pass; it is reserved for the separate
+  independent Verifier pass described above.
 
 ## Required Decisions
 
@@ -107,7 +127,8 @@ Creating missing parent directories for those paths is allowed.
 8. Commit and push only the approved paths on
    `agent/portable-kit-normative-architecture`.
 9. Open a PR to `main`; do not merge.
-10. Hand the open PR to an independent Reviewer/Verifier pass.
+10. Hand the final PR head to an independent Verifier using the separately
+    approved artifact path defined above.
 
 ## Acceptance Criteria
 
@@ -125,6 +146,8 @@ Creating missing parent directories for those paths is allowed.
 - [x] Exact evidence revisions are recorded.
 - [x] No unresolved equal architectural alternatives or placeholder markers remain.
 - [x] Changes are limited to the approved write-set.
+- [x] A persistent artifact path is specified for the separate post-PR Verifier
+  pass without creating that report in the current scope.
 - [ ] PR assurance is completed by an independent Reviewer/Verifier.
 - [ ] Owner separately approves merge.
 
@@ -147,7 +170,10 @@ The documentation set must be checked for:
 - **Define:** complete as a proposed architecture.
 - **Critic:** imported with verdict `APPROVE_WITH_CHANGES`; required changes are
   resolved in the proposed specification and ADRs.
-- **Execute:** documentation write-set complete.
-- **Review/Verification:** pending independent post-PR assurance.
+- **Execute:** documentation write-set complete on the feature branch.
+- **Legacy release state:** this planned proposal is intentionally not registered
+  as the current operational active Work Block.
+- **Review/Verification:** pending independent post-PR assurance against the final
+  head and the separately approved verification artifact.
 - **Closeout:** reporting-only until assurance and separate Owner merge decision.
 - **Merge:** prohibited without a new explicit Owner instruction.
