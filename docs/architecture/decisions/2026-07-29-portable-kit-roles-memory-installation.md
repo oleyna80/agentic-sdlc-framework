@@ -123,6 +123,16 @@ The installer creates no runtime agents, hooks, plugins, MCP configuration,
 provider directories, model routing, capability profiles, or duplicated skill
 mirrors.
 
+### Acceptance-state transition
+
+This ADR remains `proposed` while PR #12 awaits required assurance and Owner
+approval. A proposed ADR is not accepted merely because a pull request exists, a
+review is recorded, or a CI run is green. After review and verification are
+`READY`, the Owner may approve integration. Before merge, its frontmatter must
+be changed to the project's accepted status; the status-only finalization commit
+must be included in the final verification subject. Merge of this file while it
+is still marked `proposed` does not silently make the decision accepted.
+
 ## Rationale
 
 Separate roles allow the same portable contracts to be routed to native
