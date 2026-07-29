@@ -14,231 +14,126 @@ superpowers_reference_revision: 44c9b2d6e889982ac18c27d05a19fefe335194e1
 
 ## 1. Purpose
 
-This specification defines a portable, repository-local Agentic SDLC Project Kit. The kit provides a complete artifact-based development lifecycle usable through native subagents, sequential single-agent role passes, or manual copy-and-paste handoffs.
+This specification defines a portable, repository-local Agentic SDLC Project
+Kit. It preserves the practical lifecycle demonstrated by
+`agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`, retains useful
+authority and evidence rules from
+`agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`, and adopts
+selected procedural ideas from
+`obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`.
 
-It preserves the practical lifecycle demonstrated by `agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`, retains useful authority and evidence rules from `agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`, and adopts selected procedural ideas from `obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`, including design before implementation, implementation planning, systematic debugging, and verification before completion.
-
-Those revisions are evidence, not runtime authorities. This specification becomes normative only after review and an Owner-approved merge. Until promotion, the current repository remains operationally canonical and the portable candidate remains noncanonical.
+Those revisions are evidence, not runtime authorities. This specification is
+`proposed` until the acceptance-state transition in section 10 is completed.
 
 ## 2. Product Boundary
 
-The product is a complete project kit, not merely a skills library and not a runtime control plane. It contains:
+The product is a complete project kit, not a skills library and not a runtime
+control plane. It contains:
 
-- root `AGENTS.md` as the entry operating contract;
+- root `AGENTS.md` entry contract;
 - SDD lifecycle and process levels;
-- separate logical role contracts;
-- procedural skills;
-- Work Blocks;
-- specifications and architecture decisions;
-- implementation plans and tasklists;
-- mission briefs, handoffs, and conditional context snapshots;
-- canonical committed project memory;
-- Orchestrator and review logs;
-- Critic, Reviewer, and Verifier artifacts;
-- closeout and memory synchronization;
-- collision-safe installation.
+- role contracts and procedural skills;
+- Work Blocks, specifications, ADRs, plans, tasklists, mission briefs, handoffs,
+  and conditional context snapshots;
+- canonical committed project memory and Orchestrator/review logs;
+- Critic, Reviewer, Verifier, and closeout artifacts;
+- memory synchronization and collision-safe installation.
 
-The target installed structure is conceptually:
+Target portable paths include `agentic/roles/`, `agentic/skills/`,
+`agentic/templates/`, `docs/`, `memory_bank/`, and ignored `.agentic-local/`.
 
-```text
-AGENTS.md
-agentic/
-├── roles/
-│   ├── README.md
-│   ├── orchestrator.md
-│   ├── architect.md
-│   ├── critic.md
-│   ├── coder.md
-│   ├── reviewer.md
-│   └── verifier.md
-├── skills/
-│   ├── technical-discovery/
-│   ├── architecture-discovery/
-│   ├── specification/
-│   ├── implementation-planning/
-│   ├── task-decomposition/
-│   ├── systematic-debugging/
-│   ├── memory-bank-manager/
-│   ├── ssot-sync-closeout/
-│   └── verification-before-completion/
-└── templates/
-    ├── work-block.md
-    ├── specification.md
-    ├── architecture-decision.md
-    ├── implementation-plan.md
-    ├── tasklist.md
-    ├── mission-brief.md
-    ├── context-snapshot.md
-    ├── critic-report.md
-    ├── review-report.md
-    ├── verification-report.md
-    └── closeout-report.md
-docs/
-├── specs/
-├── architecture/decisions/
-├── plans/
-├── tasklists/
-├── missions/
-└── reports/
-    ├── reviews/
-    ├── verification/
-    └── closeout/
-memory_bank/
-├── context.md
-├── progress.md
-├── decisions.md
-├── orchestrator-log.md
-├── review-log.md
-└── snapshots/
-.agentic-local/                 # ignored runtime-local state
-```
-
-The kit must not own, require, install, generate, validate, or synchronize:
-
-- `.codex/`, `.claude/`, `.opencode/`, or equivalent provider directories;
-- provider-specific agents, model routing, or model selection;
-- hooks or runtime permission configuration;
-- MCP or plugins;
-- capability negotiation or runtime capability registries;
-- provider snapshots or runtime profiles;
-- duplicated provider-specific role or skill mirrors;
-- framework-owned queues, daemons, services, or transports.
-
-A project or user may create runtime-specific configuration independently. It is outside the portable framework contract, must not redefine authority or lifecycle semantics, and is not installed or verified by the kit.
+The kit must not own, require, install, generate, validate, or synchronize
+`.codex/`, `.claude/`, `.opencode/`, provider-specific agents, model routing,
+hooks, runtime permissions, MCP, plugins, capability negotiation, provider
+snapshots, runtime profiles, duplicated skill mirrors, queues, daemons, services,
+or provider transports. Project-local runtime configuration may exist
+independently but cannot redefine kit authority.
 
 ## 3. Design Principles
 
-1. **Artifacts are the interoperability boundary.** Required state is inspectable in repository files; hidden chat history and provider memory are never authoritative.
-2. **Authority is structural.** Tool access, model capability, runtime identity, hooks, or plugins never expand authority.
-3. **Use the smallest sufficient process level.** Process cost follows risk and uncertainty, not file count.
-4. **Evidence precedes claims.** Completion, review readiness, PR readiness, merge recommendations, and closeout require fresh current-state evidence.
-5. **One writer owns one write-set.** Parallel work uses isolation and non-overlapping ownership.
-6. **Project memory is concise and durable.** It records accepted state, not raw transcripts.
-7. **Runtime neutrality means non-ownership.** The kit does not reproduce runtime orchestration features.
-8. **Missing assurance fails closed.** Required missing evidence remains degraded, `BLOCKED`, or `UNVERIFIED`.
-9. **Installation is collision-safe.** Existing project files are never silently overwritten.
-10. **Candidate evidence precedes promotion.** Candidate presence alone never makes it canonical.
+1. Artifacts are the interoperability boundary.
+2. Authority derives from accepted contracts, not tools, models, or runtimes.
+3. Process cost follows risk and ambiguity, not file count.
+4. Fresh evidence precedes completion and readiness claims.
+5. One Coder owns one write-set.
+6. Project memory is concise, durable, and secret-free.
+7. Runtime neutrality means non-ownership of runtime concerns.
+8. Missing required assurance fails closed as degraded, `BLOCKED`, or
+   `UNVERIFIED`.
+9. Installation is collision-safe and never silently overwrites.
+10. Candidate evidence and Owner approval precede promotion.
 
 ## 4. Source of Truth
 
 Conflicts are resolved in this order:
 
-1. current explicit Owner instruction and recorded approvals or revocations;
-2. root `AGENTS.md` for shared authority, Hard Stops, and lifecycle invariants;
+1. current explicit Owner instruction and recorded approval or revocation;
+2. root `AGENTS.md`;
 3. approved specification and accepted ADRs;
-4. approved implementation plans and tasklists;
-5. active Work Block and bounded mission briefs;
-6. frozen implementation diff or final artifact, interpreted against higher authorities;
-7. Critic, Reviewer, Verifier, and closeout reports;
-8. `memory_bank/`;
-9. `.agentic-local/`, generated notes, runtime caches, and external references.
+4. active Work Block;
+5. approved implementation plan and tasklist;
+6. mission brief;
+7. frozen implementation diff or final artifact;
+8. Critic, Reviewer, Verifier, and closeout reports;
+9. `memory_bank/`;
+10. `.agentic-local/`, generated notes, caches, and external references.
 
-A lower-ranked artifact may provide evidence but must not silently revise a higher-ranked artifact. Material objective, specification, architecture, acceptance, risk, or write-set changes return to Define and require an approved revision.
+The active Work Block binds the objective, scope, write-set, process level, role
+authority, Hard Stops, approvals, acceptance, and assurance obligations. A plan
+or tasklist may sequence and decompose but cannot expand the Work Block. A
+mission brief may narrow a Work Block or plan for one handoff but cannot expand
+either artifact.
+
+A lower-ranked artifact cannot silently revise a higher-ranked artifact. Any
+material change to objective, specification, architecture, scope, write-set,
+process level, role authority, Hard Stops, acceptance, risk, or required
+assurance returns the lifecycle to Define and requires an explicit Work Block revision.
 
 ## 5. Lifecycle
 
 ```text
 Intake and classify
-  → Define
-      discovery
-      architecture when material
-      specification or explicit change contract
-      implementation plan and tasks when required
-      Critic when required
-  → Execute
-      bounded implementation
-      self-checks
-      checkpoint commits when useful
-      frozen diff or final artifact
-  → Assure
-      Reviewer when required
-      fresh verification
-      independent assurance when required
-  → Close
-      SSOT synchronization
-      memory synchronization
-      truthful closeout
-  → Integrate
-      PR readiness recommendation
-      separate Owner-approved merge or deployment action
+  → Define: discovery, architecture, specification, plan/tasks, Critic
+  → Execute: bounded implementation, self-checks, checkpoint commits, frozen diff
+  → Assure: Reviewer, fresh verification, required independence
+  → Close: SSOT sync, memory sync, truthful closeout
+  → Integrate: readiness recommendation, separate Owner-approved integration
 ```
 
-Quick work may compress functions, but no level may omit scope, authority, acceptance criteria, fresh verification, or truthful closeout. A checkpoint commit is an execution aid, not a completion claim, and does not require full final assurance when it remains inside the approved feature-branch Work Block.
+Quick work may compress functions but cannot omit scope, authority, acceptance,
+fresh verification, or truthful closeout. Intermediate feature-branch commits do
+not require final assurance and do not constitute completion.
 
 ## 6. Process Levels
 
-Classification uses:
+Classification uses ambiguity, behavioral impact, architecture impact, system
+boundaries, authority, side effects, reversibility, security/data risk,
+verification cost, and nondeterminism. File count is secondary.
 
-- ambiguity;
-- behavioral impact;
-- architecture impact;
-- system boundaries;
-- authority;
-- side effects;
-- reversibility;
-- security, privacy, credential, and data risk;
-- verification cost and observability;
-- nondeterminism.
+### Quick
 
-File count, line count, duration, and number of directories are supporting indicators only.
+Quick requires a compact Work Block, explicit scope/write-set, acceptance,
+fresh verification, and truthful closeout. Critic and separate Reviewer are
+normally optional. Verification evidence may be recorded in the Work Block.
 
-### 6.1 Classification rule
+### Standard
 
-A Work Block is **High-Risk** when any mandatory trigger applies:
+Standard requires an approved specification or explicit change contract, a
+material ADR when needed, implementation plan, tasks when useful, Critic, Coder,
+Reviewer, Verifier, closeout, and memory synchronization.
 
-- production deployment, live restart, or release publication;
-- secret, credential, authentication, authorization, or trust-boundary change;
-- live database, business-data, payment, order, stock, CRM, or consequential external mutation;
-- destructive or difficult-to-reverse operation;
-- security-sensitive input, file/path, webhook, import/export, or privileged-action boundary;
-- legal, regulatory, safety, privacy, or material financial consequence;
-- nondeterministic behavior whose failure could cause material harm;
-- explicit Owner, policy, or domain requirement for independent assurance.
+### High-Risk
 
-If no High-Risk trigger applies, a Work Block is **Standard** when ambiguity, behavior, architecture, cross-boundary integration, side effects, rollback, specification work, or verification is material.
+High-Risk adds risk/threat assessment, rollback/recovery, positive and negative
+cases, independent assurance where required, explicit Owner approvals, and
+optional domain evaluation. Required unavailable independence leaves the result
+`BLOCKED` or `UNVERIFIED`, not fully assured.
 
-A Work Block is **Quick** only when all are true: objective is unambiguous; behavior and architecture impact are low; write-set and side effects are tightly bounded; the change is reversible; no High-Risk trigger applies; acceptance is provable with a narrow fresh check; and a compact Work Block can explain the work without hidden context.
-
-Uncertainty selects Standard. Missing evidence or independence never justifies lowering the level.
-
-### 6.2 Quick
-
-Quick requires:
-
-- compact Work Block;
-- explicit scope, out-of-scope boundary, and write-set;
-- acceptance criteria;
-- fresh verification against the final state;
-- truthful closeout and memory update when project context changed.
-
-Critic and a separate Reviewer are normally optional. A separate verification report is not required when evidence is recorded directly in the Work Block or closeout. New ambiguity, architecture impact, side effects, security/data risk, or expensive verification escalates the Work Block.
-
-### 6.3 Standard
-
-Standard requires:
-
-- approved specification or explicit change contract;
-- ADR when materially architectural;
-- implementation plan;
-- tasklist when sequencing, ownership, or verification benefits from decomposition;
-- Critic, Coder, Reviewer, and Verifier functions;
-- frozen diff or final artifact before independent review;
-- closeout and memory synchronization.
-
-One session may perform sequential role passes when independence is not required, but it must disclose that the passes are not independent.
-
-### 6.4 High-Risk
-
-High-Risk adds:
-
-- risk or threat assessment;
-- rollback, recovery, and containment;
-- positive and negative verification cases;
-- explicit Owner approvals for applicable Hard Stops;
-- independent assurance where required;
-- optional domain-specific evaluation for nondeterministic, safety-sensitive, or regulated outcomes.
-
-Unavailable required independence, runtime evidence, or domain expertise leaves the result degraded, `BLOCKED`, or `UNVERIFIED`; it cannot be represented as fully assured.
+Mandatory High-Risk triggers include production deployment/restart, secrets or
+permissions, destructive operations, live data/business mutation,
+consequential external communications or transactions, security/trust-boundary
+change, material legal/privacy/financial consequence, and harmful
+nondeterminism.
 
 ## 7. Logical Roles
 
@@ -255,239 +150,112 @@ agentic/roles/
 └── verifier.md
 ```
 
-Shared authority and Hard Stops remain canonical in `AGENTS.md`. Each role file contains only: purpose; authority; prohibited actions; required inputs; procedure; output; stop conditions; handoff.
+Shared authority and Hard Stops remain canonical in `AGENTS.md`. Each role file
+contains only purpose, authority, prohibited actions, required inputs,
+procedure, output, stop conditions, and handoff.
 
-### 7.1 Orchestrator
-
-Purpose: frame and classify Work Blocks, bind roles, preserve scope, control gates, record approvals and limitations, consolidate results, and close work.
-
-Authority: workflow and approved coordination artifacts; approved feature-branch operations.
-
-Prohibited: unassigned implementation, self-approving Hard Stops, claiming unavailable independence, silent scope expansion, or default-branch integration without Owner approval.
-
-Output: Work Block, routing and handoff records, Orchestrator log, gate state, and closeout.
-
-### 7.2 Architect
-
-Purpose: discover constraints and produce architecture, specification, and plan proposals.
-
-Authority: read-only discovery plus approved documentation draft paths.
-
-Prohibited: product implementation, unapproved architecture changes, or treating research as accepted specification.
-
-Output: evidence-backed discoveries, ADR/specification proposals, and implementation-plan inputs.
-
-### 7.3 Critic
-
-Purpose: challenge Define-stage assumptions, boundary, scope, risk, architecture, process level, and verification design.
-
-Authority: read-only except the approved Critic report path.
-
-Prohibited: implementing corrections, expanding the write-set, or granting Owner approvals.
-
-Output: findings, evidence limitations, verdict, required changes, and residual concerns.
-
-### 7.4 Coder
-
-Purpose: implement one approved write-set according to accepted artifacts.
-
-Authority: exactly one approved write-set in one working tree.
-
-Prohibited: out-of-scope writes, changing requirements to match code, unapproved Hard Stops, or sharing the write-set with another active Coder.
-
-Output: bounded diff, self-check evidence, deviations, and review handoff.
-
-### 7.5 Reviewer
-
-Purpose: inspect the frozen diff or final artifact for correctness, regressions, architecture alignment, maintainability, security, and specification compliance.
-
-Authority: read-only except the review report path.
-
-Prohibited: editing the reviewed implementation or claiming runtime proof from static review.
-
-Output: findings, verdict, inspected scope, evidence gaps, and correction handoff.
-
-### 7.6 Verifier
-
-Purpose: test acceptance criteria and observable contracts against the current final state.
-
-Authority: read-only for source and runtime except approved evidence and nonconsequential fixtures in scope.
-
-Prohibited: modifying implementation to make tests pass, using stale evidence, unapproved live mutation, or reporting blocked checks as pass.
-
-Output: criterion-to-evidence mapping, procedures, results, blocked checks, verdict, and residual risk.
+- **Orchestrator:** frames Work Blocks, routes roles, controls gates, records
+  approvals/limitations, synchronizes logs, and closes work.
+- **Architect:** performs discovery and drafts specifications, ADRs, and plans.
+- **Critic:** challenges Define-stage assumptions, scope, risk, architecture,
+  process level, and verification design.
+- **Coder:** implements exactly one approved write-set without changing
+  requirements or crossing Hard Stops.
+- **Reviewer:** inspects a frozen diff/final artifact and records findings and a
+  verdict without editing it.
+- **Verifier:** tests acceptance against current state and records evidence and a
+  verdict without repairing implementation.
 
 ## 8. Role Execution Modes
 
-### 8.1 Native subagents
-
-The Orchestrator supplies role contract, Work Block, inputs, write-set or read-only boundary, expected output, and stop conditions. Delegation is an execution mechanism; repository artifacts remain authoritative.
-
-### 8.2 Sequential single-agent passes
-
-Each pass declares the active role, loads required inputs, obeys that role's authority, produces its artifact, and stops before assuming the next role. Sequential reuse is not independent assurance.
-
-### 8.3 Manual copy-and-paste handoff
-
-A human may transfer a complete mission brief and artifacts to another session or tool. The recipient returns the required output and blockers. Hidden prior chat context is not required.
+Roles must work through native subagents, sequential single-agent passes, and
+manual copy-and-paste handoff. The Orchestrator provides role contract, Work
+Block, inputs, scope/write-set, prohibited actions, expected output, and stop
+conditions. Sequential reuse is disclosed as non-independent assurance.
 
 ## 9. Work Blocks and Concurrency
 
-A Work Block records: identifier; objective and expected result; process level; source specification and ADRs; scope and out-of-scope boundary; write-set; role bindings and execution mode; side effects, risks, Hard Stops, and approvals; acceptance and assurance plan; rollback when required; current gates and closeout status.
-
-Concurrency rules:
+A Work Block records identifier, objective, process level, source contracts,
+scope/out-of-scope, write-set, roles, side effects, risks, Hard Stops,
+approvals, acceptance, assurance plan, rollback when required, and current gate
+state.
 
 1. One active write-capable Work Block per working tree.
 2. Multiple read-only discovery Work Blocks may coexist.
 3. Multiple write Work Blocks require isolated worktrees or clones.
 4. Each isolated tree still has one active write Work Block.
-5. Parallel writers require non-overlapping write-sets or an explicit integration plan naming order, conflicts, combined review, and combined verification.
+5. Parallel writers require non-overlapping write-sets or an explicit integration
+   plan.
 6. One Coder owns each write-set.
-7. A shared file makes write-sets overlap even when different sections are targeted.
-8. Integrating parallel results is a bounded write Work Block unless already authorized by the integration plan.
+7. A shared file makes write-sets overlap.
 
 ## 10. Specifications and Architecture Decisions
 
-A specification defines required behavior, constraints, error states, acceptance criteria, and non-goals. An ADR records a material structural choice, rationale, rejected alternatives, consequences, and review triggers.
+A specification defines behavior, constraints, failure states, acceptance, and
+non-goals. An ADR records a material structural choice, rationale, rejected
+alternatives, consequences, and review triggers. Material product, authority,
+data/security, interface, installation, migration, or compatibility changes
+require an ADR. Equal material alternatives must be resolved before execution.
 
-An ADR is required for material changes to product boundary, source-of-truth ownership, role authority, data/security/deployment boundaries, public interfaces, durable component relationships, installation, migration, or compatibility.
-
-Implementation must not begin while equal material architectural alternatives remain unresolved. A proposal becomes accepted only through the project Owner-controlled process.
+`proposed` artifacts are not accepted merely because a pull request exists,
+checks pass, or a review is recorded. After required review and verification are
+`READY`, the Owner may approve integration. Before merge, every artifact being
+accepted must have frontmatter changed from `proposed` to the project's accepted
+status. That status-only finalization commit must be included in the final
+verification subject and verified at its exact head. Merge of files still marked
+`proposed` does not silently make them accepted.
 
 ## 11. Plans and Task Decomposition
 
-An implementation plan maps accepted requirements to paths and ordered work, with dependencies, verification, risks, rollback, and out-of-scope boundaries.
-
-A tasklist is required when work contains multiple independently verifiable steps, multiple handoffs, or sequencing where omission is plausible. Each task names inputs, write-set, expected result, verification, and stop conditions. The kit imposes no universal time or file-count target.
+An implementation plan maps accepted requirements to ordered paths and work,
+with dependencies, checks, risks, rollback, handoffs, and out-of-scope
+boundaries. A tasklist is required when multiple independently verifiable steps,
+handoffs, or omission-prone sequencing exist. Every task names inputs,
+write-set, owner, expected result, verification, and stop conditions. Neither a
+plan nor tasklist can expand the active Work Block.
 
 ## 12. Skills and Routing
 
-Skills are procedures, not authority-bearing agents. A skill cannot expand role, scope, write-set, side effects, or Owner approval. The core contains exactly nine skills.
+Skills are procedures, not authority-bearing agents. A skill cannot expand role,
+scope, write-set, side effects, or approval.
 
-### 12.1 `technical-discovery`
+| Skill | Trigger and inputs | Procedure and output | Stop/escalation | Role/lifecycle |
+|---|---|---|---|---|
+| `technical-discovery` | Need current implementation/dependency facts; objective, repo, history | Inventory paths, trace contracts/data/side effects/checks; output evidence-backed findings | Missing access, unsafe live inspection, scope expansion | Architect/Orchestrator in Define; bounded Reviewer/Verifier use |
+| `architecture-discovery` | Material component/authority/data/install/migration boundary; discovery and ADRs | Map forces/ownership, assess concrete alternatives, select one; output ADR proposal | Missing Owner policy/domain evidence | Architect in Define; Critic challenges |
+| `specification` | New or imprecise behavior; objective, discovery, ADRs, risks | Define behavior, boundaries, errors, acceptance, non-goals; output specification | Missing product decision or scope overrun | Architect produces; Critic challenges |
+| `implementation-planning` | Accepted specification; spec, ADRs, assurance | Map requirements to paths/steps/checks/rollback/handoffs; output plan | Unresolved spec/architecture | Architect/Orchestrator in Define |
+| `task-decomposition` | Multiple steps/writers/handoffs; plan and write-set | Produce ordered checkable tasks with owner/result/check/stop | Overlap without integration plan | Architect/Orchestrator in Define |
+| `systematic-debugging` | Defect or failed check; reproducible symptom/logs/code | Reproduce, isolate, test hypotheses, root-cause, smallest approved fix, regression check | Unsafe access, nonreproducibility, out-of-scope cause | Coder in Execute; read-only Reviewer/Verifier use |
+| `memory-bank-manager` | Work Block/gate/decision/handoff/blocker/closeout change | Update responsible memory file concisely with links; output synchronized memory | Sensitive/unverified/conflicting state | Orchestrator owns; roles propose |
+| `ssot-sync-closeout` | Work completes or closes blocked; all artifacts/evidence | Reconcile artifacts, deviations, memory, logs, status, follow-ups; output closeout | Missing required evidence/approval blocks success | Orchestrator in Close |
+| `verification-before-completion` | Before completion/review/readiness/merge recommendation/closeout | Run fresh checks, map criteria to evidence, record failures/blockers; output embedded evidence or report | Failed/blocked required criterion | Verifier in Assure; Coder self-check subset |
 
-- **Trigger:** repository behavior, implementation, dependencies, or current state must be understood.
-- **Inputs:** objective, repository artifacts, history, constraints.
-- **Procedure:** inventory relevant paths; trace contracts, data flow, side effects, and verification surfaces; identify gaps and duplicates; distinguish fact, inference, and unknown.
-- **Output:** bounded evidence-backed discovery findings.
-- **Stop/escalation:** missing access, secrets, unsafe live inspection, material architecture/risk discovery, or scope expansion.
-- **Role/lifecycle:** Architect or Orchestrator in Define; bounded use by Reviewer/Verifier.
+Disposition of historical/current mechanisms:
 
-### 12.2 `architecture-discovery`
-
-- **Trigger:** component, authority, data, installation, interoperability, or migration boundaries are material.
-- **Inputs:** technical discovery, current ADRs, objective, constraints.
-- **Procedure:** identify forces and invariants; map ownership; evaluate concrete alternatives; select one decision; record consequences and review triggers.
-- **Output:** architecture findings and ADR proposal when material.
-- **Stop/escalation:** missing Owner policy, domain expertise, or approved scope.
-- **Role/lifecycle:** Architect in Define; Critic challenges the decision.
-
-### 12.3 `specification`
-
-- **Trigger:** Standard/High-Risk work, new behavior, or imprecise change contract.
-- **Inputs:** objective, discovery, ADRs, constraints, risks, Owner decisions.
-- **Procedure:** define behavior, boundaries, invariants, error states, acceptance criteria, non-goals, and blockers; remove equal alternatives.
-- **Output:** approvable specification or explicit change contract.
-- **Stop/escalation:** missing product decision or scope overrun.
-- **Role/lifecycle:** Architect produces; Critic challenges; Owner accepts material scope.
-
-### 12.4 `implementation-planning`
-
-- **Trigger:** accepted specification requires ordered implementation.
-- **Inputs:** specification, ADRs, discovery, assurance requirements.
-- **Procedure:** map requirements to paths and steps; define dependencies, checks, rollback, and handoffs.
-- **Output:** implementation plan.
-- **Stop/escalation:** unresolved specification or architecture.
-- **Role/lifecycle:** Architect or Orchestrator in Define; Critic reviews for Standard/High-Risk.
-
-### 12.5 `task-decomposition`
-
-- **Trigger:** plan has multiple steps, writers, handoffs, or verification points.
-- **Inputs:** plan, write-set, role bindings, dependencies.
-- **Procedure:** create ordered independently checkable tasks; assign one owner; specify input, result, verification, and stop conditions.
-- **Output:** tasklist or mission-ready tasks.
-- **Stop/escalation:** overlapping tasks without integration plan or discovered scope drift.
-- **Role/lifecycle:** Architect/Orchestrator in Define; drives Coder missions.
-
-### 12.6 `systematic-debugging`
-
-- **Trigger:** defect, failed check, unexpected behavior, or inconsistent state.
-- **Inputs:** reproducible symptom, logs, current code, environment facts, acceptance.
-- **Procedure:** reproduce; gather evidence; isolate layer; test hypotheses; identify root cause; implement smallest approved fix; verify regression coverage.
-- **Output:** root-cause statement, bounded fix, verification evidence.
-- **Stop/escalation:** nonreproducibility, unsafe access, unapproved side effect, or out-of-scope root cause.
-- **Role/lifecycle:** Coder in Execute; read-only portions for Reviewer/Verifier.
-
-### 12.7 `memory-bank-manager`
-
-- **Trigger:** Work Block open, decision, gate transition, handoff, blocker, closeout, or context compaction.
-- **Inputs:** current authoritative and verified state.
-- **Procedure:** update the responsible memory file; keep entries concise, dated, linked, and secret-free; mark stale current state; preserve decision history.
-- **Output:** synchronized `memory_bank/`.
-- **Stop/escalation:** unverified, sensitive, or higher-authority conflict.
-- **Role/lifecycle:** Orchestrator owns synchronization; other roles propose updates.
-
-### 12.8 `ssot-sync-closeout`
-
-- **Trigger:** required implementation/assurance finishes or work must close blocked/incomplete.
-- **Inputs:** specification, ADRs, plan, tasks, final diff, review, verification, approvals, memory.
-- **Procedure:** reconcile artifacts; record deviations and residual risks; update memory/logs; assign truthful status and follow-up gates.
-- **Output:** closeout report or compact Quick closeout.
-- **Stop/escalation:** successful closeout stops on missing required evidence or approval; use reporting-only closeout.
-- **Role/lifecycle:** Orchestrator in Close.
-
-### 12.9 `verification-before-completion`
-
-- **Trigger:** before completion, final review request, PR readiness, merge recommendation, or successful closeout.
-- **Inputs:** current final state, acceptance criteria, contracts, prior checks.
-- **Procedure:** select current-state checks; run or observe them fresh; map criteria to evidence; record failures and blockers; reject stale evidence.
-- **Output:** embedded verification evidence or separate Verifier report.
-- **Stop/escalation:** failed or blocked required criterion prevents success; consequential live verification requires Owner approval.
-- **Role/lifecycle:** Verifier in Assure; Coder self-check subset; Orchestrator claim gate.
-
-### 12.10 Disposition of current and historical mechanisms
-
-| Mechanism | Target disposition |
-|---|---|
-| `technical-discovery`, `architecture-discovery`, `task-decomposition`, `systematic-debugging`, `memory-bank-manager`, `ssot-sync-closeout` | Retain as normalized core procedural skills. |
-| design/specification functions previously embedded in brainstorming or documents | Consolidate into core `specification`. |
-| `writing-plans` or equivalent plan-writing behavior | Consolidate into core `implementation-planning`. |
-| `verification-before-completion` | Core provider-neutral completion-claim gate. |
-| `scoped-coder`, `critic-review`, `reviewer`, `verifier` | Become separate role contracts, not skills. |
-| `codex-verification` | Retire provider naming; portable procedure moves into `verification-before-completion`. |
-| `subagent-mission-brief` | Mission-brief template and lifecycle mechanism. |
-| `context-snapshot` | Conditional lifecycle rule and template. |
-| `orchestrator-log` | Orchestrator obligation using `memory_bank/orchestrator-log.md`. |
-| `merge-protocol`, `scoped-commit-guard`, branch-finishing, `finishing-a-development-branch` | Optional Git extension. |
-| `using-git-worktrees`, worktree automation | Optional concurrency extension; core keeps isolation rules only. |
-| `spec-drift-audit` | Optional assurance extension. |
-| `project-estimation` | Optional planning extension. |
-| `webapp-testing` | Optional browser/UI extension. |
-| `security-audit-triage`, `security-hardening-pass`, `security-verification-gate` | Optional security tooling; core retains High-Risk security trigger. |
-| `shell-context-guard` | Optional local/runtime safety extension. |
-| `agent-operations-review` | Optional retrospective without authority changes. |
-| `handoff-live-smoke` | Optional transport verification. |
-| `mcp-builder` | Outside core; project-local extension. |
-| `output-skill` | Project-specific extension. |
-| `graphify-code-map` | Optional knowledge/tooling extension. |
-| `skill-creator`, `writing-skills`, `skill-library-maintenance` | Optional kit-maintainer tooling, not installed project lifecycle. |
-| imported-skill provenance | Lightweight metadata: source, immutable revision, license/evidence state, local changes, validation; no control plane or automatic update authority. |
-| design skills in the current catalog | Domain/project extensions excluded from core. |
-| media-production and provider-routing skills in the current catalog | Domain/project extensions excluded from core; provider routing stays local. |
-| `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents` | Execution modes or optional extensions, not required topology. |
-| `requesting-code-review`, `receiving-code-review` | Absorbed into Reviewer handoff and correction flow. |
-| `test-driven-development` | Optional project/Work Block engineering practice. |
-| runtime bootstrap or provider plugin loader skills | Reference-only and excluded from the portable kit. |
-
-No mechanism enters the core merely because a runtime can auto-trigger it. Admission requires a portable procedural purpose, bounded authority, lifecycle relationship, and approved provenance.
+- `scoped-coder`, `critic-review`, `reviewer`, and `verifier` become role
+  contracts.
+- `subagent-mission-brief` becomes a template and lifecycle mechanism.
+- `context-snapshot` becomes a conditional rule and template.
+- `orchestrator-log` becomes an Orchestrator obligation.
+- branch finishing, merge protocol, worktree automation, spec-drift audit,
+  project estimation, browser/UI testing, security tooling, shell guards,
+  transport smoke, TDD, and external-model review are optional extensions.
+- `codex-verification` is renamed into provider-neutral
+  `verification-before-completion`.
+- runtime bootstrap/plugin/MCP/provider-router mechanisms are outside core.
+- imported-skill provenance is lightweight metadata: source, immutable revision,
+  license/evidence state, local changes, and validation; it is not a control
+  plane.
 
 ## 13. Mission Briefs and Handoffs
 
-A mission brief contains: Work Block and role; objective and output; required inputs and authoritative paths; read scope and write-set; prohibited actions and Hard Stops; selected skills; acceptance and verification; stop conditions; output path and return format.
-
-A handoff records completed work, evidence, deviations, blockers, unresolved questions, and next authorized role. It must not depend on hidden chat history.
-
-A context snapshot is created only when context may be lost through compaction, cross-session transfer, interruption, long-running work, or manual handoff. It is not mandatory when canonical artifacts cheaply reconstruct state.
+A mission brief contains Work Block/role, objective/output, inputs/authority,
+read scope/write-set, prohibited actions/Hard Stops, selected skills,
+acceptance/verification, stop conditions, and return format. It cannot expand the
+Work Block or plan. A handoff records completed work, evidence, deviations,
+blockers, and next authorized role. A context snapshot is conditional on likely
+context loss and never replaces canonical artifacts.
 
 ## 14. Project Memory and Logs
 
@@ -503,66 +271,60 @@ memory_bank/
 └── snapshots/
 ```
 
-| Path | Purpose | Update trigger | Ownership | Required content | Prohibited content | Retention |
-|---|---|---|---|---|---|---|
-| `context.md` | Current focus and next gate | open, scope/gate change, closeout | Orchestrator | active Work Blocks, blockers, next gate, links | history dump, transcript, secrets, speculation | Keep current; replace stale state with durable links |
-| `progress.md` | Milestone ledger | material completion, blocker, reopen, closeout | Orchestrator | date, Work Block, status, verdict, evidence link | detailed reasoning, copied reports, unsupported success | Append milestones; corrections explicit |
-| `decisions.md` | Durable accepted project decisions not fully represented by an ADR | accept, revise, revoke | Architect proposes; Orchestrator records | decision, status, rationale, alternatives, evidence, supersession | hidden reasoning, guesses, credentials, duplicate ADR body | Retain accepted and superseded entries |
-| `orchestrator-log.md` | Coordination, authority, approvals, routing, blockers | delegation, transition, approval, blocker, recovery, closeout | Orchestrator | date, Work Block, action, authority basis, result, links | private chain-of-thought, raw prompts, secrets, verbose output | Append concise audit-relevant events |
-| `review-log.md` | Index of assurance outcomes | report created or verdict changed | Orchestrator with assurance-role input | artifact, scope, execution mode, verdict, blockers, residual risk | duplicated full reports, unsupported pass | Retain verdict history with correction links |
-| `snapshots/` | Compact reconstructable context | conditional snapshot trigger | Orchestrator or delegated role | objective, authority, state, decisions, evidence, next action, links | transcript, scratchpad, secrets, copied large files | Retain referenced snapshots; archive/remove redundant unreferenced snapshots by project policy |
+| Path | Purpose and trigger | Owner and required content | Prohibited content and retention |
+|---|---|---|---|
+| `context.md` | Current focus/gates; open or scope/gate change | Orchestrator; active WBs, blockers, next gate, links | No transcript/secrets/speculation; keep current |
+| `progress.md` | Milestone ledger; completion/blocker/reopen/closeout | Orchestrator; date, WB, status, verdict, evidence | No copied reports/unsupported success; append corrections |
+| `decisions.md` | Durable accepted decisions not fully in ADR; accept/revise/revoke | Architect proposes, Orchestrator records; status, rationale, evidence, supersession | No hidden reasoning/credentials/duplicate ADR body; retain history |
+| `orchestrator-log.md` | Coordination/authority/approvals/routing; every transition | Orchestrator; date, WB, action, authority basis, result, links | No chain-of-thought/raw prompts/secrets; append concise events |
+| `review-log.md` | Assurance index; report/verdict change | Orchestrator with assurance roles; artifact, scope, mode, verdict, blockers | No duplicated full reports; retain verdict history |
+| `snapshots/` | Reconstructable context; conditional snapshot trigger | Orchestrator/delegate; objective, authority, state, decisions, evidence, next action | No transcript/scratch/secrets; retain referenced snapshots |
 
-Runtime-local scratch, caches, raw transcripts, temporary traces, tool outputs, and downloads use ignored `.agentic-local/`. The installer adds or verifies the ignore rule without overwriting unrelated `.gitignore` content. Runtime-local state must not be mixed into `memory_bank/` or hold the only accepted decision or evidence.
+Runtime-local scratch, caches, raw transcripts, temporary traces, tool output,
+and downloads use ignored `.agentic-local/` and must not contain the only copy of
+accepted decisions or required evidence.
 
 ## 15. Review
 
-Standard and High-Risk work require a Reviewer pass against a frozen diff or final artifact. Quick may use bounded self-review unless independence is required.
-
-A review records: reviewed revision/artifact; inspected and excluded paths; specification/ADR references; severity-ranked findings; applicable security and maintainability observations; evidence limitations; verdict (`APPROVE`, `APPROVE_WITH_CHANGES`, `CHANGES_REQUIRED`, or `BLOCKED`); correction handoff.
-
-Review does not prove runtime behavior. Reviewer does not edit the implementation. Corrections return to a Coder pass and changed surfaces are re-reviewed.
+Standard and High-Risk require Reviewer inspection of a frozen diff/final
+artifact. Review records revision, included/excluded paths, source contracts,
+severity-ranked findings, limitations, verdict (`APPROVE`,
+`APPROVE_WITH_CHANGES`, `CHANGES_REQUIRED`, or `BLOCKED`), and correction
+handoff. Reviewer does not edit the reviewed artifact. Corrections require
+re-review of changed surfaces.
 
 ## 16. Verification
 
-Verification maps current-state evidence to acceptance criteria. Standard and High-Risk require a Verifier artifact unless a documented non-independent fallback is explicitly allowed. Quick may embed evidence in the Work Block or closeout.
+Verification maps current-state evidence to acceptance. Standard and High-Risk
+require a Verifier artifact unless a documented fallback is explicitly allowed.
+A report records verified identity, criterion, procedure, expected/actual,
+pass/fail/blocked/not-applicable, limitations, verdict (`READY`, `NOT_READY`,
+`BLOCKED`, or `UNVERIFIED`), and residual risk.
 
-Fresh evidence is produced or directly observed against the current head, final artifact, or live state being claimed. Relevant changes make earlier evidence stale.
-
-A verification report records: verified identity; each criterion; command/procedure/observation; expected and actual result; pass/fail/blocked/not-applicable; environment limitations; verdict (`READY`, `NOT_READY`, `BLOCKED`, or `UNVERIFIED`).
-
-Fresh evidence is mandatory before claiming completion, requesting final review, claiming PR readiness, recommending merge, or successful closeout. Tests and reviewers cannot approve Hard Stops.
+Fresh evidence is mandatory before completion, final review request, PR
+readiness, merge recommendation, and successful closeout. Relevant changes make
+prior evidence stale. Tests and reviewers cannot approve Hard Stops.
 
 ## 17. Closeout
 
-Successful closeout requires:
-
-- implementation inside approved scope;
-- required review with no unresolved blocking finding;
-- required verification `READY` against current state;
-- required Owner approvals;
-- synchronized specifications, ADRs, plans, tasks, and derived documentation;
-- synchronized memory and logs;
-- disclosed residual risks and blocked nonrequired checks;
-- follow-up Work Blocks identified without expanding the current one.
-
-Reporting-only closeout is used for blocked, incomplete, unverified, rejected, or superseded work. It records why success was not claimed.
+Successful closeout requires in-scope implementation, resolved required review,
+verification `READY` against current state, required Owner approvals,
+synchronized specifications/ADRs/plans/tasks/navigation, synchronized memory and
+logs, disclosed residual risks, and bounded follow-up Work Blocks. Blocked,
+incomplete, unverified, rejected, or superseded work uses reporting-only
+closeout and cannot claim success.
 
 ## 18. Git and Owner Approval Boundaries
 
-Explicit Owner approval is required before:
+Explicit Owner approval is required for default/protected-branch merge or direct
+push, production deployment/restart, secrets/credentials/permissions,
+destructive operations, live data mutation, consequential external
+communications/transactions, and material objective/specification/architecture/
+scope expansion.
 
-- merge into default/protected branch;
-- direct push to default/protected branch;
-- production deployment or live restart;
-- secret, key, token, credential, or permission changes;
-- destructive Git, filesystem, database, or infrastructure operations;
-- live database or business-data mutation;
-- consequential external communications or transactions;
-- material objective, specification, architecture, or scope expansion.
-
-Within an approved Work Block, feature-branch creation, checkpoint/final commits, feature-branch push, PR creation/update, nonconsequential checks, and approved evidence artifacts are allowed unless explicitly restricted.
-
-Opening a PR does not grant merge authority. PR readiness is an assurance statement, not merge approval. Full final verification is not required before each checkpoint commit; it is required before completion/readiness claims.
+Within an approved Work Block, feature-branch creation, commits, push, PR
+creation/update, nonconsequential checks, and approved evidence artifacts are
+allowed. PR existence or readiness does not grant merge authority.
 
 ## 19. Installation
 
@@ -573,30 +335,24 @@ install.py plan --target <repository>
 install.py apply --target <repository>
 ```
 
-### 19.1 Plan
+`plan` is mandatory and nonmutating. It supports new/existing repositories,
+resolves a safe root, rejects traversal/symlink escape, inventories collisions,
+and classifies paths as `create`, `skip-identical`, `collision`, or `blocked`.
 
-`plan` is mandatory and nonmutating. It supports new and existing repositories, resolves a real repository root, rejects path traversal and symlink escape, inventories candidate files and collisions, compares identities where appropriate, classifies every path as `create`, `skip-identical`, `collision`, or `blocked`, reports bounded `.gitignore` additions, and produces deterministic human- and machine-readable output.
-
-### 19.2 Apply
-
-`apply` consumes or reproduces an unchanged valid plan, refuses unresolved collisions, stages content safely, rechecks target state, creates only planned paths, never silently overwrites/merges/deletes, preserves unrelated content and modes, applies bounded collision-aware `.gitignore` changes, reports `created`, `skipped`, `colliding`, and `blocked`, records files created by the operation, and fails closed on partial or unsafe state.
-
-The installer creates no runtime agents, hooks, plugins, MCP configuration, provider directories, model routing, capability profiles, or duplicated skill mirrors.
+`apply` revalidates an unchanged plan, stages safely, creates only planned paths,
+refuses unresolved collisions, never silently overwrites/merges/deletes,
+preserves unrelated content, applies bounded `.gitignore` changes, and reports
+`created`, `skipped`, `colliding`, and `blocked`. It creates no runtime agents,
+hooks, plugins, MCP, provider directories, routing, profiles, or mirrors.
 
 ## 20. Optional Extensions
 
-Optional and not core:
-
-- nondeterministic output evaluation;
-- security/threat-model tooling beyond the core High-Risk trigger;
-- browser/UI testing;
-- worktree automation;
-- Git branch/PR/release finishing;
-- external second-model review;
-- specialized skill provenance/update tooling;
-- MCP, plugins, hooks, runtime profiles, queues, daemons, and provider adapters.
-
-An extension may consume core artifacts but cannot redefine authority, source of truth, process levels, Hard Stops, memory ownership, or closeout. If a Work Block makes an extension required, its failure remains visible.
+Optional, not core: nondeterministic evaluation, advanced threat/security
+tooling, browser/UI testing, worktree automation, Git branch/PR finishing,
+external second-model review, specialized provenance tooling, and all MCP,
+plugins, hooks, runtime profiles, queues, daemons, and provider adapters.
+Extensions may consume core artifacts but cannot redefine authority, source of
+truth, process levels, Hard Stops, memory, or closeout.
 
 ## 21. Candidate and Promotion Model
 
@@ -610,119 +366,109 @@ candidate/portable-agentic-sdlc-kit/
 └── tests/
 ```
 
-Candidate content is evidence-bearing but nonauthoritative. Promotion requires successful synthetic installation, HardwareLab pilot, resolved blocking findings, complete verification, and explicit Owner approval.
-
-Promoted canonical distribution:
-
-```text
-portable-agentic-sdlc-kit/
-├── KIT.md
-├── template/
-├── tools/
-└── tests/
-```
-
-The verified candidate moves or is reproduced there without semantic drift. Superseded control-plane/runtime-owned material is archived at `archive/legacy-control-plane/` with provenance and migration notes, not silently deleted. Repository maps must identify exactly one canonical kit after promotion.
+Promotion requires successful synthetic installation, HardwareLab pilot,
+resolved blockers, complete verification, accepted statuses, and explicit Owner
+approval. The canonical promoted path is `portable-agentic-sdlc-kit/`.
+Superseded material is archived under `archive/legacy-control-plane/` with
+provenance, not silently deleted. Exactly one canonical kit is identified after
+promotion.
 
 ## 22. Migration Sequence
 
 ### WB-CORE-001 — Normative architecture
 
-- **Objective:** define product boundary, roles, skills, memory, process levels, concurrency, installation, candidate, and migration contract.
-- **Expected paths:** only this specification, two ADRs, Work Block plan, and imported Critic review.
-- **Dependencies:** current contracts and immutable revisions listed in section 1.
-- **Acceptance:** unambiguous architecture; no implementation; branch pushed; PR open and unmerged.
-- **Risks:** conflict with current control-plane contracts or accidental candidate authority.
-- **Out of scope:** candidate/installer/roles/skills/templates/tests/migrations and final independent verification report.
+- **Objective:** define product, roles, skills, memory, process, concurrency,
+  installation, candidate, and migration contracts.
+- **Expected paths:** approved specification/ADRs/Work Block/reviews/navigation.
+- **Dependencies:** current contracts and immutable revisions in section 1.
+- **Acceptance:** unambiguous architecture, registered active WB, no
+  implementation, PR unmerged, review and verification gates explicit.
+- **Risks:** dual-current/target confusion or accidental candidate authority.
+- **Out of scope:** candidate/installer/roles/skills/templates/tests/migrations
+  and current-pass Verifier report.
 
 ### WB-CORE-002 — Portable candidate content
 
-- **Objective:** implement portable `AGENTS.md`, roles, nine skills, templates, memory skeleton, and docs skeleton.
-- **Expected paths:** `candidate/portable-agentic-sdlc-kit/CANDIDATE.md`, `template/`, and bounded evidence paths.
-- **Dependencies:** Owner-approved WB-CORE-001 merge.
-- **Acceptance:** candidate matches spec; internal links/contracts pass; no runtime/provider config.
-- **Risks:** copying control-plane ownership or duplicating authority.
+- **Objective:** implement portable entry contract, roles, nine skills,
+  templates, memory, and docs skeleton.
+- **Expected paths:** candidate `CANDIDATE.md`, `template/`, bounded evidence.
+- **Dependencies:** accepted WB-CORE-001.
+- **Acceptance:** candidate matches spec; links/contracts pass; no runtime config.
+- **Risks:** copied control-plane ownership or duplicated authority.
 - **Out of scope:** installer, packaging, pilot, promotion, archive.
 
 ### WB-CORE-003 — Installer and packaging
 
-- **Objective:** implement/test plan/apply installer and package candidate without semantic drift.
-- **Expected paths:** candidate `tools/`, `tests/`, packaging metadata, bounded evidence.
+- **Objective:** implement/test plan/apply installer and packaging.
+- **Expected paths:** candidate `tools/`, `tests/`, packaging, evidence.
 - **Dependencies:** accepted WB-CORE-002.
-- **Acceptance:** collision/path/symlink/staging/no-overwrite tests; explicit results; runtime-neutral output.
-- **Risks:** path escape, partial install, silent overwrite, nondeterministic plan.
+- **Acceptance:** collision/path/symlink/staging/no-overwrite tests and explicit
+  runtime-neutral results.
+- **Risks:** path escape, partial install, overwrite, nondeterministic plan.
 - **Out of scope:** real-project adoption, promotion, archive.
 
 ### WB-CORE-004 — Synthetic dry run
 
-- **Objective:** exercise empty, compatible, colliding, symlinked, and partial targets.
-- **Expected paths:** controlled fixtures and reports only.
+- **Objective:** test empty, compatible, colliding, symlinked, and partial targets.
+- **Expected paths:** controlled fixtures and reports.
 - **Dependencies:** verified WB-CORE-003.
-- **Acceptance:** positive/negative cases; stable repeated plan; apply only planned files; fail-closed safety; recovery evidence.
+- **Acceptance:** positive/negative cases, stable plan, fail-closed apply,
+  recovery evidence.
 - **Risks:** unrealistic fixtures or filesystem gaps.
-- **Out of scope:** HardwareLab, production use, promotion, legacy removal.
+- **Out of scope:** HardwareLab, production, promotion, legacy removal.
 
 ### WB-CORE-005 — HardwareLab pilot
 
-- **Objective:** use candidate for representative Quick, Standard, and High-Risk-classified scenarios without production mutation.
-- **Expected paths:** approved HardwareLab feature branch/worktree, pilot reports, explicitly approved candidate corrections.
+- **Objective:** exercise Quick, Standard, and High-Risk-classified scenarios
+  without production mutation.
+- **Expected paths:** approved pilot branch/worktree, reports, approved fixes.
 - **Dependencies:** successful WB-CORE-004 and Owner pilot write-set approval.
-- **Acceptance:** collision-safe install; at least two execution modes where feasible; usable memory; fresh review/verification evidence.
-- **Risks:** pilot contamination, unapproved production effects, overgeneralizing one project.
-- **Out of scope:** production deploy, HardwareLab default-branch merge, automatic rollout, promotion.
+- **Acceptance:** safe install, at least two execution modes where feasible,
+  usable memory, fresh review/verification evidence.
+- **Risks:** pilot contamination or overgeneralization.
+- **Out of scope:** production deploy, default-branch merge, rollout, promotion.
 
 ### WB-CORE-006 — Promotion and legacy archive
 
-- **Objective:** promote to `portable-agentic-sdlc-kit/`, archive superseded material, and establish one canonical entry path.
-- **Expected paths:** canonical kit, `archive/legacy-control-plane/`, maps/registry/README migration notes, final assurance.
-- **Dependencies:** successful WB-CORE-005, resolved blockers, complete verification, explicit Owner promotion/merge approval.
-- **Acceptance:** unambiguous canonical/archive boundaries; provenance retained; no silent downstream migration; checks pass.
-- **Risks:** broken links, dual SSOT, accidental deletion, adoption without consent.
-- **Out of scope:** automatic downstream migration, runtime config generation, deletion of legacy evidence.
+- **Objective:** promote canonical kit, archive superseded material, establish one
+  entry path, and update architecture status/navigation atomically.
+- **Expected paths:** canonical kit, archive, maps/registry/README, assurance.
+- **Dependencies:** successful WB-CORE-005, resolved blockers, final verification,
+  accepted statuses, explicit Owner approval.
+- **Acceptance:** one canonical boundary, provenance retained, no silent downstream
+  migration, checks pass.
+- **Risks:** broken links, dual SSOT, deletion, adoption without consent.
+- **Out of scope:** automatic downstream migration, runtime config generation,
+  deletion of legacy evidence.
 
 ## 23. Compatibility and Non-Goals
 
-Compatibility is artifact-based. Any agent or human able to read and write the specified artifacts may execute the lifecycle. Native subagents, sequential passes, and manual handoffs are supported modes, not dependencies.
+Compatibility is artifact-based. Native subagents, sequential passes, and manual
+handoffs are supported modes, not dependencies. Runtime enforcement is not
+guaranteed by the core.
 
-The kit does not guarantee runtime enforcement. Local enforcement may be added outside the kit but is not canonical framework state.
-
-Non-goals:
-
-- orchestrating/installing AI runtimes;
-- selecting models/providers;
-- configuring permissions, sandboxes, hooks, plugins, or MCP;
-- maintaining capability databases or provider snapshots;
-- mirroring skills into provider directories;
-- running queues, services, or daemons;
-- replacing project-specific engineering standards;
-- requiring TDD, worktrees, browser tests, external-model review, or evaluation infrastructure for every Work Block;
-- automatic merge, deployment, live mutation, or external communication;
-- treating candidate as canonical before promotion.
-
-The retained core is the practical artifact chain, role authority, Work Block scope control, distinct review and verification, Hard Stops, truthful evidence, and closeout/memory synchronization. Runtime/provider ownership is not carried forward.
+Non-goals: runtime/model/provider orchestration, permissions/sandboxes/hooks/
+plugins/MCP, capability databases, provider mirrors, queues/services/daemons,
+replacement of project engineering standards, universal TDD/worktree/browser/
+external-model/evaluation requirements, automatic merge/deployment/live
+mutation/external communication, or candidate authority before promotion.
 
 ## 24. Acceptance Criteria
 
-- [x] Complete project-kit boundary is defined.
-- [x] Runtime/provider ownership is explicitly excluded.
-- [x] Six separate portable role contracts are specified.
-- [x] Common authority remains canonical in `AGENTS.md`.
-- [x] Nine core procedural skills include trigger, inputs, procedure, output, stop/escalation, and lifecycle relationship.
-- [x] Relevant current and historical mechanisms have an explicit disposition.
-- [x] `memory_bank/` is canonical committed project memory.
-- [x] Runtime-local scratch is separate at ignored `.agentic-local/`.
-- [x] Quick, Standard, and High-Risk are operationally precise and risk-based.
-- [x] Work Block concurrency rules are precise.
-- [x] Git and Owner approval boundaries are precise.
-- [x] Candidate path and noncanonical status are precise.
-- [x] Installer behavior is specified without implementation.
-- [x] Optional extensions are separated from core.
-- [x] Six migration Work Blocks are bounded with objective, paths, dependencies, acceptance, risks, and out-of-scope boundaries.
-- [x] No candidate or installer implementation is part of WB-CORE-001.
-- [x] No runtime-specific configuration is required or added.
-- [x] Exact framework, historical, and Superpowers revisions are recorded.
-- [x] No equal unresolved architectural alternatives remain.
-- [ ] Independent PR review and verification are complete.
-- [ ] Owner has explicitly approved merge.
+- [x] Complete project-kit boundary and runtime/provider exclusions are defined.
+- [x] Six roles and nine procedural skills are specified.
+- [x] Shared authority remains in `AGENTS.md`.
+- [x] Historical/current mechanisms have dispositions.
+- [x] Canonical `memory_bank/` and ignored `.agentic-local/` are defined.
+- [x] Process levels, concurrency, Git/Owner boundaries, candidate, installer,
+  optional extensions, and six migration Work Blocks are precise.
+- [x] Exact evidence revisions are recorded.
+- [x] Active Work Block precedence and non-expansion rules are explicit.
+- [x] Proposed-to-accepted status transition is explicit.
+- [x] No candidate/installer/runtime-specific implementation is included.
+- [x] No equal material architectural alternatives remain.
+- [ ] Later Reviewer and Verifier passes are `READY` against the final head.
+- [ ] Owner explicitly approves integration after accepted-status finalization.
 
-The final two criteria remain open until post-PR assurance and a separate Owner merge decision. They do not authorize implementation or promotion.
+The last two criteria remain open. This specification is not accepted and does
+not authorize merge or promotion while its frontmatter remains `proposed`.
