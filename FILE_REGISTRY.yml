@@ -7,6 +7,7 @@ architecture: runtime_neutral_control_plane
 
 statuses:
   normative: "source of truth or accepted policy-bearing file"
+  proposed: "target policy or architecture awaiting accepted status"
   template: "copied into generated projects"
   runtime_adapter: "runtime-specific implementation; cannot override governance"
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
@@ -19,15 +20,16 @@ statuses:
   local_state: "machine-local or private state; do not publish by default"
 
 artifact_authority_order:
-  - explicit_owner_instruction_for_active_work_block
-  - active_workspace_AGENTS_and_governance
-  - approved_specification_and_acceptance_criteria
-  - accepted_architecture_decisions_and_external_contracts
-  - approved_implementation_and_evaluation_plans_and_write_set
-  - active_task_decomposition
+  - explicit_owner_instruction_and_recorded_approval_or_revocation
+  - root_AGENTS_and_accepted_governance
+  - approved_specification_and_accepted_architecture_decisions
+  - active_work_block
+  - approved_implementation_and_evaluation_plans_and_tasklists
+  - mission_brief_or_active_task_decomposition
+  - frozen_implementation_diff_or_final_artifact
   - review_verification_evaluation_drift_release_state_integration_and_closeout_evidence
   - durable_engineering_memory
-  - runtime_integration_operational_logs_generated_context_and_examples
+  - runtime_integration_operational_logs_generated_context_caches_and_external_references
 
 role_dimensions:
   authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
@@ -98,6 +100,18 @@ skill_library_maintenance:
   external_content_trust: untrusted
   authority: none
 
+target_architecture:
+  identifier: portable_agentic_sdlc_project_kit
+  status: proposed
+  specification: docs/specs/portable-agentic-sdlc-project-kit.md
+  decisions:
+    - docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
+    - docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
+  active_migration_work_block: docs/plans/wb-core-001-normative-architecture.md
+  promotion_work_block: WB-CORE-006
+  current_operational_architecture_unchanged: true
+  authority: none_until_accepted_and_promoted
+
 migration_state:
   completed_work_blocks:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
@@ -110,8 +124,13 @@ migration_state:
     - docs/plans/wb-008-post-merge-ssot-release-gate.md
     - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
     - docs/plans/wb-010-skill-library-maintenance-integration.md
-  active_work_block: null
-  planned: []
+  active_work_block: docs/plans/wb-core-001-normative-architecture.md
+  planned:
+    - WB-CORE-002
+    - WB-CORE-003
+    - WB-CORE-004
+    - WB-CORE-005
+    - WB-CORE-006
 
 release_state:
   contract: governance/release-state.md
@@ -225,9 +244,27 @@ entries:
     owner: maintainer
 
   docs/architecture/decisions/**:
-    role: accepted_architecture_decisions
+    role: accepted_and_proposed_architecture_decisions
     status: normative
     owner: architect
+
+  docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md:
+    role: proposed_portable_kit_product_boundary_target
+    status: proposed
+    owner: architect
+    authority: none_until_accepted
+
+  docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md:
+    role: proposed_portable_roles_memory_candidate_and_installer_target
+    status: proposed
+    owner: architect
+    authority: none_until_accepted
+
+  docs/specs/portable-agentic-sdlc-project-kit.md:
+    role: proposed_portable_agentic_sdlc_project_kit_specification
+    status: proposed
+    owner: architect
+    authority: none_until_accepted
 
   docs/plans/**:
     role: work_block_plans_and_execution_evidence
@@ -284,6 +321,14 @@ entries:
     status: log
     owner: orchestrator
 
+  docs/plans/wb-core-001-normative-architecture.md:
+    role: active_portable_kit_normative_architecture_migration_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: in_progress
+    current_operational_architecture: runtime_neutral_control_plane
+    proposed_target_architecture: portable_agentic_sdlc_project_kit
+
   docs/evals/**:
     role: approved_evaluation_plans_benchmarks_and_observable_event_evidence
     status: evidence
@@ -294,6 +339,18 @@ entries:
     role: assurance_and_closeout_evidence
     status: evidence
     owner: verifier
+
+  docs/reports/reviews/wb-core-001-critic-review.md:
+    role: imported_critic_review_and_orchestrator_resolution
+    status: evidence
+    owner: critic
+
+  docs/reports/reviews/wb-core-001-pr-review.md:
+    role: independent_pr_review_changes_required_and_author_resolution
+    status: evidence
+    owner: reviewer
+    verdict: CHANGES_REQUIRED
+    reviewed_head: c040015d17004fa90d36bfb26cc0600793a27063
 
   docs/reports/evaluations/**:
     role: output_and_observable_trajectory_evaluation_reports
