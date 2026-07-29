@@ -23,9 +23,9 @@ conclusions are not reinterpreted as unconditional approval.
 Evidence revisions used by the Critic:
 
 - current framework:
-  `oleyna80/agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`;
+  `agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`;
 - practical framework baseline:
-  `oleyna80/agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`;
+  `agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`;
 - external reference:
   `obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`.
 
