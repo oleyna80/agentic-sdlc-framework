@@ -16,7 +16,7 @@ superpowers_reference_revision: 44c9b2d6e889982ac18c27d05a19fefe335194e1
 
 This specification defines a portable, repository-local Agentic SDLC Project Kit. The kit provides a complete artifact-based development lifecycle usable through native subagents, sequential single-agent role passes, or manual copy-and-paste handoffs.
 
-It preserves the practical lifecycle demonstrated by `oleyna80/agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`, retains useful authority and evidence rules from `oleyna80/agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`, and adopts selected procedural ideas from `obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`, including design before implementation, implementation planning, systematic debugging, and verification before completion.
+It preserves the practical lifecycle demonstrated by `agentic-sdlc-framework@0c632db0b0444e556251c384f6254141c9df59bc`, retains useful authority and evidence rules from `agentic-sdlc-framework@0fce7389d27690482e910e942a1f3138c2fef123`, and adopts selected procedural ideas from `obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`, including design before implementation, implementation planning, systematic debugging, and verification before completion.
 
 Those revisions are evidence, not runtime authorities. This specification becomes normative only after review and an Owner-approved merge. Until promotion, the current repository remains operationally canonical and the portable candidate remains noncanonical.
 
