@@ -75,6 +75,9 @@ unbound `PENDING` evaluation state.
 
 Source: `bootstrap/profiles.json`. Guide: `docs/bootstrap-profiles.md`.
 
+The `core` skill set includes `skill-library-maintenance` for controlled
+GitHub skill discovery and Owner-approved adaptation.
+
 | Profile | Project-local implementation surfaces |
 |---|---|
 | `core` | none; generic runtime guidance only |
