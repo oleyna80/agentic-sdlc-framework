@@ -66,10 +66,14 @@ Work Block
   → implementation plan and tasks
   → Critic when required
   → scoped implementation
-  → Review
-  → Verification
+  → Reviewer and Verifier assurance against an exact normative subject
+  → Owner-authorized status finalization when applicable
+  → final applicable assurance
+  → evidence-only reports
+  → CI on the resulting PR head
   → SSOT and memory synchronization
   → truthful closeout
+  → separate Owner-controlled integration
 ```
 
 Optional engineering capabilities remain outside the core: nondeterministic
@@ -96,15 +100,51 @@ WB-CORE-001 through WB-CORE-005:
 WB-CORE-006 owns the atomic promotion and legacy-archive reconciliation that
 changes the operational architecture identifier.
 
+### Assurance identity and verdicts
+
+Reviewer and Verifier assurance binds to an exact **normative subject**: the
+commit or artifact revision containing the applicable specification, ADRs, Work
+Block, authoritative plans/tasks, navigation/registry, delivered artifact, and
+status changes. Reports identify that exact subject rather than an unspecified
+or mutable final PR head.
+
+Critic, Reviewer, and Verifier verdicts are role-specific. Critic uses `APPROVE`,
+`APPROVE_WITH_CHANGES`, `RECONSIDER`, or `BLOCKED`. Reviewer uses `READY`,
+`CHANGES_REQUIRED`, `BLOCKED`, or `UNVERIFIED`. Verifier uses `READY`,
+`NOT_READY`, `BLOCKED`, or `UNVERIFIED`. Historical verdicts remain unchanged.
+
+An evidence-only commit changes only approved assurance or closeout report paths.
+It may follow the normative subject it evaluates and does not invalidate the
+verdict it records. Navigation or registry changes remain part of the normative
+subject and therefore precede an evidence-only report commit in a two-commit
+sequence.
+
+Any applicable normative-subject change invalidates prior readiness. A wording or
+metadata-only report correction remains evidence-only only when it does not
+change verdict, subject, scope, procedures, results, coverage, or limitations.
+Changing any of those requires renewed assurance as applicable.
+
 ### Acceptance-state transition
 
 This ADR remains `proposed` while PR #12 awaits required assurance and Owner
 approval. A proposed ADR is not accepted merely because a pull request exists, a
-review is recorded, or a CI run is green. After review and verification are
-`READY`, the Owner may approve integration. Before merge, its frontmatter must
-be changed to the project's accepted status; the status-only finalization commit
-must be included in the final verification subject. Merge of this file while it
-is still marked `proposed` does not silently make the decision accepted.
+review is recorded, or a CI run is green. The required transition is:
+
+```text
+preliminary Reviewer and Verifier assurance
+  → Owner authorizes accepted-status finalization
+  → status-only normative commit
+  → final Reviewer/Verifier assurance against that normative subject as required
+  → evidence-only report commit
+  → CI on the resulting PR head
+  → separate Owner merge approval
+```
+
+Before merge, this ADR's frontmatter must be changed to the project's accepted
+status. The status-only commit is part of the normative subject. The assurance
+report may be committed afterward and does not need to be contained in the
+commit it evaluates. Merge of this file while it is still marked `proposed` does
+not silently make the decision accepted.
 
 ## Rationale
 
@@ -117,6 +157,11 @@ runtime's hooks, agents, plugins, or permission system.
 A skills-library-only product was rejected because skills do not supply the
 entry contract, source-of-truth hierarchy, Work Blocks, durable memory, review
 artifacts, or closeout needed for a complete SDLC.
+
+Exact normative-subject identity avoids the circular requirement that a report
+must already exist in the commit it evaluates. Evidence-only report commits
+preserve assurance traceability while allowing CI to validate the resulting PR
+head.
 
 ## Rejected Alternatives
 
@@ -141,6 +186,11 @@ sources of truth. Users may create local configuration outside the kit.
 Rejected. Portability requires artifact-compatible native subagents, sequential
 passes, and manual handoffs.
 
+### Require reports inside the commit they verify
+
+Rejected. That creates a self-referential subject. The normative subject must be
+complete before its assurance report is recorded in a later evidence-only commit.
+
 ## Consequences
 
 ### Positive
@@ -151,6 +201,8 @@ passes, and manual handoffs.
 - The candidate can be tested as a concrete project kit rather than an abstract
   governance layer.
 - Optional tooling can evolve independently without becoming a core dependency.
+- Review and verification evidence can follow the exact subject without changing
+  it.
 
 ### Tradeoffs
 
@@ -161,15 +213,18 @@ passes, and manual handoffs.
 - Some current features become optional extensions or historical evidence.
 - Navigation carries an explicit current/active/target transition until
   WB-CORE-006; the proposed target does not replace the operational identifier.
+- Final readiness requires distinguishing normative changes from evidence-only
+  commits and rerunning assurance when the subject changes.
 
 ## Compatibility
 
 The current runtime-neutral control-plane repository remains operationally
 canonical until promotion. The navigation sources are updated during WB-CORE-001
-only to register the active migration Work Block and expose the proposed target;
-they do not change the current architecture identifier. The candidate under
-`candidate/portable-agentic-sdlc-kit/` is noncanonical. Promotion requires pilot
-evidence, final assurance, status finalization, and explicit Owner approval.
+only to register the active migration Work Block and current review evidence and
+to expose the proposed target; they do not change the current architecture
+identifier. The candidate under `candidate/portable-agentic-sdlc-kit/` is
+noncanonical. Promotion requires pilot evidence, final assurance, status
+finalization, green CI on the resulting PR head, and explicit Owner approval.
 
 ## Review Triggers
 
@@ -178,5 +233,6 @@ Review this decision when:
 - a proposed core feature requires owning provider/runtime configuration;
 - the artifact contracts cannot support a major execution mode;
 - a proposed extension attempts to redefine authority or source of truth;
+- assurance tooling cannot distinguish normative and evidence-only commits;
 - pilot evidence shows the product is incomplete without a currently excluded
   capability.

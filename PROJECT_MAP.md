@@ -53,8 +53,9 @@ WB-CORE-001 defines a proposed Portable Agentic SDLC Project Kit target:
 These artifacts remain `proposed`; they are not accepted merely because PR #12
 exists or CI passes. They do not change the current operational architecture
 identifier. WB-CORE-006 owns eventual promotion and atomic navigation
-reconciliation after the required pilot, review, verification, status
-finalization, and explicit Owner approval.
+reconciliation after pilot evidence, preliminary assurance, Owner-authorized
+status finalization, final applicable assurance against the resulting normative
+subject, evidence-only reports, green CI, and separate Owner approval.
 
 ## Authority Order
 
@@ -78,6 +79,39 @@ Material change returns to Define and requires Work Block revision.
 Runtime settings, prompts, plugins, models, tools, judges, scores, installation
 profiles, provider artifacts, and hosting-platform state implement, measure, or
 transport the model. They do not override it.
+
+## Assurance Subject and Evidence
+
+The proposed portable kit defines an exact **normative subject**: the commit or
+artifact revision containing all applicable specifications, ADRs, active Work
+Block, authoritative plans/tasks, navigation/registry, delivered artifact, and
+status changes. Reviewer and Verifier reports identify that subject SHA.
+
+Critic, Reviewer, and Verifier use role-specific verdicts:
+
+- Critic: `APPROVE`, `APPROVE_WITH_CHANGES`, `RECONSIDER`, `BLOCKED`;
+- Reviewer: `READY`, `CHANGES_REQUIRED`, `BLOCKED`, `UNVERIFIED`;
+- Verifier: `READY`, `NOT_READY`, `BLOCKED`, `UNVERIFIED`.
+
+An evidence-only commit changes only approved assurance or closeout report paths.
+It may follow the normative subject it evaluates and does not invalidate the
+verdict it records. Navigation and registry are normative-subject surfaces even
+when they index evidence. Any applicable normative-subject change invalidates
+prior readiness; a report-only wording or metadata correction remains
+evidence-only only when verdict, subject, scope, procedures, results, coverage,
+and limitations are unchanged.
+
+The final PR head may contain evidence-only report commits after the verified
+normative subject. CI and structural checks must pass on that resulting PR head.
+The assurance report does not need to be contained in the commit it evaluates.
+
+Current WB-CORE-001 review evidence:
+
+- `docs/reports/reviews/wb-core-001-pr-review.md` — historical
+  `CHANGES_REQUIRED` at `c040015d17004fa90d36bfb26cc0600793a27063`;
+- `docs/reports/reviews/wb-core-001-pr-rereview.md` — current
+  `CHANGES_REQUIRED` at `1fd216cfdc54d7868f4cb388506b08a733a5a418` and Author
+  Resolution for REV-006/REV-007; another Reviewer pass is required.
 
 ## Evaluation Assurance
 
@@ -147,11 +181,12 @@ Missing network, revision, or license evidence fails closed.
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | latest completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | latest closeout | Repository success-closeout for WB-010 |
-| `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Bounded target-architecture documentation and correction loop |
+| `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Bounded target-architecture documentation and assurance correction loop |
 | `docs/specs/portable-agentic-sdlc-project-kit.md` | proposed target | Portable-kit normative specification pending acceptance |
-| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | proposed target | Project-kit versus control-plane boundary |
-| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | proposed target | Role, memory, candidate, concurrency, and installer decisions |
-| `docs/reports/reviews/wb-core-001-pr-review.md` | review evidence | Independent `CHANGES_REQUIRED` review and Author Resolution |
+| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | proposed target | Project-kit versus control-plane boundary and assurance transition |
+| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | proposed target | Role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
+| `docs/reports/reviews/wb-core-001-pr-review.md` | historical review evidence | First independent `CHANGES_REQUIRED` review and Author Resolution |
+| `docs/reports/reviews/wb-core-001-pr-rereview.md` | current review evidence | Second `CHANGES_REQUIRED` review of `1fd216c...`, accepted REV-001—REV-005, and Author Resolution for REV-006/REV-007 |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
 | `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
 | `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
@@ -162,7 +197,7 @@ Missing network, revision, or license evidence fails closed.
 | `.github/workflows/framework-contracts.yml` | CI evidence | Contract routing, validation, and non-authoritative provider snapshot |
 | `scripts/ci-contract-router.py` | CI control | Unknown paths run full suite; required contracts never skip |
 | `README.md` / `SETUP.md` | public guidance | Architecture, setup, and safe activation |
-| `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine current/active/target maps |
+| `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine current/active/target and assurance maps |
 
 ## Installation Profiles
 
@@ -212,9 +247,11 @@ Completed:
 Active migration Work Block:
 `docs/plans/wb-core-001-normative-architecture.md`.
 
-WB-CORE-001 is `in_progress`: Define and documentation Execute are complete, the
-Reviewer correction loop is active, and Verifier/closeout remain pending. The
-portable kit is still a proposed target and does not replace current operations.
+WB-CORE-001 is `in_progress`: Define and initial documentation Execute are
+complete. REV-001 through REV-005 are accepted by the second review. REV-006 and
+REV-007 have an Author Resolution but require another Reviewer pass. Verifier,
+accepted-status finalization, and closeout remain pending. The portable kit is
+still a proposed target and does not replace current operations.
 
 ## Boundaries
 
@@ -233,6 +270,9 @@ portable kit is still a proposed target and does not replace current operations.
 - the portable-kit specification and ADRs are proposed target artifacts until
   accepted and later promoted.
 - proposals do not supersede current operational navigation by mere presence.
+- report commits are evidence-only only when they touch approved assurance or
+  closeout report paths and contain no normative-subject change.
+- navigation and registry remain normative-subject surfaces.
 
 ## Framework Read Order
 
@@ -242,11 +282,12 @@ portable kit is still a proposed target and does not replace current operations.
 4. active Work Block, when present;
 5. approved implementation/evaluation plan and tasklist;
 6. mission brief or active task decomposition;
-7. current Git state, frozen diff, target files, and evidence;
+7. current Git state, exact normative subject, target files, and evidence;
 8. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` as navigation projections;
 9. installed runtime and admitted integration adapters;
 10. durable memory, reference knowledge, and operational logs when relevant.
 
 Update this map and `FILE_REGISTRY.yml` whenever authority, lifecycle,
-evaluation, release state, profile composition, evidence boundaries, adapters,
-migration state, target architecture, or publication requirements change.
+evaluation, release state, assurance subject, verdict semantics, evidence
+boundaries, profile composition, adapters, migration state, target architecture,
+or publication requirements change.

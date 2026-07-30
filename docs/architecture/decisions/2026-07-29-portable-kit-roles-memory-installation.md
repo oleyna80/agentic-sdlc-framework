@@ -12,10 +12,11 @@ source_framework_revision: 0fce7389d27690482e910e942a1f3138c2fef123
 ## Context
 
 The portable product requires concrete decisions for role packaging, committed
-versus local state, concurrent writes, candidate isolation, and installation into
-both new and existing repositories. Leaving these as equal alternatives would
-allow candidate implementations to recreate provider-specific agents, move
-canonical memory into runtime-local directories, or overwrite project files.
+versus local state, concurrent writes, candidate isolation, installation into
+both new and existing repositories, and assurance evidence identity. Leaving
+these as equal alternatives would allow candidate implementations to recreate
+provider-specific agents, move canonical memory into runtime-local directories,
+overwrite project files, or bind readiness to an ambiguous PR head.
 
 ## Decision
 
@@ -44,6 +45,27 @@ A single consolidated `roles.md` is rejected because it weakens progressive
 disclosure, makes role-specific handoff harder, and encourages runtimes to load
 unrelated authority descriptions.
 
+### Role-specific verdict vocabularies
+
+Role contracts use distinct verdicts:
+
+- Critic: `APPROVE`, `APPROVE_WITH_CHANGES`, `RECONSIDER`, `BLOCKED`.
+- Reviewer: `READY`, `CHANGES_REQUIRED`, `BLOCKED`, `UNVERIFIED`.
+- Verifier: `READY`, `NOT_READY`, `BLOCKED`, `UNVERIFIED`.
+
+Reviewer `READY` means no unresolved blocking review finding;
+`CHANGES_REQUIRED` requires correction and re-review; `BLOCKED` means required
+subject, authority, access, or evidence is unavailable; `UNVERIFIED` means
+coverage is insufficient for a readiness judgment.
+
+Verifier `READY` means fresh evidence demonstrates all required acceptance
+criteria; `NOT_READY` means one or more criteria demonstrably fail; `BLOCKED`
+means a required procedure cannot run because authority, environment, dependency,
+or access is unavailable; `UNVERIFIED` means required evidence is absent or
+insufficient.
+
+Historical Critic or Reviewer reports retain the verdicts originally recorded.
+
 ### Canonical committed memory
 
 Canonical project memory is committed at:
@@ -59,9 +81,9 @@ memory_bank/
 ```
 
 `memory_bank/` stores concise project state, progress, accepted decisions,
-coordination events, assurance outcomes, and conditional context snapshots. It
-must remain sufficient to reconstruct current accepted project state without
-provider memory or chat history.
+coordination events, assurance outcomes, exact normative-subject identities, and
+conditional context snapshots. It must remain sufficient to reconstruct current
+accepted project state without provider memory or chat history.
 
 Runtime-local scratch, caches, raw transcripts, temporary traces, downloads, and
 tool output use ignored `.agentic-local/`. They are noncanonical, disposable,
@@ -123,25 +145,60 @@ The installer creates no runtime agents, hooks, plugins, MCP configuration,
 provider directories, model routing, capability profiles, or duplicated skill
 mirrors.
 
+### Normative subject and evidence-only commits
+
+The normative subject is the exact commit or artifact revision containing the
+applicable specification, ADRs, Work Block, authoritative plans/tasks,
+navigation/registry, delivered artifact, and proposed-to-accepted status changes.
+Reviewer and Verifier reports identify that exact subject.
+
+An evidence-only commit changes only approved assurance or closeout report paths.
+It does not invalidate the verdict it records and may follow the normative
+subject. The final PR head may therefore contain evidence-only commits after the
+verified subject, provided CI and structural checks pass on that resulting head.
+An evidence-only commit must not contain hidden normative changes.
+
+Any applicable normative-subject change invalidates prior readiness. A report
+correction remains evidence-only only when it changes wording or metadata without
+changing verdict, subject, scope, procedures, results, coverage, or limitations.
+A change to any of those fields requires renewed assurance as applicable.
+Navigation and registry are normative-subject surfaces even when they index
+reports.
+
 ### Acceptance-state transition
 
 This ADR remains `proposed` while PR #12 awaits required assurance and Owner
 approval. A proposed ADR is not accepted merely because a pull request exists, a
-review is recorded, or a CI run is green. After review and verification are
-`READY`, the Owner may approve integration. Before merge, its frontmatter must
-be changed to the project's accepted status; the status-only finalization commit
-must be included in the final verification subject. Merge of this file while it
-is still marked `proposed` does not silently make the decision accepted.
+review is recorded, or a CI run is green. The required sequence is:
+
+```text
+preliminary Reviewer and Verifier assurance
+  → Owner authorizes accepted-status finalization
+  → status-only normative commit
+  → final Reviewer/Verifier assurance against that normative subject as required
+  → evidence-only report commit
+  → CI on the resulting PR head
+  → separate Owner merge approval
+```
+
+Before merge, its frontmatter must be changed to the project's accepted status.
+The status-only commit is part of the normative subject. The assurance report may
+be committed afterward and does not need to be contained in the commit it
+evaluates. Merge of this file while it is still marked `proposed` does not
+silently make the decision accepted.
 
 ## Rationale
 
 Separate roles allow the same portable contracts to be routed to native
-subagents, sequential passes, or manual handoffs. Canonical committed memory
-preserves durable state. A distinct ignored local path prevents operational noise
-and sensitive traces from contaminating project knowledge. One writer per tree
-avoids implicit conflict resolution. Candidate isolation prevents draft content
-from becoming authoritative through mere presence. A plan/apply installer is the
-minimum safe interface for existing repositories.
+subagents, sequential passes, or manual handoffs. Role-specific verdicts prevent
+Critic approval language from being confused with Reviewer or Verifier readiness.
+Canonical committed memory preserves durable state. A distinct ignored local
+path prevents operational noise and sensitive traces from contaminating project
+knowledge. One writer per tree avoids implicit conflict resolution. Candidate
+isolation prevents draft content from becoming authoritative through mere
+presence. A plan/apply installer is the minimum safe interface for existing
+repositories. Exact normative-subject identity and evidence-only report commits
+avoid self-referential verification.
 
 ## Rejected Alternatives
 
@@ -149,6 +206,11 @@ minimum safe interface for existing repositories.
 
 Rejected because it over-consolidates role contracts and impairs bounded loading
 and handoff.
+
+### Shared verdict vocabulary for all assurance roles
+
+Rejected because Critic design judgment, Reviewer readiness, and Verifier
+acceptance evidence are different decisions with different failure states.
 
 ### Provider-specific role mirrors
 
@@ -178,10 +240,16 @@ no reviewable plan.
 Rejected because normative architecture, packaging, synthetic safety tests, and a
 real-project pilot must precede promotion.
 
+### Require the report inside its verified commit
+
+Rejected because a commit cannot contain a report that already identifies that
+same completed commit without circularity. The report follows as evidence-only.
+
 ## Consequences
 
 - Projects receive explicit role and memory boundaries without requiring runtime
   features.
+- Verdict semantics are consistent across role contracts and report templates.
 - Installer complexity is higher than a simple copy command but collisions and
   path safety become observable.
 - Parallel implementation requires worktree/clone isolation managed outside the
@@ -189,6 +257,8 @@ real-project pilot must precede promotion.
 - Candidate and legacy paths coexist temporarily during migration, with exactly
   one operational baseline identified at each stage.
 - Local runtime configuration remains possible but is deliberately unmanaged.
+- Assurance reports may follow the verified normative subject without changing
+  it; CI still evaluates the resulting PR head.
 
 ## Review Triggers
 
@@ -196,7 +266,9 @@ Review this decision when:
 
 - a role requires authority not representable through `AGENTS.md` plus the role
   schema;
+- a proposed role requires a verdict outside its defined vocabulary;
 - pilot evidence shows canonical memory cannot remain concise and complete;
 - installer safety requires a new mutation class;
 - a proposed concurrency model allows shared-tree parallel writers;
+- assurance tooling cannot distinguish normative from evidence-only commits;
 - promotion or archival would create more than one canonical source of truth.

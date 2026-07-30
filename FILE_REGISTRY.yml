@@ -46,6 +46,37 @@ role_dimensions:
     - provider
     - hosting_platform_state
 
+assurance_contract:
+  normative_subject: exact_commit_or_artifact_revision
+  normative_subject_includes:
+    - specification
+    - architecture_decisions
+    - active_work_block
+    - authoritative_plans_and_tasks
+    - navigation_and_registry
+    - delivered_artifact
+    - proposed_to_accepted_status_changes
+  evidence_only_commit:
+    allowed_paths: approved_assurance_or_closeout_reports_only
+    changes_normative_subject: false
+    may_follow_verified_subject: true
+    requires_green_ci_on_resulting_pr_head: true
+    hidden_normative_changes: forbidden
+  verdicts:
+    critic: [APPROVE, APPROVE_WITH_CHANGES, RECONSIDER, BLOCKED]
+    reviewer: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
+    verifier: [READY, NOT_READY, BLOCKED, UNVERIFIED]
+  readiness_invalidation: any_applicable_normative_subject_change
+  report_inside_verified_commit_required: false
+  acceptance_sequence:
+    - preliminary_reviewer_and_verifier_assurance
+    - owner_authorizes_accepted_status_finalization
+    - status_only_normative_commit
+    - final_applicable_assurance_against_normative_subject
+    - evidence_only_report_commit
+    - ci_on_resulting_pr_head
+    - separate_owner_merge_approval
+
 installation_profiles:
   source: bootstrap/profiles.json
   engine: bootstrap/bootstrap_project.py
@@ -141,6 +172,16 @@ release_state:
   closeout_report: docs/reports/closeout/wb-010-skill-library-maintenance-integration.md
   external_vcs_state: non_normative
   authority: assurance_only
+
+current_review_evidence:
+  path: docs/reports/reviews/wb-core-001-pr-rereview.md
+  status: evidence
+  owner: reviewer
+  verdict: CHANGES_REQUIRED
+  reviewed_head: 1fd216cfdc54d7868f4cb388506b08a733a5a418
+  accepted_prior_findings: [REV-001, REV-002, REV-003, REV-004, REV-005]
+  open_findings: [REV-006, REV-007]
+  another_reviewer_pass_required: true
 
 entries:
   governance/**:
@@ -351,6 +392,16 @@ entries:
     owner: reviewer
     verdict: CHANGES_REQUIRED
     reviewed_head: c040015d17004fa90d36bfb26cc0600793a27063
+
+  docs/reports/reviews/wb-core-001-pr-rereview.md:
+    role: second_independent_pr_review_changes_required_and_author_resolution
+    status: evidence
+    owner: reviewer
+    verdict: CHANGES_REQUIRED
+    reviewed_head: 1fd216cfdc54d7868f4cb388506b08a733a5a418
+    accepted_findings: [REV-001, REV-002, REV-003, REV-004, REV-005]
+    open_findings: [REV-006, REV-007]
+    another_reviewer_pass_required: true
 
   docs/reports/evaluations/**:
     role: output_and_observable_trajectory_evaluation_reports

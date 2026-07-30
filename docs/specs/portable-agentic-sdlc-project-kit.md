@@ -62,6 +62,10 @@ independently but cannot redefine kit authority.
    `UNVERIFIED`.
 9. Installation is collision-safe and never silently overwrites.
 10. Candidate evidence and Owner approval precede promotion.
+11. Assurance binds to an exact normative subject, not implicitly to a mutable PR
+    head.
+12. Evidence-only commits may record assurance without changing the normative
+    subject.
 
 ## 4. Source of Truth
 
@@ -87,7 +91,8 @@ either artifact.
 A lower-ranked artifact cannot silently revise a higher-ranked artifact. Any
 material change to objective, specification, architecture, scope, write-set,
 process level, role authority, Hard Stops, acceptance, risk, or required
-assurance returns the lifecycle to Define and requires an explicit Work Block revision.
+assurance returns the lifecycle to Define and requires an explicit Work Block
+revision.
 
 ## 5. Lifecycle
 
@@ -95,14 +100,20 @@ assurance returns the lifecycle to Define and requires an explicit Work Block re
 Intake and classify
   → Define: discovery, architecture, specification, plan/tasks, Critic
   → Execute: bounded implementation, self-checks, checkpoint commits, frozen diff
-  → Assure: Reviewer, fresh verification, required independence
+  → Assure: Reviewer, Verifier, fresh evidence, required independence
+  → Finalize status when Owner-authorized
+  → Re-assure the final normative subject as required
+  → Record assurance in evidence-only reports
+  → Run CI on the resulting PR head
   → Close: SSOT sync, memory sync, truthful closeout
-  → Integrate: readiness recommendation, separate Owner-approved integration
+  → Integrate: separate Owner-approved merge or other consequential action
 ```
 
 Quick work may compress functions but cannot omit scope, authority, acceptance,
 fresh verification, or truthful closeout. Intermediate feature-branch commits do
-not require final assurance and do not constitute completion.
+not require final assurance and do not constitute completion. A report commit may
+follow the exact normative subject it evaluates; the report does not need to be
+contained in the commit it evaluates.
 
 ## 6. Process Levels
 
@@ -161,10 +172,10 @@ procedure, output, stop conditions, and handoff.
   process level, and verification design.
 - **Coder:** implements exactly one approved write-set without changing
   requirements or crossing Hard Stops.
-- **Reviewer:** inspects a frozen diff/final artifact and records findings and a
-  verdict without editing it.
-- **Verifier:** tests acceptance against current state and records evidence and a
-  verdict without repairing implementation.
+- **Reviewer:** inspects an exact normative subject and records findings and a
+  role-specific verdict without editing that subject.
+- **Verifier:** tests acceptance against an exact normative subject and records
+  fresh evidence and a role-specific verdict without repairing implementation.
 
 ## 8. Role Execution Modes
 
@@ -197,12 +208,67 @@ alternatives, consequences, and review triggers. Material product, authority,
 data/security, interface, installation, migration, or compatibility changes
 require an ADR. Equal material alternatives must be resolved before execution.
 
+### Normative subject
+
+The **normative subject** is the exact commit or artifact revision containing the
+final state of every applicable authority-bearing or delivered surface:
+
+- specification;
+- ADRs;
+- active Work Block;
+- plans and tasks when authoritative for the work;
+- navigation and registry projections;
+- implementation or other delivered artifact;
+- proposed-to-accepted status changes.
+
+Reviewer and Verifier reports must identify the exact normative-subject SHA or
+artifact revision. A report must never use an unspecified, moving, or
+self-referential moving PR head as its verified identity.
+
+### Evidence-only commit
+
+An **evidence-only commit** changes only approved assurance or closeout report
+paths and does not modify the normative subject. The following rules are
+mandatory:
+
+1. Reviewer and Verifier reports identify the exact normative-subject SHA.
+2. Any applicable normative-subject change invalidates prior Reviewer or Verifier
+   readiness for the changed surfaces.
+3. An evidence-only commit does not invalidate the verdict it records.
+4. The final PR head may contain evidence-only commits after the verified
+   normative subject.
+5. CI and structural checks must pass on the resulting PR head.
+6. An evidence-only commit must not contain hidden normative changes.
+7. A report correction that changes only wording or metadata, without changing
+   verdict, subject, scope, procedures, results, or limitations, remains
+   evidence-only.
+8. A change to verdict, normative subject, coverage, result, or limitation
+   requires renewed assurance as applicable.
+
+Navigation or registry changes are part of the normative subject even when they
+only index evidence. They must therefore precede the evidence-only report commit
+when a two-commit corrective sequence is used.
+
+### Acceptance-state transition
+
 `proposed` artifacts are not accepted merely because a pull request exists,
-checks pass, or a review is recorded. After required review and verification are
-`READY`, the Owner may approve integration. Before merge, every artifact being
-accepted must have frontmatter changed from `proposed` to the project's accepted
-status. That status-only finalization commit must be included in the final
-verification subject and verified at its exact head. Merge of files still marked
+checks pass, or a review is recorded. The required transition is:
+
+```text
+preliminary Reviewer and Verifier assurance
+  → Owner authorizes accepted-status finalization
+  → status-only normative commit
+  → final Reviewer/Verifier assurance against that normative subject as required
+  → evidence-only report commit
+  → CI on the resulting PR head
+  → separate Owner merge approval
+```
+
+Before merge, every artifact being accepted must have frontmatter changed from
+`proposed` to the project's accepted status. The status-only commit is part of
+the normative subject and must receive the applicable final assurance. The
+Reviewer or Verifier report may be committed afterward as evidence-only and does
+not need to be contained in the commit it evaluates. Merge of files still marked
 `proposed` does not silently make them accepted.
 
 ## 11. Plans and Task Decomposition
@@ -277,7 +343,7 @@ memory_bank/
 | `progress.md` | Milestone ledger; completion/blocker/reopen/closeout | Orchestrator; date, WB, status, verdict, evidence | No copied reports/unsupported success; append corrections |
 | `decisions.md` | Durable accepted decisions not fully in ADR; accept/revise/revoke | Architect proposes, Orchestrator records; status, rationale, evidence, supersession | No hidden reasoning/credentials/duplicate ADR body; retain history |
 | `orchestrator-log.md` | Coordination/authority/approvals/routing; every transition | Orchestrator; date, WB, action, authority basis, result, links | No chain-of-thought/raw prompts/secrets; append concise events |
-| `review-log.md` | Assurance index; report/verdict change | Orchestrator with assurance roles; artifact, scope, mode, verdict, blockers | No duplicated full reports; retain verdict history |
+| `review-log.md` | Assurance index; report/verdict change | Orchestrator with assurance roles; artifact, normative subject, scope, mode, verdict, blockers | No duplicated full reports; retain verdict history |
 | `snapshots/` | Reconstructable context; conditional snapshot trigger | Orchestrator/delegate; objective, authority, state, decisions, evidence, next action | No transcript/scratch/secrets; retain referenced snapshots |
 
 Runtime-local scratch, caches, raw transcripts, temporary traces, tool output,
@@ -286,33 +352,67 @@ accepted decisions or required evidence.
 
 ## 15. Review
 
-Standard and High-Risk require Reviewer inspection of a frozen diff/final
-artifact. Review records revision, included/excluded paths, source contracts,
-severity-ranked findings, limitations, verdict (`APPROVE`,
-`APPROVE_WITH_CHANGES`, `CHANGES_REQUIRED`, or `BLOCKED`), and correction
-handoff. Reviewer does not edit the reviewed artifact. Corrections require
-re-review of changed surfaces.
+Critic and Reviewer are distinct assurance roles and use distinct verdict
+vocabularies.
+
+### Critic verdicts
+
+- `APPROVE`: the Define-stage proposal may proceed without required correction.
+- `APPROVE_WITH_CHANGES`: the direction is acceptable after specified bounded
+  changes are incorporated.
+- `RECONSIDER`: material assumptions, scope, architecture, process level, or
+  verification design must return to Define before execution.
+- `BLOCKED`: required subject, authority, access, or evidence is unavailable.
+
+### Reviewer verdicts
+
+- `READY`: no unresolved blocking review finding.
+- `CHANGES_REQUIRED`: identified corrections must be completed and re-reviewed.
+- `BLOCKED`: review cannot continue because required subject, authority, access,
+  or evidence is missing.
+- `UNVERIFIED`: review coverage is insufficient to make a readiness judgment.
+
+Standard and High-Risk require Reviewer inspection of an exact normative subject.
+A review report records the normative-subject SHA, included and excluded paths,
+source contracts, procedures, severity-ranked findings, coverage, limitations,
+verdict, and correction handoff. Reviewer does not edit the reviewed subject.
+Any applicable normative-subject change invalidates prior `READY` and requires
+re-review of the changed surfaces. Historical Critic and Reviewer verdicts retain
+the vocabulary under which they were issued and are not silently rewritten.
 
 ## 16. Verification
 
-Verification maps current-state evidence to acceptance. Standard and High-Risk
-require a Verifier artifact unless a documented fallback is explicitly allowed.
-A report records verified identity, criterion, procedure, expected/actual,
-pass/fail/blocked/not-applicable, limitations, verdict (`READY`, `NOT_READY`,
-`BLOCKED`, or `UNVERIFIED`), and residual risk.
+Verifier verdicts are:
 
-Fresh evidence is mandatory before completion, final review request, PR
-readiness, merge recommendation, and successful closeout. Relevant changes make
-prior evidence stale. Tests and reviewers cannot approve Hard Stops.
+- `READY`: fresh evidence demonstrates all required acceptance criteria.
+- `NOT_READY`: evidence demonstrates one or more required criteria fail.
+- `BLOCKED`: a required procedure cannot run because authority, environment,
+  dependency, or access is unavailable.
+- `UNVERIFIED`: required evidence is absent or insufficient.
+
+Verification maps fresh evidence to acceptance for an exact normative subject.
+Standard and High-Risk require a Verifier artifact unless a documented fallback
+is explicitly allowed. A report records the normative-subject SHA, criterion,
+procedure, expected and actual result, pass/fail/blocked/not-applicable status,
+coverage, limitations, verdict, and residual risk.
+
+Fresh evidence is mandatory before completion, final review request, PR readiness,
+merge recommendation, and successful closeout. Applicable normative-subject
+changes make prior readiness stale. Evidence-only report commits do not make the
+verdict they record stale. Tests, reviewers, and verifiers cannot approve Hard
+Stops or substitute for Owner authority.
 
 ## 17. Closeout
 
-Successful closeout requires in-scope implementation, resolved required review,
-verification `READY` against current state, required Owner approvals,
-synchronized specifications/ADRs/plans/tasks/navigation, synchronized memory and
-logs, disclosed residual risks, and bounded follow-up Work Blocks. Blocked,
-incomplete, unverified, rejected, or superseded work uses reporting-only
-closeout and cannot claim success.
+Successful closeout requires in-scope implementation, Reviewer `READY` when
+required, Verifier `READY` against the applicable normative subject, required
+Owner approvals, synchronized specifications/ADRs/plans/tasks/navigation,
+synchronized memory and logs, disclosed residual risks, and bounded follow-up
+Work Blocks. CI and structural checks must pass on the resulting PR head,
+including any evidence-only commits.
+
+Blocked, incomplete, `CHANGES_REQUIRED`, `NOT_READY`, `UNVERIFIED`, rejected, or
+superseded work uses reporting-only closeout and cannot claim success.
 
 ## 18. Git and Owner Approval Boundaries
 
@@ -324,7 +424,8 @@ scope expansion.
 
 Within an approved Work Block, feature-branch creation, commits, push, PR
 creation/update, nonconsequential checks, and approved evidence artifacts are
-allowed. PR existence or readiness does not grant merge authority.
+allowed. PR existence, a report commit, or readiness does not grant merge
+authority.
 
 ## 19. Installation
 
@@ -352,7 +453,7 @@ tooling, browser/UI testing, worktree automation, Git branch/PR finishing,
 external second-model review, specialized provenance tooling, and all MCP,
 plugins, hooks, runtime profiles, queues, daemons, and provider adapters.
 Extensions may consume core artifacts but cannot redefine authority, source of
-truth, process levels, Hard Stops, memory, or closeout.
+truth, process levels, Hard Stops, memory, assurance semantics, or closeout.
 
 ## 21. Candidate and Promotion Model
 
@@ -367,23 +468,27 @@ candidate/portable-agentic-sdlc-kit/
 ```
 
 Promotion requires successful synthetic installation, HardwareLab pilot,
-resolved blockers, complete verification, accepted statuses, and explicit Owner
-approval. The canonical promoted path is `portable-agentic-sdlc-kit/`.
-Superseded material is archived under `archive/legacy-control-plane/` with
-provenance, not silently deleted. Exactly one canonical kit is identified after
-promotion.
+resolved blockers, preliminary assurance, Owner-authorized accepted-status
+finalization, final applicable Reviewer/Verifier assurance against that normative
+subject, evidence-only assurance reports, green CI on the resulting PR head, and
+separate explicit Owner approval. The canonical promoted path is
+`portable-agentic-sdlc-kit/`. Superseded material is archived under
+`archive/legacy-control-plane/` with provenance, not silently deleted. Exactly
+one canonical kit is identified after promotion.
 
 ## 22. Migration Sequence
 
 ### WB-CORE-001 — Normative architecture
 
 - **Objective:** define product, roles, skills, memory, process, concurrency,
-  installation, candidate, and migration contracts.
+  installation, candidate, assurance, and migration contracts.
 - **Expected paths:** approved specification/ADRs/Work Block/reviews/navigation.
 - **Dependencies:** current contracts and immutable revisions in section 1.
-- **Acceptance:** unambiguous architecture, registered active WB, no
-  implementation, PR unmerged, review and verification gates explicit.
-- **Risks:** dual-current/target confusion or accidental candidate authority.
+- **Acceptance:** unambiguous architecture, registered active WB, role-specific
+  verdicts, exact normative-subject/evidence-only semantics, no implementation,
+  PR unmerged, and assurance gates explicit.
+- **Risks:** dual-current/target confusion, self-referential verification, or
+  accidental candidate authority.
 - **Out of scope:** candidate/installer/roles/skills/templates/tests/migrations
   and current-pass Verifier report.
 
@@ -433,10 +538,11 @@ promotion.
 - **Objective:** promote canonical kit, archive superseded material, establish one
   entry path, and update architecture status/navigation atomically.
 - **Expected paths:** canonical kit, archive, maps/registry/README, assurance.
-- **Dependencies:** successful WB-CORE-005, resolved blockers, final verification,
-  accepted statuses, explicit Owner approval.
-- **Acceptance:** one canonical boundary, provenance retained, no silent downstream
-  migration, checks pass.
+- **Dependencies:** successful WB-CORE-005, resolved blockers, preliminary
+  assurance, Owner-authorized accepted-status finalization, final assurance on
+  the resulting normative subject, green CI, and separate Owner approval.
+- **Acceptance:** one canonical boundary, provenance retained, exact assurance
+  subject recorded, no silent downstream migration, checks pass.
 - **Risks:** broken links, dual SSOT, deletion, adoption without consent.
 - **Out of scope:** automatic downstream migration, runtime config generation,
   deletion of legacy evidence.
@@ -464,11 +570,18 @@ mutation/external communication, or candidate authority before promotion.
   optional extensions, and six migration Work Blocks are precise.
 - [x] Exact evidence revisions are recorded.
 - [x] Active Work Block precedence and non-expansion rules are explicit.
+- [x] Critic, Reviewer, and Verifier verdict vocabularies are role-specific.
+- [x] Normative subject and evidence-only commit semantics are explicit.
+- [x] The acceptance transition does not require an assurance report to be in the
+  commit it evaluates.
+- [x] No self-referential final-head assurance requirement remains.
 - [x] Proposed-to-accepted status transition is explicit.
 - [x] No candidate/installer/runtime-specific implementation is included.
 - [x] No equal material architectural alternatives remain.
-- [ ] Later Reviewer and Verifier passes are `READY` against the final head.
-- [ ] Owner explicitly approves integration after accepted-status finalization.
+- [ ] A later Reviewer returns `READY` for the applicable normative subject.
+- [ ] A later Verifier returns `READY` for the applicable normative subject.
+- [ ] Owner authorizes accepted-status finalization and later separately approves
+  integration after final assurance and green CI.
 
-The last two criteria remain open. This specification is not accepted and does
-not authorize merge or promotion while its frontmatter remains `proposed`.
+The final criteria remain open. This specification is not accepted and does not
+authorize merge or promotion while its frontmatter remains `proposed`.
