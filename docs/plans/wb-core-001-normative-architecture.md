@@ -37,6 +37,11 @@ capability negotiation, and provider-specific agent configuration.
 - third review of normative subject
   `6e4b63a8d53ac7bbaf8d2910730a6601f2a16605` and evidence-only head
   `7ccec4d24982d0f9f28ac4ac8af4c1206031504b`;
+- fourth review of normative subject
+  `88d60b142f12e96f1c8fe09839fcc43f6ba95c3d` and evidence-only head
+  `2b9171e20fc681ebdd3a5619a307438dfeac6e3c`;
+- pre-REV-008 operational navigation baseline
+  `7ccec4d24982d0f9f28ac4ac8af4c1206031504b`;
 - current repository contracts and history.
 
 ## Process and Authority Classification
@@ -47,34 +52,35 @@ capability negotiation, and provider-specific agent configuration.
 - **Merge authority:** none; merge requires separate explicit Owner approval.
 - **Deployment/data/secrets:** none.
 - **Lifecycle:** Define and initial documentation Execute are complete.
-  REV-001 through REV-007 are accepted prior corrections. REV-008 correction is
+  REV-001 through REV-008 are accepted prior corrections. REV-009 correction is
   active.
+- **Correction purpose:** restore unrelated static current-operational inventory
+  removed during REV-008 without reintroducing mutable assurance mirrors or
+  changing the portable target architecture.
 - **Completion:** `in_progress`; Reviewer, Verifier, accepted-status
   finalization, closeout, and Owner-controlled integration gates remain open.
 
 ## Approved Write-Set
 
 ```text
-docs/specs/portable-agentic-sdlc-project-kit.md
-docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
-docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
-docs/plans/wb-core-001-normative-architecture.md
-docs/reports/reviews/wb-core-001-pr-review-3.md
-PROJECT_MAP.md
 FILE_REGISTRY.yml
+PROJECT_MAP.md
+docs/plans/wb-core-001-normative-architecture.md
+docs/reports/reviews/wb-core-001-pr-review-4.md
 ```
 
-The Critic report and first two PR review reports are read-only historical
-evidence in this pass. No other path may change.
+No specification or ADR change is authorized in this pass. The Critic report
+and first three PR review reports are read-only historical evidence. No other
+path may change.
 
 ## Commit Structure
 
 This corrective pass uses two commits:
 
-1. a normative correction commit containing the specification, both ADRs, this
-   Work Block, `PROJECT_MAP.md`, and `FILE_REGISTRY.yml`;
+1. a normative correction commit containing `FILE_REGISTRY.yml`,
+   `PROJECT_MAP.md`, and this Work Block;
 2. an evidence-only commit creating
-   `docs/reports/reviews/wb-core-001-pr-review-3.md`.
+   `docs/reports/reviews/wb-core-001-pr-review-4.md`.
 
 The second commit changes only that report path.
 
@@ -86,81 +92,121 @@ runtime-neutral control-plane release-state contract. `PROJECT_MAP.md` and
 
 - `runtime_neutral_control_plane` as current operational architecture;
 - this Work Block as active and `in_progress`;
-- the portable kit as `proposed` target architecture;
-- canonical evidence directory classes.
+- `portable_agentic_sdlc_project_kit` as the `proposed` target architecture;
+- canonical static evidence directory classes.
+
+This pass restores static operational inventory and relationships that remain
+valid for the current control plane. It does not promote the portable target,
+archive the current architecture, alter accepted/proposed authority state, or
+register any current review verdict or report pointer.
 
 Normative navigation does not register individual review, verification,
 evaluation, or closeout reports and does not mirror mutable verdicts, subjects,
 findings, limitations, coverage, or another-pass state. Evidence is discovered
-from canonical directories and report frontmatter.
+from canonical directories and structured report frontmatter.
 
 ## Out of Scope
 
+- specification or ADR changes;
 - candidate content;
 - installer or packaging code;
 - role and skill implementation files;
 - templates, tests, fixtures, or migration scripts;
-- runtime/provider configuration;
+- runtime/provider configuration changes;
+- broad registry simplification or redesign;
 - repository settings, secrets, deployment, live state, or data;
 - default-branch writes or merge;
-- modification of the Critic report or first two PR review reports;
+- modification of earlier assurance reports;
 - creation of a Verifier report.
 
 ## Required Decisions
 
-1. Product is a complete project kit, not a skills library or control plane.
-2. Runtime neutrality is non-ownership of runtime/provider concerns.
+1. Product remains a complete project kit, not a skills library or control plane.
+2. Runtime neutrality remains non-ownership of runtime/provider concerns.
 3. Six roles receive separate contracts; shared authority stays in `AGENTS.md`.
-4. Exactly nine procedural skills form the core.
+4. Exactly nine procedural skills form the portable core.
 5. `memory_bank/` is canonical; `.agentic-local/` is ignored scratch.
-6. Quick, Standard, and High-Risk are risk-based and precise.
+6. Quick, Standard, and High-Risk remain risk-based and precise.
 7. One active write Work Block is allowed per working tree.
 8. Feature-branch commits, push, and PR are allowed; merge remains
    Owner-controlled.
-9. Candidate and installer contracts are specified without implementation.
-10. Optional extensions remain outside the core.
-11. Six migration Work Blocks are bounded.
-12. Critic, Reviewer, and Verifier use distinct verdict vocabularies.
+9. Candidate and installer contracts remain specified without implementation.
+10. Optional extensions remain outside the portable core.
+11. Six migration Work Blocks remain bounded.
+12. Critic, Reviewer, and Verifier retain distinct verdict vocabularies.
 13. Assurance binds to an exact normative subject.
 14. Evidence-only reports may follow their subject without invalidating verdict.
 15. Navigation/registry are normative only for authority, architecture,
     canonical paths, active lifecycle state, and accepted/proposed status.
-16. Mutable assurance state is prohibited from normative navigation.
-17. Per-report registration is unnecessary; canonical directories and
-    frontmatter are the evidence discovery mechanism.
+16. Mutable assurance state remains prohibited from normative navigation.
+17. Per-report registration remains unnecessary; canonical directories and
+    structured frontmatter are the evidence discovery mechanism.
+18. Current operational static contracts remain registered until an authorized
+    migration or archive Work Block replaces them.
+19. Static entries may be omitted only when an explicit canonical wildcard or
+    class provides equivalent coverage.
+
+## REV-009 Restoration Scope
+
+Restore static content removed by `88d60b1...` that is unrelated to mutable
+assurance state:
+
+- `installation_profiles.rules`;
+- `scripts/ci-contract-router.py`;
+- `template/.agent/hooks/**`;
+- `template/scripts/bootstrap.sh`;
+- `template/scripts/validate-installation-profile.py`;
+- `template/docs/templates/evaluation-plan-template.json`;
+- `template/docs/templates/evaluation-report-template.json`;
+- `template/docs/templates/trajectory-event-template.json`;
+- the static `related:` metadata for
+  `skills/skill-library-maintenance/**`;
+- detailed current-operational descriptions in `PROJECT_MAP.md` that were
+  shortened without necessity for REV-008.
+
+The following baseline-specific entries remain intentionally unregistered:
+
+- individual completed Work Block entries, because `docs/plans/**` provides the
+  canonical static class and `migration_state.completed_work_blocks` preserves
+  the authoritative completed list;
+- individual Critic and Reviewer report entries, because
+  `docs/reports/reviews/**` provides the canonical evidence class and report
+  frontmatter carries subject, verdict, findings, coverage, and limitations.
 
 ## Execution Plan
 
 1. Resolve current PR head and stop on unexpected divergence.
-2. Preserve REV-001 through REV-007.
-3. Remove mutable assurance mirrors from `PROJECT_MAP.md`.
-4. Remove `current_review_evidence` and mutable per-report fields from
-   `FILE_REGISTRY.yml`.
-5. Retain static evidence directory classifications.
-6. Correct specification, ADRs, and this Work Block.
-7. Commit the corrected normative subject.
-8. Create the third review in a separate evidence-only commit.
-9. Run release-state and Framework Contracts workflows.
-10. Leave PR open and unmerged for another Reviewer pass.
+2. Preserve REV-001 through REV-008.
+3. Compare current navigation against baseline `7ccec4d...`.
+4. Restore unrelated static operational registry rules, entries, and metadata.
+5. Restore unrelated detailed operational map descriptions.
+6. Keep mutable assurance mirrors absent and static evidence classes intact.
+7. Confirm every non-restored static deletion has explicit wildcard coverage.
+8. Commit the corrected normative subject.
+9. Create the fourth review in a separate evidence-only commit.
+10. Run release-state and Framework Contracts workflows.
+11. Leave PR open and unmerged for another Reviewer pass.
 
 ## Acceptance Criteria
 
-- [x] Product boundary, runtime exclusions, roles, skills, memory, process levels,
-  concurrency, Git boundaries, candidate, installer, extensions, and migration
-  sequence remain defined.
-- [x] Active Work Block precedence and non-expansion rules remain explicit.
+- [x] REV-001 through REV-008 remain accepted and unchanged.
 - [x] `status: in_progress` is preserved.
 - [x] Current operational and proposed target architectures remain distinct.
 - [x] Role-specific verdict vocabularies remain unchanged.
 - [x] Exact normative-subject and evidence-only semantics remain explicit.
 - [x] Proposed-to-accepted finalization sequence remains unchanged.
-- [x] Mutable review/verification verdicts and subjects are removed from
-  normative navigation.
-- [x] `current_review_evidence` is removed from the registry.
-- [x] Per-report mutable registry fields are removed.
+- [x] Mutable assurance mirrors remain absent.
 - [x] Static evidence directory registration remains available.
-- [x] Evidence discovery uses canonical directories and structured frontmatter.
-- [x] Changes are restricted to the approved seven-path write-set.
+- [x] Evidence discovery remains canonical-directory and frontmatter based.
+- [x] Unrelated static operational registry rules and entries are restored.
+- [x] Unrelated static `related:` metadata is restored.
+- [x] Remaining omitted individual completed Work Block entries are covered by
+  `docs/plans/**` and `migration_state.completed_work_blocks`.
+- [x] Remaining omitted individual review entries are covered by
+  `docs/reports/reviews/**` and structured frontmatter.
+- [x] `PROJECT_MAP.md` retains detailed current-operational descriptions without
+  mutable assurance enumeration.
+- [x] Changes are restricted to the approved four-path write-set.
 - [ ] A later Reviewer returns `READY` for the corrected normative subject.
 - [ ] A later Verifier returns `READY`.
 - [ ] Owner authorizes accepted-status finalization and separately approves merge.
@@ -169,32 +215,32 @@ from canonical directories and report frontmatter.
 
 Check:
 
-- specification headings 1 through 24;
-- verdict vocabulary consistency;
-- normative-subject/evidence-only consistency;
-- absence of self-referential final-head requirements;
-- no mutable review/verification verdict or subject in `PROJECT_MAP.md`;
-- no `current_review_evidence` or mutable per-report assurance fields in
-  `FILE_REGISTRY.yml`;
+- no mutable review or verification verdict, SHA, findings, coverage,
+  limitations, current/latest report pointer, or another-pass state in normative
+  navigation;
 - static review, verification, evaluation, and closeout directory classes;
+- all restored operational registry paths and `installation_profiles.rules`;
+- explicit wildcard coverage for every intentionally non-restored static entry;
 - active Work Block agreement across frontmatter, map, and registry;
 - operational architecture `runtime_neutral_control_plane`;
 - target status `proposed`;
-- no runtime/provider authority;
+- no target-architecture promotion;
+- no runtime/provider artifact gains authority;
 - no placeholder markers;
-- final evidence-only commit changes only the third-review report.
+- final evidence-only commit changes only the fourth-review report.
 
 ## Current State
 
 - **Define:** complete for the proposed target architecture.
 - **Critic:** historical `APPROVE_WITH_CHANGES`; unchanged.
-- **REV-001—REV-007:** preserved as accepted prior corrections.
-- **REV-008:** Author Resolution is recorded in the third review after the
-  normative correction commit.
+- **REV-001—REV-008:** preserved as accepted prior corrections.
+- **REV-009:** correction active; Author Resolution will be recorded in the
+  fourth review after the normative correction commit.
 - **Release state:** this Work Block remains active under the current
   runtime-neutral control-plane contract.
 - **Reviewer:** another pass remains required against the corrected normative
   subject.
 - **Verifier:** pending; no Verifier report is created by this pass.
+- **Accepted-status finalization:** pending and Owner-controlled.
 - **Closeout:** pending; Work Block is not complete.
 - **Merge:** requires separate explicit Owner approval.

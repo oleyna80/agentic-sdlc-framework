@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 15
+version: 16
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -106,6 +106,16 @@ installation_profiles:
     full: multi-runtime
   generated_state: .agent/bootstrap-profile.json
   authority: none
+  rules:
+    - validate_before_target_mutation
+    - required_paths_validate_expected_filesystem_kind
+    - blocked_default_work_block_validates_before_restore
+    - evaluation_contract_available_in_every_profile
+    - selected_runtime_surfaces_only
+    - no_automatic_integration_activation
+    - no_credentials_or_provider_binding
+    - work_block_authority_remains_separate
+    - external_skill_adaptation_requires_owner_approved_write_set
 
 evaluation_assurance:
   contract: governance/evaluation.md
@@ -261,6 +271,11 @@ entries:
     status: installation_manifest
     owner: architect
     authority: none
+
+  scripts/ci-contract-router.py:
+    role: fail_closed_ci_contract_path_router_and_snapshot_validator
+    status: normative
+    owner: maintainer
 
   bootstrap/bootstrap_project.py:
     role: validated_profile_aware_scaffold_engine
@@ -475,11 +490,41 @@ entries:
     status: template
     owner: orchestrator
 
+  template/.agent/hooks/**:
+    role: shared_provider_neutral_gate_implementation
+    status: template
+    owner: maintainer
+
+  template/scripts/bootstrap.sh:
+    role: generated_project_profile_aware_health_check
+    status: template
+    owner: verifier
+
+  template/scripts/validate-installation-profile.py:
+    role: generated_installation_profile_path_kind_blocked_default_and_evaluation_default_validator
+    status: template
+    owner: verifier
+
   template/scripts/validate-evaluation.py:
     role: generated_evaluation_plan_report_and_closeout_validator
     status: template
     owner: verifier
     authority: assurance_only
+
+  template/docs/templates/evaluation-plan-template.json:
+    role: generated_evaluation_plan_schema_example
+    status: template
+    owner: architect
+
+  template/docs/templates/evaluation-report-template.json:
+    role: generated_evaluation_report_schema_example
+    status: template
+    owner: verifier
+
+  template/docs/templates/trajectory-event-template.json:
+    role: generated_observable_trajectory_event_schema_example
+    status: template
+    owner: verifier
 
   template/scripts/repair-lifecycle.py:
     role: generated_fail_closed_ndr_repair_record_validator
@@ -521,6 +566,7 @@ entries:
     status: normative
     owner: architect
     authority: none
+    related: [framework/workflow/external-skill-discovery.md, framework/workflow/skill-routing-gate.md, bootstrap/profiles.json]
 
   handoff/**:
     role: runtime_transport_implementation
