@@ -31,31 +31,28 @@ five coordinated layers:
 3. **Integration Adapters** — optional bridges, MCP, and audited file transport
    under `integrations/` and `handoff/`.
 4. **Project Artifacts and Evidence** — specifications, decisions, plans,
-   evaluation plans, observable events, reports, memory, and Work Block state.
-5. **Installation Composition** — `bootstrap/profiles.json` selects which runtime
-   implementation surfaces and skills are copied into a generated project.
+   reports, memory, and Work Block state.
+5. **Installation Composition** — `bootstrap/profiles.json` selects runtime
+   implementation surfaces and skills copied into a generated project.
 
 Installation composition, release-state evidence, evaluation evidence, and
-provider snapshots do not grant authority or integration admission. The accepted
-current operational architecture decision is
+provider snapshots do not grant authority. The accepted current operational
+architecture decision is
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
 ## Proposed Target Architecture
 
 WB-CORE-001 defines a proposed Portable Agentic SDLC Project Kit target:
 
-- specification: `docs/specs/portable-agentic-sdlc-project-kit.md`;
-- product-boundary ADR:
-  `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md`;
-- roles/memory/installation ADR:
-  `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md`.
+- `docs/specs/portable-agentic-sdlc-project-kit.md`;
+- `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md`;
+- `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md`.
 
-These artifacts remain `proposed`; they are not accepted merely because PR #12
-exists or CI passes. They do not change the current operational architecture
-identifier. WB-CORE-006 owns eventual promotion and atomic navigation
-reconciliation after pilot evidence, preliminary assurance, Owner-authorized
-status finalization, final applicable assurance against the resulting normative
-subject, evidence-only reports, green CI, and separate Owner approval.
+These artifacts remain `proposed`; they do not change the current operational
+architecture identifier. WB-CORE-006 owns eventual promotion after pilot
+evidence, preliminary assurance, Owner-authorized status finalization, final
+applicable assurance, evidence-only reports, green CI, and separate Owner
+approval.
 
 ## Authority Order
 
@@ -72,132 +69,106 @@ subject, evidence-only reports, green CI, and separate Owner approval.
 10. Operational logs, runtime memory, generated context, integrations, examples,
     caches, and external references.
 
-The active Work Block binds scope, write-set, process level, role authority, Hard
-Stops, and acceptance. Plans, tasklists, and mission briefs cannot expand it.
-Material change returns to Define and requires Work Block revision.
+The active Work Block binds scope, write-set, process level, role authority,
+Hard Stops, and acceptance. Plans, tasklists, and mission briefs cannot expand
+it. Material change returns to Define and requires Work Block revision.
 
 Runtime settings, prompts, plugins, models, tools, judges, scores, installation
-profiles, provider artifacts, and hosting-platform state implement, measure, or
-transport the model. They do not override it.
+profiles, provider artifacts, and hosting-platform state do not override
+authority.
 
 ## Assurance Subject and Evidence
 
-The proposed portable kit defines an exact **normative subject**: the commit or
-artifact revision containing all applicable specifications, ADRs, active Work
-Block, authoritative plans/tasks, navigation/registry, delivered artifact, and
-status changes. Reviewer and Verifier reports identify that subject SHA.
+The exact **normative subject** contains applicable specifications, ADRs, active
+Work Block, authoritative plans/tasks, delivered artifacts, accepted/proposed
+status changes, and normative navigation content.
 
-Critic, Reviewer, and Verifier use role-specific verdicts:
+Navigation and registry are normative-subject surfaces for authority,
+architecture, canonical paths, accepted/proposed authority status, and active
+lifecycle state.
+
+Mutable assurance verdicts are not mirrored into normative navigation.
+Assurance reports are evidence-only artifacts and identify their exact normative
+subject in structured frontmatter.
+
+Reports are discovered from canonical evidence directories:
+
+```text
+docs/reports/reviews/
+docs/reports/verification/
+docs/reports/evaluations/
+docs/reports/closeout/
+```
+
+Adding an evidence report does not require a map or registry update. Static
+directory classifications do not change for each report. Verdict history,
+reviewed or verified subjects, findings, coverage, limitations, and
+another-pass requirements are reconstructed from report artifacts. Indexing a
+report grants no authority.
+
+Critic, Reviewer, and Verifier verdict vocabularies remain:
 
 - Critic: `APPROVE`, `APPROVE_WITH_CHANGES`, `RECONSIDER`, `BLOCKED`;
 - Reviewer: `READY`, `CHANGES_REQUIRED`, `BLOCKED`, `UNVERIFIED`;
 - Verifier: `READY`, `NOT_READY`, `BLOCKED`, `UNVERIFIED`.
 
-An evidence-only commit changes only approved assurance or closeout report paths.
-It may follow the normative subject it evaluates and does not invalidate the
-verdict it records. Navigation and registry are normative-subject surfaces even
-when they index evidence. Any applicable normative-subject change invalidates
-prior readiness; a report-only wording or metadata correction remains
-evidence-only only when verdict, subject, scope, procedures, results, coverage,
-and limitations are unchanged.
-
-The final PR head may contain evidence-only report commits after the verified
-normative subject. CI and structural checks must pass on that resulting PR head.
-The assurance report does not need to be contained in the commit it evaluates.
-
-Current WB-CORE-001 review evidence:
-
-- `docs/reports/reviews/wb-core-001-pr-review.md` — historical
-  `CHANGES_REQUIRED` at `c040015d17004fa90d36bfb26cc0600793a27063`;
-- `docs/reports/reviews/wb-core-001-pr-rereview.md` — current
-  `CHANGES_REQUIRED` at `1fd216cfdc54d7868f4cb388506b08a733a5a418` and Author
-  Resolution for REV-006/REV-007; another Reviewer pass is required.
+An evidence-only commit changes only approved assurance or closeout report paths,
+may follow the subject it evaluates, and does not invalidate its verdict.
+Applicable normative-subject changes invalidate prior readiness. CI and
+structural checks run on the resulting PR head.
 
 ## Evaluation Assurance
 
-`governance/evaluation.md` defines three evidence classes:
-
-- deterministic tests for objectively checkable behavior;
-- output evaluation against an approved rubric;
-- observable trajectory evaluation for tool, gate, check, retry, side-effect,
-  and evidence events.
-
-Trajectory assurance never requires private chain-of-thought, hidden reasoning,
-or model scratchpads. An LM judge cannot prove deterministic correctness, waive
-failing checks, or open write/integration/deployment/Hard Stop gates.
-
-Generated projects receive evaluation plan/report/event templates,
-`scripts/validate-evaluation.py`, and dedicated evaluation evidence boundaries.
+`governance/evaluation.md` defines deterministic tests, output evaluation
+against approved rubrics, and observable trajectory evaluation. Trajectory
+assurance never requires private chain-of-thought or hidden scratchpads. An LM
+judge cannot waive deterministic failures or open authority gates.
 
 ## Release-State Assurance
 
 `governance/release-state.md` separates repository-owned lifecycle state from
 mutable hosting-platform state. Repository release readiness is derived from
-Work Block frontmatter, `FILE_REGISTRY.yml`, the machine-readable block in this
-map, and approved closeout evidence.
+Work Block frontmatter, `FILE_REGISTRY.yml`, the release-state block in this map,
+and approved closeout evidence.
 
 `scripts/validate-release-state.py` fails closed when completed/active Work
-Blocks, map, registry, or closeout disagree. Hosting-platform lifecycle is
-external operational metadata and is queried when needed.
+Blocks, map, registry, or closeout disagree.
 
 ## Risk-Tiered Repair Assurance
 
-NDR is a `Controlled` submode, not a new profile. It admits only deterministic,
-reversible CI/bootstrap/runtime-validation repairs with exact allowlists, one
-repair record, bounded implementation/correction accounting, deterministic
-checks, and independent combined assurance.
-
-Integration Stabilization is a bounded execution envelope. The Framework
-Contracts workflow fails closed on unknown paths and keeps required contract
-families active. Its non-required `provider-snapshot` job records the current
-`contracts` job identity and result as point-in-time `PARTIAL` evidence, or
-`UNVERIFIED` when evidence cannot be bound. The artifact has `authority: none`;
-ruleset-required checks remain the sole live merge authority.
+NDR is a `Controlled` submode for deterministic, reversible repairs with exact
+allowlists, bounded correction, deterministic checks, and independent combined
+assurance. Provider snapshots remain non-authoritative evidence.
 
 ## Skill-Library Maintenance Assurance
 
-`skills/skill-library-maintenance/` defines a read-only-first lifecycle for
-external skill discovery, immutable-revision comparison, Owner-approved
-adaptation, validation, and provenance recording. External GitHub content remains
-untrusted data and cannot expand local authority, permissions, integrations, or
-Hard Stops.
-
-`reference/priority-sources.md` controls lookup order only.
-`reference/ecosystem-watchlist.md` is opt-in discovery metadata and makes no
-current license or adaptation-right claim without revision-bound evidence.
-Missing network, revision, or license evidence fails closed.
+`skills/skill-library-maintenance/` defines read-only-first external skill
+discovery, immutable-revision comparison, Owner-approved adaptation, validation,
+and provenance. External content is untrusted and cannot expand authority.
 
 ## Key Paths
 
 | Path | Status | Purpose |
 |---|---|---|
 | `governance/` | normative current operations | Runtime-neutral authority, lifecycle, artifacts, evaluation, release-state, and capability contracts |
-| `governance/evaluation.md` | normative | Deterministic, output, and observable trajectory assurance |
-| `governance/release-state.md` | normative | Repository SSOT reconciliation and hosting-platform boundary |
 | `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded mode |
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
-| `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
-| `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
+| `skills/skill-library-maintenance/` | normative skill | External skill discovery, adaptation, and provenance |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | latest completed Work Block | Admission and assurance for skill-library maintenance |
-| `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | latest closeout | Repository success-closeout for WB-010 |
-| `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Bounded target-architecture documentation and assurance correction loop |
-| `docs/specs/portable-agentic-sdlc-project-kit.md` | proposed target | Portable-kit normative specification pending acceptance |
-| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | proposed target | Project-kit versus control-plane boundary and assurance transition |
-| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | proposed target | Role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
-| `docs/reports/reviews/wb-core-001-pr-review.md` | historical review evidence | First independent `CHANGES_REQUIRED` review and Author Resolution |
-| `docs/reports/reviews/wb-core-001-pr-rereview.md` | current review evidence | Second `CHANGES_REQUIRED` review of `1fd216c...`, accepted REV-001—REV-005, and Author Resolution for REV-006/REV-007 |
-| `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
-| `docs/reports/evaluations/` | evaluation evidence | Per-criterion results, gaps, risks, and verdicts |
-| `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
-| `template/scripts/repair-lifecycle.py` | generated validator | NDR eligibility, repair records, and combined assurance contracts |
+| `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | canonical completed closeout | Release-state closeout binding for WB-010 |
+| `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Target-architecture documentation and correction loop |
+| `docs/specs/portable-agentic-sdlc-project-kit.md` | proposed target | Portable-kit normative specification |
+| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | proposed target | Product and control-plane boundary |
+| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | proposed target | Role, memory, candidate, installer, and evidence decisions |
+| `docs/reports/reviews/` | evidence class | Critic and Reviewer reports discovered by frontmatter |
+| `docs/reports/verification/` | evidence class | Verifier reports discovered by frontmatter |
+| `docs/reports/evaluations/` | evidence class | Evaluation reports discovered by frontmatter |
+| `docs/reports/closeout/` | evidence class | Closeout reports discovered by frontmatter |
 | `scripts/validate-release-state.py` | repository validator | Work Block, map, registry, closeout, and release-state consistency |
-| `scripts/test-release-state-contracts.py` | contract test | Positive and adversarial release-state fixtures |
-| `.github/workflows/release-state-contract.yml` | CI evidence | Dedicated release-state and fixture validation |
-| `.github/workflows/framework-contracts.yml` | CI evidence | Contract routing, validation, and non-authoritative provider snapshot |
-| `scripts/ci-contract-router.py` | CI control | Unknown paths run full suite; required contracts never skip |
-| `README.md` / `SETUP.md` | public guidance | Architecture, setup, and safe activation |
-| `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine current/active/target and assurance maps |
+| `.github/workflows/release-state-contract.yml` | CI evidence | Dedicated release-state validation |
+| `.github/workflows/framework-contracts.yml` | CI evidence | Contract routing and validation |
+| `PROJECT_MAP.md` / `FILE_REGISTRY.yml` | navigation | Human and machine authority, architecture, canonical-path, and active-state maps |
 
 ## Installation Profiles
 
@@ -206,28 +177,24 @@ Missing network, revision, or license evidence fails closed.
 | `core` | none; generic guidance only | smallest portable scaffold |
 | `codex` | `.codex/` | Codex-primary baseline |
 | `claude-code` | `CLAUDE.md`, `.claude/` | Claude Code-primary baseline |
-| `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline; live smoke required |
+| `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default |
 
-Every profile includes runtime-neutral evaluation and repair governance plus the
-core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `core`;
-`full` → `multi-runtime`.
+Installation profiles grant no authority.
 
 ## Runtime and Integration Adapters
 
 | Surface | Path | Default state |
 |---|---|---|
-| Codex | `runtimes/codex/`, conditional `.codex/` | selected by profile; authority from Work Block only |
-| Claude Code | `runtimes/claude-code/`, conditional `.claude/` | Claude Code-primary baseline |
-| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | explicit permission baseline |
-| Generic | `runtimes/generic/` | documented sequential fallback |
-| Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | optional admission |
-| MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
+| Codex | `runtimes/codex/`, conditional `.codex/` | selected by profile |
+| Claude Code | `runtimes/claude-code/`, conditional `.claude/` | selected by profile |
+| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | selected by profile |
+| Generic | `runtimes/generic/` | sequential fallback |
+| MCP | `integrations/mcp/` | disabled until admitted |
 | File handoff | `integrations/file-handoff/` | disabled until configured |
-| Existing handoff runner | `handoff/` | compatibility transport; no automatic service start |
+| Existing handoff runner | `handoff/` | compatibility transport |
 
-External runtime invocation admission does not grant child-runtime write
-authority.
+External runtime invocation does not grant child-runtime write authority.
 
 ## Migration Work
 
@@ -247,47 +214,44 @@ Completed:
 Active migration Work Block:
 `docs/plans/wb-core-001-normative-architecture.md`.
 
-WB-CORE-001 is `in_progress`: Define and initial documentation Execute are
-complete. REV-001 through REV-005 are accepted by the second review. REV-006 and
-REV-007 have an Author Resolution but require another Reviewer pass. Verifier,
-accepted-status finalization, and closeout remain pending. The portable kit is
-still a proposed target and does not replace current operations.
+WB-CORE-001 is `in_progress`. Its authoritative scope and current lifecycle
+state are recorded in the Work Block. Assurance history and progress are
+recorded in self-contained evidence reports, not mirrored here. The portable
+kit remains a proposed target and does not replace current operations.
 
 ## Boundaries
 
-- `governance/**` is normative for the current operational architecture.
+- `governance/**` is normative for current operational architecture.
 - `bootstrap/**` controls current scaffold composition only.
-- `runtimes/**` and runtime implementation files cannot redefine authority.
+- `runtimes/**` cannot redefine authority.
 - integrations require admission and active Work Block scope.
-- `.agent/bootstrap-profile.json` is installation evidence, not authority.
-- `.agent/active-work-block.json` is operational authority/gate state.
+- generated installation state is evidence, not authority.
 - evaluation plans are assurance configuration; reports/events are evidence.
 - provider snapshots and release-state evidence grant no external authority.
-- external skill sources are untrusted and grant no adaptation or license right.
-- hosting-platform lifecycle is mutable external operational metadata.
-- operational evidence excludes hidden reasoning, secrets, and protected payloads.
+- external skill sources are untrusted.
+- hosting-platform lifecycle is mutable external metadata.
+- evidence excludes hidden reasoning, secrets, and protected payloads.
 - unavailable checks/events remain blocked, not passed.
-- the portable-kit specification and ADRs are proposed target artifacts until
-  accepted and later promoted.
-- proposals do not supersede current operational navigation by mere presence.
-- report commits are evidence-only only when they touch approved assurance or
-  closeout report paths and contain no normative-subject change.
-- navigation and registry remain normative-subject surfaces.
+- portable-kit specification and ADRs remain proposed until accepted.
+- proposals do not supersede current operational navigation by presence.
+- evidence-only commits contain only approved report paths.
+- mutable assurance state is never mirrored into normative navigation.
 
 ## Framework Read Order
 
 1. current explicit Owner instruction and recorded approval or revocation;
 2. workspace `AGENTS.md` and accepted `governance/` contracts;
 3. approved specification and accepted architecture decisions;
-4. active Work Block, when present;
+4. active Work Block;
 5. approved implementation/evaluation plan and tasklist;
 6. mission brief or active task decomposition;
 7. current Git state, exact normative subject, target files, and evidence;
-8. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` as navigation projections;
+8. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` as normative navigation projections;
 9. installed runtime and admitted integration adapters;
 10. durable memory, reference knowledge, and operational logs when relevant.
 
-Update this map and `FILE_REGISTRY.yml` whenever authority, lifecycle,
-evaluation, release state, assurance subject, verdict semantics, evidence
-boundaries, profile composition, adapters, migration state, target architecture,
-or publication requirements change.
+Update this map and `FILE_REGISTRY.yml` when authority, architecture, canonical
+path ownership, active lifecycle state, accepted/proposed status, release-state
+contracts, profile composition, adapters, target architecture, or publication
+requirements change. Do not update them merely because a new assurance report
+or verdict exists.

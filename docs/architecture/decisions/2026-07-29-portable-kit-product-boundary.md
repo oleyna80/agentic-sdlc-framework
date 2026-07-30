@@ -20,10 +20,8 @@ into a runtime-neutral control plane with runtime adapters, capability
 negotiation, hooks, provider profiles, MCP/plugin guidance, evaluation
 infrastructure, release-state contracts, and provider-specific configuration.
 
-The later architecture improved authority semantics but expanded framework
-ownership into concerns already owned by AI runtimes and project tooling. The
-portable successor requires an unambiguous product boundary before candidate
-implementation.
+The portable successor requires an unambiguous product boundary and assurance
+model before candidate implementation.
 
 ## Decision
 
@@ -38,25 +36,17 @@ The kit owns repository artifacts that define and record software-delivery work:
 - Work Blocks, specifications, ADRs, plans, tasklists, mission briefs, and
   handoffs;
 - canonical `memory_bank/` and logs;
-- Critic, Reviewer, Verifier, and closeout artifacts;
+- Critic, Reviewer, Verifier, evaluation, and closeout artifacts;
 - a generic, collision-safe installation contract.
 
 Artifacts are the portability boundary. The kit must work through native
 subagents, sequential single-agent passes, and manual copy-and-paste handoffs.
 No execution mode is authoritative by itself.
 
-The kit does not own or require:
-
-- `.codex/`, `.claude/`, `.opencode/`, or provider-specific agent definitions;
-- model routing or capability negotiation;
-- hooks, runtime permission configuration, MCP, or plugins;
-- provider snapshots, runtime profiles, queues, daemons, or duplicated skill
-  mirrors;
-- runtime-specific installation or conformance control planes.
-
-Projects and users may maintain local runtime configuration independently. It
-must not redefine kit authority and is not installed, synchronized, or verified
-by the kit.
+The kit does not own or require provider-specific agent definitions, model
+routing, capability negotiation, hooks, runtime permission configuration, MCP,
+plugins, provider snapshots, runtime profiles, queues, daemons, duplicated skill
+mirrors, or runtime-specific conformance control planes.
 
 The practical lifecycle is retained:
 
@@ -76,59 +66,51 @@ Work Block
   → separate Owner-controlled integration
 ```
 
-Optional engineering capabilities remain outside the core: nondeterministic
-evaluation, advanced security tooling, browser/UI testing, worktree automation,
-Git branch finishing, external second-model review, skill provenance tooling,
-and all runtime/provider integrations.
-
-If this ADR is accepted, it supersedes the **target-product conclusion** of
-`2026-07-25-runtime-neutral-control-plane.md`. That earlier ADR remains historical
-evidence during migration; its runtime-neutral authority principles are retained,
-but its control-plane and adapter ownership are not carried into the promoted
-kit.
-
 This decision defines the proposed migration **target architecture**, not an
 immediate replacement of the current operational repository architecture.
-`PROJECT_MAP.md` and `FILE_REGISTRY.yml` must distinguish three facts throughout
-WB-CORE-001 through WB-CORE-005:
+`PROJECT_MAP.md` and `FILE_REGISTRY.yml` distinguish:
 
-1. the runtime-neutral control plane remains the current operational architecture;
-2. WB-CORE-001 is the current active migration Work Block while it is in progress;
-3. this ADR and the portable-kit specification describe the proposed target
-   architecture pending acceptance and later promotion.
+1. the runtime-neutral control plane as current operational architecture;
+2. WB-CORE-001 as current active migration Work Block while in progress;
+3. this ADR and the portable-kit specification as proposed target architecture.
 
 WB-CORE-006 owns the atomic promotion and legacy-archive reconciliation that
 changes the operational architecture identifier.
 
-### Assurance identity and verdicts
+### Assurance identity, verdicts, and evidence discovery
 
 Reviewer and Verifier assurance binds to an exact **normative subject**: the
-commit or artifact revision containing the applicable specification, ADRs, Work
-Block, authoritative plans/tasks, navigation/registry, delivered artifact, and
-status changes. Reports identify that exact subject rather than an unspecified
-or mutable final PR head.
+commit or artifact revision containing applicable specification, ADRs, Work
+Block, authoritative plans/tasks, normative navigation/registry content,
+delivered artifact, and status changes.
 
-Critic, Reviewer, and Verifier verdicts are role-specific. Critic uses `APPROVE`,
-`APPROVE_WITH_CHANGES`, `RECONSIDER`, or `BLOCKED`. Reviewer uses `READY`,
-`CHANGES_REQUIRED`, `BLOCKED`, or `UNVERIFIED`. Verifier uses `READY`,
-`NOT_READY`, `BLOCKED`, or `UNVERIFIED`. Historical verdicts remain unchanged.
+Critic, Reviewer, and Verifier verdicts are role-specific:
+
+- Critic: `APPROVE`, `APPROVE_WITH_CHANGES`, `RECONSIDER`, `BLOCKED`;
+- Reviewer: `READY`, `CHANGES_REQUIRED`, `BLOCKED`, `UNVERIFIED`;
+- Verifier: `READY`, `NOT_READY`, `BLOCKED`, `UNVERIFIED`.
 
 An evidence-only commit changes only approved assurance or closeout report paths.
 It may follow the normative subject it evaluates and does not invalidate the
-verdict it records. Navigation or registry changes remain part of the normative
-subject and therefore precede an evidence-only report commit in a two-commit
-sequence.
+verdict it records. Any applicable normative-subject change invalidates prior
+readiness.
 
-Any applicable normative-subject change invalidates prior readiness. A wording or
-metadata-only report correction remains evidence-only only when it does not
-change verdict, subject, scope, procedures, results, coverage, or limitations.
-Changing any of those requires renewed assurance as applicable.
+Navigation and registry are normative-subject surfaces only for authority,
+architecture, canonical paths, active lifecycle state, and accepted/proposed
+status. Mutable assurance verdicts, reviewed or verified SHAs, findings,
+coverage, limitations, and another-pass state are prohibited from normative
+navigation.
+
+Reports require no per-report navigation registration. They are discovered from
+canonical directories and structured frontmatter. Adding a report-only commit
+does not require a map or registry update and indexing evidence would not grant
+authority.
 
 ### Acceptance-state transition
 
-This ADR remains `proposed` while PR #12 awaits required assurance and Owner
-approval. A proposed ADR is not accepted merely because a pull request exists, a
-review is recorded, or a CI run is green. The required transition is:
+This ADR remains `proposed` while required assurance and Owner approval are
+pending. A proposed ADR is not accepted merely because a pull request exists, a
+review is recorded, or CI is green.
 
 ```text
 preliminary Reviewer and Verifier assurance
@@ -143,43 +125,33 @@ preliminary Reviewer and Verifier assurance
 Before merge, this ADR's frontmatter must be changed to the project's accepted
 status. The status-only commit is part of the normative subject. The assurance
 report may be committed afterward and does not need to be contained in the
-commit it evaluates. Merge of this file while it is still marked `proposed` does
-not silently make the decision accepted.
+commit it evaluates. Merge while still marked `proposed` does not silently
+accept the decision.
 
 ## Rationale
 
-A project kit preserves the framework's demonstrated value where it is durable:
-scope control, explicit decisions, bounded authority, role separation, evidence,
-and reusable project memory. Removing runtime ownership prevents duplication,
-provider drift, and a false expectation that the framework must emulate every
-runtime's hooks, agents, plugins, or permission system.
-
-A skills-library-only product was rejected because skills do not supply the
-entry contract, source-of-truth hierarchy, Work Blocks, durable memory, review
-artifacts, or closeout needed for a complete SDLC.
-
-Exact normative-subject identity avoids the circular requirement that a report
-must already exist in the commit it evaluates. Evidence-only report commits
-preserve assurance traceability while allowing CI to validate the resulting PR
-head.
+A project kit preserves scope control, explicit decisions, bounded authority,
+role separation, evidence, and reusable memory. Removing runtime ownership
+prevents duplication and provider drift. Exact subject identity avoids
+self-referential assurance. Keeping mutable assurance state in self-contained
+reports prevents each review result from manufacturing a new normative subject.
 
 ## Rejected Alternatives
 
-### Continue the runtime-neutral control plane
+### Continue the runtime-neutral control plane as the target
 
-Rejected. Provider-neutral naming does not remove ownership of capability
-negotiation, adapters, runtime profiles, hooks, plugins, MCP, or conformance
-state. Those concerns remain runtime/tooling responsibilities.
+Rejected. Provider-neutral naming does not remove ownership of adapters,
+profiles, hooks, plugins, MCP, or conformance state.
 
 ### Publish only the nine core skills
 
-Rejected. This would discard the practical lifecycle, role authority, memory,
-plans, assurance artifacts, and collision-safe project installation.
+Rejected. Skills alone do not supply the entry contract, source-of-truth
+hierarchy, Work Blocks, durable memory, assurance artifacts, or closeout.
 
 ### Maintain first-class provider adapters inside the kit
 
-Rejected. Adapters inevitably age with provider behavior and encourage duplicate
-sources of truth. Users may create local configuration outside the kit.
+Rejected. Adapters age with provider behavior and encourage duplicate sources of
+truth.
 
 ### Require one fixed multi-agent topology
 
@@ -188,51 +160,48 @@ passes, and manual handoffs.
 
 ### Require reports inside the commit they verify
 
-Rejected. That creates a self-referential subject. The normative subject must be
-complete before its assurance report is recorded in a later evidence-only commit.
+Rejected. That creates a self-referential subject. Reports follow the completed
+subject as evidence-only commits.
+
+### Mirror the latest assurance result in normative navigation
+
+Rejected. Each new verdict, reviewed SHA, finding, or limitation would mutate the
+normative subject and invalidate the assurance being indexed.
 
 ## Consequences
 
 ### Positive
 
-- The product can be installed into projects without selecting an AI provider.
-- The portable contract stays understandable without hidden runtime state.
-- Role authority and evidence remain stable as agent runtimes change.
-- The candidate can be tested as a concrete project kit rather than an abstract
-  governance layer.
-- Optional tooling can evolve independently without becoming a core dependency.
-- Review and verification evidence can follow the exact subject without changing
-  it.
+- The product is provider-independent.
+- Role authority and evidence remain stable as runtimes change.
+- Reports can follow the exact subject without changing it.
+- Future reviews and verification reports do not require normative navigation
+  churn.
 
 ### Tradeoffs
 
-- Runtime enforcement is no longer promised by the core kit.
+- Runtime enforcement is not promised by the core kit.
 - Existing control-plane assets require explicit migration and archival.
-- Local runtime configuration may vary between users and is not validated by the
-  kit.
-- Some current features become optional extensions or historical evidence.
-- Navigation carries an explicit current/active/target transition until
-  WB-CORE-006; the proposed target does not replace the operational identifier.
-- Final readiness requires distinguishing normative changes from evidence-only
-  commits and rerunning assurance when the subject changes.
+- Local runtime configuration varies and is unmanaged.
+- Consumers discover evidence through canonical directories/frontmatter rather
+  than a mutable “current report” pointer.
 
 ## Compatibility
 
 The current runtime-neutral control-plane repository remains operationally
-canonical until promotion. The navigation sources are updated during WB-CORE-001
-only to register the active migration Work Block and current review evidence and
-to expose the proposed target; they do not change the current architecture
-identifier. The candidate under `candidate/portable-agentic-sdlc-kit/` is
-noncanonical. Promotion requires pilot evidence, final assurance, status
-finalization, green CI on the resulting PR head, and explicit Owner approval.
+canonical until promotion. During WB-CORE-001, navigation registers the active
+migration Work Block, proposed target architecture, and static evidence
+directory classes only. It does not mirror current assurance results. Candidate
+content remains noncanonical. Promotion requires pilot evidence, final
+assurance, status finalization, green CI, and explicit Owner approval.
 
 ## Review Triggers
 
 Review this decision when:
 
-- a proposed core feature requires owning provider/runtime configuration;
-- the artifact contracts cannot support a major execution mode;
-- a proposed extension attempts to redefine authority or source of truth;
+- a proposed core feature requires provider/runtime ownership;
+- artifact contracts cannot support a major execution mode;
+- an extension attempts to redefine authority;
 - assurance tooling cannot distinguish normative and evidence-only commits;
-- pilot evidence shows the product is incomplete without a currently excluded
-  capability.
+- normative navigation begins mirroring mutable assurance state;
+- pilot evidence shows the product is incomplete without an excluded capability.

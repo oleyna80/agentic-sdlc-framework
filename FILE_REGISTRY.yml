@@ -1,7 +1,8 @@
 # Machine-readable navigation registry for authority-bearing files and major
-# repository zones. Register contracts and boundaries, not every file.
+# repository zones. Register contracts, canonical classes, and boundaries, not
+# mutable assurance results or every file.
 
-version: 14
+version: 15
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -13,7 +14,7 @@ statuses:
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
   installation_manifest: "scaffold composition data; grants no authority"
   reference: "background knowledge; does not override policy"
-  evidence: "review, verification, evaluation, drift, release-state, CI, integration, or closeout evidence"
+  evidence: "self-contained assurance or closeout evidence; grants no authority by indexing"
   log: "active or historical Work Block state; not general policy"
   example: "illustrative scenario; never mandatory policy"
   generated: "derived output; verify against current source"
@@ -53,15 +54,32 @@ assurance_contract:
     - architecture_decisions
     - active_work_block
     - authoritative_plans_and_tasks
-    - navigation_and_registry
+    - normative_navigation_and_registry_content
     - delivered_artifact
     - proposed_to_accepted_status_changes
+  normative_navigation_content:
+    - authority_order
+    - operational_and_target_architecture
+    - canonical_path_ownership
+    - active_lifecycle_state
+    - accepted_or_proposed_authority_status
+  mutable_assurance_mirrors: prohibited
+  per_report_registration_required: false
+  report_discovery: canonical_directory_and_structured_frontmatter
+  evidence_history_source: report_artifacts
+  indexing_grants_authority: false
+  static_evidence_classes:
+    - docs/reports/reviews/**
+    - docs/reports/verification/**
+    - docs/reports/evaluations/**
+    - docs/reports/closeout/**
   evidence_only_commit:
     allowed_paths: approved_assurance_or_closeout_reports_only
     changes_normative_subject: false
     may_follow_verified_subject: true
     requires_green_ci_on_resulting_pr_head: true
     hidden_normative_changes: forbidden
+    navigation_update_required: false
   verdicts:
     critic: [APPROVE, APPROVE_WITH_CHANGES, RECONSIDER, BLOCKED]
     reviewer: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
@@ -88,16 +106,6 @@ installation_profiles:
     full: multi-runtime
   generated_state: .agent/bootstrap-profile.json
   authority: none
-  rules:
-    - validate_before_target_mutation
-    - required_paths_validate_expected_filesystem_kind
-    - blocked_default_work_block_validates_before_restore
-    - evaluation_contract_available_in_every_profile
-    - selected_runtime_surfaces_only
-    - no_automatic_integration_activation
-    - no_credentials_or_provider_binding
-    - work_block_authority_remains_separate
-    - external_skill_adaptation_requires_owner_approved_write_set
 
 evaluation_assurance:
   contract: governance/evaluation.md
@@ -172,16 +180,6 @@ release_state:
   closeout_report: docs/reports/closeout/wb-010-skill-library-maintenance-integration.md
   external_vcs_state: non_normative
   authority: assurance_only
-
-current_review_evidence:
-  path: docs/reports/reviews/wb-core-001-pr-rereview.md
-  status: evidence
-  owner: reviewer
-  verdict: CHANGES_REQUIRED
-  reviewed_head: 1fd216cfdc54d7868f4cb388506b08a733a5a418
-  accepted_prior_findings: [REV-001, REV-002, REV-003, REV-004, REV-005]
-  open_findings: [REV-006, REV-007]
-  another_reviewer_pass_required: true
 
 entries:
   governance/**:
@@ -264,16 +262,6 @@ entries:
     owner: architect
     authority: none
 
-  template/scripts/repair-lifecycle.py:
-    role: generated_fail_closed_ndr_repair_record_validator
-    status: template
-    owner: maintainer
-
-  scripts/ci-contract-router.py:
-    role: fail_closed_ci_contract_path_router_and_snapshot_validator
-    status: normative
-    owner: maintainer
-
   bootstrap/bootstrap_project.py:
     role: validated_profile_aware_scaffold_engine
     status: normative
@@ -312,56 +300,6 @@ entries:
     status: log
     owner: orchestrator
 
-  docs/plans/wb-001-runtime-neutral-control-plane.md:
-    role: completed_architecture_foundation_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-002-runtime-neutral-template-convergence.md:
-    role: completed_portable_contract_migration_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-003-codex-native-agents-and-gates.md:
-    role: completed_codex_native_adapter_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-004-integration-adapter-normalization.md:
-    role: completed_integration_adapter_normalization_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-005-profile-aware-bootstrap-conformance.md:
-    role: completed_profile_aware_bootstrap_and_runtime_conformance_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-006-bootstrap-restore-hardening.md:
-    role: completed_bootstrap_restore_hardening_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-007-agent-evaluation-trajectory-assurance.md:
-    role: completed_agent_evaluation_and_trajectory_assurance_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-008-post-merge-ssot-release-gate.md:
-    role: completed_post_merge_ssot_and_release_gate_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md:
-    role: completed_risk_tiered_repair_lifecycle_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-010-skill-library-maintenance-integration.md:
-    role: completed_skill_library_maintenance_integration_work_block
-    status: log
-    owner: orchestrator
-
   docs/plans/wb-core-001-normative-architecture.md:
     role: active_portable_kit_normative_architecture_migration_work_block
     status: log
@@ -377,41 +315,34 @@ entries:
     restrictions: [no_hidden_reasoning, no_secrets, no_unredacted_protected_payloads]
 
   docs/reports/**:
-    role: assurance_and_closeout_evidence
-    status: evidence
-    owner: verifier
-
-  docs/reports/reviews/wb-core-001-critic-review.md:
-    role: imported_critic_review_and_orchestrator_resolution
-    status: evidence
-    owner: critic
-
-  docs/reports/reviews/wb-core-001-pr-review.md:
-    role: independent_pr_review_changes_required_and_author_resolution
-    status: evidence
-    owner: reviewer
-    verdict: CHANGES_REQUIRED
-    reviewed_head: c040015d17004fa90d36bfb26cc0600793a27063
-
-  docs/reports/reviews/wb-core-001-pr-rereview.md:
-    role: second_independent_pr_review_changes_required_and_author_resolution
-    status: evidence
-    owner: reviewer
-    verdict: CHANGES_REQUIRED
-    reviewed_head: 1fd216cfdc54d7868f4cb388506b08a733a5a418
-    accepted_findings: [REV-001, REV-002, REV-003, REV-004, REV-005]
-    open_findings: [REV-006, REV-007]
-    another_reviewer_pass_required: true
-
-  docs/reports/evaluations/**:
-    role: output_and_observable_trajectory_evaluation_reports
-    status: evidence
-    owner: verifier
-
-  docs/reports/closeout/**:
-    role: repository_closeout_evidence_without_mutable_vcs_state
+    role: self_contained_assurance_and_closeout_evidence
     status: evidence
     owner: orchestrator
+    authority: none_by_indexing
+
+  docs/reports/reviews/**:
+    role: critic_and_reviewer_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: reviewer
+    authority: none_by_indexing
+
+  docs/reports/verification/**:
+    role: verifier_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: verifier
+    authority: none_by_indexing
+
+  docs/reports/evaluations/**:
+    role: evaluation_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: verifier
+    authority: none_by_indexing
+
+  docs/reports/closeout/**:
+    role: closeout_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: orchestrator
+    authority: none_by_indexing
 
   README.md:
     role: public_entrypoint
@@ -424,12 +355,12 @@ entries:
     owner: maintainer
 
   PROJECT_MAP.md:
-    role: human_readable_repository_map_and_release_state_projection
+    role: human_readable_authority_architecture_canonical_path_and_active_state_map
     status: normative
     owner: architect
 
   FILE_REGISTRY.yml:
-    role: machine_readable_navigation_and_release_state_registry
+    role: machine_readable_authority_architecture_canonical_path_and_active_state_registry
     status: normative
     owner: architect
 
@@ -544,41 +475,16 @@ entries:
     status: template
     owner: orchestrator
 
-  template/.agent/hooks/**:
-    role: shared_provider_neutral_gate_implementation
-    status: template
-    owner: maintainer
-
-  template/scripts/bootstrap.sh:
-    role: generated_project_profile_aware_health_check
-    status: template
-    owner: verifier
-
-  template/scripts/validate-installation-profile.py:
-    role: generated_installation_profile_path_kind_blocked_default_and_evaluation_default_validator
-    status: template
-    owner: verifier
-
   template/scripts/validate-evaluation.py:
     role: generated_evaluation_plan_report_and_closeout_validator
     status: template
     owner: verifier
     authority: assurance_only
 
-  template/docs/templates/evaluation-plan-template.json:
-    role: generated_evaluation_plan_schema_example
+  template/scripts/repair-lifecycle.py:
+    role: generated_fail_closed_ndr_repair_record_validator
     status: template
-    owner: architect
-
-  template/docs/templates/evaluation-report-template.json:
-    role: generated_evaluation_report_schema_example
-    status: template
-    owner: verifier
-
-  template/docs/templates/trajectory-event-template.json:
-    role: generated_observable_trajectory_event_schema_example
-    status: template
-    owner: verifier
+    owner: maintainer
 
   template/.codex/**:
     role: conditional_codex_runtime_adapter_implementation
@@ -615,7 +521,6 @@ entries:
     status: normative
     owner: architect
     authority: none
-    related: [framework/workflow/external-skill-discovery.md, framework/workflow/skill-routing-gate.md, bootstrap/profiles.json]
 
   handoff/**:
     role: runtime_transport_implementation
