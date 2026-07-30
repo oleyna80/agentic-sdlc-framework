@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: architecture_decision
 artifact_id: 2026-07-29-portable-kit-product-boundary
-status: proposed
+status: accepted
 created_at: 2026-07-29
 source_framework_revision: 0fce7389d27690482e910e942a1f3138c2fef123
 historical_framework_revision: 0c632db0b0444e556251c384f6254141c9df59bc
@@ -66,13 +66,14 @@ Work Block
   → separate Owner-controlled integration
 ```
 
-This decision defines the proposed migration **target architecture**, not an
+This decision defines the accepted migration **target architecture**, not an
 immediate replacement of the current operational repository architecture.
 `PROJECT_MAP.md` and `FILE_REGISTRY.yml` distinguish:
 
 1. the runtime-neutral control plane as current operational architecture;
 2. WB-CORE-001 as current active migration Work Block while in progress;
-3. this ADR and the portable-kit specification as proposed target architecture.
+3. this ADR, the portable-kit specification, and the companion ADR as accepted
+   target architecture that has not been promoted.
 
 WB-CORE-006 owns the atomic promotion and legacy-archive reconciliation that
 changes the operational architecture identifier.
@@ -108,9 +109,10 @@ authority.
 
 ### Acceptance-state transition
 
-This ADR remains `proposed` while required assurance and Owner approval are
-pending. A proposed ADR is not accepted merely because a pull request exists, a
-review is recorded, or CI is green.
+Preliminary Reviewer and Verifier assurance returned `READY` against exact
+normative subject `9c169fd97bdbe90bb2fc1133fff29878d1373396`. On 2026-07-30,
+the Owner explicitly authorized accepted-status finalization only. This
+status-only normative commit changes this ADR to `accepted`.
 
 ```text
 preliminary Reviewer and Verifier assurance
@@ -122,11 +124,10 @@ preliminary Reviewer and Verifier assurance
   → separate Owner merge approval
 ```
 
-Before merge, this ADR's frontmatter must be changed to the project's accepted
-status. The status-only commit is part of the normative subject. The assurance
-report may be committed afterward and does not need to be contained in the
-commit it evaluates. Merge while still marked `proposed` does not silently
-accept the decision.
+Final applicable assurance must now evaluate the resulting new normative subject.
+The assurance report may be committed afterward and does not need to be contained
+in the commit it evaluates. Acceptance does not promote the target into the
+current operational architecture, complete WB-CORE-001, or authorize merge.
 
 ## Rationale
 
@@ -190,10 +191,10 @@ normative subject and invalidate the assurance being indexed.
 
 The current runtime-neutral control-plane repository remains operationally
 canonical until promotion. During WB-CORE-001, navigation registers the active
-migration Work Block, proposed target architecture, and static evidence
-directory classes only. It does not mirror current assurance results. Candidate
-content remains noncanonical. Promotion requires pilot evidence, final
-assurance, status finalization, green CI, and explicit Owner approval.
+migration Work Block, accepted but unpromoted target architecture, and static
+evidence directory classes only. It does not mirror current assurance results.
+Candidate content remains noncanonical. Promotion still requires applicable
+pilot evidence, final assurance, closeout, green CI, and explicit Owner approval.
 
 ## Review Triggers
 

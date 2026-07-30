@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: architecture_decision
 artifact_id: 2026-07-29-portable-kit-roles-memory-installation
-status: proposed
+status: accepted
 created_at: 2026-07-29
 source_framework_revision: 0fce7389d27690482e910e942a1f3138c2fef123
 ---
@@ -197,8 +197,10 @@ results, coverage, and limitations are unchanged.
 
 ### Acceptance-state transition
 
-This ADR remains `proposed` while required assurance and Owner approval are
-pending.
+Preliminary Reviewer and Verifier assurance returned `READY` against exact
+normative subject `9c169fd97bdbe90bb2fc1133fff29878d1373396`. On 2026-07-30,
+the Owner explicitly authorized accepted-status finalization only. This
+status-only normative commit changes this ADR to `accepted`.
 
 ```text
 preliminary Reviewer and Verifier assurance
@@ -210,10 +212,10 @@ preliminary Reviewer and Verifier assurance
   → separate Owner merge approval
 ```
 
-Before merge, frontmatter must be changed to the project's accepted status. The
-status-only commit is part of the normative subject. The report may follow as
-evidence-only and does not need to be contained in the commit it evaluates.
-Merge while still `proposed` does not silently accept the decision.
+Final applicable assurance must now evaluate the resulting new normative subject.
+The report may follow as evidence-only and does not need to be contained in the
+commit it evaluates. Candidate implementation, promotion, closeout, and merge
+remain pending; acceptance authorizes none of them.
 
 ## Rationale
 

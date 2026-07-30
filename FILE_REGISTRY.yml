@@ -2,13 +2,14 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 16
+version: 17
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
 statuses:
   normative: "source of truth or accepted policy-bearing file"
   proposed: "target policy or architecture awaiting accepted status"
+  accepted: "Owner-approved normative target contract; may remain unimplemented or unpromoted"
   template: "copied into generated projects"
   runtime_adapter: "runtime-specific implementation; cannot override governance"
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
@@ -151,7 +152,7 @@ skill_library_maintenance:
 
 target_architecture:
   identifier: portable_agentic_sdlc_project_kit
-  status: proposed
+  status: accepted
   specification: docs/specs/portable-agentic-sdlc-project-kit.md
   decisions:
     - docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
@@ -159,7 +160,7 @@ target_architecture:
   active_migration_work_block: docs/plans/wb-core-001-normative-architecture.md
   promotion_work_block: WB-CORE-006
   current_operational_architecture_unchanged: true
-  authority: none_until_accepted_and_promoted
+  authority: accepted_target_not_operational_until_promoted
 
 migration_state:
   completed_work_blocks:
@@ -293,22 +294,22 @@ entries:
     owner: architect
 
   docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md:
-    role: proposed_portable_kit_product_boundary_target
-    status: proposed
+    role: accepted_portable_kit_product_boundary_target
+    status: accepted
     owner: architect
-    authority: none_until_accepted
+    authority: accepted_target_not_operational_until_promoted
 
   docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md:
-    role: proposed_portable_roles_memory_candidate_and_installer_target
-    status: proposed
+    role: accepted_portable_roles_memory_candidate_and_installer_target
+    status: accepted
     owner: architect
-    authority: none_until_accepted
+    authority: accepted_target_not_operational_until_promoted
 
   docs/specs/portable-agentic-sdlc-project-kit.md:
-    role: proposed_portable_agentic_sdlc_project_kit_specification
-    status: proposed
+    role: accepted_portable_agentic_sdlc_project_kit_specification
+    status: accepted
     owner: architect
-    authority: none_until_accepted
+    authority: accepted_target_not_operational_until_promoted
 
   docs/plans/**:
     role: work_block_plans_and_execution_evidence
@@ -321,7 +322,7 @@ entries:
     owner: orchestrator
     lifecycle_status: in_progress
     current_operational_architecture: runtime_neutral_control_plane
-    proposed_target_architecture: portable_agentic_sdlc_project_kit
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
 
   docs/evals/**:
     role: approved_evaluation_plans_benchmarks_and_observable_event_evidence

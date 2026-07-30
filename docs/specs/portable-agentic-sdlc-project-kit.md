@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: normative_specification
 artifact_id: portable-agentic-sdlc-project-kit
-status: proposed
+status: accepted
 owner_role: owner
 created_at: 2026-07-29
 source_framework_revision: 0fce7389d27690482e910e942a1f3138c2fef123
@@ -15,8 +15,10 @@ superpowers_reference_revision: 44c9b2d6e889982ac18c27d05a19fefe335194e1
 ## 1. Purpose
 
 Define a portable, repository-local Agentic SDLC Project Kit. The cited framework
-revisions are evidence, not runtime authority. This specification remains
-`proposed` until the section 10 acceptance transition is complete.
+revisions are evidence, not runtime authority. Explicit Owner authorization was
+recorded on 2026-07-30. This specification is now `accepted` as the normative
+target contract; it is not yet the current operational architecture. Final
+assurance, closeout, promotion, and merge remain pending.
 
 ## 2. Product Boundary
 
@@ -609,8 +611,13 @@ promotion.
 - [x] Canonical evidence-path/frontmatter discovery is defined.
 - [x] Proposed-to-accepted sequence is non-self-referential.
 - [x] No candidate/installer/runtime implementation is included.
-- [ ] A new Reviewer returns `READY` for the corrected normative subject.
-- [ ] A new preliminary Verifier returns `READY` for the corrected normative subject.
-- [ ] Owner authorizes status finalization and separately approves integration.
+- [x] A renewed Reviewer returned `READY` for preliminary-assurance subject
+  `9c169fd97bdbe90bb2fc1133fff29878d1373396`.
+- [x] A renewed preliminary Verifier returned `READY` for the same subject.
+- [x] The Owner authorized accepted-status finalization on 2026-07-30.
+- [ ] Final applicable Reviewer and Verifier assurance is recorded against the
+  status-finalized normative subject.
+- [ ] Closeout, promotion, and separate Owner merge approval are completed.
 
-This specification remains `proposed` and does not authorize merge or promotion.
+This specification is `accepted` as the normative target contract. It is not yet
+the current operational architecture and does not authorize promotion or merge.

@@ -40,22 +40,24 @@ provider snapshots do not grant authority or integration admission. The accepted
 current operational architecture decision is
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
-## Proposed Target Architecture
+## Accepted Target Architecture — Not Yet Promoted
 
-WB-CORE-001 defines a proposed Portable Agentic SDLC Project Kit target:
+WB-CORE-001 defines the accepted target architecture
+`portable_agentic_sdlc_project_kit`, the Portable Agentic SDLC Project Kit:
 
-- specification: `docs/specs/portable-agentic-sdlc-project-kit.md`;
-- product-boundary ADR:
+- accepted specification: `docs/specs/portable-agentic-sdlc-project-kit.md`;
+- accepted product-boundary ADR:
   `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md`;
-- roles/memory/installation ADR:
+- accepted roles/memory/installation ADR:
   `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md`.
 
-These artifacts remain `proposed`; they are not accepted merely because PR #12
-exists or CI passes. They do not change the current operational architecture
-identifier. WB-CORE-006 owns eventual promotion and atomic navigation
-reconciliation after pilot evidence, preliminary assurance, Owner-authorized
-status finalization, final applicable assurance against the resulting normative
-subject, evidence-only reports, green CI, and separate Owner approval.
+Acceptance occurred through explicit Owner-authorized status finalization on
+2026-07-30. The accepted target is authoritative for subsequent WB-CORE migration
+planning, but it is not operational, promoted, installed, or implemented. The
+current operational architecture identifier remains `runtime_neutral_control_plane`.
+WB-CORE-006 still owns promotion and legacy archival. Final assurance, closeout,
+applicable pilot evidence, promotion, and separate Owner merge approval remain
+pending.
 
 ## Authority Order
 
@@ -195,9 +197,9 @@ Missing network, revision, or license evidence fails closed.
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | latest completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | canonical completed closeout | Repository success-closeout for WB-010 |
 | `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Bounded target-architecture documentation and assurance correction loop |
-| `docs/specs/portable-agentic-sdlc-project-kit.md` | proposed target | Portable-kit normative specification pending acceptance |
-| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | proposed target | Project-kit versus control-plane boundary and assurance transition |
-| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | proposed target | Role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
+| `docs/specs/portable-agentic-sdlc-project-kit.md` | accepted target | Portable-kit normative target contract; not yet promoted |
+| `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | accepted target | Accepted project-kit versus control-plane boundary; not yet promoted |
+| `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | accepted target | Accepted role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
 | `docs/reports/reviews/` | evidence class | Critic and Reviewer reports discovered by structured frontmatter |
 | `docs/reports/verification/` | evidence class | Verifier reports discovered by structured frontmatter |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
@@ -264,7 +266,8 @@ Active migration Work Block:
 WB-CORE-001 is `in_progress`. Its authoritative scope and current lifecycle
 state are recorded in the Work Block. Assurance history and progress are
 recorded in self-contained evidence reports, not mirrored here. The portable
-kit remains a proposed target and does not replace current operations.
+kit is an accepted target that has not been promoted and does not replace current
+operations.
 
 ## Boundaries
 
@@ -280,8 +283,8 @@ kit remains a proposed target and does not replace current operations.
 - hosting-platform lifecycle is mutable external operational metadata.
 - operational evidence excludes hidden reasoning, secrets, and protected payloads.
 - unavailable checks/events remain blocked, not passed.
-- the portable-kit specification and ADRs are proposed target artifacts until
-  accepted and later promoted.
+- the portable-kit specification and ADRs are accepted target artifacts but do
+  not become current operational architecture until promoted.
 - proposals do not supersede current operational navigation by mere presence.
 - report commits are evidence-only only when they touch approved assurance or
   closeout report paths and contain no normative-subject change.

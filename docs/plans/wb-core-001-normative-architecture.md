@@ -33,17 +33,31 @@ capability negotiation, and provider-specific agent configuration.
   `obra/superpowers@44c9b2d6e889982ac18c27d05a19fefe335194e1`;
 - recovery audit and imported Critic review;
 - accepted Reviewer correction history REV-001 through REV-009;
-- preliminary Verifier normative subject:
+- historical preliminary Verifier normative subject:
   `674e992548c0474b79bbf261ee7fbceae8eaff4a`;
-- preliminary verification report:
+- historical preliminary verification report:
   `docs/reports/verification/wb-core-001-preliminary-verification.md`;
 - historical preliminary Verifier verdict: `NOT_READY`;
-- failed criteria: `VER-006`, `VER-007`, `VER-008`, `VER-014`, and derived
-  `VER-020`;
+- historical failed criteria: `VER-006`, `VER-007`, `VER-008`, `VER-014`, and
+  derived `VER-020`;
+- renewed Reviewer subject:
+  `9c169fd97bdbe90bb2fc1133fff29878d1373396`;
+- renewed Reviewer report:
+  `docs/reports/reviews/wb-core-001-pr-review-after-preliminary-verification.md`;
+- renewed Reviewer verdict: `READY`;
+- renewed preliminary Verifier subject:
+  `9c169fd97bdbe90bb2fc1133fff29878d1373396`;
+- renewed preliminary Verifier report:
+  `docs/reports/verification/wb-core-001-preliminary-verification-2.md`;
+- renewed preliminary Verifier verdict: `READY`;
+- status-finalization starting evidence-only head:
+  `668808bed0d38b483f46f034050939f25735b1cd`;
 - current repository contracts and history.
 
-The historical verification report remains unchanged. It records the failed
-subject and verdict; this corrective pass does not revise historical evidence.
+The historical `NOT_READY` report remains unchanged and authoritative only for
+its exact historical subject. The renewed Reviewer and preliminary Verifier
+reports independently return `READY` for `9c169fd...`; neither report is modified
+by this status-finalization pass.
 
 ## Accepted Prior Decisions
 
@@ -61,25 +75,26 @@ REV-001 through REV-009 are not reopened. Preserve:
 - evidence-only report commits;
 - prohibition of mutable assurance mirrors;
 - current operational architecture `runtime_neutral_control_plane`;
-- portable target status `proposed`;
+- portable target status `accepted` but not promoted;
 - WB-CORE-001 status `in_progress`;
-- Owner-controlled status finalization and merge.
+- Owner-controlled promotion, closeout, and merge.
 
 ## Process and Authority Classification
 
 - **Process level:** Standard.
-- **Side effects:** one feature-branch normative documentation commit and pull
-  request update only.
-- **Write authority:** scoped Architect / Documentation Coder for the exact
-  three-file corrective write-set.
-- **Merge authority:** none; PR #12 merge requires separate explicit Owner
-  approval.
+- **Side effects:** one feature-branch status-only normative documentation commit;
+  no PR-description update, merge, deployment, or operational mutation.
+- **Write authority:** scoped Documentation Coder for the exact six-file
+  status-finalization write-set.
+- **Merge authority:** explicitly denied; PR #12 merge requires a separate future
+  Owner authorization.
 - **Deployment/data/secrets:** none.
-- **Correction purpose:** resolve only the four normative gaps established by
-  the preliminary Verifier.
-- **Completion:** `in_progress`; new Reviewer, new preliminary Verifier,
-  accepted-status finalization, closeout, and Owner-controlled integration gates
-  remain open.
+- **Authorized purpose:** accepted-status finalization only; no architecture,
+  behavior, process, role, skill, memory, installer, migration, or implementation
+  change.
+- **Completion:** `in_progress`; final Reviewer, final Verifier, final evidence-only
+  reports, resulting-head CI, closeout, memory/SSOT synchronization where
+  applicable, promotion, archival, and merge remain open.
 
 ## Approved Write-Set
 
@@ -87,51 +102,80 @@ Modify exactly:
 
 ```text
 docs/specs/portable-agentic-sdlc-project-kit.md
+docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
 docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
+PROJECT_MAP.md
+FILE_REGISTRY.yml
 docs/plans/wb-core-001-normative-architecture.md
 ```
 
-No change is authorized to:
-
-```text
-FILE_REGISTRY.yml
-PROJECT_MAP.md
-docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
-docs/reports/verification/wb-core-001-preliminary-verification.md
-```
-
-No Reviewer, Verifier, evaluation, or closeout report is created or modified by
-this pass. No other path may change.
+No Reviewer, Verifier, Critic, evaluation, closeout, memory, runtime, candidate,
+implementation, template, installer, test, migration, repository-setting, or
+deployment path may change. The PR description and review threads are not
+modified.
 
 ## Commit Structure
 
-Create one normative commit:
+Create exactly one normative commit:
 
 ```text
-docs(core): resolve preliminary verification gaps
+docs(core): accept portable kit normative architecture
 ```
 
-The commit changes exactly the three approved normative paths. It is the new
-normative subject for subsequent independent assurance.
+The commit changes exactly the six approved normative paths and becomes the new
+normative subject for final applicable assurance. No evidence report is created
+or modified in this commit.
 
 ## Operational Architecture and Navigation Boundary
 
 The current repository remains the operational
-`runtime_neutral_control_plane`. The portable
-`portable_agentic_sdlc_project_kit` remains `proposed`, and this Work Block
-remains active and `in_progress`.
+`runtime_neutral_control_plane`. The Portable Agentic SDLC Project Kit is now the
+`accepted` normative target contract but is not promoted, installed, implemented,
+or the current operational architecture. This Work Block remains active and
+`in_progress`.
 
-This correction does not update `FILE_REGISTRY.yml` or `PROJECT_MAP.md` because
-it changes no current operational path ownership, architecture identity,
-canonical evidence directory, active Work Block identity, or accepted/proposed
-status.
+`PROJECT_MAP.md` and `FILE_REGISTRY.yml` synchronize only accepted target status,
+canonical target classification, and the unchanged current operational
+architecture. They do not register individual assurance reports or mirror mutable
+verdicts, subjects, findings, limitations, coverage, or another-pass state.
+Evidence continues to be discovered from canonical directories and structured
+report frontmatter.
 
-Normative navigation does not register individual review, verification,
-evaluation, or closeout reports and does not mirror mutable verdicts, subjects,
-findings, limitations, coverage, or another-pass state. Evidence is discovered
-from canonical directories and structured report frontmatter.
+## Preliminary Assurance Record
 
-## Correction Scope
+```text
+Reviewer subject: 9c169fd97bdbe90bb2fc1133fff29878d1373396
+Reviewer verdict: READY
+Reviewer report: docs/reports/reviews/wb-core-001-pr-review-after-preliminary-verification.md
+
+Preliminary Verifier subject: 9c169fd97bdbe90bb2fc1133fff29878d1373396
+Preliminary Verifier verdict: READY
+Verifier report: docs/reports/verification/wb-core-001-preliminary-verification-2.md
+Verifier matrix: 20 PASS, 0 FAIL, 0 BLOCKED, 0 NOT_APPLICABLE
+```
+
+These verdicts authorize no merge and become preliminary evidence for the
+Owner-authorized status transition. Final applicable assurance must assess the
+new status-finalized normative subject.
+
+## Owner Authorization Record
+
+```text
+Owner authorization date: 2026-07-30
+Authorized action: accepted-status finalization only
+Merge authorization: explicitly denied
+```
+
+Exact Owner statement:
+
+> Да, как Owner разрешаю status-finalization commit в указанном scope.
+> Merge не разрешаю.
+
+## Historical Preliminary-Verification Remediation — Completed
+
+The following three-file remediation produced normative subject
+`9c169fd97bdbe90bb2fc1133fff29878d1373396`. It is retained as historical
+context and is not the current authorized write-set.
 
 ### VER-006 — explicit mechanism disposition
 
@@ -193,104 +237,100 @@ Specification section 19 and the roles/memory/installation ADR must require:
 
 ## Out of Scope
 
-- candidate, installer, role, skill, or template implementation;
-- status finalization or acceptance;
-- modification of product-boundary ADR;
-- navigation or registry changes;
-- runtime/provider configuration;
-- broad architecture redesign;
-- repair of unrelated findings;
+- candidate, role, skill, memory, template, installer, test, packaging, or
+  migration implementation;
+- WB-CORE-002 or any later implementation Work Block;
+- promotion of the portable target to current operational architecture;
+- archival of the runtime-neutral control plane;
+- closeout or completion of WB-CORE-001;
+- memory/SSOT synchronization beyond recording this Work Block gate state;
+- runtime/provider configuration or operational mutation;
 - repository settings, secrets, deployment, live state, or data;
-- default-branch writes or merge;
-- modification of historical assurance reports;
-- creation of a new assurance report.
+- default-branch writes, merge, or auto-merge;
+- creation or modification of assurance, evaluation, or closeout reports;
+- PR-description or review-thread mutation.
 
 ## Execution Plan
 
-1. Resolve current PR #12 head and stop on unexpected divergence.
-2. Confirm no applicable normative file changed after `674e992...`.
-3. Preserve REV-001 through REV-009 and all accepted product boundaries.
-4. Modify only the specification, roles/memory/installation ADR, and this Work
-   Block.
-5. Add explicit mechanism disposition.
-6. Add per-memory-file ownership and update triggers.
-7. Add operational risk-based process-level selection.
-8. Add fail-closed traversal and destination-containment rules.
-9. Run exact write-set and normative-content checks.
-10. Create one normative commit and advance the existing PR branch.
-11. Run Framework Contracts and Release State Contract.
-12. Leave PR #12 open and unmerged for new independent Reviewer and Verifier
-    passes.
+1. Resolve PR #12 and require head
+   `668808bed0d38b483f46f034050939f25735b1cd`.
+2. Confirm commits after `9c169fd...` change only the renewed Reviewer and
+   preliminary Verifier reports.
+3. Confirm both reports return `READY` and the Verifier matrix is 20/0/0/0.
+4. Confirm Framework Contracts and Release State Contract are green on the
+   preliminary subject and both evidence-only heads.
+5. Record the exact Owner authorization and merge denial.
+6. Change only current target status, status-dependent prose, map/registry target
+   classification, registry version, and this Work Block gate state.
+7. Inspect the complete diff and prove that every changed line is status
+   finalization or gate-state synchronization.
+8. Create one six-file normative commit with the authorized message.
+9. Run Framework Contracts and Release State Contract on the new subject.
+10. Leave PR #12 open and unmerged for final Reviewer and Verifier assurance.
 
 ## Acceptance Criteria
 
-- [x] REV-001 through REV-009 remain accepted and are not reopened.
-- [x] `status: in_progress` is preserved.
-- [x] Current operational and proposed target architectures remain distinct.
-- [x] Exactly nine core procedural skills remain.
-- [x] Explicit disposition exists for every listed current/historical mechanism.
-- [x] Every canonical memory path has an owner and event-driven update trigger.
-- [x] Memory required/prohibited content and retention are explicit.
-- [x] Reversibility is a process-classification dimension.
-- [x] File count is explicitly non-authoritative.
-- [x] Quick eligibility contains all mandatory conditions.
-- [x] Standard is the explicit default when neither Quick nor High-Risk applies.
-- [x] High-Risk cannot be downgraded when a mandatory trigger exists.
-- [x] Reclassification rules are explicit.
-- [x] Absolute, drive/UNC-root, `..`, invalid, and root-escaping paths are rejected.
-- [x] Parent symlink/junction escape fails closed.
-- [x] `apply` revalidates before any mutation.
-- [x] Atomicity prevents partial mutation when any planned action is blocked.
-- [x] No normative navigation update is required or made.
-- [x] Specification and both ADRs remain `proposed`.
-- [x] Operational architecture remains unchanged.
-- [ ] A new Reviewer assesses the corrected normative subject and returns the
-  applicable verdict.
-- [ ] A new preliminary Verifier assesses the same corrected normative subject and
-  returns `READY`.
-- [ ] Owner authorizes accepted-status finalization.
-- [ ] Final applicable assurance, closeout, and separate merge approval complete.
-
-The checked correction criteria above mean the required normative text is present
-in this same commit. They do not rewrite or resolve the historical Verifier
-report. `VER-006`, `VER-007`, `VER-008`, `VER-014`, and derived `VER-020` remain
-historical failures until a new Verifier assesses the corrected subject.
+- [x] Renewed Reviewer assessed
+  `9c169fd97bdbe90bb2fc1133fff29878d1373396` and returned `READY`.
+- [x] Renewed preliminary Verifier assessed the same subject and returned `READY`.
+- [x] Preliminary Verifier matrix is 20 PASS, 0 FAIL, 0 BLOCKED, and
+  0 NOT_APPLICABLE.
+- [x] Owner authorized accepted-status finalization on 2026-07-30.
+- [x] Owner explicitly denied merge authorization.
+- [x] Specification status is `accepted`.
+- [x] Product-boundary ADR status is `accepted`.
+- [x] Roles/memory/installation ADR status is `accepted`.
+- [x] `PROJECT_MAP.md` identifies an accepted but unpromoted target.
+- [x] `FILE_REGISTRY.yml` classifies the target and three artifacts as `accepted`.
+- [x] Current operational architecture remains `runtime_neutral_control_plane`.
+- [x] WB-CORE-001 remains `in_progress`.
+- [x] No substantive architecture, behavior, process, role, skill, memory,
+  installer, migration, or implementation rule changes.
+- [ ] Final Reviewer returns the applicable verdict against the new
+  status-finalized normative subject.
+- [ ] Final Verifier returns the applicable verdict against that subject.
+- [ ] Final evidence-only reports are committed.
+- [ ] Framework Contracts and Release State Contract pass on the resulting
+  evidence-only PR head.
+- [ ] Truthful closeout and memory/SSOT synchronization are completed where
+  applicable.
+- [ ] Promotion and legacy archival are performed by their authorized later Work
+  Block.
+- [ ] Separate Owner merge approval is obtained and merge is performed.
 
 ## Self-Checks
 
 Check:
 
-- exact three-file commit write-set;
-- exactly nine core skills;
-- explicit one-disposition-per-mechanism table;
-- memory owner and update trigger for every `memory_bank/` path;
-- strict Quick eligibility and Standard default/escalation;
-- reversibility and non-authoritative file-count language;
-- mandatory High-Risk triggers and no downgrade path;
-- absolute/drive/UNC/`..` rejection;
-- parent symlink/junction containment;
-- apply-time revalidation and whole-apply abort;
-- no change to map, registry, product-boundary ADR, or any report;
-- specification and roles/memory/installation ADR remain `proposed`;
-- Work Block remains `in_progress`;
-- operational architecture remains `runtime_neutral_control_plane`;
-- Framework Contracts and Release State Contract on the resulting head;
+- starting head and post-`9c169fd...` report-only ancestry;
+- exact six-file commit write-set and one normative commit;
+- specification and both ADR frontmatter values are `accepted`;
+- map states accepted target and unchanged current operational architecture;
+- registry version increments once and target/specific entries are `accepted`;
+- registry wildcard architecture-decision class is unchanged;
+- Work Block frontmatter remains `in_progress`;
+- exact Owner authorization and explicit merge denial are recorded;
+- no evidence report, mutable assurance mirror, candidate, runtime, implementation,
+  template, installer, test, migration, or repository-setting path changes;
+- specification and ADR headings/frontmatter parse;
+- YAML parses;
+- complete diff contains only status-finalization and gate-state synchronization;
+- Framework Contracts and Release State Contract on the resulting subject;
 - PR #12 remains open and unmerged.
 
 ## Current State
 
-- **Define:** proposed target architecture remains defined.
-- **Critic:** historical accepted correction history REV-001 through REV-009;
-  unchanged.
-- **Reviewer:** prior `READY` is historical and stale for the changed normative
-  surfaces; a new Reviewer pass is required.
-- **Preliminary Verifier:** historical subject
-  `674e992548c0474b79bbf261ee7fbceae8eaff4a` returned `NOT_READY` in
-  `docs/reports/verification/wb-core-001-preliminary-verification.md`.
-- **Correction:** specification/ADR correction is in progress in this normative
-  commit.
-- **New assurance:** new Reviewer and new preliminary Verifier passes are
-  required against the corrected normative subject.
-- **Accepted-status finalization:** blocked and Owner-controlled.
-- **Closeout:** blocked; Work Block is not complete.
-- **Merge:** PR #12 remains subject to separate explicit Owner approval.
+```text
+Normative target status: accepted
+Current operational architecture: runtime_neutral_control_plane
+WB-CORE-001: in_progress
+Final Reviewer: required against new subject
+Final Verifier: required against new subject
+Closeout: blocked
+Promotion: not performed
+Merge: explicitly not authorized
+```
+
+Candidate implementation, WB-CORE-002, final evidence reports, resulting-head CI,
+memory/SSOT closeout synchronization, legacy archival, and integration remain
+outside this status-only commit.
