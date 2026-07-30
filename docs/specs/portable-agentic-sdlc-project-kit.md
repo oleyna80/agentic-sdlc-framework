@@ -88,17 +88,134 @@ that subject commit.
 
 ## 6. Process Levels
 
-**Quick** requires a compact Work Block, scope/write-set, acceptance, fresh
-verification, and closeout. Critic and separate Reviewer are normally optional.
+### 6.1 Classification algorithm
 
-**Standard** requires specification/change contract, material ADRs, plan/tasks as
-needed, Critic, Coder, Reviewer, Verifier, closeout, and memory synchronization.
+Classification occurs during Intake/Define. Every Work Block must be assessed
+against all of these dimensions:
 
-**High-Risk** adds threat/risk assessment, rollback, positive/negative cases,
-required independence, explicit Owner approvals, and optional domain evaluation.
-Triggers include production mutation, secrets/permissions, destructive actions,
-live data, consequential communications/transactions, security boundaries, and
-material legal/privacy/financial risk.
+```text
+ambiguity
+behavioral impact
+architecture impact
+system boundaries
+authority and approvals
+side effects
+reversibility and rollback complexity
+security and data risk
+legal/privacy/financial consequence
+verification cost
+nondeterminism
+number of writers and handoffs
+```
+
+File count is not a primary classifier.
+
+A one-file change can be Standard or High-Risk. A many-file mechanical change can
+remain Quick only when every Quick eligibility condition is satisfied.
+
+Selection order is fail-closed:
+
+1. evaluate every mandatory High-Risk trigger;
+2. when no High-Risk trigger applies, evaluate every Quick eligibility condition;
+3. select Quick only when all Quick conditions pass;
+4. select Standard when the Work Block is not eligible for Quick and does not
+   trigger High-Risk;
+5. record the dimensions, result, rationale, required artifacts, assurance, and
+   approvals in the Work Block before execution.
+
+### 6.2 Quick eligibility
+
+Quick may be selected only when **all** of the following are true:
+
+1. objective and acceptance are unambiguous;
+2. an accepted contract already governs the behavior;
+3. no material architecture, authority, public-interface, data-model, or
+   system-boundary decision is required;
+4. no High-Risk trigger or Owner Hard Stop applies;
+5. side effects are local, bounded, and understood;
+6. the change is readily reversible with a simple rollback;
+7. verification is deterministic, inexpensive, and available;
+8. no required independent Critic, Reviewer, or domain assurance is needed;
+9. one Coder and one bounded write-set are sufficient;
+10. no migration, multi-system coordination, or consequential external action is
+    involved.
+
+Quick still requires:
+
+```text
+compact Work Block
+scope and write-set
+acceptance criteria
+fresh verification
+truthful closeout
+```
+
+A separate Critic or Reviewer report is normally optional, but may be required by
+the Work Block.
+
+### 6.3 Standard selection
+
+Standard is the default when work is not eligible for Quick and does not trigger
+High-Risk.
+
+Escalate Quick to Standard when any of the following applies:
+
+```text
+material ambiguity
+behavioral or contract change
+material ADR decision
+cross-component or system-boundary work
+nontrivial rollback or migration
+multiple coordinated artifacts or handoffs
+separate Reviewer or Verifier assurance is required
+verification is not cheap and deterministic
+scope cannot be bounded confidently before implementation
+```
+
+Standard requires a specification or accepted change contract, material ADRs,
+plan/tasks as needed, Critic, one bounded Coder, Reviewer, Verifier, truthful
+closeout, and project-memory synchronization.
+
+### 6.4 High-Risk selection
+
+High-Risk applies whenever any mandatory trigger exists, regardless of file count
+or apparent implementation size. Mandatory triggers include:
+
+```text
+irreversible or difficult-to-reverse side effects
+production deployment or restart
+secrets, credentials or permissions
+destructive operations
+live data or business-state mutation
+security or trust-boundary change
+consequential external communication or transaction
+material legal, privacy or financial consequence
+harmful or difficult-to-bound nondeterminism
+```
+
+High-Risk adds:
+
+```text
+risk or threat assessment
+rollback and recovery plan
+positive and negative cases
+required independent assurance
+explicit Owner approvals
+domain-specific verification or evaluation when applicable
+```
+
+If required assurance, authority, rollback, or evidence is unavailable, the Work
+Block is `BLOCKED` or `UNVERIFIED`; it cannot be downgraded to Standard or Quick.
+
+### 6.5 Reclassification
+
+- classification occurs during Intake/Define;
+- new evidence may only preserve or raise the level unless a documented
+  reassessment proves the original risk assumption false;
+- discovering ambiguity, broader side effects, or reduced reversibility requires
+  immediate escalation;
+- reclassification requires Work Block revision before further execution;
+- a lower-level artifact or agent cannot downgrade the Work Block.
 
 ## 7. Logical Roles
 
@@ -214,7 +331,8 @@ conditions. Neither may expand the active Work Block.
 
 ## 12. Skills and Routing
 
-Skills are procedures, not authority. Core skills are:
+Skills are procedures, not authority. Exactly these nine skills form the portable
+core:
 
 | Skill | Purpose |
 |---|---|
@@ -230,6 +348,60 @@ Skills are procedures, not authority. Core skills are:
 
 Skills cannot expand role, scope, write-set, side effects, Hard Stops, or approval.
 
+### Normative mechanism disposition
+
+Every relevant current or historical mechanism has exactly one portable
+disposition:
+
+| Existing or historical mechanism | Portable disposition | Target location or replacement | Rationale / boundary |
+|---|---|---|---|
+| `technical-discovery` | remain core procedural skill | `agentic/skills/technical-discovery/` | Portable discovery procedure; no authority expansion. |
+| `architecture-discovery` | remain core procedural skill | `agentic/skills/architecture-discovery/` | Portable architecture-boundary analysis. |
+| `specification` | remain core procedural skill | `agentic/skills/specification/` | Defines behavior and acceptance before implementation. |
+| `implementation-planning` | remain core procedural skill | `agentic/skills/implementation-planning/` | Converts accepted requirements into bounded execution. |
+| `task-decomposition` | remain core procedural skill | `agentic/skills/task-decomposition/` | Produces bounded, verifiable tasks and handoffs. |
+| `systematic-debugging` | remain core procedural skill | `agentic/skills/systematic-debugging/` | Root-cause-first investigation remains portable. |
+| `memory-bank-manager` | remain core procedural skill | `agentic/skills/memory-bank-manager/` | Maintains canonical committed project memory. |
+| `ssot-sync-closeout` | remain core procedural skill | `agentic/skills/ssot-sync-closeout/` | Synchronizes accepted state and truthful closeout. |
+| `verification-before-completion` | remain core procedural skill | `agentic/skills/verification-before-completion/` | Requires fresh evidence before readiness claims. |
+| `scoped-coder` | become role contract | `agentic/roles/coder.md` | Implementation authority belongs to the Coder role and approved write-set. |
+| `critic-review` | become role contract | `agentic/roles/critic.md` | Criticism is a logical role obligation, not a runtime skill gate. |
+| `reviewer` | become role contract | `agentic/roles/reviewer.md` | Frozen-subject review belongs to the Reviewer role. |
+| `verifier` | become role contract | `agentic/roles/verifier.md` | Criterion-mapped evidence belongs to the Verifier role. |
+| `codex-verification` | become provider-neutral Verifier contract | `agentic/roles/verifier.md` plus `verification-before-completion` | No provider name survives as portable authority; second-model use is optional execution metadata. |
+| `subagent-mission-brief` | become template and lifecycle mechanism | mission-brief template plus section 13 handoff mechanism | Works for native subagents, sequential sessions, and manual handoff. |
+| `context-snapshot` | become conditional template rule | snapshot template under `agentic/templates/` and `memory_bank/snapshots/` | Created only when context loss or transfer risk justifies it. |
+| `orchestrator-log` | become role obligation and canonical memory artifact | Orchestrator contract plus `memory_bank/orchestrator-log.md` | Records coordination facts without becoming a separate authority skill. |
+| `review-log` | become assurance index | `memory_bank/review-log.md` | Indexes report identity and history; reports remain detailed evidence. |
+| branch finishing | become optional extension | optional branch-finishing extension | VCS integration procedure may consume core artifacts but cannot redefine authority. |
+| merge protocol automation | become optional extension | optional distributed-work extension | Automation is not required for portable sequential or manual operation. |
+| worktree automation | become optional extension | optional workspace-isolation extension | Worktrees are one possible isolation mechanism, not a core dependency. |
+| browser/UI testing | become optional extension | optional browser/UI assurance extension | Domain-specific verification remains triggered by the Work Block. |
+| advanced threat/security tooling | become optional extension | optional security-assurance extension | May add checks but cannot redefine roles, lifecycle, or approvals. |
+| external second-model review | become optional extension | optional external-review extension | Model/provider diversity never grants authority or independence by name alone. |
+| specialized skill provenance tooling | become optional extension | optional skill-maintenance extension | Maintainer workflow, not project-kit core. |
+| nondeterministic output evaluation | become optional extension | optional evaluation extension | Required only when the Work Block's risk and nondeterminism demand it. |
+| TDD-specific workflow | become optional extension | optional test-first extension | Test strategy is selected by the Work Block; universal TDD is not core. |
+| project estimation | become optional extension | optional estimation extension | Estimation does not define delivery authority. |
+| spec-drift automation | become optional extension | optional drift-check extension | May consume specs/reports but cannot become a parallel source of truth. |
+| provider/runtime adapters | remain outside portable core | current implementation may remain operational during migration | Neither copied into nor owned by the portable target. |
+| installation profiles | remain outside portable core | current implementation may remain operational during migration | Portable install owns files, not runtime-profile composition. |
+| model routing | remain outside portable core | runtime-local configuration | Models cannot define portable authority. |
+| capability negotiation | remain outside portable core | runtime-local or operator decision | Portable workflow records actual execution mode without owning runtime capability catalogs. |
+| provider-specific agents | remain outside portable core | runtime-local configuration | Portable roles are logical Markdown contracts. |
+| hooks and runtime permission configuration | remain outside portable core | repository/runtime-local safeguards | Technical enforcement may exist externally but is not target-owned. |
+| MCP and plugins | remain outside portable core | runtime-local integrations | Integrations cannot become core authority or lifecycle. |
+| queues, daemons, and services | remain outside portable core | external operational tooling | The kit must operate through artifacts and manual handoff without services. |
+| provider snapshots | remain outside portable core | external evidence when independently useful | Provider state is noncanonical and does not grant readiness. |
+| runtime transport and handoff runners | remain outside portable core | manual/portable handoff artifacts replace them | Transport implementation is not part of the project kit. |
+| duplicated runtime skill mirrors | remain outside portable core | one canonical `agentic/skills/` copy | Duplication creates drift and provider ownership. |
+| runtime-specific bootstrap and conformance control | remain outside portable core | external runtime maintenance | The portable installer validates only its own managed paths and contract. |
+
+Optional extensions may consume core artifacts but cannot redefine authority,
+lifecycle, Work Blocks, process levels, memory, or assurance. Current repository
+implementations may remain operational during migration, but they are neither
+copied into nor owned by the portable target.
+
 ## 13. Mission Briefs and Handoffs
 
 A mission brief contains Work Block/role, objective, inputs, authority, read scope,
@@ -239,22 +411,35 @@ work, evidence, deviations, blockers, and next authorized role.
 
 ## 14. Project Memory and Logs
 
-Canonical committed memory is:
+Canonical project memory is committed, concise, secret-free, and sufficient to
+reconstruct the current accepted project state without provider memory or chat
+history.
 
-```text
-memory_bank/
-├── context.md
-├── progress.md
-├── decisions.md
-├── orchestrator-log.md
-├── review-log.md
-└── snapshots/
-```
+| Path | Owner | Update trigger | Required content | Prohibited content | Retention |
+|---|---|---|---|---|---|
+| `memory_bank/context.md` | Orchestrator | Work Block opened; objective, scope, or gate changes; blocker appears or clears; active handoff changes; next authorized action changes | current focus; active Work Block; blockers; current gate; next action; links to authoritative artifacts | transcripts; secrets; speculative decisions; duplicated specification bodies | Current-state document; replace stale state rather than append indefinitely. |
+| `memory_bank/progress.md` | Orchestrator | milestone completed; task blocked; work reopened; assurance verdict recorded; Work Block closed | date; Work Block; event/status; evidence link; correction or supersession when applicable | unsupported success claims; copied full reports; hidden reasoning | Append-only milestone ledger; corrections must be explicit. |
+| `memory_bank/decisions.md` | Architect proposes; Owner accepts material product decisions when required; Orchestrator records accepted, revised, or revoked state | durable decision accepted; decision revised; decision revoked or superseded | decision; status; rationale summary; authority/evidence; supersession links | unaccepted proposals represented as decisions; credentials; private chain-of-thought; duplicated ADR bodies | Retain historical status and supersession chain. |
+| `memory_bank/orchestrator-log.md` | Orchestrator | lifecycle transition; role assignment or handoff; approval or revocation; blocker; scope correction; closeout decision | date; Work Block; action; authority basis; result; artifact links | raw prompts; chat transcripts; hidden reasoning; secrets | Concise append-only coordination ledger. |
+| `memory_bank/review-log.md` | Orchestrator, using facts supplied by Critic, Reviewer, and Verifier reports | assurance report created; verdict changes; subject changes and makes a verdict stale; blocking finding resolved; assurance superseded | report path; exact normative subject; role; independence mode; verdict; blocking state; supersession when applicable | replacing the report; copying full findings; mutable assurance data in `PROJECT_MAP.md` or `FILE_REGISTRY.yml` | Append verdict history; never silently rewrite historical verdicts. |
+| `memory_bank/snapshots/` | Orchestrator or explicitly delegated role | likely context loss; long pause; environment/runtime transfer; manual handoff; major phase boundary when active context cannot be reconstructed cheaply | objective; authority; current subject/head; accepted decisions; completed work; blockers; evidence; next authorized action | raw transcripts; scratch; secrets; private reasoning | Retain referenced snapshots; stale unreferenced snapshots may be archived under an explicit policy. |
+
+Global memory rules:
+
+1. `memory_bank/` is committed, concise, and secret-free.
+2. It must be sufficient to reconstruct current accepted project state without
+   provider memory or chat history.
+3. `.agentic-local/` is ignored, disposable, and noncanonical.
+4. `.agentic-local/` cannot contain the only copy of an accepted decision,
+   required evidence, current scope, a blocking condition, or the next authorized
+   action.
+5. Reports remain the source for detailed assurance results.
+6. Memory links to reports rather than duplicating them.
+7. Unverified or proposed content must be labelled as such.
 
 Reports remain the source for verdict, subject, scope, findings, coverage,
-results, and limitations. `review-log.md` may index report paths without replacing
-reports or becoming normative navigation. Raw transcripts, scratch, caches, and
-tool output belong in ignored `.agentic-local/`.
+results, and limitations. `review-log.md` indexes report identity and history
+without replacing reports or becoming normative navigation.
 
 ## 15. Review
 
@@ -306,18 +491,77 @@ install.py plan --target <repository>
 install.py apply --target <repository>
 ```
 
-`plan` is mandatory and nonmutating; it checks root/path/symlink safety and
-classifies `create`, `skip-identical`, `collision`, or `blocked`. `apply`
-revalidates, stages, creates only planned files, refuses unresolved collisions,
-and never silently overwrites, merges, or deletes. It creates no runtime agents,
-hooks, plugins, MCP, provider directories, routing, profiles, or mirrors.
+`install.py plan` is mandatory, fail-closed, and nonmutating. It produces an
+approved plan identity and classifies each candidate-managed path as `create`,
+`skip-identical`, `collision`, or `blocked`.
+
+### 19.1 Target-root resolution
+
+1. Resolve the target repository root to a canonical absolute path.
+2. Reject a missing, ambiguous, or unsafe target root.
+3. Record the canonical root in the plan.
+4. `apply` must resolve it again and require it to match the approved plan.
+
+### 19.2 Candidate path validation
+
+Every candidate-managed path must:
+
+- be a normalized relative path;
+- be non-empty;
+- not be absolute;
+- not use a Windows drive prefix;
+- not use a UNC/network-root prefix;
+- not contain `..` path components;
+- not contain NUL or invalid platform path characters;
+- not normalize outside the target root.
+
+The installer rejects rather than sanitizes an invalid manifest path.
+
+### 19.3 Destination containment
+
+For every planned destination:
+
+1. join it to the canonical target root;
+2. resolve existing parent components and symlinks;
+3. verify the destination remains inside the canonical target root;
+4. classify any escape, ambiguous resolution, or unsupported link type as
+   `blocked`.
+
+A symlink or junction in any destination parent that redirects outside the target
+root fails closed.
+
+### 19.4 Apply-time revalidation
+
+Before any mutation, `apply` repeats:
+
+- target-root identity;
+- path normalization;
+- traversal checks;
+- parent symlink/junction checks;
+- collision state;
+- approved plan identity.
+
+Any mismatch or traversal finding aborts the entire apply before target mutation.
+
+### 19.5 Atomicity and mutation boundary
+
+No file is created, overwritten, merged, moved, or deleted when any planned action
+is blocked by traversal, root escape, unsafe link resolution, or unresolved
+collision.
+
+After revalidation, `apply` stages and creates only approved `create` paths,
+preserves `skip-identical`, refuses unresolved collisions, and never silently
+overwrites, merges, moves, or deletes. It creates no runtime agents, hooks,
+plugins, MCP, provider directories, routing, profiles, or mirrors.
+
+Installer implementations may impose stricter platform rules but cannot weaken
+these requirements.
 
 ## 20. Optional Extensions
 
-Optional, non-core capabilities include nondeterministic evaluation, advanced
-security tooling, browser/UI testing, worktree automation, PR finishing,
-external-model review, provenance tooling, MCP, plugins, hooks, runtime profiles,
-queues, daemons, and provider adapters. Extensions cannot redefine core authority.
+Optional, non-core capabilities are classified individually in section 12.
+Extensions may consume core artifacts but cannot redefine core authority,
+lifecycle, Work Blocks, process levels, memory, or assurance.
 
 ## 21. Candidate and Promotion Model
 
@@ -350,9 +594,14 @@ promotion.
 ## 24. Acceptance Criteria
 
 - [x] Product boundary and runtime/provider exclusions are defined.
-- [x] Six roles and nine skills are specified.
+- [x] Six roles and exactly nine core skills are specified.
+- [x] Every listed current/historical mechanism has an explicit disposition.
 - [x] Work Block precedence and non-expansion rules are explicit.
-- [x] Process, concurrency, memory, installer, candidate, and migration are bounded.
+- [x] Process-level classification is risk-based, operational, and not file-count based.
+- [x] Quick eligibility, Standard default/escalation, High-Risk triggers, and reclassification are explicit.
+- [x] Per-memory-file ownership, update triggers, content boundaries, and retention are defined.
+- [x] One-write-Work-Block concurrency is bounded.
+- [x] Installer traversal, root containment, link escape, revalidation, and atomicity are fail-closed.
 - [x] Role-specific verdict vocabularies are defined.
 - [x] Exact normative-subject and evidence-only semantics are defined.
 - [x] Mutable assurance state is prohibited from normative navigation.
@@ -360,8 +609,8 @@ promotion.
 - [x] Canonical evidence-path/frontmatter discovery is defined.
 - [x] Proposed-to-accepted sequence is non-self-referential.
 - [x] No candidate/installer/runtime implementation is included.
-- [ ] A later Reviewer returns `READY` for the applicable normative subject.
-- [ ] A later Verifier returns `READY` for the applicable normative subject.
+- [ ] A new Reviewer returns `READY` for the corrected normative subject.
+- [ ] A new preliminary Verifier returns `READY` for the corrected normative subject.
 - [ ] Owner authorizes status finalization and separately approves integration.
 
 This specification remains `proposed` and does not authorize merge or promotion.

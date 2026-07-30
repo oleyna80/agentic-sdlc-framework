@@ -41,6 +41,13 @@ authority, prohibited actions, required inputs, procedure, output, stop
 conditions, and handoff. They do not contain model, runtime, tool, provider, or
 plugin configuration.
 
+Historical implementation mechanisms that express logical role responsibilities
+are absorbed into these contracts: `scoped-coder` becomes the Coder contract,
+`critic-review` becomes the Critic contract, and `reviewer`/`verifier` become
+their corresponding role contracts. Provider-named verification is represented
+only by the provider-neutral Verifier contract and
+`verification-before-completion`; no provider name grants portable authority.
+
 ### Role-specific verdict vocabularies
 
 - Critic: `APPROVE`, `APPROVE_WITH_CHANGES`, `RECONSIDER`, `BLOCKED`.
@@ -69,12 +76,34 @@ memory_bank/
 └── snapshots/
 ```
 
-`memory_bank/` stores concise project state, progress, accepted decisions,
-coordination events, assurance outcomes, exact normative-subject identities, and
-conditional context snapshots. Runtime-local scratch, caches, raw transcripts,
+`memory_bank/` is committed, concise, secret-free, and sufficient to reconstruct
+the current accepted project state without provider memory or chat history.
+Detailed assurance remains in reports; memory links to reports rather than
+duplicating them. Unverified or proposed content is labelled.
+
+Ownership and update responsibility are:
+
+- the Orchestrator owns `context.md`, `progress.md`, and
+  `orchestrator-log.md`;
+- the Architect proposes durable decisions, the Owner accepts material product
+  decisions when required, and the Orchestrator records accepted, revised,
+  revoked, and superseded state in `decisions.md`;
+- the Orchestrator maintains `review-log.md` from facts in Critic, Reviewer, and
+  Verifier reports, including exact subject, independence mode, verdict,
+  blocking state, and supersession;
+- the Orchestrator or an explicitly delegated role creates snapshots when
+  context loss, long pause, phase transition, environment transfer, or manual
+  handoff makes reconstruction costly.
+
+Update triggers and the complete required/prohibited/retention contract are
+normative in specification section 14. Historical state and verdicts are never
+silently rewritten.
+
+Runtime-local scratch, caches, raw prompts, transcripts, private reasoning,
 temporary traces, downloads, and tool output use ignored `.agentic-local/`.
-They are noncanonical and cannot carry the only copy of an accepted decision or
-required evidence.
+It is disposable and noncanonical. It cannot carry the only copy of an accepted
+decision, required evidence, current scope, a blocking condition, or the next
+authorized action.
 
 ### One write Work Block per working tree
 
@@ -107,15 +136,38 @@ install.py plan --target <repository>
 install.py apply --target <repository>
 ```
 
-`plan` is mandatory and nonmutating. It resolves the target root, checks path and
-symlink safety, inventories candidate paths, and reports `create`,
-`skip-identical`, `collision`, or `blocked`.
+`plan` is mandatory, fail-closed, and nonmutating. It resolves the target
+repository root to a canonical absolute path, rejects missing, ambiguous, or
+unsafe roots, records that identity, inventories candidate paths, and reports
+`create`, `skip-identical`, `collision`, or `blocked`.
 
-`apply` revalidates the plan, stages changes, creates only planned files, refuses
-unresolved collisions, never silently overwrites or deletes, and reports
-`created`, `skipped`, `colliding`, and `blocked`. The installer creates no
-runtime agents, hooks, plugins, MCP configuration, provider directories, model
-routing, capability profiles, or duplicated skill mirrors.
+Every managed path must be a non-empty normalized relative path. The installer
+rejects, rather than sanitizes, absolute paths, Windows drive-prefixed paths,
+UNC/network-root paths, NUL or invalid platform characters, `..` components,
+and any path that normalizes outside the target root.
+
+For each destination, the installer resolves existing parent components and
+symlinks/junctions and proves containment inside the canonical root. A symlink or
+junction in any destination parent that redirects outside the target root fails
+closed. An external redirect, ambiguous resolution, unsupported link type, or
+root escape is `blocked`.
+
+Before mutation, `apply` repeats target-root identity, path normalization,
+traversal checks, parent link checks, collision state, and approved plan
+identity. Any mismatch aborts the entire apply before target mutation.
+
+No file is created, overwritten, merged, moved, or deleted when any planned
+action is blocked by traversal, root escape, unsafe link resolution, or
+unresolved collision.
+
+After successful revalidation, `apply` stages changes, creates only planned
+files, preserves identical files, refuses unresolved collisions, never silently
+overwrites or deletes, and reports `created`, `skipped`, `colliding`, and
+`blocked`. Implementations may be stricter but cannot weaken these rules.
+
+The installer creates no runtime agents, hooks, plugins, MCP configuration,
+provider directories, model routing, capability profiles, or duplicated skill
+mirrors.
 
 ### Normative subject and evidence-only commits
 
@@ -167,11 +219,21 @@ Merge while still `proposed` does not silently accept the decision.
 
 Separate roles enable bounded loading and handoff. Role-specific verdicts
 separate design criticism, review readiness, and verification results.
-Committed memory preserves durable state; `.agentic-local/` contains disposable
-noise. One writer per tree prevents implicit conflict resolution. Candidate
-isolation avoids accidental authority. A plan/apply installer is the minimum
-safe existing-repository interface. Static evidence discovery prevents mutable
-assurance state from recursively changing its normative subject.
+
+Committed, owner-assigned, trigger-driven memory preserves enough durable state
+for continuation while keeping detailed evidence in reports and disposable
+runtime noise in `.agentic-local/`. Explicit update triggers prevent stale
+context; append-only histories and supersession links prevent silent rewriting.
+
+One writer per tree prevents implicit conflict resolution. Candidate isolation
+avoids accidental authority. A fail-closed plan/apply installer is the minimum
+safe existing-repository interface. Explicit traversal rejection, canonical-root
+identity, parent-link containment, apply-time revalidation, and all-or-nothing
+blocking prevent a candidate manifest or changed filesystem from escaping the
+target repository.
+
+Static evidence discovery prevents mutable assurance state from recursively
+changing its normative subject.
 
 ## Rejected Alternatives
 
@@ -180,8 +242,12 @@ assurance state from recursively changing its normative subject.
 - Provider-specific role mirrors: drift and make provider layout part of product.
 - Runtime-local canonical memory: not portable or reliably committed.
 - Raw transcripts in `memory_bank/`: noisy and potentially sensitive.
+- Unowned or update-trigger-free memory files: permit stale or contradictory state.
 - Multiple write Work Blocks in one tree: ambiguous ownership and assurance.
 - Copy-over installer: unsafe silent overwrite.
+- Sanitizing traversal paths: hides an invalid manifest and weakens fail-closed behavior.
+- Trusting lexical prefix checks without resolving parent links: permits root escape.
+- Partial apply after one blocked path: produces an unapproved mixed installation.
 - Immediate candidate promotion: bypasses architecture, tests, and pilot.
 - Report inside its verified commit: circular.
 - Per-report navigation entries: create mutable normative churn and invalidate
@@ -190,7 +256,9 @@ assurance state from recursively changing its normative subject.
 ## Consequences
 
 - Projects receive explicit role and memory boundaries without runtime features.
-- Installer complexity is higher but collisions and path safety are observable.
+- Every canonical memory file has an owner and event-driven update contract.
+- Installer complexity is higher, but path traversal, collisions, links, and
+  root containment are observable and fail closed.
 - Parallel implementation requires external worktree/clone isolation.
 - Candidate and legacy paths coexist temporarily with one operational baseline.
 - Assurance reports may follow the verified subject without changing it.
@@ -203,8 +271,8 @@ Review this decision when:
 
 - a role needs authority not representable through `AGENTS.md` plus role schema;
 - a role requires a verdict outside its vocabulary;
-- canonical memory cannot remain concise and complete;
-- installer safety requires a new mutation class;
+- canonical memory cannot remain concise, complete, owned, and trigger-driven;
+- installer safety requires a new mutation class or platform path rule;
 - concurrency permits shared-tree parallel writers;
 - assurance tooling cannot distinguish normative from evidence-only commits;
 - normative navigation mirrors mutable assurance state;
