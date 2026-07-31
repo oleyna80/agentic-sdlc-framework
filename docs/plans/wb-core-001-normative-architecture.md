@@ -3,9 +3,10 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-core-001-normative-architecture
 work_block_id: WB-CORE-001
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-07-29
+last_verified: 2026-07-31
 base_revision: 0fce7389d27690482e910e942a1f3138c2fef123
 branch: agent/portable-kit-normative-architecture
 process_level: Standard
@@ -15,9 +16,9 @@ process_level: Standard
 
 ## Objective
 
-Define the normative architecture for the Portable Agentic SDLC Project Kit
-before candidate, installer, role, skill, template, test, or migration
-implementation begins.
+Define, assure, accept, and close the normative architecture for the Portable
+Agentic SDLC Project Kit before candidate, installer, role, skill, template,
+test, or migration implementation begins.
 
 The Work Block preserves the practical SDLC and removes framework ownership of
 specific runtimes, providers, models, hooks, plugins, MCP integrations,
@@ -40,24 +41,26 @@ capability negotiation, and provider-specific agent configuration.
 - historical preliminary Verifier verdict: `NOT_READY`;
 - historical failed criteria: `VER-006`, `VER-007`, `VER-008`, `VER-014`, and
   derived `VER-020`;
-- renewed Reviewer subject:
+- renewed preliminary Reviewer and Verifier subject:
   `9c169fd97bdbe90bb2fc1133fff29878d1373396`;
-- renewed Reviewer report:
+- renewed preliminary Reviewer report:
   `docs/reports/reviews/wb-core-001-pr-review-after-preliminary-verification.md`;
-- renewed Reviewer verdict: `READY`;
-- renewed preliminary Verifier subject:
-  `9c169fd97bdbe90bb2fc1133fff29878d1373396`;
+- renewed preliminary Reviewer verdict: `READY`;
 - renewed preliminary Verifier report:
   `docs/reports/verification/wb-core-001-preliminary-verification-2.md`;
 - renewed preliminary Verifier verdict: `READY`;
-- status-finalization starting evidence-only head:
-  `668808bed0d38b483f46f034050939f25735b1cd`;
+- accepted normative subject:
+  `ca14aa1aae3e0168678f0cee93da2a6b9dcc7e23`;
+- final Reviewer evidence head:
+  `4a0eb36f79584003ed5656b8ba1472227687360e`;
+- final Verifier evidence head:
+  `864dc547767774d0e2390c32f43f770170d083b3`;
 - current repository contracts and history.
 
-The historical `NOT_READY` report remains unchanged and authoritative only for
-its exact historical subject. The renewed Reviewer and preliminary Verifier
-reports independently return `READY` for `9c169fd...`; neither report is modified
-by this status-finalization pass.
+Historical assurance remains bound to its exact subject. The historical
+`NOT_READY` verdict for `674e992...` is unchanged. Renewed preliminary assurance
+for `9c169fd...` and final assurance for `ca14aa1...` are separate later
+assessments and do not rewrite prior evidence.
 
 ## Accepted Prior Decisions
 
@@ -68,7 +71,7 @@ REV-001 through REV-009 are not reopened. Preserve:
 - active Work Block precedence;
 - separate portable roles;
 - exactly nine core skills;
-- canonical committed `memory_bank/`;
+- canonical committed `memory_bank/` target contract;
 - Quick / Standard / High-Risk model;
 - one write Work Block per working tree;
 - exact normative-subject semantics;
@@ -76,29 +79,45 @@ REV-001 through REV-009 are not reopened. Preserve:
 - prohibition of mutable assurance mirrors;
 - current operational architecture `runtime_neutral_control_plane`;
 - portable target status `accepted` but not promoted;
-- WB-CORE-001 status `in_progress`;
-- Owner-controlled promotion, closeout, and merge.
+- Owner-controlled later Work Blocks, promotion, archival, and merge.
 
 ## Process and Authority Classification
 
 - **Process level:** Standard.
-- **Side effects:** one feature-branch status-only normative documentation commit;
-  no PR-description update, merge, deployment, or operational mutation.
-- **Write authority:** scoped Documentation Coder for the exact six-file
-  status-finalization write-set.
+- **Side effects:** one feature-branch closeout and SSOT-reconciliation commit;
+  no PR-description update, merge, deployment, repository-setting, or operational
+  mutation.
+- **Write authority:** scoped Orchestrator / Documentation Coder for the exact
+  five-file closeout write-set.
 - **Merge authority:** explicitly denied; PR #12 merge requires a separate future
   Owner authorization.
 - **Deployment/data/secrets:** none.
-- **Authorized purpose:** accepted-status finalization only; no architecture,
-  behavior, process, role, skill, memory, installer, migration, or implementation
-  change.
-- **Completion:** `in_progress`; final Reviewer, final Verifier, final evidence-only
-  reports, resulting-head CI, closeout, memory/SSOT synchronization where
-  applicable, promotion, archival, and merge remain open.
+- **Authorized purpose:** WB-CORE-001 closeout and lifecycle SSOT reconciliation
+  only; no architecture, behavior, process, role, skill, memory, installer,
+  migration, candidate, or implementation change.
+- **Completion:** completed for normative architecture only. Later implementation,
+  pilot, promotion, archival, and merge remain separately gated.
 
-## Approved Write-Set
+## Approved Write-Set — Current Closeout Pass
 
-Modify exactly:
+Modify or create exactly:
+
+```text
+docs/plans/wb-core-001-normative-architecture.md
+PROJECT_MAP.md
+FILE_REGISTRY.yml
+docs/reports/drift/wb-core-001-normative-architecture.md
+docs/reports/closeout/wb-core-001-normative-architecture.md
+```
+
+No specification, ADR, Reviewer, Verifier, Critic, evaluation, historical report,
+memory, runtime, integration, candidate, implementation, template, installer,
+test, migration, workflow, script, repository-setting, deployment, or PR-metadata
+path may change.
+
+## Historical Execution Write-Sets
+
+The accepted-status finalization pass used exactly six normative files:
 
 ```text
 docs/specs/portable-agentic-sdlc-project-kit.md
@@ -109,56 +128,65 @@ FILE_REGISTRY.yml
 docs/plans/wb-core-001-normative-architecture.md
 ```
 
-No Reviewer, Verifier, Critic, evaluation, closeout, memory, runtime, candidate,
-implementation, template, installer, test, migration, repository-setting, or
-deployment path may change. The PR description and review threads are not
-modified.
+The preliminary-verification remediation used exactly three normative files:
+
+```text
+docs/specs/portable-agentic-sdlc-project-kit.md
+docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
+docs/plans/wb-core-001-normative-architecture.md
+```
+
+These write-sets are historical execution records and do not authorize current
+changes.
 
 ## Commit Structure
 
-Create exactly one normative commit:
+Create exactly one closeout commit:
 
 ```text
-docs(core): accept portable kit normative architecture
+docs(core): close WB-CORE-001 normative architecture
 ```
 
-The commit changes exactly the six approved normative paths and becomes the new
-normative subject for final applicable assurance. No evidence report is created
-or modified in this commit.
+The commit changes exactly the five approved paths. The drift and closeout reports
+are created in the same repository closeout commit because this pass atomically
+reconciles lifecycle SSOT; no separate evidence-only commit is authorized.
 
 ## Operational Architecture and Navigation Boundary
 
 The current repository remains the operational
-`runtime_neutral_control_plane`. The Portable Agentic SDLC Project Kit is now the
+`runtime_neutral_control_plane`. The Portable Agentic SDLC Project Kit remains the
 `accepted` normative target contract but is not promoted, installed, implemented,
-or the current operational architecture. This Work Block remains active and
-`in_progress`.
+or the current operational architecture.
 
-`PROJECT_MAP.md` and `FILE_REGISTRY.yml` synchronize only accepted target status,
-canonical target classification, and the unchanged current operational
-architecture. They do not register individual assurance reports or mirror mutable
-verdicts, subjects, findings, limitations, coverage, or another-pass state.
-Evidence continues to be discovered from canonical directories and structured
-report frontmatter.
+`PROJECT_MAP.md` and `FILE_REGISTRY.yml` synchronize the completed Work Block,
+null active Work Block, accepted target classification, latest completed Work
+Block, and canonical closeout path. They do not register individual assurance,
+drift, or closeout report instances or mirror mutable verdicts, subjects,
+findings, limitations, coverage, workflow runs, or latest-report state.
 
 ## Preliminary Assurance Record
 
 ```text
-Reviewer subject: 9c169fd97bdbe90bb2fc1133fff29878d1373396
-Reviewer verdict: READY
-Reviewer report: docs/reports/reviews/wb-core-001-pr-review-after-preliminary-verification.md
+Historical preliminary subject:
+674e992548c0474b79bbf261ee7fbceae8eaff4a
 
-Preliminary Verifier subject: 9c169fd97bdbe90bb2fc1133fff29878d1373396
-Preliminary Verifier verdict: READY
-Verifier report: docs/reports/verification/wb-core-001-preliminary-verification-2.md
-Verifier matrix: 20 PASS, 0 FAIL, 0 BLOCKED, 0 NOT_APPLICABLE
+Historical preliminary Verifier verdict:
+NOT_READY
+
+Renewed preliminary subject:
+9c169fd97bdbe90bb2fc1133fff29878d1373396
+
+Renewed preliminary Reviewer verdict:
+READY
+
+Renewed preliminary Verifier verdict:
+READY
+
+Renewed preliminary Verifier matrix:
+20 PASS, 0 FAIL, 0 BLOCKED, 0 NOT_APPLICABLE
 ```
 
-These verdicts authorize no merge and become preliminary evidence for the
-Owner-authorized status transition. Final applicable assurance must assess the
-new status-finalized normative subject.
-
-## Owner Authorization Record
+## Accepted-Status Owner Authorization Record
 
 ```text
 Owner authorization date: 2026-07-30
@@ -171,166 +199,200 @@ Exact Owner statement:
 > Да, как Owner разрешаю status-finalization commit в указанном scope.
 > Merge не разрешаю.
 
+This authorization is preserved and applies only to the earlier accepted-status
+transition.
+
+## Final Assurance Record
+
+```text
+Accepted normative subject:
+ca14aa1aae3e0168678f0cee93da2a6b9dcc7e23
+
+Final Reviewer report:
+docs/reports/reviews/wb-core-001-final-review.md
+
+Final Reviewer verdict:
+READY
+
+Final Reviewer matrix:
+13 PASS, 0 FAIL, 0 BLOCKED, 0 NOT_APPLICABLE
+
+Final Verifier report:
+docs/reports/verification/wb-core-001-final-verification.md
+
+Final Verifier verdict:
+READY
+
+Final Verifier matrix:
+24 PASS, 0 FAIL, 0 BLOCKED, 0 NOT_APPLICABLE
+
+Final evidence-only head:
+864dc547767774d0e2390c32f43f770170d083b3
+
+Framework Contracts:
+run 766 — success
+
+Release State Contract:
+run 345 — success
+```
+
+The final reports bind to accepted normative subject `ca14aa1...`. Commits after
+that subject through `864dc547...` contain only the final Reviewer and Verifier
+reports and do not alter normative architecture.
+
+## Owner Closeout Authorization Record
+
+```text
+Owner authorization date: 2026-07-31
+Authorized action: WB-CORE-001 closeout and five-file SSOT reconciliation
+WB-CORE-002 authorization: explicitly denied
+Promotion authorization: explicitly denied
+Archival authorization: explicitly denied
+Merge authorization: explicitly denied
+```
+
+Exact Owner statement:
+
+> Да, как Owner разрешаю WB-CORE-001 closeout и SSOT reconciliation в указанном пятифайловом scope. WB-CORE-002, promotion, archival и merge не разрешаю.
+
+The accepted-status authorization and closeout authorization govern different
+actions and neither grants authority for later implementation or integration.
+
 ## Historical Preliminary-Verification Remediation — Completed
 
-The following three-file remediation produced normative subject
-`9c169fd97bdbe90bb2fc1133fff29878d1373396`. It is retained as historical
-context and is not the current authorized write-set.
+The remediation that produced `9c169fd...` resolved:
 
-### VER-006 — explicit mechanism disposition
+- `VER-006`: explicit disposition for current and historical mechanisms while
+  retaining exactly nine core skills and provider-neutral authority;
+- `VER-007`: owner, update trigger, required/prohibited content, and retention for
+  each canonical memory surface;
+- `VER-008`: fail-closed Quick / Standard / High-Risk selection based on risk,
+  ambiguity, side effects, reversibility, authority, and verification;
+- `VER-014`: explicit canonical-root, path-traversal, link-containment,
+  apply-time revalidation, and all-or-nothing installer requirements.
 
-Specification section 12 must:
+The historical remediation is complete and was independently re-reviewed and
+re-verified before accepted-status finalization.
 
-- retain exactly the nine accepted core procedural skills;
-- explicitly classify every listed current or historical mechanism as core
-  skill, role contract, template/lifecycle mechanism, optional extension, or
-  outside portable core;
-- remove provider names from portable authority;
-- state that current operational implementations may remain during migration but
-  are not copied into or owned by the portable target.
+## Memory Classification
 
-### VER-007 — memory ownership and update triggers
+Engineering-memory classification:
+not-applicable — the accepted specification and ADRs are already the canonical,
+higher-authority durable record. Creating a duplicate engineering-memory entry
+would weaken SSOT.
 
-Specification section 14 must define for every canonical memory path:
+Operational-memory classification:
+not-applicable — the current operational repository does not contain the target
+committed memory_bank surface. Creating that surface is implementation owned by
+WB-CORE-002 and is outside this closeout authorization.
 
-- owner;
-- update trigger;
-- required content;
-- prohibited content;
-- retention.
+No new memory file or target `memory_bank/` surface was created.
 
-It must state that committed `memory_bank/` reconstructs accepted project state,
-`.agentic-local/` is ignored/disposable/noncanonical, reports remain detailed
-assurance sources, memory links rather than duplicates, and proposed/unverified
-content is labelled.
+## Out of Scope and Future Gates
 
-The roles/memory/installation ADR must agree with this contract without
-duplicating the complete specification table.
-
-### VER-008 — operational process-level selection
-
-Specification section 6 must:
-
-- classify on ambiguity, impacts, boundaries, authority, side effects,
-  reversibility, risk, consequence, verification cost, nondeterminism, writers,
-  and handoffs;
-- state that file count is not a primary classifier;
-- require every Quick eligibility condition;
-- make Standard the explicit default when neither Quick nor High-Risk applies;
-- define escalation and reclassification;
-- make High-Risk mandatory whenever a trigger exists;
-- fail closed when required assurance, authority, rollback, or evidence is
-  unavailable.
-
-### VER-014 — path-traversal protection
-
-Specification section 19 and the roles/memory/installation ADR must require:
-
-- canonical target-root identity;
-- normalized non-empty relative candidate paths;
-- rejection of absolute, drive-prefixed, UNC/network-root, `..`, NUL/invalid, and
-  root-escaping paths;
-- parent symlink/junction containment;
-- apply-time revalidation before mutation;
-- whole-apply abort on traversal, root escape, unsafe link, or unresolved
-  collision.
-
-## Out of Scope
-
-- candidate, role, skill, memory, template, installer, test, packaging, or
+- WB-CORE-002 activation or portable candidate implementation;
+- roles, skills, target memory seed, templates, installer, tests, packaging, or
   migration implementation;
-- WB-CORE-002 or any later implementation Work Block;
+- synthetic dry run;
+- HardwareLab pilot;
 - promotion of the portable target to current operational architecture;
 - archival of the runtime-neutral control plane;
-- closeout or completion of WB-CORE-001;
-- memory/SSOT synchronization beyond recording this Work Block gate state;
-- runtime/provider configuration or operational mutation;
-- repository settings, secrets, deployment, live state, or data;
+- deployment, live-state mutation, repository settings, or secrets;
 - default-branch writes, merge, or auto-merge;
-- creation or modification of assurance, evaluation, or closeout reports;
 - PR-description or review-thread mutation.
 
-## Execution Plan
+Promotion and archival are WB-CORE-006 responsibilities. Merge remains separately
+Owner-controlled. These are future gates, not failed WB-CORE-001 acceptance
+criteria.
+
+## Closeout Execution Plan
 
 1. Resolve PR #12 and require head
-   `668808bed0d38b483f46f034050939f25735b1cd`.
-2. Confirm commits after `9c169fd...` change only the renewed Reviewer and
-   preliminary Verifier reports.
-3. Confirm both reports return `READY` and the Verifier matrix is 20/0/0/0.
-4. Confirm Framework Contracts and Release State Contract are green on the
-   preliminary subject and both evidence-only heads.
-5. Record the exact Owner authorization and merge denial.
-6. Change only current target status, status-dependent prose, map/registry target
-   classification, registry version, and this Work Block gate state.
-7. Inspect the complete diff and prove that every changed line is status
-   finalization or gate-state synchronization.
-8. Create one six-file normative commit with the authorized message.
-9. Run Framework Contracts and Release State Contract on the new subject.
-10. Leave PR #12 open and unmerged for final Reviewer and Verifier assurance.
+   `864dc547767774d0e2390c32f43f770170d083b3`.
+2. Confirm `ca14aa1...` is followed only by the final Reviewer and Verifier
+   report commits.
+3. Confirm final Reviewer `READY` with matrix 13/0/0/0.
+4. Confirm final Verifier `READY` with matrix 24/0/0/0.
+5. Confirm workflow runs 762/341, 764/343, and 766/345 are successful.
+6. Record exact Owner closeout authorization and explicit denials.
+7. Change Work Block lifecycle to `completed`.
+8. Reconcile map and registry completed/active/release-state projections.
+9. Create aligned drift and success-closeout evidence.
+10. Validate the exact five-file diff and repository release-state contracts.
+11. Create one closeout commit and leave all later gates unopened.
 
 ## Acceptance Criteria
 
-- [x] Renewed Reviewer assessed
-  `9c169fd97bdbe90bb2fc1133fff29878d1373396` and returned `READY`.
-- [x] Renewed preliminary Verifier assessed the same subject and returned `READY`.
-- [x] Preliminary Verifier matrix is 20 PASS, 0 FAIL, 0 BLOCKED, and
+- [x] Final Reviewer returned `READY` for
+  `ca14aa1aae3e0168678f0cee93da2a6b9dcc7e23`.
+- [x] Final Reviewer matrix is 13 PASS, 0 FAIL, 0 BLOCKED, and
   0 NOT_APPLICABLE.
-- [x] Owner authorized accepted-status finalization on 2026-07-30.
-- [x] Owner explicitly denied merge authorization.
-- [x] Specification status is `accepted`.
-- [x] Product-boundary ADR status is `accepted`.
-- [x] Roles/memory/installation ADR status is `accepted`.
-- [x] `PROJECT_MAP.md` identifies an accepted but unpromoted target.
-- [x] `FILE_REGISTRY.yml` classifies the target and three artifacts as `accepted`.
-- [x] Current operational architecture remains `runtime_neutral_control_plane`.
-- [x] WB-CORE-001 remains `in_progress`.
+- [x] Final Verifier returned `READY` for the same accepted normative subject.
+- [x] Final Verifier matrix is 24 PASS, 0 FAIL, 0 BLOCKED, and
+  0 NOT_APPLICABLE.
+- [x] Both final evidence-only reports were committed.
+- [x] Framework Contracts run 766 and Release State Contract run 345 passed on
+  the final Verifier evidence head.
+- [x] Drift audit returned `ALIGNED`.
+- [x] Closeout report was created.
+- [x] Work Block status became `completed`.
+- [x] Map and registry completed-state projections were reconciled.
+- [x] No active Work Block remains.
+- [x] Reusable-memory classification was recorded without creating duplicate
+  memory.
+- [x] Current operational architecture remains
+  `runtime_neutral_control_plane`.
+- [x] Portable target remains accepted but unimplemented, uninstalled, and
+  unpromoted.
+- [x] WB-CORE-002 remains planned and unauthorized.
+- [x] No promotion or archival occurred.
+- [x] No merge occurred.
 - [x] No substantive architecture, behavior, process, role, skill, memory,
-  installer, migration, or implementation rule changes.
-- [ ] Final Reviewer returns the applicable verdict against the new
-  status-finalized normative subject.
-- [ ] Final Verifier returns the applicable verdict against that subject.
-- [ ] Final evidence-only reports are committed.
-- [ ] Framework Contracts and Release State Contract pass on the resulting
-  evidence-only PR head.
-- [ ] Truthful closeout and memory/SSOT synchronization are completed where
-  applicable.
-- [ ] Promotion and legacy archival are performed by their authorized later Work
-  Block.
-- [ ] Separate Owner merge approval is obtained and merge is performed.
+  installer, migration, evidence-semantic, or implementation rule changed.
 
 ## Self-Checks
 
 Check:
 
-- starting head and post-`9c169fd...` report-only ancestry;
-- exact six-file commit write-set and one normative commit;
-- specification and both ADR frontmatter values are `accepted`;
-- map states accepted target and unchanged current operational architecture;
-- registry version increments once and target/specific entries are `accepted`;
-- registry wildcard architecture-decision class is unchanged;
-- Work Block frontmatter remains `in_progress`;
-- exact Owner authorization and explicit merge denial are recorded;
-- no evidence report, mutable assurance mirror, candidate, runtime, implementation,
-  template, installer, test, migration, or repository-setting path changes;
-- specification and ADR headings/frontmatter parse;
-- YAML parses;
-- complete diff contains only status-finalization and gate-state synchronization;
-- Framework Contracts and Release State Contract on the resulting subject;
-- PR #12 remains open and unmerged.
+- exact starting head and report-only ancestry after `ca14aa1...`;
+- exact five-file commit write-set and one closeout commit;
+- YAML and frontmatter parsing;
+- exactly one terminal Final State section and no legacy Current State section;
+- exact terminal marker values;
+- closeout lifecycle markers exactly once;
+- nonempty residual-risk and follow-up sections;
+- external VCS marker begins with `non-normative`;
+- no concrete hosting-platform state in closeout evidence;
+- map machine block and visible Migration Work agree;
+- registry and map completed lists agree;
+- active Work Block is null in map and registry;
+- WB-CORE-001 is listed once as completed;
+- WB-CORE-002 remains planned;
+- current operational architecture remains unchanged;
+- accepted target remains unpromoted;
+- no individual assurance-report registration;
+- no target memory implementation;
+- no later Work Block activation;
+- release-state and full contract validation.
 
-## Current State
+## Final State
 
-```text
-Normative target status: accepted
-Current operational architecture: runtime_neutral_control_plane
-WB-CORE-001: in_progress
-Final Reviewer: required against new subject
-Final Verifier: required against new subject
-Closeout: blocked
-Promotion: not performed
-Merge: explicitly not authorized
-```
+- **Stage:** Close
+- **Stage State:** completed
+- **Write Gate:** CLOSED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic normative documentation, independent semantic assurance, and repository contract validation are sufficient
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
 
-Candidate implementation, WB-CORE-002, final evidence reports, resulting-head CI,
-memory/SSOT closeout synchronization, legacy archival, and integration remain
-outside this status-only commit.
+WB-CORE-001 successfully defined and accepted the portable-kit normative
+architecture. The current operational architecture remains
+`runtime_neutral_control_plane`, while the accepted target remains
+`portable_agentic_sdlc_project_kit`.
+
+The target is not implemented, installed, or promoted. No active implementation
+Work Block remains. WB-CORE-002 remains planned and requires separate explicit
+Owner authority. Promotion and archival remain WB-CORE-006 responsibilities.
+Merge remains separately Owner-controlled and is not authorized.

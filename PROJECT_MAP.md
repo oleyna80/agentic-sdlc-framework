@@ -16,7 +16,8 @@ completed_work_blocks:
   - docs/plans/wb-008-post-merge-ssot-release-gate.md
   - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
   - docs/plans/wb-010-skill-library-maintenance-integration.md
-active_work_block: docs/plans/wb-core-001-normative-architecture.md
+  - docs/plans/wb-core-001-normative-architecture.md
+active_work_block: null
 -->
 
 ## Current Operational Architecture
@@ -42,7 +43,8 @@ current operational architecture decision is
 
 ## Accepted Target Architecture — Not Yet Promoted
 
-WB-CORE-001 defines the accepted target architecture
+WB-CORE-001 completed definition, accepted-status finalization, final assurance,
+drift alignment, and repository closeout for the accepted target architecture
 `portable_agentic_sdlc_project_kit`, the Portable Agentic SDLC Project Kit:
 
 - accepted specification: `docs/specs/portable-agentic-sdlc-project-kit.md`;
@@ -51,13 +53,14 @@ WB-CORE-001 defines the accepted target architecture
 - accepted roles/memory/installation ADR:
   `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md`.
 
-Acceptance occurred through explicit Owner-authorized status finalization on
-2026-07-30. The accepted target is authoritative for subsequent WB-CORE migration
-planning, but it is not operational, promoted, installed, or implemented. The
-current operational architecture identifier remains `runtime_neutral_control_plane`.
-WB-CORE-006 still owns promotion and legacy archival. Final assurance, closeout,
-applicable pilot evidence, promotion, and separate Owner merge approval remain
-pending.
+The accepted target is authoritative for later separately gated WB-CORE planning,
+but it remains unimplemented, uninstalled, and unpromoted. The current
+operational architecture identifier remains `runtime_neutral_control_plane`.
+
+WB-CORE-002 through WB-CORE-006 remain future Work Blocks requiring their own
+scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
+promotion and legacy archival ownership. Separate explicit Owner approval remains
+required before merge.
 
 ## Authority Order
 
@@ -194,9 +197,9 @@ Missing network, revision, or license evidence fails closed.
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
-| `docs/plans/wb-010-skill-library-maintenance-integration.md` | latest completed Work Block | Admission and assurance for skill-library maintenance |
-| `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | canonical completed closeout | Repository success-closeout for WB-010 |
-| `docs/plans/wb-core-001-normative-architecture.md` | active migration Work Block | Bounded target-architecture documentation and assurance correction loop |
+| `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
+| `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
+| `docs/plans/wb-core-001-normative-architecture.md` | latest completed Work Block | Accepted normative architecture and repository closeout for the portable kit |
 | `docs/specs/portable-agentic-sdlc-project-kit.md` | accepted target | Portable-kit normative target contract; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | accepted target | Accepted project-kit versus control-plane boundary; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | accepted target | Accepted role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
@@ -259,15 +262,20 @@ Completed:
 8. WB-008 — post-closeout SSOT reconciliation and release-state gate.
 9. WB-009 — risk-tiered deterministic repair lifecycle and provider evidence.
 10. WB-010 — skill-library maintenance integration assurance.
+11. WB-CORE-001 — accepted normative architecture for the Portable Agentic SDLC Project Kit.
 
-Active migration Work Block:
-`docs/plans/wb-core-001-normative-architecture.md`.
+There is no active implementation Work Block.
 
-WB-CORE-001 is `in_progress`. Its authoritative scope and current lifecycle
-state are recorded in the Work Block. Assurance history and progress are
-recorded in self-contained evidence reports, not mirrored here. The portable
-kit is an accepted target that has not been promoted and does not replace current
-operations.
+Planned:
+
+- WB-CORE-002 — portable candidate content;
+- WB-CORE-003 — installer and packaging;
+- WB-CORE-004 — synthetic dry run;
+- WB-CORE-005 — HardwareLab pilot;
+- WB-CORE-006 — promotion and legacy archive.
+
+Planned status grants no execution authority. Each Work Block requires separate
+Owner authority, exact scope, write-set, assurance, and closeout.
 
 ## Boundaries
 
