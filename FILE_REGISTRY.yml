@@ -175,9 +175,9 @@ migration_state:
     - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
     - docs/plans/wb-010-skill-library-maintenance-integration.md
     - docs/plans/wb-core-001-normative-architecture.md
+    - docs/plans/wb-core-002-portable-candidate-content.md
   active_work_block: null
   planned:
-    - WB-CORE-002
     - WB-CORE-003
     - WB-CORE-004
     - WB-CORE-005
@@ -188,8 +188,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-001-normative-architecture.md
-  closeout_report: docs/reports/closeout/wb-core-001-normative-architecture.md
+  latest_completed_work_block: docs/plans/wb-core-002-portable-candidate-content.md
+  closeout_report: docs/reports/closeout/wb-core-002-portable-candidate-content.md
   external_vcs_state: non_normative
   authority: assurance_only
 

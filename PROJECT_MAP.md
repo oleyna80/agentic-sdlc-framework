@@ -17,6 +17,7 @@ completed_work_blocks:
   - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
   - docs/plans/wb-010-skill-library-maintenance-integration.md
   - docs/plans/wb-core-001-normative-architecture.md
+  - docs/plans/wb-core-002-portable-candidate-content.md
 active_work_block: null
 -->
 
@@ -57,10 +58,11 @@ The accepted target is authoritative for later separately gated WB-CORE planning
 but it remains unimplemented, uninstalled, and unpromoted. The current
 operational architecture identifier remains `runtime_neutral_control_plane`.
 
-WB-CORE-002 through WB-CORE-006 remain future Work Blocks requiring their own
-scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
-promotion and legacy archival ownership. Separate explicit Owner approval remains
-required before merge.
+WB-CORE-002 completed its noncanonical candidate content; the candidate remains
+uninstalled, unpromoted, and non-authoritative. WB-CORE-003 through WB-CORE-006
+remain future Work Blocks requiring their own scope, authority, write-set,
+assurance, and approvals. WB-CORE-006 retains promotion and legacy archival
+ownership. Separate explicit Owner approval remains required before merge.
 
 ## Authority Order
 
@@ -264,18 +266,21 @@ Completed:
 10. WB-010 — skill-library maintenance integration assurance.
 11. WB-CORE-001 — accepted normative architecture for the Portable Agentic SDLC Project Kit.
 
+12. WB-CORE-002 — portable candidate content; candidate-only, noncanonical,
+   uninstalled, and unpromoted.
+
 No active implementation Work Block.
 
 Planned:
 
-- WB-CORE-002 — portable candidate content;
 - WB-CORE-003 — installer and packaging;
 - WB-CORE-004 — synthetic dry run;
 - WB-CORE-005 — HardwareLab pilot;
 - WB-CORE-006 — promotion and legacy archive.
 
-Planned status grants no execution authority. Each Work Block requires separate
-Owner authority, exact scope, write-set, assurance, and closeout.
+WB-CORE-003 through WB-CORE-006 are future/planned. Planned status grants
+no execution authority. Each future Work Block requires separate Owner authority,
+exact scope, write-set, assurance, and closeout.
 
 ## Boundaries
 
