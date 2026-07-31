@@ -264,7 +264,7 @@ Completed:
 10. WB-010 — skill-library maintenance integration assurance.
 11. WB-CORE-001 — accepted normative architecture for the Portable Agentic SDLC Project Kit.
 
-There is no active implementation Work Block.
+No active implementation Work Block.
 
 Planned:
 
