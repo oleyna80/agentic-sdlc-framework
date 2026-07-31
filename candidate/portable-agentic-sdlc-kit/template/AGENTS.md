@@ -8,9 +8,22 @@ unpromoted, with no current authority in the current repository.
 
 Order: current Owner instruction; this root file; accepted specifications and
 decisions; active Work Block; approved plan/tasklist; mission brief; frozen
-artifact; assurance reports; committed memory; local/external notes. Follow
-Plan → Spec → Implementation → Review → Verification, then truthful closeout.
-Lower artifacts, roles, and skills cannot expand authority.
+artifact; assurance reports; committed memory; local/external notes. Follow the
+authoritative lifecycle in this order:
+
+```text
+Intake/classify
+  → Define: discovery, architecture, specification, plan/tasks, Critic
+  → Execute: bounded implementation and self-checks
+  → Assure: Reviewer and Verifier against an exact normative subject
+  → Close: SSOT/memory sync and truthful closeout
+```
+
+When applicable, Owner-authorized status finalization, final applicable
+assurance, an evidence-only report commit, and CI on the resulting PR head occur
+between Assure and Close; separate Owner-controlled integration follows Close.
+Lower artifacts, roles, and skills cannot expand authority, scope, write-set,
+side effects, Hard Stops, or approval requirements.
 
 ## Roles and stops
 

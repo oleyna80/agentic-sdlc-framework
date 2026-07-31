@@ -18,7 +18,7 @@ completed_work_blocks:
   - docs/plans/wb-010-skill-library-maintenance-integration.md
   - docs/plans/wb-core-001-normative-architecture.md
   - docs/plans/wb-core-002-portable-candidate-content.md
-active_work_block: null
+active_work_block: docs/plans/wb-core-002a-portable-candidate-review-remediation.md
 -->
 
 ## Current Operational Architecture
@@ -59,10 +59,12 @@ but it remains unimplemented, uninstalled, and unpromoted. The current
 operational architecture identifier remains `runtime_neutral_control_plane`.
 
 WB-CORE-002 completed its noncanonical candidate content; the candidate remains
-uninstalled, unpromoted, and non-authoritative. WB-CORE-003 through WB-CORE-006
-remain future Work Blocks requiring their own scope, authority, write-set,
-assurance, and approvals. WB-CORE-006 retains promotion and legacy archival
-ownership. Separate explicit Owner approval remains required before merge.
+uninstalled, unpromoted, and non-authoritative. WB-CORE-002A is the sole active
+Standard Work Block for P2 remediation and is pending independent Reviewer and
+Verifier assurance. WB-CORE-003 through WB-CORE-006 remain future Work Blocks
+requiring their own scope, authority, write-set, assurance, and approvals.
+WB-CORE-006 retains promotion and legacy archival ownership. Separate explicit
+Owner approval remains required before merge.
 
 ## Authority Order
 
@@ -269,7 +271,12 @@ Completed:
 12. WB-CORE-002 — portable candidate content; candidate-only, noncanonical,
    uninstalled, and unpromoted.
 
-No active implementation Work Block.
+Active:
+
+- `docs/plans/wb-core-002a-portable-candidate-review-remediation.md` —
+  WB-CORE-002A Standard P2 remediation; independent Reviewer and Verifier
+  assurance pending. It does not authorize promotion, installation, runtime
+  work, or a change to the current operational architecture.
 
 Planned:
 
