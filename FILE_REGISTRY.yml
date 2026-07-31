@@ -1,33 +1,37 @@
 # Machine-readable navigation registry for authority-bearing files and major
-# repository zones. Register contracts and boundaries, not every file.
+# repository zones. Register contracts, canonical classes, and boundaries, not
+# mutable assurance results or every file.
 
-version: 14
+version: 18
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
 statuses:
   normative: "source of truth or accepted policy-bearing file"
+  proposed: "target policy or architecture awaiting accepted status"
+  accepted: "Owner-approved normative target contract; may remain unimplemented or unpromoted"
   template: "copied into generated projects"
   runtime_adapter: "runtime-specific implementation; cannot override governance"
   integration_adapter: "plugin, MCP, external runtime, tool, or transport boundary"
   installation_manifest: "scaffold composition data; grants no authority"
   reference: "background knowledge; does not override policy"
-  evidence: "review, verification, evaluation, drift, release-state, CI, integration, or closeout evidence"
+  evidence: "self-contained assurance or closeout evidence; grants no authority by indexing"
   log: "active or historical Work Block state; not general policy"
   example: "illustrative scenario; never mandatory policy"
   generated: "derived output; verify against current source"
   local_state: "machine-local or private state; do not publish by default"
 
 artifact_authority_order:
-  - explicit_owner_instruction_for_active_work_block
-  - active_workspace_AGENTS_and_governance
-  - approved_specification_and_acceptance_criteria
-  - accepted_architecture_decisions_and_external_contracts
-  - approved_implementation_and_evaluation_plans_and_write_set
-  - active_task_decomposition
+  - explicit_owner_instruction_and_recorded_approval_or_revocation
+  - root_AGENTS_and_accepted_governance
+  - approved_specification_and_accepted_architecture_decisions
+  - active_work_block
+  - approved_implementation_and_evaluation_plans_and_tasklists
+  - mission_brief_or_active_task_decomposition
+  - frozen_implementation_diff_or_final_artifact
   - review_verification_evaluation_drift_release_state_integration_and_closeout_evidence
   - durable_engineering_memory
-  - runtime_integration_operational_logs_generated_context_and_examples
+  - runtime_integration_operational_logs_generated_context_caches_and_external_references
 
 role_dimensions:
   authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
@@ -43,6 +47,54 @@ role_dimensions:
     - integration
     - provider
     - hosting_platform_state
+
+assurance_contract:
+  normative_subject: exact_commit_or_artifact_revision
+  normative_subject_includes:
+    - specification
+    - architecture_decisions
+    - active_work_block
+    - authoritative_plans_and_tasks
+    - normative_navigation_and_registry_content
+    - delivered_artifact
+    - proposed_to_accepted_status_changes
+  normative_navigation_content:
+    - authority_order
+    - operational_and_target_architecture
+    - canonical_path_ownership
+    - active_lifecycle_state
+    - accepted_or_proposed_authority_status
+  mutable_assurance_mirrors: prohibited
+  per_report_registration_required: false
+  report_discovery: canonical_directory_and_structured_frontmatter
+  evidence_history_source: report_artifacts
+  indexing_grants_authority: false
+  static_evidence_classes:
+    - docs/reports/reviews/**
+    - docs/reports/verification/**
+    - docs/reports/evaluations/**
+    - docs/reports/closeout/**
+  evidence_only_commit:
+    allowed_paths: approved_assurance_or_closeout_reports_only
+    changes_normative_subject: false
+    may_follow_verified_subject: true
+    requires_green_ci_on_resulting_pr_head: true
+    hidden_normative_changes: forbidden
+    navigation_update_required: false
+  verdicts:
+    critic: [APPROVE, APPROVE_WITH_CHANGES, RECONSIDER, BLOCKED]
+    reviewer: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
+    verifier: [READY, NOT_READY, BLOCKED, UNVERIFIED]
+  readiness_invalidation: any_applicable_normative_subject_change
+  report_inside_verified_commit_required: false
+  acceptance_sequence:
+    - preliminary_reviewer_and_verifier_assurance
+    - owner_authorizes_accepted_status_finalization
+    - status_only_normative_commit
+    - final_applicable_assurance_against_normative_subject
+    - evidence_only_report_commit
+    - ci_on_resulting_pr_head
+    - separate_owner_merge_approval
 
 installation_profiles:
   source: bootstrap/profiles.json
@@ -98,6 +150,18 @@ skill_library_maintenance:
   external_content_trust: untrusted
   authority: none
 
+target_architecture:
+  identifier: portable_agentic_sdlc_project_kit
+  status: accepted
+  specification: docs/specs/portable-agentic-sdlc-project-kit.md
+  decisions:
+    - docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
+    - docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
+  active_migration_work_block: null
+  promotion_work_block: WB-CORE-006
+  current_operational_architecture_unchanged: true
+  authority: accepted_target_not_operational_until_promoted
+
 migration_state:
   completed_work_blocks:
     - docs/plans/wb-001-runtime-neutral-control-plane.md
@@ -110,16 +174,22 @@ migration_state:
     - docs/plans/wb-008-post-merge-ssot-release-gate.md
     - docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md
     - docs/plans/wb-010-skill-library-maintenance-integration.md
+    - docs/plans/wb-core-001-normative-architecture.md
   active_work_block: null
-  planned: []
+  planned:
+    - WB-CORE-002
+    - WB-CORE-003
+    - WB-CORE-004
+    - WB-CORE-005
+    - WB-CORE-006
 
 release_state:
   contract: governance/release-state.md
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-010-skill-library-maintenance-integration.md
-  closeout_report: docs/reports/closeout/wb-010-skill-library-maintenance-integration.md
+  latest_completed_work_block: docs/plans/wb-core-001-normative-architecture.md
+  closeout_report: docs/reports/closeout/wb-core-001-normative-architecture.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -204,11 +274,6 @@ entries:
     owner: architect
     authority: none
 
-  template/scripts/repair-lifecycle.py:
-    role: generated_fail_closed_ndr_repair_record_validator
-    status: template
-    owner: maintainer
-
   scripts/ci-contract-router.py:
     role: fail_closed_ci_contract_path_router_and_snapshot_validator
     status: normative
@@ -225,64 +290,40 @@ entries:
     owner: maintainer
 
   docs/architecture/decisions/**:
-    role: accepted_architecture_decisions
+    role: accepted_and_proposed_architecture_decisions
     status: normative
     owner: architect
+
+  docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md:
+    role: accepted_portable_kit_product_boundary_target
+    status: accepted
+    owner: architect
+    authority: accepted_target_not_operational_until_promoted
+
+  docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md:
+    role: accepted_portable_roles_memory_candidate_and_installer_target
+    status: accepted
+    owner: architect
+    authority: accepted_target_not_operational_until_promoted
+
+  docs/specs/portable-agentic-sdlc-project-kit.md:
+    role: accepted_portable_agentic_sdlc_project_kit_specification
+    status: accepted
+    owner: architect
+    authority: accepted_target_not_operational_until_promoted
 
   docs/plans/**:
     role: work_block_plans_and_execution_evidence
     status: log
     owner: orchestrator
 
-  docs/plans/wb-001-runtime-neutral-control-plane.md:
-    role: completed_architecture_foundation_work_block
+  docs/plans/wb-core-001-normative-architecture.md:
+    role: completed_portable_kit_normative_architecture_work_block
     status: log
     owner: orchestrator
-
-  docs/plans/wb-002-runtime-neutral-template-convergence.md:
-    role: completed_portable_contract_migration_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-003-codex-native-agents-and-gates.md:
-    role: completed_codex_native_adapter_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-004-integration-adapter-normalization.md:
-    role: completed_integration_adapter_normalization_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-005-profile-aware-bootstrap-conformance.md:
-    role: completed_profile_aware_bootstrap_and_runtime_conformance_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-006-bootstrap-restore-hardening.md:
-    role: completed_bootstrap_restore_hardening_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-007-agent-evaluation-trajectory-assurance.md:
-    role: completed_agent_evaluation_and_trajectory_assurance_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-008-post-merge-ssot-release-gate.md:
-    role: completed_post_merge_ssot_and_release_gate_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/WB-2026-07-28-risk-tiered-repair-lifecycle.md:
-    role: completed_risk_tiered_repair_lifecycle_work_block
-    status: log
-    owner: orchestrator
-
-  docs/plans/wb-010-skill-library-maintenance-integration.md:
-    role: completed_skill_library_maintenance_integration_work_block
-    status: log
-    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
 
   docs/evals/**:
     role: approved_evaluation_plans_benchmarks_and_observable_event_evidence
@@ -291,19 +332,34 @@ entries:
     restrictions: [no_hidden_reasoning, no_secrets, no_unredacted_protected_payloads]
 
   docs/reports/**:
-    role: assurance_and_closeout_evidence
-    status: evidence
-    owner: verifier
-
-  docs/reports/evaluations/**:
-    role: output_and_observable_trajectory_evaluation_reports
-    status: evidence
-    owner: verifier
-
-  docs/reports/closeout/**:
-    role: repository_closeout_evidence_without_mutable_vcs_state
+    role: self_contained_assurance_and_closeout_evidence
     status: evidence
     owner: orchestrator
+    authority: none_by_indexing
+
+  docs/reports/reviews/**:
+    role: critic_and_reviewer_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: reviewer
+    authority: none_by_indexing
+
+  docs/reports/verification/**:
+    role: verifier_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: verifier
+    authority: none_by_indexing
+
+  docs/reports/evaluations/**:
+    role: evaluation_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: verifier
+    authority: none_by_indexing
+
+  docs/reports/closeout/**:
+    role: closeout_evidence_discovered_by_frontmatter
+    status: evidence
+    owner: orchestrator
+    authority: none_by_indexing
 
   README.md:
     role: public_entrypoint
@@ -316,12 +372,12 @@ entries:
     owner: maintainer
 
   PROJECT_MAP.md:
-    role: human_readable_repository_map_and_release_state_projection
+    role: human_readable_authority_architecture_canonical_path_and_active_state_map
     status: normative
     owner: architect
 
   FILE_REGISTRY.yml:
-    role: machine_readable_navigation_and_release_state_registry
+    role: machine_readable_authority_architecture_canonical_path_and_active_state_registry
     status: normative
     owner: architect
 
@@ -471,6 +527,11 @@ entries:
     role: generated_observable_trajectory_event_schema_example
     status: template
     owner: verifier
+
+  template/scripts/repair-lifecycle.py:
+    role: generated_fail_closed_ndr_repair_record_validator
+    status: template
+    owner: maintainer
 
   template/.codex/**:
     role: conditional_codex_runtime_adapter_implementation
