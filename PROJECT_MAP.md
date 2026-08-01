@@ -18,6 +18,7 @@ completed_work_blocks:
   - docs/plans/wb-010-skill-library-maintenance-integration.md
   - docs/plans/wb-core-001-normative-architecture.md
   - docs/plans/wb-core-002-portable-candidate-content.md
+  - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
 active_work_block: null
 -->
 
@@ -58,11 +59,13 @@ The accepted target is authoritative for later separately gated WB-CORE planning
 but it remains unimplemented, uninstalled, and unpromoted. The current
 operational architecture identifier remains `runtime_neutral_control_plane`.
 
-WB-CORE-002 completed its noncanonical candidate content; the candidate remains
-uninstalled, unpromoted, and non-authoritative. WB-CORE-003 through WB-CORE-006
-remain future Work Blocks requiring their own scope, authority, write-set,
-assurance, and approvals. WB-CORE-006 retains promotion and legacy archival
-ownership. Separate explicit Owner approval remains required before merge.
+WB-CORE-002 completed its noncanonical candidate content, and WB-CORE-002A
+completed Standard P2 remediation; the candidate remains uninstalled,
+unpromoted, and non-authoritative. WB-CORE-003 is the next planned Work Block.
+WB-CORE-003 through WB-CORE-006 remain future Work Blocks requiring their own
+scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
+promotion and legacy archival ownership. Separate explicit Owner approval
+remains required before merge.
 
 ## Authority Order
 
@@ -268,12 +271,15 @@ Completed:
 
 12. WB-CORE-002 — portable candidate content; candidate-only, noncanonical,
    uninstalled, and unpromoted.
+13. WB-CORE-002A — Standard P2 remediation of candidate lifecycle and Work
+   Block template controls; candidate remains noncanonical, uninstalled,
+   unpromoted, and non-authoritative.
 
 No active implementation Work Block.
 
 Planned:
 
-- WB-CORE-003 — installer and packaging;
+- WB-CORE-003 — next planned Work Block for installer and packaging;
 - WB-CORE-004 — synthetic dry run;
 - WB-CORE-005 — HardwareLab pilot;
 - WB-CORE-006 — promotion and legacy archive.
