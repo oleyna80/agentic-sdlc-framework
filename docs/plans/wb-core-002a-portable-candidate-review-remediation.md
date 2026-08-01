@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-core-002a-portable-candidate-review-remediation
 work_block_id: WB-CORE-002A
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-07-31
 process_level: Standard
@@ -91,3 +91,21 @@ claim.
 Rollback is a targeted reversion of only this Work Block's approved paths after
 Owner authorization. The write gate is **OPEN** for this sole Coder in this
 isolated worktree; no overlapping writer is permitted.
+
+## Final State
+
+- **Stage State:** completed
+- **Write Gate:** CLOSED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
+
+The verified normative subject is
+`a8a652049618e8b042043a857ba37088fb329992`. The separately authorized
+evidence-and-lifecycle-closeout package contains the report artifacts and the
+required terminal plan, map, and registry projections. It changes the current
+normative subject and requires final applicable assurance before commit. No
+installation, runtime, configuration, database, deployment, promotion,
+integration, or external VCS action is authorized by this completed Work Block.

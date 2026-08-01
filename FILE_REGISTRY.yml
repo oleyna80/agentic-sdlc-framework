@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 19
+version: 20
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -157,7 +157,7 @@ target_architecture:
   decisions:
     - docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
     - docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
-  active_migration_work_block: WB-CORE-002A
+  active_migration_work_block: null
   promotion_work_block: WB-CORE-006
   current_operational_architecture_unchanged: true
   authority: accepted_target_not_operational_until_promoted
@@ -176,7 +176,9 @@ migration_state:
     - docs/plans/wb-010-skill-library-maintenance-integration.md
     - docs/plans/wb-core-001-normative-architecture.md
     - docs/plans/wb-core-002-portable-candidate-content.md
-  active_work_block: docs/plans/wb-core-002a-portable-candidate-review-remediation.md
+    - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
+  active_work_block: null
+  next_planned_work_block: WB-CORE-003
   planned:
     - WB-CORE-003
     - WB-CORE-004
@@ -188,8 +190,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-002-portable-candidate-content.md
-  closeout_report: docs/reports/closeout/wb-core-002-portable-candidate-content.md
+  latest_completed_work_block: docs/plans/wb-core-002a-portable-candidate-review-remediation.md
+  closeout_report: docs/reports/closeout/wb-core-002a-portable-candidate-review-remediation.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -326,11 +328,10 @@ entries:
     accepted_target_architecture: portable_agentic_sdlc_project_kit
 
   docs/plans/wb-core-002a-portable-candidate-review-remediation.md:
-    role: active_standard_portable_candidate_p2_remediation_work_block
+    role: completed_standard_portable_candidate_p2_remediation_work_block
     status: log
     owner: orchestrator
-    lifecycle_status: in_progress
-    assurance: pending_independent_reviewer_and_verifier
+    lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
 
