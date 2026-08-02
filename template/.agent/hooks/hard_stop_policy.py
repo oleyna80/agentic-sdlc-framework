@@ -136,8 +136,8 @@ def git(root: Path, *args: str) -> str:
 
 
 def approval_window_ready(gate: dict) -> None:
-    if gate.get("schema_version") != 1:
-        deny("Hard Stop approval requires active-work-block schema_version=1.")
+    if gate.get("schema_version") != 2:
+        deny("Hard Stop approval requires active-work-block schema_version=2.")
     if not str(gate.get("work_block_id") or "").strip():
         deny("Hard Stop approval requires a non-empty work_block_id.")
 

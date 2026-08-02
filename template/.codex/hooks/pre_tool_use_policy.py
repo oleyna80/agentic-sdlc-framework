@@ -16,6 +16,9 @@ import subprocess
 import sys
 
 GATE_PATH = Path(".agent/active-work-block.json")
+SIGNER_ENV = "AGENTIC_SDLC_OWNER_SIGNERS"
+SIGNER_IDENTITY = "owner@agentic-sdlc"
+SIGNER_NAMESPACE = "agentic-sdlc-authorization"
 DEFAULT_COORDINATION = [
     ".agent/active-work-block.json",
     ".agent/critic-gate.md",
@@ -161,6 +164,66 @@ def git(root, *args):
     return result.stdout.strip()
 
 
+def git_raw(root, *args):
+    try:
+        result = subprocess.run(
+            ["git", *args], cwd=root, check=True, capture_output=True,
+            text=True, timeout=3
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise Denied(f"Cannot inspect git state: {exc}")
+    return result.stdout
+
+
+def signer_file(root):
+    raw = os.environ.get(SIGNER_ENV)
+    if not raw:
+        raise Denied(f"{SIGNER_ENV} must name the external Owner trust anchor.")
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        raise Denied(f"{SIGNER_ENV} must be an absolute path.")
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        raise Denied(f"Owner trust anchor is unavailable: {exc}") from exc
+    try:
+        resolved.relative_to(root)
+    except ValueError:
+        pass
+    else:
+        raise Denied("Owner trust anchor must not reside in the mutable project.")
+    if not resolved.is_file():
+        raise Denied("Owner trust anchor must be a file.")
+    return resolved
+
+
+def verify_authorization_signature(root, path, committed, record, authorization):
+    signature = record.get("signature")
+    expected_path = f"{path}.sig"
+    if not isinstance(signature, dict) or signature.get("path") != expected_path:
+        raise Denied("Authorization record requires a detached sibling signature.")
+    try:
+        committed_signature = git_raw(root, "show", f"HEAD:{expected_path}")
+        signature_blob = git(root, "rev-parse", f"HEAD:{expected_path}")
+        disk_signature = (root / expected_path).read_text(encoding="utf-8")
+    except (OSError, Denied) as exc:
+        raise Denied(f"Authorization signature is unavailable: {exc}") from exc
+    if disk_signature != committed_signature:
+        raise Denied("Authorization signature is dirty or changed from committed policy.")
+    if authorization.get("signature_path") != expected_path or authorization.get("signature_blob_id") != signature_blob:
+        raise Denied("Authorization signature binding is dirty or changed from committed policy.")
+    try:
+        result = subprocess.run(
+            ["ssh-keygen", "-Y", "verify", "-f", str(signer_file(root)), "-I", SIGNER_IDENTITY,
+             "-n", SIGNER_NAMESPACE, "-s", str(root / expected_path)],
+            input=committed, text=True, capture_output=True, check=False, timeout=5,
+        )
+    except OSError as exc:
+        raise Denied(f"Owner signature verifier is unavailable: {exc}") from exc
+    if result.returncode != 0:
+        raise Denied("Authorization Owner signature is invalid.")
+
+
 def normalize(raw, root):
     value = raw.strip().strip("\"'")
     if value in {"/dev/null", "dev/null"}:
@@ -226,7 +289,7 @@ def expiry(value):
 
 
 def validate_source_gate(gate, root):
-    if gate.get("schema_version") != 1:
+    if gate.get("schema_version") != 2:
         raise Denied("Unsupported active Work Block schema_version.")
     if not str(gate.get("work_block_id") or "").strip():
         raise Denied("Active Work Block requires work_block_id.")
@@ -247,6 +310,37 @@ def validate_source_gate(gate, root):
     head = git(root, "rev-parse", "HEAD")
     if not head.startswith(base) and not base.startswith(head):
         raise Denied(f"Stale gate: HEAD {head[:12]} != base_commit {base[:12]}.")
+    if gate.get("schema_version") == 2:
+        auth = gate.get("authorization")
+        if not isinstance(auth, dict) or not isinstance(auth.get("path"), str):
+            raise Denied("Source gate requires authorization record.")
+        path = auth["path"]
+        if not path.startswith(".agent/authorizations/") or not path.endswith(".json"):
+            raise Denied("Authorization record path is invalid.")
+        committed = git_raw(root, "show", f"HEAD:{path}")
+        blob = git(root, "rev-parse", f"HEAD:{path}")
+        try:
+            disk = (root / path).read_text(encoding="utf-8")
+            record = json.loads(committed)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise Denied(f"Authorization record unavailable: {exc}") from exc
+        if disk != committed or auth.get("blob_id") != blob:
+            raise Denied("Authorization record is dirty or changed from committed policy.")
+        required = ("work_block_id", "specification", "spec_digest", "write_set", "expires_at", "status", "owner_evidence", "critic", "signature")
+        if not isinstance(record, dict) or any(not record.get(key) for key in required):
+            raise Denied("Authorization record is incomplete.")
+        if record["status"] != "APPROVED" or record["work_block_id"] != gate.get("work_block_id"):
+            raise Denied("Authorization record does not approve this Work Block.")
+        if record["specification"] != gate.get("specification") or record["spec_digest"] != gate.get("spec_digest"):
+            raise Denied("Authorization record specification mismatch.")
+        if record["write_set"] != gate.get("write_set"):
+            raise Denied("Authorization record write-set mismatch or widening.")
+        if record["critic"] != gate.get("critic"):
+            raise Denied("Authorization record Critic evidence mismatch.")
+        verify_authorization_signature(root, path, committed, record, auth)
+        ceiling = expiry(record["expires_at"])
+        if expiry(write_gate.get("expires_at")) > ceiling:
+            raise Denied("Gate expiry exceeds committed authorization ceiling.")
     critic = gate.get("critic")
     if not isinstance(critic, dict):
         raise Denied("Active Work Block requires critic state.")

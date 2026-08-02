@@ -45,7 +45,7 @@ def load_gate(root: Path) -> tuple[dict[str, Any] | None, str | None]:
         return None, "machine-readable Work Block gate is missing"
     except (OSError, json.JSONDecodeError) as exc:
         return None, f"machine-readable Work Block gate is invalid: {exc}"
-    if not isinstance(data, dict) or data.get("schema_version") != 1:
+    if not isinstance(data, dict) or data.get("schema_version") != 2:
         return None, "machine-readable Work Block gate schema is unsupported"
     return data, None
 

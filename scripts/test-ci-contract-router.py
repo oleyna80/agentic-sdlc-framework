@@ -12,6 +12,13 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 assert MODULE.route(["template/scripts/repair-lifecycle.py"])["suite"] == "targeted"
+assert MODULE.route(["template/.codex/scripts/lifecycle.py"])["optional"] == ["codex-adapter"]
+for authority_path in (
+    "template/.agent/active-work-block.json",
+    "template/.agent/active-work-block.default.json",
+    "template/.agent/authorizations/README.md",
+):
+    assert MODULE.route([authority_path])["optional"] == ["codex-adapter"]
 assert MODULE.route(["product/app.py"])["suite"] == "full"
 assert MODULE.route([])["suite"] == "full"
 assert MODULE.route(["template/a path.py"])["suite"] == "targeted"

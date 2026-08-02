@@ -145,8 +145,8 @@ def static_contracts() -> None:
             fail(f"provider-named compatibility path remains: {path.relative_to(ROOT)}")
 
     gate = load_json(TEMPLATE / ".agent/active-work-block.json")
-    if gate.get("schema_version") != 1:
-        fail("active Work Block schema_version must remain 1")
+    if gate.get("schema_version") != 2:
+        fail("active Work Block schema_version must remain 2")
     if gate.get("integrations") != {"approved": [], "admission_records": []}:
         fail("generated integration approvals must start empty")
     assurance = gate.get("assurance")
@@ -233,7 +233,7 @@ def event(repo: Path, tool: str, **tool_input: str) -> dict[str, Any]:
 def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
     gate: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "work_block_id": "wb-integration-fixture",
         "governance_profile": "Managed",
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
@@ -367,6 +367,9 @@ def executable_fixtures() -> None:
             run_script(hard_stop, repo, event(repo, "Bash", command="codex review")),
         )
 
+        # This fixture also exercises the still-v1 Claude write guard; reset its
+        # disposable gate after the schema-v2 shared Hard Stop assertions.
+        gate["schema_version"] = 1
         gate["write_gate"]["status"] = "BLOCKED"
         persist(repo, gate)
         assert_allowed(

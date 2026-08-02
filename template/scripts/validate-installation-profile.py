@@ -10,6 +10,7 @@ from typing import Any
 PROFILE_PATH = Path(".agent/bootstrap-profile.json")
 DEFAULT_WORK_BLOCK_PATH = Path(".agent/active-work-block.default.json")
 SCHEMA_VERSION = 1
+DEFAULT_WORK_BLOCK_SCHEMA_VERSION = 2
 EXPECTED_HARD_STOP_APPROVALS = {
     "git_commit": False,
     "git_push": False,
@@ -200,9 +201,9 @@ def validate_blocked_default(root: Path) -> None:
     state = load_json_object(
         root / DEFAULT_WORK_BLOCK_PATH, str(DEFAULT_WORK_BLOCK_PATH)
     )
-    if state.get("schema_version") != SCHEMA_VERSION:
+    if state.get("schema_version") != DEFAULT_WORK_BLOCK_SCHEMA_VERSION:
         raise ValidationError(
-            f"{DEFAULT_WORK_BLOCK_PATH} requires schema_version={SCHEMA_VERSION}"
+            f"{DEFAULT_WORK_BLOCK_PATH} requires schema_version={DEFAULT_WORK_BLOCK_SCHEMA_VERSION}"
         )
     write_gate = state.get("write_gate")
     if not isinstance(write_gate, dict):

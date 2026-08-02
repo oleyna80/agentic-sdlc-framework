@@ -577,10 +577,11 @@ Superseded material is archived with provenance.
 
 - **WB-CORE-001:** normative architecture and assurance semantics; no implementation.
 - **WB-CORE-002:** portable candidate roles, skills, templates, memory, and docs.
-- **WB-CORE-003:** collision-safe installer and packaging.
-- **WB-CORE-004:** synthetic dry-run fixtures and recovery evidence.
-- **WB-CORE-005:** HardwareLab pilot without production mutation.
-- **WB-CORE-006:** accepted-status promotion, one canonical entry path, and legacy archive.
+- **WB-CORE-003:** local Codex control-plane pilot and evidence-producing lifecycle helpers.
+- **WB-CORE-004:** collision-safe installer and packaging.
+- **WB-CORE-005:** synthetic dry-run fixtures and recovery evidence.
+- **WB-CORE-006:** HardwareLab pilot without production mutation.
+- **WB-CORE-007:** accepted-status promotion, one canonical entry path, and legacy archive.
 
 Each later Work Block depends on the accepted or verified result required by its
 predecessor and defines its own exact write-set, risks, checks, and out-of-scope.

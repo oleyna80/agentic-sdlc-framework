@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,10 @@ TEMPLATE = ROOT / "template"
 PRE_TOOL = TEMPLATE / ".codex/hooks/pre_tool_use_policy.py"
 SUBAGENT = TEMPLATE / ".codex/hooks/subagent_context.py"
 AGENTS = ("architect", "critic", "coder", "reviewer", "verifier")
+SIGNER_ENV = "AGENTIC_SDLC_OWNER_SIGNERS"
+SIGNER_IDENTITY = "owner@agentic-sdlc"
+SIGNER_NAMESPACE = "agentic-sdlc-authorization"
+SIGNING_KEY: Path | None = None
 
 
 def fail(message: str) -> None:
@@ -81,12 +86,26 @@ def write_gate(
         base = git(repo, "rev-parse", "HEAD")
     if expires is None:
         expires = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=2)).isoformat()
+    authorization = {"path": "", "blob_id": "", "signature_path": "", "signature_blob_id": ""}
+    auth_path = ".agent/authorizations/wb-fixture.json"
+    if (repo / auth_path).is_file():
+        result = run("git", "rev-parse", f"HEAD:{auth_path}", cwd=repo)
+        if result.returncode == 0:
+            signature_path = f"{auth_path}.sig"
+            signature = run("git", "rev-parse", f"HEAD:{signature_path}", cwd=repo)
+            if signature.returncode == 0:
+                authorization = {
+                    "path": auth_path, "blob_id": result.stdout.strip(),
+                    "signature_path": signature_path, "signature_blob_id": signature.stdout.strip(),
+                }
     gate = {
-        "schema_version": 1,
+        "schema_version": 2,
         "work_block_id": "wb-fixture",
         "governance_profile": "Managed",
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
+        "spec_digest": "sha256:fixture",
         "base_commit": base,
+        "authorization": authorization,
         "write_gate": {
             "status": status,
             "opened_at": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -114,6 +133,34 @@ def write_gate(
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def commit_authorization(repo: Path) -> None:
+    if SIGNING_KEY is None:
+        fail("fixture signing key is unavailable")
+    path = repo / ".agent/authorizations/wb-fixture.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "work_block_id": "wb-fixture",
+        "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
+        "spec_digest": "sha256:fixture",
+        "write_set": ["src/**", "tests/**"],
+        "expires_at": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=3)).isoformat(),
+        "status": "APPROVED",
+        "owner_evidence": "fixture-owner-record",
+        "signature": {"path": ".agent/authorizations/wb-fixture.json.sig"},
+        "critic": {
+            "required": True, "status": "READY", "verdict": "APPROVE",
+            "report": "docs/reports/critic-fixture.md", "skip_reason": "",
+        },
+    }, indent=2) + "\n", encoding="utf-8")
+    path.with_suffix(path.suffix + ".sig").unlink(missing_ok=True)
+    subprocess.run(
+        ["ssh-keygen", "-Y", "sign", "-q", "-f", str(SIGNING_KEY), "-n", SIGNER_NAMESPACE, str(path)],
+        check=True, capture_output=True,
+    )
+    git(repo, "add", ".agent/authorizations/wb-fixture.json", ".agent/authorizations/wb-fixture.json.sig")
+    git(repo, "commit", "-qm", "authorization")
 
 
 def assert_allowed(label: str, value: tuple[bool, str, dict | None]) -> None:
@@ -157,6 +204,15 @@ def static_contracts() -> None:
         if "model" in data:
             fail(f"{path} must not pin a concrete model")
 
+    for relative in (".codex/scripts/lifecycle.py", ".codex/scripts/doctor.py"):
+        if not (TEMPLATE / relative).is_file():
+            fail(f"Codex control-plane helper missing: {relative}")
+    doctor = (TEMPLATE / ".codex/scripts/doctor.py").read_text(encoding="utf-8")
+    if '"name": "native_smoke"' in doctor or '"result": "PASS"' in doctor:
+        fail("doctor must not represent a version check as native smoke PASS")
+    if '"name": "cli_availability"' not in doctor or '"result": "AVAILABLE"' not in doctor:
+        fail("doctor must label its opt-in version check as CLI availability")
+
     hooks = json.loads((TEMPLATE / ".codex/hooks.json").read_text(encoding="utf-8"))
     if not hooks.get("hooks", {}).get("PreToolUse"):
         fail("PreToolUse hook missing")
@@ -166,15 +222,26 @@ def static_contracts() -> None:
     gate = json.loads(
         (TEMPLATE / ".agent/active-work-block.json").read_text(encoding="utf-8")
     )
-    if gate.get("schema_version") != 1:
-        fail("gate schema must be version 1")
+    if gate.get("schema_version") != 2:
+        fail("gate schema must be version 2")
     if gate.get("write_gate", {}).get("status") != "BLOCKED":
         fail("generated gate must start BLOCKED")
 
 
 def hook_fixtures() -> None:
+    global SIGNING_KEY
     with tempfile.TemporaryDirectory(prefix="codex-adapter-") as tmp:
-        repo = Path(tmp)
+        repo = Path(tmp) / "repo"
+        repo.mkdir()
+        SIGNING_KEY = repo.parent / "fixture-owner"
+        subprocess.run(
+            ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(SIGNING_KEY)],
+            check=True, capture_output=True,
+        )
+        signers = repo.parent / "fixture-owner-signers"
+        public = SIGNING_KEY.with_suffix(".pub").read_text(encoding="utf-8").strip()
+        signers.write_text(f"{SIGNER_IDENTITY} {public}\n", encoding="utf-8")
+        os.environ[SIGNER_ENV] = str(signers)
         for path in (
             ".agent", "src", "tests", "docs/plans", "docs/specs", "docs/reports"
         ):
@@ -188,6 +255,7 @@ def hook_fixtures() -> None:
         write_gate(repo, status="BLOCKED", base="0000000")
         git(repo, "add", ".")
         git(repo, "commit", "-qm", "baseline")
+        commit_authorization(repo)
         write_gate(repo, status="BLOCKED")
 
         assert_allowed(
@@ -209,10 +277,59 @@ def hook_fixtures() -> None:
             "in-scope patch",
             decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
         )
+        saved_signers = os.environ.pop(SIGNER_ENV)
+        assert_denied(
+            "missing Owner trust anchor environment",
+            decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
+            SIGNER_ENV,
+        )
+        os.environ[SIGNER_ENV] = saved_signers
         assert_denied(
             "out-of-scope patch",
             decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("README.md"))),
             "outside approved scope",
+        )
+
+        gate_path = repo / ".agent/active-work-block.json"
+        authorization_path = repo / ".agent/authorizations/wb-fixture.json"
+        authorization_text = authorization_path.read_text(encoding="utf-8")
+
+        forged = json.loads(gate_path.read_text(encoding="utf-8"))
+        forged["work_block_id"] = "forged-work-block"
+        gate_path.write_text(json.dumps(forged), encoding="utf-8")
+        assert_denied(
+            "forged ready gate",
+            decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
+            "does not approve",
+        )
+
+        write_gate(repo)
+        widened = json.loads(gate_path.read_text(encoding="utf-8"))
+        widened["write_set"].append("README.md")
+        gate_path.write_text(json.dumps(widened), encoding="utf-8")
+        assert_denied(
+            "widened ready gate",
+            decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("README.md"))),
+            "write-set mismatch",
+        )
+
+        write_gate(repo)
+        authorization_path.write_text(authorization_text + " ", encoding="utf-8")
+        assert_denied(
+            "dirty authorization record",
+            decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
+            "dirty or changed",
+        )
+
+        authorization_path.write_text(authorization_text, encoding="utf-8")
+        write_gate(repo)
+        changed = json.loads(gate_path.read_text(encoding="utf-8"))
+        changed["authorization"]["blob_id"] = "0" * 40
+        gate_path.write_text(json.dumps(changed), encoding="utf-8")
+        assert_denied(
+            "changed authorization record binding",
+            decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
+            "dirty or changed",
         )
 
         write_gate(

@@ -25,10 +25,18 @@ def route(paths: Iterable[str]) -> dict[str, object]:
         for prefixes in ALLOWLISTS.values()
     )
     suite = "targeted" if known else "full"
+    optional = (
+        ["profile-conformance", "integration-adapters", "codex-adapter"]
+        if suite == "full"
+        else ["codex-adapter"] if any(
+            path.startswith(("template/.codex/", "template/.agent/active-work-block", "template/.agent/authorizations/"))
+            for path in paths
+        ) else []
+    )
     return {
         "suite": suite,
         "required": list(ALWAYS_REQUIRED),
-        "optional": ["profile-conformance", "integration-adapters", "codex-adapter"] if suite == "full" else [],
+        "optional": optional,
         "paths": paths,
     }
 
