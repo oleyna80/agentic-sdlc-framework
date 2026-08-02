@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       suite: ${{ steps.route.outputs.suite }}
+      optional: ${{ steps.route.outputs.optional }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +40,7 @@ jobs:
           fi
           suite="$(python -c 'import json,sys; print(json.load(sys.stdin)["suite"])' <<< "$result")"
           echo "suite=$suite" >> "$GITHUB_OUTPUT"
+          echo "optional=$(python -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["optional"]))' <<< "$result")" >> "$GITHUB_OUTPUT"
           echo "CI contract route: $result"
 
   contracts:
@@ -200,13 +202,14 @@ jobs:
           cat "$RUNNER_TEMP/integration-adapter-test.log"
           exit 1
 
-      - name: Validate Codex adapter gates (full suite)
-        if: needs.route.outputs.suite == 'full'
+      - name: Validate Codex adapter gates (full suite or Codex control-plane changes)
+        if: needs.route.outputs.suite == 'full' || contains(fromJSON(needs.route.outputs.optional || '[]'), 'codex-adapter')
         id: codex_adapter
         continue-on-error: true
         run: |
           python scripts/test-codex-adapter.py > "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
           python scripts/test-codex-hard-stops.py >> "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
+          python scripts/test-codex-control-plane.py >> "$RUNNER_TEMP/codex-adapter-test.log" 2>&1
 
       - name: Upload Codex adapter failure log
         if: steps.codex_adapter.outcome == 'failure'

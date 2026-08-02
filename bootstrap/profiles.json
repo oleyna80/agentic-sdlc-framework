@@ -72,7 +72,9 @@
         ".codex/hooks/hard_stop_policy.py",
         ".codex/hooks/pre_tool_use_policy.py",
         ".codex/hooks/stage0_write_gate.py",
-        ".codex/hooks/subagent_context.py"
+        ".codex/hooks/subagent_context.py",
+        ".codex/scripts/lifecycle.py",
+        ".codex/scripts/doctor.py"
       ],
       "skill_mirrors": []
     },

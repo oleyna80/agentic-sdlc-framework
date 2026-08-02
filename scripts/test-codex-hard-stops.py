@@ -66,6 +66,18 @@ def main() -> int:
         module.write_gate(repo)
 
         push_command = "git push origin feature"
+        legacy = json.loads((repo / ".agent/active-work-block.json").read_text(encoding="utf-8"))
+        legacy["schema_version"] = 1
+        legacy["hard_stop_approvals"]["git_push"] = True
+        (repo / ".agent/active-work-block.json").write_text(
+            json.dumps(legacy, indent=2) + "\n", encoding="utf-8"
+        )
+        module.assert_denied(
+            "legacy hard-stop schema",
+            module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),
+            "schema_version=2",
+        )
+        module.write_gate(repo)
         module.assert_denied(
             "unapproved push",
             module.decision(HARD_STOP, repo, module.event(repo, "Bash", push_command)),

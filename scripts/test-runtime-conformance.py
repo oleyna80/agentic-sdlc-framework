@@ -198,6 +198,9 @@ def shared_gate_contract() -> None:
     ):
         assert required in codex_text
 
+    for relative in (".codex/scripts/lifecycle.py", ".codex/scripts/doctor.py"):
+        assert (TEMPLATE / relative).is_file(), f"missing Codex helper: {relative}"
+
     shared = (TEMPLATE / ".agent/hooks/hard_stop_policy.py").read_text(
         encoding="utf-8"
     )

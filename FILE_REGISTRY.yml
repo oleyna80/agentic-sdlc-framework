@@ -158,7 +158,7 @@ target_architecture:
     - docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md
     - docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md
   active_migration_work_block: null
-  promotion_work_block: WB-CORE-006
+  promotion_work_block: WB-CORE-007
   current_operational_architecture_unchanged: true
   authority: accepted_target_not_operational_until_promoted
 
@@ -177,21 +177,22 @@ migration_state:
     - docs/plans/wb-core-001-normative-architecture.md
     - docs/plans/wb-core-002-portable-candidate-content.md
     - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
+    - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
   active_work_block: null
-  next_planned_work_block: WB-CORE-003
+  next_planned_work_block: WB-CORE-004
   planned:
-    - WB-CORE-003
     - WB-CORE-004
     - WB-CORE-005
     - WB-CORE-006
+    - WB-CORE-007
 
 release_state:
   contract: governance/release-state.md
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-002a-portable-candidate-review-remediation.md
-  closeout_report: docs/reports/closeout/wb-core-002a-portable-candidate-review-remediation.md
+  latest_completed_work_block: docs/plans/wb-core-003-codex-local-control-plane-pilot.md
+  closeout_report: docs/reports/closeout/wb-core-003-agent-operations-bottlenecks.md
   external_vcs_state: non_normative
   authority: assurance_only
 

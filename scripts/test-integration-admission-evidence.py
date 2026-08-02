@@ -46,7 +46,7 @@ def write_gate(repo: Path, records: list[str]) -> None:
         ["git", "rev-parse", "HEAD"], cwd=repo, text=True
     ).strip()
     gate = {
-        "schema_version": 1,
+        "schema_version": 2,
         "work_block_id": "wb-integration-admission-fixture",
         "base_commit": head,
         "write_gate": {

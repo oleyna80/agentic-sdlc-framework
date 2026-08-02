@@ -155,6 +155,17 @@ Then separately record for the runtime actually used:
 - whether degraded execution requires later independent evidence.
 
 Static conformance does not prove a live runtime or OS isolation.
+For a selected Codex profile, use `.codex/scripts/lifecycle.py status` only as
+local state evidence; it cannot open authority by inference. Before an approved
+`open`, provide the separately held trust anchor explicitly:
+`export AGENTIC_SDLC_OWNER_SIGNERS=/absolute/path/to/owner-signers`. The anchor
+must not reside in mutable project `HEAD`; the committed authorization JSON and
+its detached `.sig` must verify as `owner@agentic-sdlc` under namespace
+`agentic-sdlc-authorization`. Use
+`.codex/scripts/doctor.py` without `--live` in routine checks. Its explicit
+`--live` path is a disposable-local CLI availability/version check only; an
+`AVAILABLE` result does not claim hooks or native smoke passed. A native smoke
+requires separately admitted hook execution and is `UNVERIFIED` when unavailable.
 
 ## Repository Preflight
 

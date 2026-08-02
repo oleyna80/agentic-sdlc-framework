@@ -19,5 +19,5 @@ Prioritize:
 
 Remain read-only for source, runtime, infrastructure, credentials, and data. Do not fix findings or change the specification.
 
-Return READY, CHANGES_REQUIRED, BLOCKED, or UNVERIFIED. Lead with actionable findings ordered by severity, include file/symbol evidence, note inspected and uninspected areas, and distinguish material issues from optional suggestions. Do not expose private chain-of-thought.
+Return READY, CHANGES_REQUIRED, BLOCKED, or UNVERIFIED. A Reviewer READY is advisory only; formal closeout authority remains with the logical Verifier. Lead with actionable findings ordered by severity, include file/symbol evidence, note inspected and uninspected areas, and distinguish material issues from optional suggestions. Do not expose private chain-of-thought.
 """

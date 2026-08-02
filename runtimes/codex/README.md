@@ -27,6 +27,7 @@ specializations change focus, not authority.
 ```text
 .agent/
 ├── active-work-block.json
+├── authorizations/
 └── hooks/
     └── hard_stop_policy.py
 
@@ -44,6 +45,9 @@ specializations change focus, not authority.
     ├── pre_tool_use_policy.py
     ├── stage0_write_gate.py
     └── subagent_context.py
+├── scripts/
+│   ├── lifecycle.py
+│   └── doctor.py
 ```
 
 - `.agent/hooks/hard_stop_policy.py` is the shared provider-neutral
@@ -107,11 +111,18 @@ other external capabilities require separate admission and runtime permission.
 
 Source writes require:
 
-- schema version 1 and Work Block ID;
+- schema version 2 and Work Block ID;
 - approved specification path/revision;
 - `write_gate.status: READY`;
 - timezone-aware unexpired gate;
 - current `HEAD` matching `base_commit`;
+- a committed `.agent/authorizations/<work-block>.json` whose disk content and
+  blob ID match `HEAD`, plus its committed sibling `.json.sig`; both are
+  verified as `owner@agentic-sdlc` in namespace
+  `agentic-sdlc-authorization` against the explicit external
+  `AGENTIC_SDLC_OWNER_SIGNERS` trust anchor. The record's Work Block/spec
+  digest/write-set/Critic evidence must match the gate and its expiry is the
+  gate's ceiling;
 - resolved required Critic;
 - non-empty write-set;
 - target path inside the write-set.
@@ -121,6 +132,28 @@ remain writable while source is blocked.
 
 After a commit changes `HEAD`, renew the gate before further source writes or an
 approved push.
+
+## Local Control-Plane Helpers
+
+`.codex/scripts/lifecycle.py` provides atomic, fail-closed coordination state:
+`status` is read-only; `prepare`, `freeze`, and `close` produce BLOCKED state;
+`open` accepts only the path to a role-separated committed authorization record
+with its detached signature and derives all authority-bearing fields from
+`git show HEAD:<path>`; it never creates, edits, or signs that record. Set the
+trust anchor explicitly, for example
+`export AGENTIC_SDLC_OWNER_SIGNERS=/absolute/path/to/owner-signers`; it must
+not be stored in project `HEAD`. `renew` only refreshes expiry within the
+committed ceiling and cannot broaden the write-set. This is cooperative local
+governance with cryptographic Owner-signature verification, not an OS security
+boundary: hooks can be bypassed, but a same-user writer cannot forge Owner
+approval without the separate private key.
+
+`.codex/scripts/doctor.py` redacts sensitive field values and reports external
+trust-anchor and authorization-signature readiness separately from CLI
+availability and static state. Normal CI never invokes it. Explicit
+`--live` performs only a local CLI version check in a disposable Git repository:
+`AVAILABLE` means the CLI answered, not that hooks or native smoke passed. An
+unavailable runtime is `UNVERIFIED`.
 
 ## Hard Stops
 
