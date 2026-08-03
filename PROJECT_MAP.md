@@ -20,6 +20,7 @@ completed_work_blocks:
   - docs/plans/wb-core-002-portable-candidate-content.md
   - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
   - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
+  - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
 active_work_block: null
 -->
 
@@ -63,10 +64,13 @@ operational architecture identifier remains `runtime_neutral_control_plane`.
 WB-CORE-002 completed its noncanonical candidate content, WB-CORE-002A completed
 Standard P2 remediation, and WB-CORE-003 completed the local Codex control-plane
 pilot; the candidate remains uninstalled, unpromoted, and non-authoritative.
-No implementation Work Block is active. WB-CORE-004 through WB-CORE-007 remain
-future Work Blocks requiring their own scope, authority, write-set, assurance,
-and approvals. WB-CORE-006 retains promotion and legacy archival ownership.
-Separate explicit Owner approval remains required before merge.
+WB-CORE-003A completed its bounded governance rule for Work Block composition
+and evidence-based material process findings. It did not promote the candidate
+or install any runtime adapter. No active implementation Work Block exists.
+WB-CORE-004 through WB-CORE-007 remain future Work Blocks requiring their own
+scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
+promotion and legacy archival ownership. Separate explicit Owner approval remains
+required before merge.
 
 ## Authority Order
 
@@ -275,6 +279,9 @@ Completed:
 13. WB-CORE-002A — Standard P2 remediation of candidate lifecycle and Work
    Block template controls; candidate remains noncanonical, uninstalled,
    unpromoted, and non-authoritative.
+14. WB-CORE-003A — bounded Portable Kit governance rule and initial-assurance
+    sequence; its terminal lifecycle projection requires final applicable
+    assurance before any commit.
 
 Active:
 
@@ -287,9 +294,10 @@ Planned:
 - WB-CORE-006 — HardwareLab pilot;
 - WB-CORE-007 — promotion and legacy archive.
 
-WB-CORE-004 through WB-CORE-007 are future/planned. Planned status grants
-no execution authority. Each future Work Block requires separate Owner authority,
-exact scope, write-set, assurance, and closeout.
+WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A was an
+inserted governance follow-up, not a replacement for that sequence. Planned
+status grants no execution authority. Each future Work Block requires separate
+Owner authority, exact scope, write-set, assurance, and closeout.
 
 ## Boundaries
 

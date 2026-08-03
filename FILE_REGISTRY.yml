@@ -178,6 +178,7 @@ migration_state:
     - docs/plans/wb-core-002-portable-candidate-content.md
     - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
     - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
+    - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -191,8 +192,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-003-codex-local-control-plane-pilot.md
-  closeout_report: docs/reports/closeout/wb-core-003-agent-operations-bottlenecks.md
+  latest_completed_work_block: docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
+  closeout_report: docs/reports/closeout/wb-core-003a-work-block-composition-and-flow-feedback.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -330,6 +331,14 @@ entries:
 
   docs/plans/wb-core-002a-portable-candidate-review-remediation.md:
     role: completed_standard_portable_candidate_p2_remediation_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md:
+    role: completed_standard_governance_work_block_for_portable_composition_and_flow_feedback
     status: log
     owner: orchestrator
     lifecycle_status: completed
