@@ -21,6 +21,8 @@ completed_work_blocks:
   - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
   - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
   - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
+  - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
+  - docs/plans/wb-core-003c-completed-state-assurance-binding.md
 active_work_block: null
 -->
 
@@ -66,7 +68,13 @@ Standard P2 remediation, and WB-CORE-003 completed the local Codex control-plane
 pilot; the candidate remains uninstalled, unpromoted, and non-authoritative.
 WB-CORE-003A completed its bounded governance rule for Work Block composition
 and evidence-based material process findings. It did not promote the candidate
-or install any runtime adapter. No active implementation Work Block exists.
+or install any runtime adapter. WB-CORE-003B completed the bounded
+self-hosting control-plane reconciliation, including final independent
+assurance and repository closeout evidence. It did not promote the candidate,
+install a runtime adapter, or authorize any version-control action.
+WB-CORE-003C completed the evidence-only corrective follow-up: it binds
+independent assurance to WB-CORE-003B's immutable completed-state snapshot and
+does not reopen WB-CORE-003B or alter product Work Block sequencing.
 WB-CORE-004 through WB-CORE-007 remain future Work Blocks requiring their own
 scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
 promotion and legacy archival ownership. Separate explicit Owner approval remains
@@ -282,10 +290,14 @@ Completed:
 14. WB-CORE-003A — bounded Portable Kit governance rule and initial-assurance
     sequence; its terminal lifecycle projection requires final applicable
     assurance before any commit.
+15. WB-CORE-003B — self-hosting control-plane reconciliation for framework
+    maintenance; repository lifecycle closeout only, with no Portable Kit
+    promotion, runtime adapter, hook, installer, or version-control action.
+16. WB-CORE-003C — completed-state assurance binding for the immutable
+    WB-CORE-003B snapshot; governance evidence only, with no version-control
+    or external GitHub action.
 
-Active:
-
-No active implementation Work Block.
+Active: No active implementation Work Block.
 
 Planned:
 
