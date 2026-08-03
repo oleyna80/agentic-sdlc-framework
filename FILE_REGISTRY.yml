@@ -179,6 +179,7 @@ migration_state:
     - docs/plans/wb-core-002a-portable-candidate-review-remediation.md
     - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
     - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
+    - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -192,8 +193,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
-  closeout_report: docs/reports/closeout/wb-core-003a-work-block-composition-and-flow-feedback.md
+  latest_completed_work_block: docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
+  closeout_report: docs/reports/closeout/wb-core-003b-self-hosting-control-plane-reconciliation.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -344,6 +345,44 @@ entries:
     lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md:
+    role: managed_framework_self_hosting_control_plane_reconciliation_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  AGENTS.md:
+    role: framework_self_hosting_root_operating_contract
+    status: normative
+    owner: owner
+    authority: subordinate_to_accepted_governance
+
+  .agent/workflows/sdd-protocol.md:
+    role: framework_self_hosting_sdd_procedure
+    status: normative
+    owner: orchestrator
+    authority: subordinate_to_root_contract_and_governance
+
+  .agent/ROSTER.md:
+    role: framework_self_hosting_operational_role_index
+    status: normative
+    owner: orchestrator
+    authority: does_not_replace_portable_kit_role_adr
+
+  docs/engineering-memory/**:
+    role: durable_framework_engineering_memory
+    status: normative
+    owner: orchestrator
+    authority: lower_than_current_governance_and_work_block
+
+  memory_bank/**:
+    role: lower_authority_operational_memory
+    status: log
+    owner: orchestrator
+    authority: cannot_grant_scope_or_assurance
 
   docs/evals/**:
     role: approved_evaluation_plans_benchmarks_and_observable_event_evidence
