@@ -11,6 +11,8 @@ process_level: {{Quick|Standard|High-Risk}}
 
 {{objective}}
 
+- Verifiable outcome: {{single_observable_result}}
+
 ## Source Contracts
 
 - Owner authority: {{owner_instruction_or_recorded_approval}}
@@ -53,6 +55,20 @@ process_level: {{Quick|Standard|High-Risk}}
 - Out of scope: {{out_of_scope}}
 - Exact write-set: {{exact_repository_paths}}
 
+## Work-Block Composition
+
+- Coherent boundary: {{one_verifiable_outcome_and_shared_risk_write_set_assurance}}
+- Related-task rationale: {{why_multiple_tasks_share_that_outcome_and_boundary}}
+- Split decision: {{not_required|required}}
+- Applicable split condition and separate Work Block, if required:
+  {{independent_deliverable|distinct_owner_approval_or_hard_stop|conflicting_writer_ownership_or_write_set|separate_rollback_boundary|independent_assurance_chain|not_applicable}}
+- Split rationale: {{composition_decision_evidence}}
+
+Task, file, agent, and elapsed-time counts do not independently require a split.
+Split only for an independent deliverable; distinct Owner approval or Hard Stop;
+conflicting writer ownership or write-set; a separate rollback boundary; or an
+independently verifiable assurance chain.
+
 ## Roles and Execution Mode
 
 - Orchestrator: {{orchestrator_responsibility}}
@@ -77,6 +93,8 @@ process_level: {{Quick|Standard|High-Risk}}
 - Acceptance criteria: {{acceptance_criteria}}
 - Required checks and evidence: {{assurance_and_verification}}
 - Closeout conditions: {{truthful_closeout_conditions}}
+- Material process findings: optional; use the closeout contract only for an
+  observed material condition, otherwise record `none observed`.
 
 ## Write-Gate State
 

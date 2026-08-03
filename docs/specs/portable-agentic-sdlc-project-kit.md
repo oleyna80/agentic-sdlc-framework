@@ -251,6 +251,39 @@ A Work Block records identity, objective, process level, source contracts,
 scope/out-of-scope, write-set, roles, side effects, risks, Hard Stops, approvals,
 acceptance, assurance, rollback, and gate state.
 
+### 9.1 Composition boundary
+
+A Work Block is bounded by one verifiable outcome and a coherent risk, write-set,
+and assurance boundary. It may contain multiple related tasks when they share
+that outcome and boundary; task count, file count, agent count, or elapsed time
+does not independently require a split.
+
+Split a Work Block only when at least one of these conditions applies:
+
+1. a task produces an independent deliverable;
+2. it needs a distinct Owner approval or Hard Stop;
+3. it conflicts with the other work's writer ownership or write-set;
+4. it needs a separate rollback boundary; or
+5. it needs an independently verifiable assurance chain.
+
+The Work Block records the composition rationale, including why related tasks
+share one outcome and boundary or which split condition requires separate Work.
+Plans and tasklists may decompose the bounded work but cannot replace this
+decision.
+
+### 9.2 Material process findings
+
+Closeout may record a material process finding only when it includes an observed
+condition; one category from scope, authority, reliability, assurance, or
+evidence quality; a concrete impact on that category; an evidence, check, or
+decision reference; and a disposition. `none observed` is the only zero-signal
+form.
+
+Routine status, timestamps, activity logs, agent or model metrics, raw prompts
+or transcripts, hidden reasoning, and secrets are prohibited. Findings are
+evidence-only closeout content and do not create normative state in navigation,
+registries, plans, or tasklists.
+
 One write-capable Work Block is active per working tree. Parallel writers require
 isolated worktrees/clones and non-overlapping write-sets or an explicit integration
 plan. Exactly one Coder owns each write-set; a shared file makes sets overlap.
@@ -329,7 +362,12 @@ Before merge, accepted artifacts receive the project's accepted frontmatter stat
 
 Plans map accepted requirements to paths, dependencies, checks, risks, rollback,
 and handoffs. Tasks name inputs, write-set, owner, result, verification, and stop
-conditions. Neither may expand the active Work Block.
+conditions. Before choosing task granularity, task decomposition determines
+whether work shares the Work Block's verifiable outcome and coherent
+risk/write-set/assurance boundary. It creates separate tasks within that Work
+Block when useful, and requires a separate Work Block only for a composition
+split condition in section 9.1. Neither plans nor tasks may expand the active
+Work Block.
 
 ## 12. Skills and Routing
 
