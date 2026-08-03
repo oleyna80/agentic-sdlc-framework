@@ -49,6 +49,15 @@ implementation Work Block is active. This is repository lifecycle evidence only;
 it does not authorize any version-control, promotion, installation, deployment,
 or other external action.
 
+## Historical-position notice — WB-CORE-003C active
+
+The preceding reconciliation statement describes the completed repository
+snapshot at `c1507deef41faec920eb1d709c0c1172a8e119cd`. It is preserved as
+historical closeout evidence. WB-CORE-003C subsequently became the sole active
+corrective Work Block to bind new assurance to that immutable snapshot; that
+activation supersedes only the statement's present-tense no-active-Work-Block
+projection and does not reopen or alter WB-CORE-003B.
+
 ## Residual Risks and Limitations
 
 - The accepted Portable Kit remains noncanonical, uninstalled, and unpromoted;

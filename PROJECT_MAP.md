@@ -22,6 +22,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003-codex-local-control-plane-pilot.md
   - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
   - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
+  - docs/plans/wb-core-003c-completed-state-assurance-binding.md
 active_work_block: null
 -->
 
@@ -71,6 +72,9 @@ or install any runtime adapter. WB-CORE-003B completed the bounded
 self-hosting control-plane reconciliation, including final independent
 assurance and repository closeout evidence. It did not promote the candidate,
 install a runtime adapter, or authorize any version-control action.
+WB-CORE-003C completed the evidence-only corrective follow-up: it binds
+independent assurance to WB-CORE-003B's immutable completed-state snapshot and
+does not reopen WB-CORE-003B or alter product Work Block sequencing.
 WB-CORE-004 through WB-CORE-007 remain future Work Blocks requiring their own
 scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
 promotion and legacy archival ownership. Separate explicit Owner approval remains
@@ -289,9 +293,11 @@ Completed:
 15. WB-CORE-003B — self-hosting control-plane reconciliation for framework
     maintenance; repository lifecycle closeout only, with no Portable Kit
     promotion, runtime adapter, hook, installer, or version-control action.
-Active:
+16. WB-CORE-003C — completed-state assurance binding for the immutable
+    WB-CORE-003B snapshot; governance evidence only, with no version-control
+    or external GitHub action.
 
-No active implementation Work Block.
+Active: No active implementation Work Block.
 
 Planned:
 
