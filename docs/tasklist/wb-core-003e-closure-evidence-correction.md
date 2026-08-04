@@ -9,16 +9,16 @@
   assurance sequence before preliminary assurance begins.
 - [x] Apply and validate only the three approved WB-CORE-003D documentation
   corrections as the active candidate delta.
-- [ ] Freeze the active eleven-path candidate subject and obtain independent
+- [x] Freeze the active eleven-path candidate subject and obtain independent
   preliminary Reviewer, Verifier, and drift-assessment evidence.
-- [ ] After preliminary `READY`/`READY`/`ALIGNED`, have the same Coder prepare
+- [x] After preliminary `READY`/`READY`/`ALIGNED`, have the same Coder prepare
   an ephemeral exact final-close projection for independent preflight.
-- [ ] Obtain independent Reviewer, Verifier, and drift assessment of that
+- [x] Obtain independent Reviewer, Verifier, and drift assessment of that
   prospective final-close manifest; require its aggregate to match the actual
   final projection before closeout.
-- [ ] Have the same Coder apply the checked completed/no-active projection,
+- [x] Have the same Coder apply the checked completed/no-active projection,
   including the required release-state references, and freeze its aggregate.
-- [ ] Record evidence-only completed closeout from the already obtained final
+- [x] Record evidence-only completed closeout from the already obtained final
   findings, then pass release-state validation on the actual final aggregate.
 - [x] Keep any separately Owner-authorized VCS handoff outside this Work Block
   record and its normative tasklist.

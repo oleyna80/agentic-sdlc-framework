@@ -24,7 +24,8 @@ completed_work_blocks:
   - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
   - docs/plans/wb-core-003c-completed-state-assurance-binding.md
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
-active_work_block: docs/plans/wb-core-003e-closure-evidence-correction.md
+  - docs/plans/wb-core-003e-closure-evidence-correction.md
+active_work_block: null
 -->
 
 ## Current Operational Architecture
@@ -80,11 +81,11 @@ WB-CORE-003D completed the separately bounded governance protocol for parallel
 exclusive Coder write-sets, isolated worktrees, and the frozen integrated
 assurance subject. It did not activate a runtime, generated template, hook, or
 live multi-worktree pilot.
-WB-CORE-003E is the sole active corrective Work Block for a bounded
-WB-CORE-003D closure-record correction. It is in a two-pass assurance sequence:
-the active candidate must be independently assessed before its completed/no-active
-projection is frozen and independently assessed again. It does not reopen the
-parallel-write-set protocol or alter product Work Block sequencing.
+WB-CORE-003E completed the bounded corrective closure-evidence correction for
+WB-CORE-003D. It applied a two-pass assurance sequence, obtained independent
+preliminary and final preflight READY/READY/ALIGNED, and closed with no active
+Work Block remaining. It did not reopen the parallel-write-set protocol or alter
+product Work Block sequencing.
 WB-CORE-004 through WB-CORE-007 remain future Work Blocks requiring their own
 scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
 promotion and legacy archival ownership. Separate explicit Owner approval remains
@@ -310,8 +311,10 @@ Completed:
     write-set orchestration and integrated-subject assurance; no runtime or VCS
     action was authorized.
 
-Active: `docs/plans/wb-core-003e-closure-evidence-correction.md` —
-WB-CORE-003E closure-evidence correction; no runtime or protocol change.
+18. WB-CORE-003E — completed bounded closure-evidence correction for
+    WB-CORE-003D; governance evidence only, no runtime, protocol, or VCS action.
+
+Active: No active implementation Work Block.
 
 Planned:
 

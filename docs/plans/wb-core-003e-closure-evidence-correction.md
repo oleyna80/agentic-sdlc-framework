@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-core-003e-closure-evidence-correction
 work_block_id: WB-CORE-003E
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-03
 base_revision: 0f616a2343d18be9cefc7276f3a72bddad10635d
@@ -181,12 +181,12 @@ Lifecycle:
 
 ## Current state
 
-- **Stage:** Define
-- **Execution state:** candidate correction validated; preliminary assurance
-  has not yet started.
-- **Write gate:** OPEN only for this Work Block's approved document write-set.
-- **Review / verification / drift:** pending preliminary independent assurance.
-- **Task status:** in progress.
+- **Stage:** Close (completed)
+- **Execution state:** two-pass assurance sequence completed; final close
+  projection applied and independently verified.
+- **Write gate:** CLOSED.
+- **Review / verification / drift:** preliminary and final preflight READY/READY/ALIGNED obtained.
+- **Task status:** completed.
 
 ## Critic disposition
 
@@ -204,3 +204,22 @@ assurance. This plan therefore uses the two-pass sequence above, with an exact
 non-repository terminal preflight. It changes no policy, authority, or Owner
 approved file boundary; a fresh Critic must confirm the corrected sequencing
 before preliminary assurance begins.
+
+## Final State
+
+- **Stage:** Close
+- **Stage State:** completed
+- **Write Gate:** CLOSED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic documentation and contract validation are sufficient
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
+
+The terminal state covers the approved repository-local governance subject only
+and is validated by the separately recorded two-pass assurance evidence for the
+close projection. It does not claim staging, commit, push, merge, promotion,
+installation, deployment, release readiness, or mutable external VCS status.
+Any later normative change requires a new applicable Work Block and assurance
+chain.
