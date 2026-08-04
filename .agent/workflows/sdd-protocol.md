@@ -27,7 +27,9 @@ For Managed work, a read-only Critic challenges this record before execution.
 `READY` means its challenge found no unresolved blocker; `BLOCKED` returns to
 Define. `SKIPPED` is only for bounded low-risk Controlled work. `DEGRADED`
 records missing independence/capability and required approval. A Critic result
-does not itself open a write gate.
+does not itself open a write gate. A Stage 0 record that authorises parallel
+Coder streams requires governance profile Managed or Assured; the Critic gate
+is mandatory and may not be SKIPPED.
 
 ## Stage 1 — Execute
 
