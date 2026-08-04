@@ -23,7 +23,8 @@ SDD protocol, roster, mission brief, and integration-plan template agree on
 exclusive non-overlapping worker paths, distinct isolation, serialized
 integration ownership, frozen handoffs, and a single integrated assurance
 subject. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` accurately record the Work
-Block as active and retain the current `runtime_neutral_control_plane`.
+Block as completed with no active Work Block at the assessed/frozen 003D
+subject, while retaining the current `runtime_neutral_control_plane`.
 
 ## Exact Subject
 

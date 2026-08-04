@@ -5,5 +5,7 @@ unverified completion.
 
 | Date | Work Block | Status | Evidence / note |
 | --- | --- | --- | --- |
-| 2026-08-03 | WB-CORE-003B | Execute repair in progress | Critic report records `APPROVE` and gate `READY`; preliminary assurance required a repair and repeated independent assurance is pending. |
 | 2026-08-03 | WB-CORE-003B | completed repository closeout | Final independent Reviewer and Verifier returned `READY`; drift assessment returned `ALIGNED`; closeout is evidence-only and no VCS action is authorized. |
+| 2026-08-03 | WB-CORE-003C | completed-state assurance binding | Immutable snapshot assurance for WB-CORE-003B; governance evidence only. |
+| 2026-08-03 | WB-CORE-003D | completed repository closeout | Parallel-write-set orchestration governance; Reviewer READY, Verifier READY, drift ALIGNED; closeout is evidence-only. |
+| 2026-08-03 | WB-CORE-003E | active corrective cycle | Preliminary assurance returned Reviewer CHANGES_REQUIRED, Verifier BLOCKED, drift DRIFT_FOUND; three in-scope corrections resolved, memory_bank expansion approved; repeated assurance pending. |

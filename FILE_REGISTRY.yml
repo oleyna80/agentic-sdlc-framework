@@ -182,7 +182,7 @@ migration_state:
     - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
     - docs/plans/wb-core-003c-completed-state-assurance-binding.md
     - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
-  active_work_block: null
+  active_work_block: docs/plans/wb-core-003e-closure-evidence-correction.md
   next_planned_work_block: WB-CORE-004
   planned:
     - WB-CORE-004
@@ -369,6 +369,14 @@ entries:
       - .agent/ROSTER.md
       - docs/templates/subagent-mission-brief-template.md
       - docs/templates/integration-plan-template.md
+
+  docs/plans/wb-core-003e-closure-evidence-correction.md:
+    role: active_managed_corrective_work_block_for_wb_core_003d_closure_evidence
+    status: active
+    owner: orchestrator
+    lifecycle_status: in_progress
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
 
   AGENTS.md:
     role: framework_self_hosting_root_operating_contract

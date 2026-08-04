@@ -20,7 +20,7 @@ last_verified: 2026-08-03
 - **Drift verdict:** ALIGNED
 - **Closeout classification:** SUCCESS
 - **Task status:** completed
-- **External VCS state:** non-normative; no staging, commit, push, PR, merge, or external action occurred in this Work Block
+- **External VCS state:** non-normative; version-control actions are outside this Work Block's repository lifecycle record
 
 ## Result
 
@@ -39,8 +39,9 @@ The lifecycle projection changed selected normative paths and was therefore
 re-frozen for final applicable assurance. The separate final Reviewer, Verifier,
 and drift assessment each returned READY for aggregate
 `1bf30158a0e05d4831187396884f16a92c949f3220ec3e751cbeea26b4b35558`.
-This closeout neither promotes the Portable Kit nor authorizes an installer,
-runtime, hook, configuration, dependency, deployment, or version-control action.
+This closeout neither promotes the Portable Kit nor records mutable external
+version-control state; any VCS handoff remains a separately Owner-authorized
+operational action outside this repository lifecycle record.
 
 ## Evidence
 
@@ -79,5 +80,5 @@ authority.
 
 - Use a separately approved Work Block to propagate and test the protocol in
   generated/runtime enforcement surfaces and to run a live multi-worktree pilot.
-- Obtain separate Owner approval before staging, committing, pushing, opening a
-  PR, or merging.
+- Any future version-control action requires separate Owner approval and fresh
+  inspection of the external operational state.

@@ -14,4 +14,6 @@
   against the frozen subject.
 - [x] Record closeout and synchronize the declared lifecycle projection; freeze
   the resulting close projection for final applicable assurance.
-- [ ] Obtain separate Owner approval before staging, commit, push, PR, or merge.
+- [x] Obtain separate Owner approval before the external VCS handoff; the
+  resulting hosting-platform state remains non-normative and outside this
+  repository lifecycle tasklist.
