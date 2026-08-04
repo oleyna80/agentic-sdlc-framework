@@ -371,7 +371,6 @@ entries:
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
 
-<<<<<<< HEAD
   docs/plans/wb-core-003d-parallel-write-set-orchestration.md:
     role: completed_managed_governance_work_block_for_parallel_write_set_orchestration
     status: log
@@ -393,14 +392,13 @@ entries:
     lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
-=======
+
   docs/plans/wb-opencode-002-project-local-integration.md:
     role: managed_project_local_opencode_integration_work_block
     status: log
     lifecycle_status: in_progress
     current_operational_architecture: runtime_neutral_control_plane
     authority: runtime_adapter_only
->>>>>>> 91a3ecf (feat(opencode): integrate project-local OpenCode runtime surface)
 
   AGENTS.md:
     role: framework_self_hosting_root_operating_contract

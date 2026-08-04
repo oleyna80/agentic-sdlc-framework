@@ -53,6 +53,9 @@
     "websearch": "ask",
     "mcp_*": "ask"
   },
+  "skills": {
+    "paths": ["skills"]
+  },
   "mcp": {},
   "plugin": [],
   "watcher": {
