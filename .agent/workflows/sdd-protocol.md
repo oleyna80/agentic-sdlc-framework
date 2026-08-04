@@ -16,23 +16,43 @@ context, and operational memory cannot override higher authority.
 The Orchestrator records objective, scope/exclusions, authority chain, risk,
 side effects, Hard Stops, exact write-set, one-Coder ownership, topology,
 capability limitations, acceptance checks, required assurance, and explicit
-Owner approvals. For Managed work, a read-only Critic challenges this record
-before execution. `READY` means its challenge found no unresolved blocker;
-`BLOCKED` returns to Define. `SKIPPED` is only for bounded low-risk
-Controlled work. `DEGRADED` records missing independence/capability and
-required approval. A Critic result does not itself open a write gate.
+Owner approvals. For parallel Coder work, this record also contains a common
+immutable base revision; a stream ownership matrix of Coder, exclusive paths,
+and isolation identifier; proof that the worker-path intersection is empty;
+dependencies; named frozen handoffs; recovery points; Integration Coder and
+glue-path ownership; and the approved integration plan. A shared path is
+serialized under one owner, never concurrently edited.
+
+For Managed work, a read-only Critic challenges this record before execution.
+`READY` means its challenge found no unresolved blocker; `BLOCKED` returns to
+Define. `SKIPPED` is only for bounded low-risk Controlled work. `DEGRADED`
+records missing independence/capability and required approval. A Critic result
+does not itself open a write gate.
 
 ## Stage 1 — Execute
 
-One Coder edits only the approved write-set after the Critic gate is resolved.
+One Coder edits only its approved exclusive write-set after the Critic gate is
+resolved. Parallel Coders require the Stage 0 record above and distinct
+isolated worktrees or clones; their worker-path intersection must remain empty.
 Inspect Git state first, preserve unrelated work, run scoped checks, and stop
-for a scope, authority, risk, or acceptance change. Freeze the exact changed
-file set and report `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or
-`BLOCKED`. Written files are not a completion claim.
+for a scope, authority, risk, or acceptance change. Freeze each worker handoff
+at its named revision and report `DONE`, `DONE_WITH_CONCERNS`,
+`NEEDS_CONTEXT`, or `BLOCKED`. Written files and worker checks are not a final
+completion or readiness claim.
+
+When integration is approved, the Integration Coder is a separately bounded
+Coder assignment with a distinct integration worktree and owned glue paths. It
+may only cleanly adopt the named frozen worker revisions. A merge conflict,
+revision substitution, or edit to a worker-owned path returns the Work Block to
+Define. Once integration is complete, freeze one integrated revision and path
+manifest before Stage 2. Any normative edit after this freeze invalidates
+readiness and requires a new freeze and applicable assurance.
 
 ## Stage 2 — Assure
 
-Reviewer and Verifier assess the frozen subject read-only. Review checks
+Reviewer and Verifier assess the frozen subject read-only. For parallel work,
+that subject is the one frozen integrated revision and path manifest, not an
+individual worker output; worker checks are input evidence only. Review checks
 correctness, boundaries, maintainability, privacy/security, and documentation
 drift. Verification demonstrates acceptance criteria with reproducible evidence;
 missing evidence is `BLOCKED` or `UNVERIFIED`. Evaluation is selected only

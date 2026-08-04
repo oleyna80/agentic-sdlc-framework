@@ -181,6 +181,8 @@ migration_state:
     - docs/plans/wb-core-003a-work-block-composition-and-flow-feedback.md
     - docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md
     - docs/plans/wb-core-003c-completed-state-assurance-binding.md
+    - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
+    - docs/plans/wb-core-003e-closure-evidence-correction.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -194,8 +196,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-003c-completed-state-assurance-binding.md
-  closeout_report: docs/reports/closeout/wb-core-003c-completed-state-assurance-binding.md
+  latest_completed_work_block: docs/plans/wb-core-003e-closure-evidence-correction.md
+  closeout_report: docs/reports/closeout/wb-core-003e-closure-evidence-correction.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -349,6 +351,28 @@ entries:
 
   docs/plans/wb-core-003b-self-hosting-control-plane-reconciliation.md:
     role: managed_framework_self_hosting_control_plane_reconciliation_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  docs/plans/wb-core-003d-parallel-write-set-orchestration.md:
+    role: completed_managed_governance_work_block_for_parallel_write_set_orchestration
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    accepted_target_architecture: portable_agentic_sdlc_project_kit
+    related:
+      - AGENTS.md
+      - .agent/workflows/sdd-protocol.md
+      - .agent/ROSTER.md
+      - docs/templates/subagent-mission-brief-template.md
+      - docs/templates/integration-plan-template.md
+
+  docs/plans/wb-core-003e-closure-evidence-correction.md:
+    role: completed_managed_corrective_work_block_for_wb_core_003d_closure_evidence
     status: log
     owner: orchestrator
     lifecycle_status: completed

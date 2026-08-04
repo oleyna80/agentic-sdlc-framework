@@ -49,7 +49,7 @@ authorities conflict or an action would change their relationship.
 | Orchestrator | Frames lifecycle, routes roles, consolidates evidence, and reports residual risk. |
 | Architect / Analyst | Read-only impact, dependency, or design analysis. |
 | Critic | Read-only challenge before execution. |
-| Coder | Implements only the approved write-set; exactly one Coder writes per implementation stage. |
+| Coder | Implements only an approved exclusive write-set; one Coder writes each such set. |
 | Reviewer | Read-only inspection of the frozen subject. |
 | Verifier | Read-only acceptance validation; documentation-only evidence updates need explicit approval. |
 
@@ -62,7 +62,17 @@ it does not replace the Portable Kit's accepted separate-role ADR boundary.
 
 Use `governance/lifecycle.md` and the SDD protocol: Define → Execute → Assure
 → Close. Non-trivial framework changes use an approved Work Block, a resolved
-Critic gate, one Coder, then required read-only assurance.
+Critic gate, one Coder per exclusive isolated write-set, then required
+read-only assurance. Parallel Coder work is permitted only when the approved
+Stage 0 record proves that worker write-set intersections are empty and each
+Coder has a distinct isolation boundary. Concurrent edits to a shared path are
+never permitted; a shared or glue path has one declared, serialized owner.
+
+An Integration Coder is a bounded Coder assignment, not a new authority role.
+It has its own integration worktree and explicitly owned glue paths. It may
+cleanly adopt only named frozen worker revisions. A merge conflict or an edit
+to a worker-owned path returns the Work Block to Define; it is not a repair
+task for the Integration Coder.
 
 Before routing a role, inspect live capability evidence. `unknown` and
 unavailable are unavailable; neither may be assumed from a prompt, catalog, or
@@ -85,6 +95,14 @@ environment, hooks, runtime adapters, CI behavior, database/schema work,
 deployment, live mutation, candidate promotion, destructive action, staging,
 commit, or push. Never overwrite, revert, stage, commit, or delete unrelated
 work, and never place credentials or secrets in artifacts or evidence.
+
+Before parallel execution, Stage 0 must record the immutable common base,
+stream ownership matrix, empty worker-path intersection, isolation identifiers,
+dependencies, frozen handoffs, recovery points, integration ownership, and an
+integration plan. Before final Reviewer, Verifier, or drift assurance, freeze
+one integrated revision and its path manifest. Worker checks are input evidence
+only, not final readiness evidence. A normative edit after that freeze
+invalidates readiness and requires a new freeze and applicable assurance.
 
 ## 6. Self-hosting layer and memory
 
