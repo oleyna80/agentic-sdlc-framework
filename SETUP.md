@@ -290,6 +290,12 @@ uses explicit permissions, read-only assurance roles, denied consequential shell
 commands, empty MCP/plugin collections, and no public model pin. Run target smoke
 before Managed or higher-governance work.
 
+This framework worktree also has a separately governed project-local surface:
+run `opencode` from the repository root only while `WB-OPENCODE-002` is active
+and only for its approved write-set. This root surface is optional runtime
+configuration, not Governance Core authority. It does not configure providers,
+models, credentials, MCP, plugins, hooks, or server mode.
+
 ### Generic / Sequential
 
 Generic guidance is always present. Perform logical functions as separate

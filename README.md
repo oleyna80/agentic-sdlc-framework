@@ -142,8 +142,9 @@ GitHub Draft/Ready/open/closed/merged state, timestamps, and branch deletion are
 **mutable external operational metadata**. Query them from GitHub when needed;
 they do not override repository authority or closeout.
 
-The repository migration series WB-001 through WB-008 is complete. There is no
-active implementation Work Block; the next phase is a live runtime/product pilot.
+The repository migration series WB-001 through WB-008 is complete. The current
+active follow-up is the separately governed project-local OpenCode integration;
+the next planned product Work Block remains a live runtime/product pilot.
 
 ## Installation Profiles
 
@@ -250,6 +251,18 @@ Only Coder has implementation/source write authority.
 Static configuration is not live runtime proof or OS isolation. Run target smoke
 before relying on a runtime for Managed or Assured work.
 
+### OpenCode in This Framework Worktree
+
+This worktree includes an optional project-local OpenCode surface at
+`opencode.json` and `.opencode/agents/`. Start OpenCode from this repository root
+only for the active Work Block's approved scope. The project surface contains no
+provider, model, credentials, MCP, plugins, hooks, or server activation. OpenCode
+remains a worker runtime; Codex/framework governance retains authority.
+
+Target-environment permission smoke is still required before Managed or Assured
+use. Static configuration does not prove live permission merging, write-set
+enforcement, provider availability, or OS isolation.
+
 ## Where to Start
 
 For framework architecture:
@@ -291,7 +304,7 @@ For a generated project:
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
 | Latest completed migration | `docs/plans/wb-008-post-merge-ssot-release-gate.md` |
-| Active migration | none; `FILE_REGISTRY.yml:migration_state.active_work_block` is null |
+| Active migration | `docs/plans/wb-opencode-002-project-local-integration.md` |
 
 ## Validation
 
