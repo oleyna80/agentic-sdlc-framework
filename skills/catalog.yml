@@ -1,104 +1,99 @@
-# Navigation index for the portable skill library.
-# This file is intentionally metadata-only: reading it must not load skill bodies.
-
 schema_version: 1
 library_role: source
 selection_policy:
-  - A consumer project pins only the skills it needs for an approved Work Block or baseline.
-  - A pinned source revision must be a release tag resolved to a commit SHA, never a moving branch.
-  - A project-specific skill stays local until it is intentionally promoted into this library.
-  - Category membership is for discovery; it does not cause a skill to load.
-
+- A consumer project pins only the skills it needs for an approved Work Block or baseline.
+- A pinned source revision must be a release tag resolved to a commit SHA, never a
+  moving branch.
+- A project-specific skill stays local until it is intentionally promoted into this
+  library.
+- Category membership is for discovery; it does not cause a skill to load.
 domains:
   planning:
-    description: Discovery, estimation, decomposition, and architecture framing before a write stage.
+    description: Discovery, estimation, decomposition, and architecture framing before
+      a write stage.
     skills:
-      - architecture-discovery
-      - context-snapshot
-      - project-estimation
-      - task-decomposition
-      - technical-discovery
-
+    - architecture-discovery
+    - context-snapshot
+    - project-estimation
+    - task-decomposition
+    - technical-discovery
   design:
     description: Interface direction, visual systems, and frontend design execution.
     skills:
-      - brutalist-skill
-      - emil-design-eng
-      - frontend-design
-      - impeccable
-      - minimalist-skill
-      - redesign-skill
-      - taste-skill
-      - theme-factory
-
+    - brutalist-skill
+    - emil-design-eng
+    - frontend-design
+    - impeccable
+    - minimalist-skill
+    - redesign-skill
+    - taste-skill
+    - theme-factory
   media_production:
-    description: Direction, generation, rights control, review, delivery, and web integration for AI-produced video and motion assets.
+    description: Direction, generation, rights control, review, delivery, and web
+      integration for AI-produced video and motion assets.
     skills:
-      - media-production-orchestrator
-      - media-art-director
-      - video-creative-brief
-      - short-video-scriptwriter
-      - storyboard-director
-      - cinematography-director
-      - video-prompt-engineer
-      - video-provider-router
-      - media-rights-compliance
-      - video-generator
-      - video-quality-control
-      - video-postproduction
-      - web-video-integration
-
+    - media-production-orchestrator
+    - media-art-director
+    - video-creative-brief
+    - short-video-scriptwriter
+    - storyboard-director
+    - cinematography-director
+    - video-prompt-engineer
+    - video-provider-router
+    - media-rights-compliance
+    - video-generator
+    - video-quality-control
+    - video-postproduction
+    - web-video-integration
   implementation:
     description: Scoped code changes, debugging, and merge preparation.
     skills:
-      - scoped-coder
-      - scoped-commit-guard
-      - systematic-debugging
-      - merge-protocol
-      - output-skill
-
+    - scoped-coder
+    - scoped-commit-guard
+    - systematic-debugging
+    - merge-protocol
+    - output-skill
   review_and_verification:
-    description: Independent decision review, code review, testing, specification alignment, evidence gathering, and closeout.
+    description: Independent decision review, code review, testing, specification
+      alignment, evidence gathering, and closeout.
     skills:
-      - critic-review
-      - reviewer
-      - verifier
-      - spec-drift-audit
-      - codex-verification
-      - webapp-testing
-      - ssot-sync-closeout
-
+    - critic-review
+    - reviewer
+    - verifier
+    - spec-drift-audit
+    - codex-verification
+    - webapp-testing
+    - ssot-sync-closeout
   security:
     description: Security triage, hardening, gate verification, and shell safety.
     skills:
-      - security-audit-triage
-      - security-hardening-pass
-      - security-verification-gate
-      - shell-context-guard
-
+    - security-audit-triage
+    - security-hardening-pass
+    - security-verification-gate
+    - shell-context-guard
   devops_and_integrations:
-    description: Agent runtime operations, MCP development, handoffs, and durable operational context.
+    description: Agent runtime operations, MCP development, handoffs, and durable
+      operational context.
     skills:
-      - agent-operations-review
-      - handoff-live-smoke
-      - mcp-builder
-      - memory-bank-manager
-      - orchestrator-log
-      - subagent-mission-brief
-
+    - agent-operations-review
+    - handoff-live-smoke
+    - mcp-builder
+    - memory-bank-manager
+    - orchestrator-log
+    - subagent-mission-brief
+    - git-orchestration-flow
   knowledge_and_tooling:
     description: Library maintenance and generated navigation artifacts.
     skills:
-      - graphify-code-map
-      - skill-creator
-      - skill-library-maintenance
-
+    - graphify-code-map
+    - skill-creator
+    - skill-library-maintenance
 consumer_contract:
   committed_file: .agent/skills.lock.yml
   local_cache: .agent/.skill-cache/
   cache_policy: local_cache_is_ignored_and_rebuilt_from_the_lock
   minimum_lock_fields:
-    - source
-    - revision
-    - skills
+  - source
+  - revision
+  - skills
   future_obsidian_boundary: knowledge_vault_is_separate_from_skill_bodies_and_loaded_only_by_relevance
