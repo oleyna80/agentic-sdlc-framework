@@ -91,12 +91,16 @@ authority agents.
 
 `core` plus:
 
-- `opencode.json` safe project permissions;
-- `.opencode/agents/` logical-role subagents.
+- `opencode.json` safe project permissions with explicit safety-sensitive
+  permission coverage (including `question`, `doom_loop`, `todowrite`, `lsp`,
+  `list`, per-agent `task` glob, and `skill` glob with a reserved
+  `internal-*` deny);
+- `.opencode/agents/` logical-role subagents;
+- `default_agent: build`, `subagent_depth: 1`, `share: manual`, `snapshot: true`.
 
-The public baseline leaves provider/model, plugins, and MCP collections unbound
-or empty. Run target-environment permission and denied-action smoke tests before
-using it for Managed or Assured work.
+The public baseline leaves provider/model, plugins, MCP collections, skills, and
+server API unbound or empty. Run target-environment permission and denied-action
+smoke tests before using it for Managed or Assured work.
 
 ### `multi-runtime`
 

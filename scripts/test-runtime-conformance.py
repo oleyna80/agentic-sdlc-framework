@@ -157,6 +157,26 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
         assert "model" not in meta
         permission = meta.get("permission")
         assert isinstance(permission, dict)
+        read = permission.get("read")
+        assert isinstance(read, dict)
+        assert read.get("*") == "allow"
+        assert read.get(".env") == "deny"
+        assert read.get(".env.*") == "deny"
+        assert read.get(".env.example") == "allow"
+        assert read.get("secrets/**") == "deny"
+        assert read.get("credentials/**") == "deny"
+        assert read.get("*.pem") == "deny"
+        assert read.get("*.key") == "deny"
+        assert list(read) == [
+            "*",
+            ".env",
+            ".env.*",
+            ".env.example",
+            "secrets/**",
+            "credentials/**",
+            "*.pem",
+            "*.key",
+        ]
         expected_edit = "ask" if role == "coder" else "deny"
         assert permission.get("edit") == expected_edit
         assert permission.get("external_directory") == "deny"
@@ -167,7 +187,23 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
         assert bash.get("git reset --hard*") == "deny"
         assert bash.get("git clean*") == "deny"
         assert bash.get("rm *") == "deny"
+        assert permission.get("question") == "ask"
+        assert permission.get("doom_loop") == "ask"
+        assert permission.get("todowrite") == "ask"
+        assert permission.get("lsp") == "ask"
+        assert permission.get("list") == "allow"
+        assert permission.get("task") == "deny"
+        assert permission.get("mcp_*") == "ask"
+        skill = permission.get("skill")
+        assert isinstance(skill, dict)
+        assert skill.get("*") == "allow"
+        assert skill.get("internal-*") == "deny"
+        assert list(skill) == ["*", "internal-*"]
         assert "logical" in body.lower()
+        if role == "critic":
+            for verdict in ("APPROVE", "APPROVE_WITH_CHANGES", "RECONSIDER", "BLOCKED"):
+                assert verdict in body
+            assert "SUPPLEMENT" not in body
         if role == "coder":
             assert "write-set" in body
             assert "write gate" in body.lower()
@@ -180,9 +216,48 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
 
     config = json.loads((TEMPLATE / "opencode.json").read_text(encoding="utf-8"))
     assert "AGENTS.md" in config["instructions"]
+    project_read = config["permission"]["read"]
+    assert isinstance(project_read, dict)
+    assert project_read.get(".env") == "deny"
+    assert project_read.get(".env.*") == "deny"
+    assert project_read.get(".env.example") == "allow"
     assert config["permission"]["external_directory"] == "deny"
+    assert config["permission"]["question"] == "ask"
+    assert config["permission"]["doom_loop"] == "ask"
+    assert config["permission"]["todowrite"] == "ask"
+    assert config["permission"]["lsp"] == "ask"
+    assert config["permission"]["list"] == "allow"
+    assert config["permission"]["mcp_*"] == "ask"
+    task_perm = config["permission"]["task"]
+    assert isinstance(task_perm, dict)
+    assert task_perm.get("*") == "ask"
+    skill_perm = config["permission"]["skill"]
+    assert isinstance(skill_perm, dict)
+    assert skill_perm.get("*") == "allow"
+    assert skill_perm.get("internal-*") == "deny"
+    assert list(skill_perm) == ["*", "internal-*"]
     assert config["mcp"] == {}
     assert config["plugin"] == []
+    assert config.get("default_agent") == "build"
+    assert config.get("subagent_depth") == 1
+    assert config.get("share") == "manual"
+    assert config.get("snapshot") is True
+
+    runtime_paths = [
+        "opencode.json",
+        ".opencode/agents/architect.md",
+        ".opencode/agents/critic.md",
+        ".opencode/agents/coder.md",
+        ".opencode/agents/reviewer.md",
+        ".opencode/agents/verifier.md",
+    ]
+    for relative in runtime_paths:
+        template_path = TEMPLATE / relative
+        project_path = ROOT / relative
+        assert project_path.is_file(), f"missing project OpenCode surface: {relative}"
+        assert project_path.read_bytes() == template_path.read_bytes(), (
+            f"project OpenCode surface drifted from template: {relative}"
+        )
     return result
 
 

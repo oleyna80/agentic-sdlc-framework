@@ -25,7 +25,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003c-completed-state-assurance-binding.md
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
   - docs/plans/wb-core-003e-closure-evidence-correction.md
-active_work_block: null
+active_work_block: docs/plans/wb-opencode-002-project-local-integration.md
 -->
 
 ## Current Operational Architecture
@@ -48,6 +48,10 @@ Installation composition, release-state evidence, evaluation evidence, and
 provider snapshots do not grant authority or integration admission. The accepted
 current operational architecture decision is
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
+
+This worktree also carries an optional project-local OpenCode surface at the
+repository root. It is a runtime adapter only; it does not change the
+runtime-neutral authority model or make OpenCode the framework Orchestrator.
 
 ## Accepted Target Architecture — Not Yet Promoted
 
@@ -222,6 +226,8 @@ Missing network, revision, or license evidence fails closed.
 | `governance/evaluation.md` | normative | Deterministic, output, and observable trajectory assurance |
 | `governance/release-state.md` | normative | Repository SSOT reconciliation and hosting-platform boundary |
 | `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded mode |
+| `opencode.json` | runtime adapter | Project-local OpenCode instructions and permission baseline; no authority |
+| `.opencode/agents/` | runtime adapter | Project-local logical-role subagents; live smoke required |
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
@@ -267,7 +273,7 @@ core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `cor
 |---|---|---|
 | Codex | `runtimes/codex/`, conditional `.codex/` | selected by profile; authority from Work Block only |
 | Claude Code | `runtimes/claude-code/`, conditional `.claude/` | Claude Code-primary baseline |
-| OpenCode | `runtimes/opencode/`, conditional `.opencode/` | explicit permission baseline |
+| OpenCode | `runtimes/opencode/`, root `opencode.json`, root `.opencode/` | project-local optional surface; explicit permission baseline; live smoke required |
 | Generic | `runtimes/generic/` | documented sequential fallback |
 | Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | optional admission |
 | MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
@@ -314,7 +320,9 @@ Completed:
 18. WB-CORE-003E — completed bounded closure-evidence correction for
     WB-CORE-003D; governance evidence only, no runtime, protocol, or VCS action.
 
-Active: No active implementation Work Block.
+Active: `docs/plans/wb-opencode-002-project-local-integration.md` — project-local OpenCode integration; execution is
+bounded to its approved write-set and does not activate providers, MCP, plugins,
+hooks, or server mode.
 
 Planned:
 

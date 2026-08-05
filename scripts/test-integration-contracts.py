@@ -65,8 +65,12 @@ def static_contracts() -> None:
         TEMPLATE / ".claude/hooks/work_block_gate.py",
         TEMPLATE / ".claude/hooks/assurance_gate.py",
         TEMPLATE / "opencode.json",
+        ROOT / "opencode.json",
     ):
         require(path)
+
+    for role in ("architect", "critic", "coder", "reviewer", "verifier"):
+        require(ROOT / f".opencode/agents/{role}.md")
 
     claude = load_json(TEMPLATE / ".claude/settings.json")
     present = {"enabledMcpjsonServers", "permissions", "autoMode"}.intersection(claude)
@@ -107,14 +111,70 @@ def static_contracts() -> None:
         fail("OpenCode external_directory must be denied")
     if permissions.get("edit") != "ask":
         fail("OpenCode project edit permission must require ask")
+    project_read = permissions.get("read")
+    if not isinstance(project_read, dict):
+        fail("OpenCode project read permission map missing")
+    for pattern, expected in {
+        ".env": "deny",
+        ".env.*": "deny",
+        ".env.example": "allow",
+        "secrets/**": "deny",
+        "credentials/**": "deny",
+        "*.pem": "deny",
+        "*.key": "deny",
+    }.items():
+        if project_read.get(pattern) != expected:
+            fail(f"OpenCode project read permission must set {pattern!r} to {expected!r}")
+    if permissions.get("question") != "ask":
+        fail("OpenCode question permission must require ask")
+    if permissions.get("doom_loop") != "ask":
+        fail("OpenCode doom_loop permission must require ask")
+    if permissions.get("todowrite") != "ask":
+        fail("OpenCode todowrite permission must require ask")
+    if permissions.get("lsp") != "ask":
+        fail("OpenCode lsp permission must require ask")
+    if permissions.get("list") != "allow":
+        fail("OpenCode list permission must be allow")
+    if permissions.get("mcp_*") != "ask":
+        fail("OpenCode MCP tools must require ask")
     bash = permissions.get("bash")
     if not isinstance(bash, dict):
         fail("OpenCode Bash permission map missing")
     for pattern in ("git commit*", "git push*", "git reset --hard*", "git clean*", "rm *"):
         if bash.get(pattern) != "deny":
             fail(f"OpenCode Bash permission must deny {pattern!r}")
+    task_perm = permissions.get("task")
+    if not isinstance(task_perm, dict) or task_perm.get("*") != "ask":
+        fail("OpenCode task permission must be a glob map with *: ask")
+    skill_perm = permissions.get("skill")
+    if not isinstance(skill_perm, dict) or skill_perm.get("*") != "allow":
+        fail("OpenCode skill permission must be a glob map with *: allow")
+    if skill_perm.get("internal-*") != "deny":
+        fail("OpenCode skill permission must deny internal-*")
+    if list(skill_perm) != ["*", "internal-*"]:
+        fail("OpenCode skill deny rule must follow the catch-all")
     if opencode.get("model") or opencode.get("provider"):
         fail("public OpenCode baseline must not pin provider/model routing")
+    if opencode.get("default_agent") != "build":
+        fail("OpenCode default_agent must be build")
+    if opencode.get("subagent_depth") != 1:
+        fail("OpenCode subagent_depth must be 1")
+    if opencode.get("share") != "manual":
+        fail("OpenCode share must be manual")
+    if opencode.get("snapshot") is not True:
+        fail("OpenCode snapshot must be enabled")
+    for forbidden in (
+        "auth",
+        "enabled_providers",
+        "disabled_providers",
+        "experimental",
+        "model",
+        "provider",
+        "server",
+        "tools",
+    ):
+        if forbidden in opencode:
+            fail(f"OpenCode baseline must not configure {forbidden}")
 
     for role in ("architect", "critic", "coder", "reviewer", "verifier"):
         data = frontmatter(TEMPLATE / f".opencode/agents/{role}.md")
@@ -126,12 +186,53 @@ def static_contracts() -> None:
         expected_edit = "ask" if role == "coder" else "deny"
         if role_permissions.get("edit") != expected_edit:
             fail(f"OpenCode {role} edit permission must be {expected_edit}")
+        role_read = role_permissions.get("read")
+        if not isinstance(role_read, dict):
+            fail(f"OpenCode {role} read permission map missing")
+        for pattern, expected in {
+            ".env": "deny",
+            ".env.*": "deny",
+            ".env.example": "allow",
+            "secrets/**": "deny",
+            "credentials/**": "deny",
+            "*.pem": "deny",
+            "*.key": "deny",
+        }.items():
+            if role_read.get(pattern) != expected:
+                fail(
+                    f"OpenCode {role} read permission must set {pattern!r} to {expected!r}"
+                )
         if role_permissions.get("task") != "deny":
             fail(f"OpenCode {role} nested task delegation must be denied")
+        if role_permissions.get("mcp_*") != "ask":
+            fail(f"OpenCode {role} MCP tools must require ask")
+        skill_permissions = role_permissions.get("skill")
+        if not isinstance(skill_permissions, dict):
+            fail(f"OpenCode {role} skill permission map missing")
+        if list(skill_permissions) != ["*", "internal-*"]:
+            fail(f"OpenCode {role} skill deny rule must follow the catch-all")
+        if skill_permissions.get("*") != "allow" or skill_permissions.get("internal-*") != "deny":
+            fail(
+                f"OpenCode {role} skill permissions must allow public and deny internal skills"
+            )
         if role_permissions.get("external_directory") != "deny":
             fail(f"OpenCode {role} external_directory must be denied")
         if data.get("model"):
             fail(f"OpenCode {role} must not pin a public model")
+        body = (TEMPLATE / f".opencode/agents/{role}.md").read_text(encoding="utf-8")
+        if "tools:" in body or "maxSteps" in body:
+            fail(f"OpenCode {role} uses deprecated agent configuration")
+
+    for relative in (
+        "opencode.json",
+        ".opencode/agents/architect.md",
+        ".opencode/agents/critic.md",
+        ".opencode/agents/coder.md",
+        ".opencode/agents/reviewer.md",
+        ".opencode/agents/verifier.md",
+    ):
+        if (ROOT / relative).read_bytes() != (TEMPLATE / relative).read_bytes():
+            fail(f"project OpenCode surface drifted from template: {relative}")
 
     for path in (
         TEMPLATE / ".claude/agents/gpt-critic.md",
