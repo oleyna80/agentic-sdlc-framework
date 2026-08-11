@@ -103,6 +103,17 @@ No other path is writable in this Execute stage.
 - `SKILL.md` frontmatter remains valid under the local skill convention.
 - The diff is limited to the approved write-set.
 
+## Transitional lifecycle note
+
+This branch is an Execute-stage subject, not yet a closeout or PR-ready lifecycle
+projection. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` intentionally remain
+unchanged in this bounded implementation write-set and therefore continue to
+show no active implementation Work Block. Before any closeout or PR-readiness
+claim, the Work Block must return to Define for an explicitly approved lifecycle
+sync write-set, then receive applicable read-only assurance. Until then this
+file plus the current explicit Owner instruction are the authority for the
+bounded branch work; no release-state consistency claim is made for this branch.
+
 ## Assurance and handoff
 
 After Execute, freeze the branch head and run read-only review/verification
