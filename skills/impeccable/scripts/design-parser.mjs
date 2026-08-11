@@ -451,12 +451,14 @@ function parseColorBullet(bullet) {
   if (!values.length) return null;
   const boldName = bullet.match(/^\*\*(.+?)\*\*/)?.[1] ?? null;
   const name = boldName ? boldName.replace(/\s*\([^)]*\):?$/, '').trim() : null;
+  const descriptionMatch = bullet.match(/\)\s*:\s*\*{0,2}\s*(.+)$/);
+  const description = descriptionMatch ? stripBold(descriptionMatch[1]) || null : plain;
   return {
     name,
     value: values[0],
     valueRange: values.length > 1 ? values : null,
     format: detectFormat(values[0]),
-    description: plain,
+    description,
   };
 }
 
@@ -525,13 +527,15 @@ function extractTypography(section) {
       }).filter(Boolean)
     : [];
 
+  const characterMatch = text.match(/\*\*Character:\*\*\s*([^\n]+(?:\n[^\n]+)*?)(?=\n\n|\n###|\n##|$)/i);
   const paragraphs = collectParagraphs(section.lines).filter(
-    (p) => !/^\*\*[\w\s/&]+Font:/i.test(p) && !/^\*\*[\w\s/&]+\([^)]+\):/i.test(p)
+    (p) => !/^\*\*[\w\s/&]+Font:/i.test(p) && !/^\*\*[\w\s/&]+\([^)]+\):/i.test(p) && !/^\*\*Character:\*\*/i.test(p)
   );
+  const character = characterMatch ? characterMatch[1].replace(/\n/g, ' ').trim() : paragraphs[0] ?? null;
   return {
     subtitle: section.subtitle,
     fonts,
-    character: paragraphs[0] ?? null,
+    character,
     hierarchy,
     rules: extractNamedRules(section.lines),
   };
