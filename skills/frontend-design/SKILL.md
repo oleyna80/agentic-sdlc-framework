@@ -315,7 +315,7 @@ replace rendered review for a material visual change.
 The Owner or active Work Block remains the authority for approvals and Hard
 Stops. This skill supplies design method, not permission.
 
-## Relationship to Other Design Skills
+## Relationship to Other Design and Verification Skills
 
 - **`theme-factory`** — use when the project has a structured theme contract or
   needs reusable theme tokens; do not let a preset replace subject grounding.
@@ -323,6 +323,9 @@ Stops. This skill supplies design method, not permission.
   skill's free design choices.
 - **`impeccable`** — use for focused UI polish and critique where its narrower
   procedures fit the task.
+- **`webapp-testing`** — when installed and inside the active scope, use it for
+  browser/rendered execution and evidence; its availability does not authorize
+  browser use or expand the Work Block.
 - **specialized aesthetic skills** — treat them as candidate directions or
   references, not automatic defaults. The brief and subject still win.
 
