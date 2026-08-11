@@ -11,7 +11,7 @@ process_level: Standard
 governance_profile: Controlled
 branch: agent/design-md-artifact-contract
 owner_approval: current explicit Owner confirmation to expand WB-DESIGN-002 and close internal DESIGN.md drift before assurance
-critic_gate: APPROVE_WITH_CHANGES — unify the portable artifact contract and existing Impeccable consumer while preserving backward compatibility and provider neutrality
+critic_gate: APPROVE_WITH_CHANGES — unify the portable artifact contract and existing Impeccable consumers while preserving backward compatibility and provider neutrality
 write_gate: READY
 writer: one Coder, Orchestrator disclosed
 base_revision: d07d5e8e3cee30b1bc6f057f58fd1ef05f8c0fef
@@ -23,9 +23,9 @@ base_revision: d07d5e8e3cee30b1bc6f057f58fd1ef05f8c0fef
 
 Define one optional, provider-neutral `DESIGN.md` design-domain artifact for the
 Agentic SDLC Framework, supply a reusable template, teach `frontend-design` how
-to consume it, and reconcile the existing Impeccable DESIGN.md generator/parser
-so the repository does not ship two incompatible interpretations of the same
-artifact.
+to consume it, and reconcile the existing Impeccable DESIGN.md generator,
+parser, and live design-authority guidance so the repository does not ship
+incompatible interpretations of the same artifact.
 
 The Work Block must not make Google Stitch, `@google/design.md`, MCP, Figma, or
 any design provider part of framework authority or installation requirements.
@@ -58,10 +58,17 @@ revision used by this Work Block it supports a broader interoperable model:
 - `omitted` declarations in frontmatter; and
 - preservation of unknown/custom sections.
 
-Leaving the old Impeccable interpretation unchanged would create immediate
-internal contract drift after the new portable artifact contract is accepted.
-The Owner therefore authorized expanding this Work Block before assurance to
-reconcile the existing consumer in the same bounded change.
+Reviewer-oriented discovery also found `reference/live.md` using unconditional
+phrases such as "DESIGN.md wins" and "the authoritative answer". Those phrases
+are too broad for the portable authority model because a DESIGN.md may be draft,
+unregistered, or subordinate to a higher product/accessibility/Work Block
+contract. The live workflow therefore belongs in this reconciliation.
+
+A stale implementation comment in `live-server.mjs` still describes the parser
+as returning "six canonical sections". That comment does not define behavior or
+authority; executable compatibility is governed by `design-parser.mjs` and its
+regression fixture. It is recorded as non-normative comment debt rather than
+used to expand this Work Block into live-server implementation.
 
 ## External method/specification input
 
@@ -147,7 +154,9 @@ Compatibility requirements:
 - Impeccable-specific `.impeccable/design.json` remains derived/local consumer
   state and cannot become design authority;
 - current live consumers retain the existing parser API fields while gaining
-  additive `layout`, `shapes`, `omitted`, `customSections`, and diagnostics.
+  additive `layout`, `shapes`, `omitted`, `customSections`, and diagnostics;
+- live-mode identity guidance distinguishes an **approved** DESIGN.md from draft
+  or merely discovered files and keeps higher project contracts above it.
 
 `skills/impeccable/reference/init.md` was inspected during Define. It does not
 encode the old six-section limitation and therefore does not require a write for
@@ -177,6 +186,7 @@ docs/design/design-md-artifact-contract.md
 docs/templates/design-md-template.md
 skills/frontend-design/SKILL.md
 skills/impeccable/reference/document.md
+skills/impeccable/reference/live.md
 skills/impeccable/scripts/design-parser.mjs
 skills/impeccable/scripts/test-design-parser.mjs
 scripts/validate-governance.sh
@@ -195,7 +205,8 @@ docs/reports/closeout/wb-design-002-portable-design-md-artifact-contract.md
 
 No runtime adapter, package manifest, dependency, MCP configuration, Stitch
 configuration, bootstrap profile, generated-project installation set, live-mode
-protocol, or Portable Kit candidate path is writable in Execute.
+transport/protocol implementation, or Portable Kit candidate path is writable in
+Execute.
 
 ## Explicit exclusions
 
@@ -205,7 +216,7 @@ protocol, or Portable Kit candidate path is writable in Execute.
 - Do not automatically copy root `DESIGN.md` through bootstrap profiles.
 - Do not make Google-specific tooling authoritative.
 - Do not redesign Impeccable live mode, session state, browser transport, or
-  variant-generation behavior.
+  variant-generation behavior; only its DESIGN.md authority wording is in scope.
 - Do not change `.impeccable/design.json` into a canonical artifact.
 - Do not modify the Portable Kit candidate or promote any candidate content.
 - Do not change global Owner/role authority ordering.
@@ -217,11 +228,13 @@ protocol, or Portable Kit candidate path is writable in Execute.
 - one portable DESIGN.md contract governs both `frontend-design` and Impeccable;
 - backward compatibility with the legacy six-section subset is preserved;
 - existing design systems require explicit reconciliation;
-- `DESIGN.md` authority is limited to design-domain decisions;
+- `DESIGN.md` authority is limited to approved design-domain decisions;
 - higher project contracts retain precedence;
 - prose and tokens are complementary, not competing authorities;
 - unknown sections survive partial consumption;
 - the Impeccable sidecar remains derived and non-authoritative;
+- live mode does not treat an unapproved/discovered DESIGN.md as absolute
+  authority;
 - external tools remain optional verification/integration capabilities; and
 - the upstream `alpha` status is recorded so future format changes require a new
   comparison rather than silently changing local behavior.
@@ -242,6 +255,8 @@ These constraints are incorporated above.
   Layout, Shapes, aliases, `omitted`, OKLCH, and custom sections.
 - Parser output preserves its existing public fields and adds compatibility data
   additively.
+- Impeccable live guidance respects approved design-domain authority and
+  reconciliation rather than using an unconditional DESIGN.md-wins rule.
 - Deterministic parser fixtures cover legacy, current, alias/custom, omission,
   duplicate-section, and coverage behavior.
 - Existing project design systems cannot be silently superseded by an extracted
