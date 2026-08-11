@@ -36,10 +36,17 @@ review and both repository CI workflows before terminal lifecycle projection:
 - `Release State Contract` run 405 — success;
 - `Framework Contracts` run 823 — success.
 
-The terminal projection changes lifecycle/evidence surfaces only; it does not
-modify the frozen `skills/frontend-design/SKILL.md` content after assurance.
-A final CI run on the terminal PR head is still required as repository machine
-evidence before any merge decision.
+The terminal normative subject is
+`741c165bf459b7e45129dae125ac00107a8f0936`. It passed final targeted
+same-context review/verification and both repository contract workflows:
+
+- `Release State Contract` run 413 — success;
+- `Framework Contracts` run 831 — success.
+
+The terminal lifecycle projection did not modify the frozen
+`skills/frontend-design/SKILL.md` method content after assurance. Subsequent
+Reviewer, Verifier, and closeout edits are evidence-only and do not change the
+verified normative subject.
 
 ## Residual Risks and Limitations
 
@@ -52,13 +59,11 @@ evidence before any merge decision.
   authority-bearing dependencies.
 - Browser verification guidance is capability-neutral; this Work Block does not
   activate or test Playwright, MCP, browser tools, or runtime integrations.
-- Final terminal-state contract verification depends on the CI run for the
-  resulting PR head.
+- Evidence-only report commits after the verified normative subject still
+  require green repository CI on the resulting change head.
 
 ## Follow-Up Work
 
-- Run final `Release State Contract` and `Framework Contracts` on the terminal
-  projection and record the resulting Verifier evidence.
-- Keep merge separately Owner-controlled.
+- Keep integration into the default branch separately Owner-controlled.
 - Google `DESIGN.md` / design-system interoperability remains a separate future
   research or Work Block topic and is not part of this closeout.
