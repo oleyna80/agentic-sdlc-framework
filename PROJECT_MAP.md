@@ -27,6 +27,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003e-closure-evidence-correction.md
   - docs/plans/wb-opencode-002-project-local-integration.md
   - docs/plans/wb-design-001-openai-frontend-delta.md
+  - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
 active_work_block: null
 -->
 
@@ -239,9 +240,12 @@ Missing network, revision, or license evidence fails closed.
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
+| `docs/design/design-md-artifact-contract.md` | approved design-domain contract | Optional provider-neutral DESIGN.md authority, lifecycle, reconciliation, and interoperability contract |
+| `docs/templates/design-md-template.md` | reference template | Reusable DESIGN.md starter; never auto-installed by presence alone |
+| `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
-| `docs/plans/wb-core-001-normative-architecture.md` | latest completed Work Block | Accepted normative architecture and repository closeout for the portable kit |
+| `docs/plans/wb-core-001-normative-architecture.md` | completed Work Block | Accepted normative architecture and repository closeout for the portable kit |
 | `docs/specs/portable-agentic-sdlc-project-kit.md` | accepted target | Portable-kit normative target contract; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | accepted target | Accepted project-kit versus control-plane boundary; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | accepted target | Accepted role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
@@ -332,6 +336,10 @@ Completed:
 
 20. WB-DESIGN-001 — completed Controlled refresh of `frontend-design` with a
     provider-neutral OpenAI methodological delta; no runtime or tool activation.
+
+21. WB-DESIGN-002 — completed Controlled portable DESIGN.md artifact contract and
+    internal frontend-design/Impeccable compatibility reconciliation; no Google
+    tooling, MCP, runtime, bootstrap, or provider activation.
 
 No active implementation Work Block.
 

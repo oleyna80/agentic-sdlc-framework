@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Validate the runtime-neutral governance core, adapters, and release-state SSOT.
+# Validate the runtime-neutral governance core, adapters, release-state SSOT,
+# and dependency-free compatibility fixtures owned by framework governance.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,6 +43,8 @@ for path in \
   "docs/plans/wb-008-post-merge-ssot-release-gate.md" \
   "scripts/validate-release-state.py" \
   "scripts/test-release-state-contracts.py" \
+  "skills/impeccable/scripts/design-parser.mjs" \
+  "skills/impeccable/scripts/test-design-parser.mjs" \
   "README.md" \
   "PROJECT_MAP.md" \
   "FILE_REGISTRY.yml"; do
@@ -109,6 +112,17 @@ PY
   python3 "$ROOT/scripts/test-release-state-contracts.py" || fail "release-state fixtures failed"
 else
   fail "python3 not found; cannot validate FILE_REGISTRY.yml"
+fi
+
+if command -v node >/dev/null 2>&1; then
+  node --check "$ROOT/skills/impeccable/scripts/design-parser.mjs" || fail "Impeccable DESIGN.md parser syntax failed"
+  node --check "$ROOT/skills/impeccable/scripts/test-design-parser.mjs" || fail "Impeccable DESIGN.md parser fixture syntax failed"
+  node "$ROOT/skills/impeccable/scripts/test-design-parser.mjs" || fail "Impeccable DESIGN.md parser compatibility failed"
+  if [ "$FAIL" -eq 0 ]; then
+    ok "Impeccable DESIGN.md parser compatibility"
+  fi
+else
+  fail "node not found; cannot validate Impeccable DESIGN.md parser compatibility"
 fi
 
 for path in \

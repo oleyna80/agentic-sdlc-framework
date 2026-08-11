@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 21
+version: 22
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -150,6 +150,20 @@ skill_library_maintenance:
   external_content_trust: untrusted
   authority: none
 
+design_system_artifact:
+  contract: docs/design/design-md-artifact-contract.md
+  template: docs/templates/design-md-template.md
+  optional: true
+  default_installation: false
+  authority: design_domain_only
+  upstream_interoperability_reference: google-labs-code/design.md@9bf8eae67128b6cc55ad9bf86665767deb4c11cd
+  upstream_format_maturity: alpha
+  provider_required: false
+  reconciliation_modes:
+    - design_md_drives_implementation
+    - implementation_drives_extraction
+    - bidirectional_reconciliation
+
 target_architecture:
   identifier: portable_agentic_sdlc_project_kit
   status: accepted
@@ -185,6 +199,7 @@ migration_state:
     - docs/plans/wb-core-003e-closure-evidence-correction.md
     - docs/plans/wb-opencode-002-project-local-integration.md
     - docs/plans/wb-design-001-openai-frontend-delta.md
+    - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -198,8 +213,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-design-001-openai-frontend-delta.md
-  closeout_report: docs/reports/closeout/wb-design-001-openai-frontend-delta.md
+  latest_completed_work_block: docs/plans/wb-design-002-portable-design-md-artifact-contract.md
+  closeout_report: docs/reports/closeout/wb-design-002-portable-design-md-artifact-contract.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -246,6 +261,20 @@ entries:
     role: runtime_capability_negotiation
     status: normative
     owner: architect
+
+  docs/design/design-md-artifact-contract.md:
+    role: approved_optional_portable_design_domain_artifact_contract
+    status: normative
+    owner: architect
+    authority: design_domain_only
+    optional: true
+    provider_required: false
+
+  docs/templates/design-md-template.md:
+    role: portable_design_md_reference_template
+    status: reference
+    owner: architect
+    authority: none_until_instantiated_and_approved
 
   runtimes/**:
     role: runtime_adapter_collection
@@ -410,6 +439,14 @@ entries:
     current_operational_architecture: runtime_neutral_control_plane
     authority: skill_method_only
 
+  docs/plans/wb-design-002-portable-design-md-artifact-contract.md:
+    role: completed_controlled_portable_design_md_artifact_and_consumer_reconciliation_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    authority: design_domain_contract_and_consumer_compatibility
+
   AGENTS.md:
     role: framework_self_hosting_root_operating_contract
     status: normative
@@ -553,7 +590,7 @@ entries:
     owner: verifier
 
   scripts/validate-governance.sh:
-    role: governance_structure_and_release_state_validation
+    role: governance_structure_release_state_and_design_md_compatibility_validation
     status: normative
     owner: verifier
 
