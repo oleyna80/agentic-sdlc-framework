@@ -89,7 +89,7 @@ evidence-only PR head remains required before PR readiness.
   its passing regression fixture. This is non-normative comment debt.
 - No external Google linter or browser/design provider was installed or invoked.
 
-## Follow-Up
+## Follow-Up Work
 
 - Future upstream DESIGN.md changes require a fresh revision-bound comparison.
 - Any future Stitch/Figma/MCP integration requires a separate Work Block.
