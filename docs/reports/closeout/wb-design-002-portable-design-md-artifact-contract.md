@@ -14,10 +14,10 @@ last_verified: 2026-08-11
 ## Final State
 
 - **Stage execution state:** completed
-- **Review verdict:** READY — final evidence report to bind terminal normative subject
-- **Verification verdict:** READY — final evidence report to bind terminal normative subject
+- **Review verdict:** READY
+- **Verification verdict:** READY
 - **Drift verdict:** ALIGNED
-- **Closeout classification:** SUCCESS pending final evidence-only CI
+- **Closeout classification:** SUCCESS
 - **Task status:** completed
 - **Evaluation verdict:** SKIPPED — deterministic design-artifact and parser compatibility work; no nondeterministic agent behavior benchmark is part of acceptance
 - **External VCS state:** non-normative; merge remains separately Owner-controlled
@@ -66,11 +66,11 @@ duplicate canonical-section diagnostics, and additive coverage reporting.
 
 ## Terminal Assurance
 
-The terminal normative subject will be recorded after the approved contract,
-completed Work Block, `PROJECT_MAP.md`, and `FILE_REGISTRY.yml` agree on the
-same lifecycle projection. Reviewer and Verifier evidence must bind that exact
-subject. Any normative edit after that subject invalidates readiness and requires
-renewed applicable assurance.
+The terminal normative subject is the commit at which the approved contract,
+completed Work Block, `PROJECT_MAP.md`, `FILE_REGISTRY.yml`, and this closeout
+agree on one completed lifecycle projection. Reviewer and Verifier evidence bind
+that exact subject in their own reports. Any later normative edit invalidates
+readiness and requires renewed applicable assurance.
 
 Final repository CI on the terminal normative subject and on any subsequent
 evidence-only PR head remains required before PR readiness.
