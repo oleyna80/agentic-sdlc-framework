@@ -9,7 +9,8 @@ metadata:
   upstream_revision: f17010c9bb483898c1d9c9f42dde2b3a98889434
   upstream_blob: decdff43d05908b4c1fc2cfd2d80fc5743440934
   last_checked: 2026-08-11
-  local_modification: Adapted for Agentic SDLC roles, authority boundaries, handoff, verification, domain-aware interface modes, composition planning, design-system reuse, and rendered validation.
+  local_modification: Adapted for Agentic SDLC roles, authority boundaries, handoff, verification, domain-aware interface modes, composition planning, repository design-system and approved DESIGN.md reuse, and rendered validation.
+  design_system_contract: docs/design/design-md-artifact-contract.md
   additional_method_sources:
     - https://developers.openai.com/blog/designing-delightful-frontends-with-gpt-5-4
     - https://developers.openai.com/api/docs/guides/frontend-prompt
@@ -35,8 +36,9 @@ design, not decoration added after the layout is chosen.
 
 This local version combines Anthropic's subject-grounded `frontend-design`
 method with selected provider-neutral lessons from current official OpenAI
-frontend guidance. It does not grant write authority, expand a Work Block,
-choose a runtime or model, require a particular browser tool, or waive review
+frontend guidance and the framework's optional portable `DESIGN.md` artifact
+contract. It does not grant write authority, expand a Work Block, choose a
+runtime or model, require a particular browser or design tool, or waive review
 and verification requirements.
 
 ## Ground the Direction in the Subject
@@ -52,6 +54,41 @@ Before designing, establish four facts:
 Use the subject's real vocabulary, materials, tools, artifacts, workflows, and
 visual culture as design evidence. If the brief already fixes a direction, obey
 it. Do not replace an explicit brief with a preferred house style.
+
+## Load Approved DESIGN.md When Present
+
+Before inventing palette, typography, spacing, shape, component, or other
+reusable design-system rules, determine whether the project has an approved
+`DESIGN.md` under `docs/design/design-md-artifact-contract.md`.
+
+Resolve the artifact in this order:
+
+1. the path explicitly named by the current Owner instruction or active Work
+   Block;
+2. a registered project design-system path in repository navigation;
+3. root `DESIGN.md`;
+4. other candidate files only as non-authoritative discovery input until their
+   role is established.
+
+When an approved `DESIGN.md` exists:
+
+- read its machine-readable values and human-readable rationale before making
+  free visual-system choices;
+- treat it as design-domain authority only, subordinate to higher product,
+  architecture, brand, accessibility, governance, and Work Block contracts;
+- preserve custom or unknown sections even when the current consumer does not
+  use them;
+- do not edit it unless its path is explicitly inside the approved write-set;
+- surface token/prose contradictions as design drift rather than choosing one
+  silently; and
+- when implementation and `DESIGN.md` disagree, follow the reconciliation
+  direction recorded by the active Work Block:
+  `design_md_drives_implementation`, `implementation_drives_extraction`, or
+  temporary `bidirectional_reconciliation`.
+
+If no approved `DESIGN.md` exists, continue with subject-grounded design and the
+repository's existing design system. Absence is not a failure and does not
+authorize creating a `DESIGN.md`.
 
 ## Choose the Interface Mode Before Composition
 
@@ -97,22 +134,27 @@ motion merely to satisfy a quota.
 
 Define or confirm:
 
-- **Color:** 4–6 named color tokens with exact values and a reason each belongs
-  to this subject when the project does not already provide canonical tokens.
-- **Type:** at least two deliberate roles, normally display and body; add a
-  utility/data role only when the content needs it. Define hierarchy, weight,
-  width, spacing, and fallback behavior.
-- **Layout:** one or more short layout concepts. Use a small ASCII wireframe when
-  it clarifies hierarchy, rhythm, or an unusual composition.
+- **Color:** use approved `DESIGN.md` or repository-native canonical tokens when
+  they exist; otherwise establish a small named palette with exact values and a
+  reason each color belongs to this subject.
+- **Type:** use approved design-system roles when present; otherwise define at
+  least the deliberate roles the content needs, normally display and body, with
+  hierarchy, weight, width, spacing, and fallback behavior.
+- **Layout:** preserve approved layout/spacing rules when present; otherwise
+  create one or more short layout concepts. Use a small ASCII wireframe when it
+  clarifies hierarchy, rhythm, or an unusual composition.
 - **Signature:** one memorable element that makes the interface specific to the
-  brief. This is the primary aesthetic risk; it must be explainable.
+  brief. This is the primary aesthetic risk; it must be explainable and must not
+  contradict the approved design system.
 - **Content:** identify the real or representative copy, data, imagery, states,
   and calls to action the design must carry.
 
 When an existing repository already has canonical components, tokens,
 typography, spacing, icons, routing, state, or data-fetch patterns, reuse them.
-Translate a reference design into the repository's system instead of creating a
-parallel design system simply to match a screenshot.
+If `DESIGN.md` is present, reconcile it with those implementation primitives
+according to the active Work Block before introducing new ones. Translate a
+reference design into the repository's system instead of creating a parallel
+design system simply to match a screenshot.
 
 For large or multi-page work, surface the design direction for review before a
 broad implementation. For a bounded component or page, the active Work Block or
@@ -132,6 +174,8 @@ Run a short specificity check:
   simply because it is easy to generate?
 - Does the composition fit the interface mode, or is an operational workspace
   accidentally being treated like a marketing landing page?
+- If `DESIGN.md` exists, does the proposal obey its approved scope and
+  reconciliation direction without creating a second token/component system?
 
 Common patterns are not forbidden. They require contextual justification. In
 particular, do not default mechanically to warm editorial cream/serif palettes,
@@ -139,8 +183,8 @@ dark interfaces with one neon accent, newspaper-like grids, oversized metrics,
 gradient-led hero sections, or dashboard-card mosaics when the brief gives no
 reason for them.
 
-If the answer reveals a generic default, revise that part before coding and note
-what changed and why.
+If the answer reveals a generic default or design-system conflict, revise that
+part before coding and note what changed and why.
 
 ## Design Principles
 
@@ -210,10 +254,11 @@ visual complexity as a substitute for a clear concept.
 
 When screenshots, Figma exports, design briefs, or other visual references are
 provided, treat them as visual targets while preserving the repository's
-canonical implementation patterns.
+canonical implementation patterns and any approved `DESIGN.md` constraints.
 
 Before inventing new primitives, identify:
 
+- approved `DESIGN.md`, when present;
 - existing component wrappers;
 - color, typography, spacing, radius, and icon tokens;
 - responsive breakpoints;
@@ -224,7 +269,9 @@ Before inventing new primitives, identify:
 Match the reference's hierarchy, spacing, proportion, imagery, and responsive
 intent using those project-native primitives. When a detail is ambiguous,
 choose the simplest implementation consistent with the accepted direction and
-record the assumption when it materially affects review.
+record the assumption when it materially affects review. A screenshot, Figma
+export, Stitch project, or other external producer does not silently supersede
+an approved repository design contract.
 
 ## Interface Copy Is Design Material
 
@@ -260,7 +307,9 @@ Before handoff, ensure the implementation has a baseline of:
   another;
 - content and layout that still work with realistic text lengths and data;
 - no unnecessary parallel component/token system when the repository already
-  has an accepted one.
+  has an accepted one;
+- alignment with approved `DESIGN.md` where one is in scope, or an explicit drift
+  finding instead of silent divergence.
 
 ## Rendered Browser Review Loop
 
@@ -277,8 +326,9 @@ inspect the implemented interface.
    responsive transitions, tap targets, and persistent UI chrome.
 5. When visual references exist, compare the implementation directly against
    them for both appearance and behavior.
-6. Verify that repository-native tokens and components still preserve the target
-   visual direction rather than drifting into a parallel system.
+6. Verify that repository-native tokens and components, plus approved
+   `DESIGN.md` when present, still preserve one coherent design system rather
+   than drifting into parallel systems.
 7. Remove unnecessary visual treatment and repeat after material correction.
 
 Playwright is one valid implementation of this loop, not a framework
@@ -292,53 +342,66 @@ replace rendered review for a material visual change.
 
 ## Agentic SDLC Integration
 
-- **Orchestrator / Architect:** classify the interface mode and establish whether
-  the task needs a new design direction, a constrained extension of an existing
-  system, or implementation only. Preserve accepted brand, product, design
-  system, and repository constraints in the Work Block.
+- **Orchestrator / Architect:** classify the interface mode; establish whether
+  an approved `DESIGN.md` exists, its design-domain authority scope, and the
+  reconciliation direction with implementation; then decide whether the task
+  needs a new design direction, a constrained extension of an existing system,
+  or implementation only. Preserve accepted brand, product, accessibility,
+  design-system, and repository constraints in the Work Block.
 - **Critic:** for material design work, challenge generic defaults, incorrect
   interface-mode assumptions, unjustified aesthetic choices, parallel design
-  systems, missing states, accessibility omissions, and mismatch between the
-  brief and the proposed signature element.
+  systems, unresolved `DESIGN.md`/implementation conflicts, missing states,
+  accessibility omissions, and mismatch between the brief and the proposed
+  signature element.
 - **Coder:** implement only the approved write-set and accepted design direction.
-  The skill does not authorize dependencies, assets, fonts, remote services,
-  browser tools, or files outside that scope.
+  Do not edit `DESIGN.md` unless its path is explicitly writable. The skill does
+  not authorize dependencies, assets, fonts, remote services, browser/design
+  tools, or files outside scope.
 - **Reviewer:** compare the implementation with the brief, interface mode,
-  design plan, and repository design system; check consistency and regressions,
-  and require direct inspection of important code rather than trusting
-  screenshots alone.
+  design plan, repository design system, and approved `DESIGN.md` when present;
+  check consistency and regressions, and require direct inspection of important
+  code rather than trusting screenshots alone.
 - **Verifier:** use fresh rendered evidence and applicable deterministic checks.
+  A compatible `DESIGN.md` linter or diff tool may provide additional evidence
+  only when already available and authorized; it is not required by this skill.
   Verify representative responsive states and material interaction flows when
-  capabilities permit. Missing rendered-inspection capability remains an
-  explicit limitation.
+  capabilities permit. Missing rendered-inspection or optional DESIGN.md tooling
+  remains an explicit limitation.
 
 The Owner or active Work Block remains the authority for approvals and Hard
 Stops. This skill supplies design method, not permission.
 
-## Relationship to Other Design and Verification Skills
+## Relationship to Design Artifacts and Other Skills
 
+- **`DESIGN.md`** — when approved and in scope, use the portable contract at
+  `docs/design/design-md-artifact-contract.md`; it constrains design-domain
+  choices but does not grant implementation or tool authority.
 - **`theme-factory`** — use when the project has a structured theme contract or
-  needs reusable theme tokens; do not let a preset replace subject grounding.
+  needs reusable theme tokens; do not let a preset replace subject grounding or
+  an approved `DESIGN.md`.
 - **`brand-guidelines`** — when installed, accepted brand rules constrain this
-  skill's free design choices.
+  skill's free design choices and outrank lower design defaults.
 - **`impeccable`** — use for focused UI polish and critique where its narrower
-  procedures fit the task.
+  procedures fit the task. Its DESIGN.md-aware workflows are consumers/producers
+  and do not redefine the portable artifact contract.
 - **`webapp-testing`** — when installed and inside the active scope, use it for
   browser/rendered execution and evidence; its availability does not authorize
   browser use or expand the Work Block.
 - **specialized aesthetic skills** — treat them as candidate directions or
-  references, not automatic defaults. The brief and subject still win.
+  references, not automatic defaults. The brief, approved design contracts, and
+  subject still win.
 
 ## Handoff
 
 - **Success condition:** the interface has a subject-specific design rationale,
-  correct interface-mode assumptions, a coherent token/layout system, one
-  justified signature element where appropriate, clear UI copy, required
-  states, repository-native implementation, and fresh rendered evidence when
-  rendering is available.
+  correct interface-mode assumptions, a coherent token/layout system, alignment
+  with approved `DESIGN.md` when present, one justified signature element where
+  appropriate, clear UI copy, required states, repository-native implementation,
+  and fresh rendered evidence when rendering is available.
 - **Next:** Reviewer checks implementation against the brief, mode, design plan,
-  and design system; Verifier confirms applicable responsive, accessibility,
-  deterministic, interaction, and rendered evidence.
+  repository design system, and approved `DESIGN.md` where applicable; Verifier
+  confirms applicable responsive, accessibility, deterministic, interaction,
+  design-contract, and rendered evidence.
 - **Auto-proceed:** only inside the active Work Block and its approved write-set.
 - **Hard stop:** follow the Owner instruction and Work Block; this skill creates
   no new Hard Stop and waives none.
@@ -374,3 +437,17 @@ browser verification across representative viewports and states.
 OpenAI-specific model steering defaults, fixed visual constants, required icon
 libraries, and mandatory tool choices are intentionally not promoted into the
 portable framework.
+
+### DESIGN.md interoperability reference
+
+The portable design-system artifact contract is local:
+
+`docs/design/design-md-artifact-contract.md`
+
+Its interoperability baseline was compared on 2026-08-11 with
+`google-labs-code/design.md@9bf8eae67128b6cc55ad9bf86665767deb4c11cd`,
+including `docs/spec.md`, `PHILOSOPHY.md`, and `README.md`. The upstream format
+identifies itself as `alpha`.
+
+Google Stitch, `@google/design.md`, Figma, MCP, or any other producer/consumer is
+optional. None is promoted into framework authority or required by this skill.
