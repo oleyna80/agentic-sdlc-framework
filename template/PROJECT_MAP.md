@@ -122,6 +122,8 @@ scripts/validate-evaluation.py
 | `memory_bank/` | operational/local | Current focus, progress, pending decisions, logs |
 | `runtimes/` | adapter documentation | Capability, activation, limitation, fallback |
 | `integrations/` | adapter documentation | Optional bridge/tool/transport admission |
+| `integrations/repository-graph/README.md` | optional capability boundary | Provider-neutral local derived state; unadmitted and uninstalled |
+| `docs/templates/repository-graph-opt-in-template.md` | normative template | Future Owner-approved local-state binding record |
 | `scripts/bootstrap.sh` | health check | Validates profile/default and restores local state |
 | `scripts/validate-installation-profile.py` | validator | Selected paths, kinds, absent surfaces, blocked default |
 | `scripts/validate-evaluation.py` | validator | Evaluation plan/report consistency and closeout binding |
@@ -135,6 +137,8 @@ scripts/validate-evaluation.py
 - no plugin, external bridge, MCP server, or watcher is enabled automatically;
 - no provider-named authority agent is installed;
 - external runtime calls require active integration approval;
+- Repository Graph Provider state is local, derived, rebuildable, and
+  non-authoritative; it is not installed or admitted by default;
 - blocked default evaluation is optional, `PENDING`, unbound, and has no authority;
 - credentials and private runtime state remain local;
 - observable evidence must exclude secrets, protected payloads, and hidden reasoning.

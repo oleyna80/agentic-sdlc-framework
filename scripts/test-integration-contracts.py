@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -66,8 +67,208 @@ def static_contracts() -> None:
         TEMPLATE / ".claude/hooks/assurance_gate.py",
         TEMPLATE / "opencode.json",
         ROOT / "opencode.json",
+        ROOT / "docs/specs/repository-graph-provider-contract.md",
+        ROOT / "docs/architecture/decisions/2026-08-11-repository-graph-provider-boundary.md",
+        ROOT / "docs/plans/wb-repository-graph-001-optional-local-provider.md",
+        ROOT / "integrations/repository-graph/README.md",
+        TEMPLATE / "docs/templates/repository-graph-opt-in-template.md",
     ):
         require(path)
+
+    def normalized(path: Path) -> str:
+        return " ".join(path.read_text(encoding="utf-8").lower().split())
+
+    graph_boundary_paths = {
+        "contract": ROOT / "docs/specs/repository-graph-provider-contract.md",
+        "ADR": ROOT / "docs/architecture/decisions/2026-08-11-repository-graph-provider-boundary.md",
+        "guide": ROOT / "integrations/repository-graph/README.md",
+        "opt-in template": TEMPLATE / "docs/templates/repository-graph-opt-in-template.md",
+    }
+    graph_boundary_text = {label: normalized(path) for label, path in graph_boundary_paths.items()}
+    required_clauses = {
+        "contract": (
+            "local, derived, rebuildable, and non-authoritative",
+            "not published by default",
+            "cannot grant authority, a write-set, an approval, an assurance verdict, or a canonical or durable-memory effect",
+            "cannot be the sole basis for a change",
+            "important findings require direct confirmation against canonical repository source",
+            "does not install, configure, invoke, start, index, query, or admit a provider",
+            "does not enable mcp, apis, hooks, runtime configuration, embeddings, uploads, credentials, or keys",
+            ".git/info/exclude",
+            "operator-managed global exclusion",
+            "do not add a generic graph directory or committed ignore rule",
+        ),
+        "ADR": (
+            "local, derived, rebuildable, non-authoritative, and not published by default",
+            "cannot grant authority, a write-set, approval, assurance verdict, or canonical/durable-memory effect",
+            "cannot be the sole basis for a change",
+            "material findings require direct canonical repository-source confirmation",
+            "owns no provider installation, configuration, process, index, query, mcp/api surface, hook, runtime configuration, embedding, upload, credential, or key",
+            "never a committed generic graph ignore rule",
+        ),
+        "guide": (
+            "local, derived, rebuildable, non-authoritative, and not published by default",
+            "cannot grant authority, a write-set, approval, assurance verdict, canonical/durable-memory effect, or be the sole basis for a change",
+            "confirm important findings directly against canonical repository source",
+            "no provider is selected, configured, started, indexed, queried, or invoked by this framework",
+            "installation/configuration, mcp/api access, hooks, runtime configuration, embeddings/uploads, credentials, and provider invocation are future, owner-approved project work",
+            "do not add a generic graph directory or a committed ignore rule",
+        ),
+        "opt-in template": (
+            "local, derived, rebuildable, non-authoritative, and not published by default",
+            "grants no authority, write-set, approval, assurance verdict, canonical/durable-memory effect, and cannot be the sole basis for a change",
+            "confirm important findings directly against canonical repository source",
+            "does not select, install, configure, or invoke a provider",
+            "do not record credentials, api keys, embeddings, uploads, or provider-local content here",
+            "provider installation/configuration, indexing/querying, mcp/api, hooks, runtime configuration, and invocation require their own owner-approved scope",
+        ),
+    }
+    for label, clauses in required_clauses.items():
+        for clause in clauses:
+            if clause not in graph_boundary_text[label]:
+                fail(f"Repository Graph Provider {label} missing required boundary: {clause}")
+
+    navigation_clauses = {
+        ROOT / "integrations/README.md": (
+            "unadmitted, provider-neutral optional local derived-state capability",
+            "not an adapter installation or provider admission",
+        ),
+        ROOT / "README.md": (
+            "no external integration is enabled by bootstrap",
+        ),
+        ROOT / "SETUP.md": (
+            "docs/templates/repository-graph-opt-in-template.md",
+        ),
+        ROOT / "PROJECT_MAP.md": (
+            "repository graph provider. it does not install, configure, or invoke a provider",
+        ),
+        TEMPLATE / "PROJECT_MAP.md": (
+            "provider-neutral local derived state; unadmitted and uninstalled",
+        ),
+    }
+    for path, clauses in navigation_clauses.items():
+        text = normalized(path)
+        for clause in clauses:
+            if clause not in text:
+                fail(f"Repository Graph Provider navigation missing boundary in {path.relative_to(ROOT)}: {clause}")
+
+    root_registry = yaml.safe_load((ROOT / "FILE_REGISTRY.yml").read_text(encoding="utf-8"))
+    template_registry = yaml.safe_load((TEMPLATE / "FILE_REGISTRY.yml").read_text(encoding="utf-8"))
+    for label, registry in (("root", root_registry), ("template", template_registry)):
+        entry = registry.get("entries", {}).get("integrations/repository-graph/README.md", {})
+        if entry.get("role") != "optional_provider_neutral_repository_graph_capability_boundary":
+            fail(f"Repository Graph Provider {label} registry role drifted")
+        if entry.get("status") != "normative":
+            fail(f"Repository Graph Provider {label} registry must be normative, not an adapter")
+        if entry.get("authority") != "none_without_separate_owner_approved_admission":
+            fail(f"Repository Graph Provider {label} registry authority boundary drifted")
+
+    all_boundary_text = " ".join(graph_boundary_text.values())
+    for forbidden in (
+        "gitnexus",
+        "sourcegraph",
+        "codescene",
+        "npm install",
+        "pip install",
+        "--index-only",
+        "mcpservers",
+        "api_key",
+        "default provider",
+    ):
+        if forbidden in all_boundary_text:
+            fail(f"Repository Graph Provider boundary must not prescribe: {forbidden}")
+
+    bootstrap_catalog = normalized(ROOT / "bootstrap/profiles.json")
+    for forbidden in ("repository-graph", "repository_graph", "graph-provider"):
+        if forbidden in bootstrap_catalog:
+            fail(f"Repository Graph Provider must not be a bootstrap profile component or automatic activation: {forbidden}")
+
+    generic_graph_ignore_entries = {
+        "graph/",
+        "graphs/",
+        ".graph/",
+        ".repository-graph/",
+        "repository-graph/",
+        ".repository_graph/",
+        "repository_graph/",
+    }
+    for path in (ROOT / ".gitignore", TEMPLATE / "project.gitignore"):
+        entries = {
+            line.strip().lower()
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        prohibited = entries.intersection(generic_graph_ignore_entries)
+        if prohibited:
+            fail(f"Repository Graph Provider must not add generic committed ignore entries in {path.relative_to(ROOT)}: {sorted(prohibited)}")
+
+    work_block = ROOT / "docs/plans/wb-repository-graph-001-optional-local-provider.md"
+    work_block_data = frontmatter(work_block)
+    if work_block_data.get("status") != "completed":
+        fail("Repository Graph Provider Work Block must be completed at Close")
+    if work_block_data.get("base_revision") != "13c9f8fbb1659db8224cc0173d9e811abcf790af":
+        fail("Repository Graph Provider Work Block base revision drifted")
+    work_block_text = " ".join(work_block.read_text(encoding="utf-8").split())
+    for required in (
+        "APPROVE_WITH_CHANGES",
+        "Review / Verification / Drift",
+        "no provider evaluation",
+        "provider installation/configuration/index/query",
+        "Repository Graph Evaluation Brief.md",
+    ):
+        if required not in work_block_text:
+            fail(f"Repository Graph Provider Work Block missing: {required}")
+
+    graph_work_block = "docs/plans/wb-repository-graph-001-optional-local-provider.md"
+    graph_closeout = "docs/reports/closeout/wb-repository-graph-001-optional-local-provider.md"
+    migration_state = root_registry.get("migration_state", {})
+    release_state = root_registry.get("release_state", {})
+    if migration_state.get("active_work_block") is not None:
+        fail("Repository Graph Provider Close must leave no active Work Block")
+    if graph_work_block not in migration_state.get("completed_work_blocks", []):
+        fail("Repository Graph Provider Work Block missing from completed release state")
+    if release_state.get("latest_completed_work_block") != graph_work_block:
+        fail("Repository Graph Provider must be the latest completed Work Block")
+    if release_state.get("closeout_report") != graph_closeout:
+        fail("Repository Graph Provider Closeout linkage drifted")
+    closeout = ROOT / graph_closeout
+    require(closeout)
+    if frontmatter(closeout).get("status") != "approved":
+        fail("Repository Graph Provider Closeout must remain approved")
+
+
+def repository_graph_bootstrap_fixture() -> None:
+    """Every profile receives docs only; this fixture never invokes a provider."""
+    catalog = load_json(ROOT / "bootstrap/profiles.json")
+    profiles = sorted(set(catalog["profiles"]) | set(catalog["aliases"]))
+    engine = ROOT / "bootstrap/bootstrap_project.py"
+    with tempfile.TemporaryDirectory(prefix="repository-graph-bootstrap-") as temp:
+        base = Path(temp)
+        for profile in profiles:
+            target = base / profile
+            result = subprocess.run(
+                [sys.executable, str(engine), "--profile", profile, str(target), "Graph Fixture", profile],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            )
+            if result.returncode:
+                fail(f"Repository Graph Provider bootstrap failed for {profile}: {result.stderr.strip()}")
+            for relative in (
+                "docs/templates/repository-graph-opt-in-template.md",
+                "integrations/repository-graph/README.md",
+                "PROJECT_MAP.md",
+                "FILE_REGISTRY.yml",
+            ):
+                require(target / relative)
+            opt_in = " ".join(
+                (target / "docs/templates/repository-graph-opt-in-template.md")
+                .read_text(encoding="utf-8")
+                .split()
+            )
+            if "This template does not select, install, configure, or invoke a provider." not in opt_in:
+                fail(f"Repository Graph Provider opt-in template drifted for {profile}")
 
     for role in ("architect", "critic", "coder", "reviewer", "verifier"):
         require(ROOT / f".opencode/agents/{role}.md")
@@ -566,6 +767,7 @@ def executable_fixtures() -> None:
 
 def main() -> int:
     static_contracts()
+    repository_graph_bootstrap_fixture()
     executable_fixtures()
     print("Integration adapter contracts and fixtures: OK")
     return 0

@@ -28,6 +28,7 @@ completed_work_blocks:
   - docs/plans/wb-opencode-002-project-local-integration.md
   - docs/plans/wb-design-001-openai-frontend-delta.md
   - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
+  - docs/plans/wb-repository-graph-001-optional-local-provider.md
 active_work_block: null
 -->
 
@@ -236,7 +237,8 @@ Missing network, revision, or license evidence fails closed.
 | `opencode.json` | runtime adapter | Project-local OpenCode instructions and permission baseline; no authority |
 | `.opencode/agents/` | runtime adapter | Project-local logical-role subagents; live smoke required |
 | `.opencode/skills/` | runtime adapter | Optional bridge skills: `critic-review`, `reviewer`, `scoped-coder`, `ssot-sync-closeout`, `subagent-mission-brief`, `task-decomposition`, and `verifier`; discovery unverified and no authority |
-| `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
+| `integrations/` | integration adapters | Optional bridges, MCP, transport admission contracts, and unadmitted graph-provider documentation |
+| `integrations/repository-graph/README.md` | optional capability boundary | Provider-neutral local derived state; no provider installation or admission |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
@@ -289,12 +291,19 @@ core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `cor
 | Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | optional admission |
 | MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
 | File handoff | `integrations/file-handoff/` | disabled until configured |
+| Repository Graph Provider | `integrations/repository-graph/` | unadmitted optional local derived state |
 | Existing handoff runner | `handoff/` | compatibility transport; no automatic service start |
 
 External runtime invocation admission does not grant child-runtime write
 authority.
 
 ## Migration Work
+
+The Repository Graph Provider boundary Work Block is completed:
+`docs/plans/wb-repository-graph-001-optional-local-provider.md` records
+documentation and deterministic contract coverage for an unadmitted,
+provider-neutral optional capability. The completed boundary is a Repository
+Graph Provider. It does not install, configure, or invoke a provider.
 
 Completed:
 
@@ -333,13 +342,19 @@ Completed:
 
 19. WB-OPENCODE-002 — completed project-local OpenCode runtime-adapter
     integration; live discovery and permission-merging behavior remain unverified.
-
 20. WB-DESIGN-001 — completed Controlled refresh of `frontend-design` with a
     provider-neutral OpenAI methodological delta; no runtime or tool activation.
 
 21. WB-DESIGN-002 — completed Controlled portable DESIGN.md artifact contract and
     internal frontend-design/Impeccable compatibility reconciliation; no Google
     tooling, MCP, runtime, bootstrap, or provider activation.
+
+22. WB-REPO-GRAPH-001 — completed optional local Repository Graph Provider
+    boundary; no provider was selected, installed, configured, indexed, queried,
+    or evaluated. It closed with final Reviewer READY, final Verifier READY,
+    and drift ALIGNED evidence. Any future provider admission requires its own
+    Owner-approved Work Block; provider-local exclusion verification remains a
+    project/operator responsibility.
 
 No active implementation Work Block.
 
