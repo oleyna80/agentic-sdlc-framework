@@ -4,7 +4,7 @@ artifact_type: reviewer_report
 artifact_id: wb-design-002-portable-design-md-artifact-contract-review
 work_block_id: WB-DESIGN-002
 reviewed_stage: assure_final
-reviewed_subject: 23734e130459c986fec7f5ccff77167246f2b61d
+reviewed_subject: 90421397b3077a0c8b42f6f8f3e485c0bd37fdf2
 verdict: READY
 created_at: 2026-08-11
 last_verified: 2026-08-11
@@ -18,11 +18,11 @@ recorded_by_role: reviewer
 ## Verdict
 
 **READY** against terminal normative subject
-`23734e130459c986fec7f5ccff77167246f2b61d`.
+`90421397b3077a0c8b42f6f8f3e485c0bd37fdf2`.
 
-This is a targeted same-context Reviewer pass under the `Controlled` governance
-profile. It is explicitly non-independent and must not be represented as
-independent assurance.
+This is a renewed targeted same-context Reviewer pass under the `Controlled`
+governance profile after two PR review findings. It is explicitly
+non-independent and must not be represented as independent assurance.
 
 ## Subject and scope
 
@@ -64,7 +64,7 @@ No material defect or scope drift remains.
   Shapes, omitted declarations, custom sections, diagnostics, and section order.
 - Legacy parser behavior is explicitly covered for the old six-section subset,
   Stitch-style typography role bullets, role-based color bullets, named shadow
-  entries, and named-rule forms.
+  entries, named-rule forms, labeled `Character` values, and color descriptions.
 - Impeccable live guidance no longer treats every discovered DESIGN.md as an
   unconditional winner; only approved in-scope design-domain authority is
   honored, subordinate to higher project contracts.
@@ -74,20 +74,26 @@ No material defect or scope drift remains.
   is completed, no implementation Work Block is active, and the portable
   DESIGN.md contract/template are registered with bounded authority.
 
-## Corrections made before freeze
+## PR feedback corrections
 
-The review process caught and corrected several issues before this READY verdict:
+Two P2 review findings were valid and were fixed before this renewed READY
+verdict:
 
-1. three pre-existing publication-validator registry entries were accidentally
-   dropped during SSOT reconstruction and were restored;
-2. release-state terminal verdict strings were normalized to canonical literals;
-3. closeout schema heading was corrected to the required `Follow-Up Work` form;
-4. the initial compatibility fixture was expanded to protect richer legacy
-   Impeccable parser shapes;
-5. an incorrect test expectation was corrected after CI exposed it.
+1. legacy `**Character:** ...` typography values are again returned without the
+   Markdown label, preserving the prior public parser field shape;
+2. legacy color bullet descriptions are again returned as descriptive copy only,
+   excluding the token/name declaration.
 
-These corrections are contained in the branch history before final assurance and
-do not remain open findings against the reviewed normative subject.
+Regression assertions now cover both cases, including modern OKLCH color prose.
+The change from the prior PR head to this subject is limited to the parser and
+its deterministic regression fixture.
+
+## Deterministic evidence
+
+Exact subject `90421397b3077a0c8b42f6f8f3e485c0bd37fdf2` passed:
+
+- `Release State Contract` run 452 — **success**;
+- `Framework Contracts` run 870 `contracts` job — **success**.
 
 ## Residual limitations
 
@@ -100,6 +106,6 @@ do not remain open findings against the reviewed normative subject.
   new revision-bound comparison.
 
 Any normative edit after
-`23734e130459c986fec7f5ccff77167246f2b61d` invalidates this READY verdict and
+`90421397b3077a0c8b42f6f8f3e485c0bd37fdf2` invalidates this READY verdict and
 requires renewed applicable assurance. Evidence-only report/closeout commits may
 follow subject to green CI on the resulting PR head.
