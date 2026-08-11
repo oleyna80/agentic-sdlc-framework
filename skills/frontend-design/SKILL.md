@@ -10,7 +10,6 @@ metadata:
   upstream_blob: decdff43d05908b4c1fc2cfd2d80fc5743440934
   last_checked: 2026-08-11
   local_modification: Adapted for Agentic SDLC roles, authority boundaries, handoff, verification, domain-aware interface modes, composition planning, repository design-system and approved DESIGN.md reuse, and rendered validation.
-  design_system_contract: docs/design/design-md-artifact-contract.md
   additional_method_sources:
     - https://developers.openai.com/blog/designing-delightful-frontends-with-gpt-5-4
     - https://developers.openai.com/api/docs/guides/frontend-prompt
@@ -36,10 +35,10 @@ design, not decoration added after the layout is chosen.
 
 This local version combines Anthropic's subject-grounded `frontend-design`
 method with selected provider-neutral lessons from current official OpenAI
-frontend guidance and the framework's optional portable `DESIGN.md` artifact
-contract. It does not grant write authority, expand a Work Block, choose a
-runtime or model, require a particular browser or design tool, or waive review
-and verification requirements.
+frontend guidance and an optional portable `DESIGN.md` artifact model. It does
+not grant write authority, expand a Work Block, choose a runtime or model,
+require a particular browser or design tool, or waive review and verification
+requirements.
 
 ## Ground the Direction in the Subject
 
@@ -59,7 +58,7 @@ it. Do not replace an explicit brief with a preferred house style.
 
 Before inventing palette, typography, spacing, shape, component, or other
 reusable design-system rules, determine whether the project has an approved
-`DESIGN.md` under `docs/design/design-md-artifact-contract.md`.
+`DESIGN.md` and what scope it governs.
 
 Resolve the artifact in this order:
 
@@ -89,6 +88,12 @@ When an approved `DESIGN.md` exists:
 If no approved `DESIGN.md` exists, continue with subject-grounded design and the
 repository's existing design system. Absence is not a failure and does not
 authorize creating a `DESIGN.md`.
+
+The framework source repository documents this artifact model at
+`docs/design/design-md-artifact-contract.md`. A consumer project that installs
+only this skill is not required to contain that framework-source path; the rules
+above remain self-contained and project-local authority still comes from that
+project's own Owner instruction, navigation, and Work Block.
 
 ## Choose the Interface Mode Before Composition
 
@@ -373,9 +378,10 @@ Stops. This skill supplies design method, not permission.
 
 ## Relationship to Design Artifacts and Other Skills
 
-- **`DESIGN.md`** — when approved and in scope, use the portable contract at
-  `docs/design/design-md-artifact-contract.md`; it constrains design-domain
-  choices but does not grant implementation or tool authority.
+- **`DESIGN.md`** — when approved and in scope, use the artifact rules above. In
+  the framework source repository, the fuller lifecycle/reconciliation contract
+  is `docs/design/design-md-artifact-contract.md`; a consumer project need not
+  contain that source-only documentation path.
 - **`theme-factory`** — use when the project has a structured theme contract or
   needs reusable theme tokens; do not let a preset replace subject grounding or
   an approved `DESIGN.md`.
@@ -440,7 +446,8 @@ portable framework.
 
 ### DESIGN.md interoperability reference
 
-The portable design-system artifact contract is local:
+The portable design-system artifact contract maintained in the framework source
+repository is:
 
 `docs/design/design-md-artifact-contract.md`
 
