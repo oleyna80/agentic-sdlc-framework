@@ -4,7 +4,7 @@ artifact_type: verification_report
 artifact_id: wb-design-002-portable-design-md-artifact-contract-verification
 work_block_id: WB-DESIGN-002
 verified_stage: assure_final
-verified_subject: 23734e130459c986fec7f5ccff77167246f2b61d
+verified_subject: 90421397b3077a0c8b42f6f8f3e485c0bd37fdf2
 verdict: READY
 created_at: 2026-08-11
 isolation: same_context
@@ -17,11 +17,11 @@ recorded_by_role: verifier
 ## Verdict
 
 **READY** against terminal normative subject
-`23734e130459c986fec7f5ccff77167246f2b61d`.
+`90421397b3077a0c8b42f6f8f3e485c0bd37fdf2`.
 
-This is targeted same-context verification under the `Controlled` governance
-profile. It is explicitly non-independent and must not be described as an
-independent Verifier result.
+This is renewed targeted same-context verification under the `Controlled`
+governance profile after PR review feedback. It is explicitly non-independent
+and must not be described as an independent Verifier result.
 
 ## Acceptance evidence
 
@@ -40,6 +40,10 @@ conditions:
   model;
 - the dependency-free Impeccable parser accepts legacy and current portable
   shapes while preserving established public fields additively;
+- legacy labeled typography `Character` values retain the prior public string
+  shape without Markdown labels;
+- legacy color descriptions retain descriptive copy only rather than token/name
+  syntax;
 - unknown/custom sections and `omitted` declarations are represented rather than
   silently deleted;
 - current CSS color values including OKLCH are accepted;
@@ -52,21 +56,13 @@ conditions:
 
 ## Deterministic evidence
 
-Pre-terminal Execute subject
-`cd91363f8e97f768e974c799d07aaa3030f5015d` passed:
+Exact normative subject
+`90421397b3077a0c8b42f6f8f3e485c0bd37fdf2` passed:
 
-- `Release State Contract` run 436 — **success**;
-- `Framework Contracts` run 854 — **success**.
+- `Release State Contract` run 452 — **success**;
+- `Framework Contracts` run 870 `contracts` job — **success**.
 
-After terminal lifecycle/status projection and closeout schema correction, the
-branch head `a1efc9d643bc5ddda7cd8b4f528e31a856d74124` contains the same normative
-subject plus evidence-only closeout changes and passed:
-
-- `Release State Contract` run 445 — **success**;
-- `Framework Contracts` run 863 `contracts` job — **success**.
-
-The Framework Contracts path executes `scripts/validate-governance.sh`, which now
-runs:
+The Framework Contracts path executes `scripts/validate-governance.sh`, including:
 
 ```text
 node --check skills/impeccable/scripts/design-parser.mjs
@@ -77,6 +73,8 @@ node skills/impeccable/scripts/test-design-parser.mjs
 The parser fixture proves:
 
 - legacy six-section input;
+- legacy labeled `Character` extraction;
+- legacy descriptive-only color field preservation;
 - legacy Stitch-style typography-role input;
 - role-based color bullets;
 - named shadow entries;
@@ -90,10 +88,10 @@ The parser fixture proves:
 
 ## Drift assessment
 
-**ALIGNED.** The delivered changes stay inside the Owner-approved expanded
-WB-DESIGN-002 scope. The internal frontend-design/Impeccable DESIGN.md semantics
-now resolve to one portable artifact contract, and external providers remain
-optional consumers rather than authority.
+**ALIGNED.** The two PR feedback fixes are bounded backward-compatibility
+corrections inside the Owner-approved expanded WB-DESIGN-002 write-set. They do
+not alter the design authority model, provider neutrality, lifecycle projection,
+or external integration boundaries.
 
 ## Limitations
 
@@ -107,6 +105,6 @@ optional consumers rather than authority.
   tested parser behavior and public model are not controlled by that comment.
 
 Any normative change after
-`23734e130459c986fec7f5ccff77167246f2b61d` invalidates this READY verdict.
+`90421397b3077a0c8b42f6f8f3e485c0bd37fdf2` invalidates this READY verdict.
 Evidence-only report commits may follow without changing the verified normative
 subject, subject to green CI on the resulting PR head.
