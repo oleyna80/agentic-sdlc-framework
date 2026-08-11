@@ -594,6 +594,21 @@ entries:
     status: normative
     owner: verifier
 
+  scripts/validate-publication.sh:
+    role: publication_validation_wrapper
+    status: normative
+    owner: verifier
+
+  scripts/validate_publication.py:
+    role: catalog_driven_publication_profile_conformance_and_privacy_validation
+    status: normative
+    owner: verifier
+
+  scripts/validate_evaluation_publication.py:
+    role: evaluation_specific_publication_and_generated_scaffold_validation
+    status: normative
+    owner: verifier
+
   .github/workflows/framework-contracts.yml:
     role: framework_contract_profile_adapter_evaluation_and_bootstrap_ci
     status: evidence
