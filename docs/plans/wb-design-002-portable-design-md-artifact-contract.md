@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-design-002-portable-design-md-artifact-contract
 work_block_id: WB-DESIGN-002
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-11
 last_updated: 2026-08-11
@@ -280,3 +280,18 @@ Execute branch.
 - Evaluation is not required because no nondeterministic agent behavior benchmark
   is part of acceptance.
 - Merge remains separately Owner-controlled.
+
+## Final State
+
+- **Stage state:** completed
+- **Review gate:** READY pending evidence report bound to the terminal normative subject
+- **Verification verdict:** READY pending evidence report bound to the terminal normative subject
+- **Drift gate:** ALIGNED
+- **Closeout mode:** success-closeout pending final evidence-only CI
+- **Task status:** completed
+- **Evaluation verdict:** SKIPPED — deterministic bounded design-artifact/consumer compatibility change; no nondeterministic agent behavior benchmark is part of acceptance
+
+The implementation subject `cd91363f8e97f768e974c799d07aaa3030f5015d`
+passed `Release State Contract` run 436 and `Framework Contracts` run 854 before
+terminal status/lifecycle projection. Terminal normative assurance and evidence
+are recorded separately and must bind the exact final normative subject.
