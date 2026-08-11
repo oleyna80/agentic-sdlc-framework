@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 20
+version: 21
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -184,6 +184,7 @@ migration_state:
     - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
     - docs/plans/wb-core-003e-closure-evidence-correction.md
     - docs/plans/wb-opencode-002-project-local-integration.md
+    - docs/plans/wb-design-001-openai-frontend-delta.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -197,8 +198,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-opencode-002-project-local-integration.md
-  closeout_report: docs/reports/closeout/wb-opencode-002-project-local-integration.md
+  latest_completed_work_block: docs/plans/wb-design-001-openai-frontend-delta.md
+  closeout_report: docs/reports/closeout/wb-design-001-openai-frontend-delta.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -400,6 +401,14 @@ entries:
     lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     authority: runtime_adapter_only
+
+  docs/plans/wb-design-001-openai-frontend-delta.md:
+    role: completed_controlled_frontend_design_skill_method_refresh_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    authority: skill_method_only
 
   AGENTS.md:
     role: framework_self_hosting_root_operating_contract
