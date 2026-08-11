@@ -1,7 +1,7 @@
 // Parse a DESIGN.md document into a stable structured model for Impeccable.
 //
 // Compatibility goals:
-// - preserve the legacy six-section DESIGN.md subset;
+// - preserve the legacy six-section DESIGN.md subset and its established parser shapes;
 // - understand the current portable/Google-alpha eight-section model;
 // - preserve unknown H2 sections instead of treating them as invalid;
 // - parse the YAML subset used by DESIGN.md, including `omitted` arrays;
@@ -126,8 +126,7 @@ function parseYamlSubset(yaml) {
         const itemText = line.text.slice(2).trim();
         if (!itemText) {
           if (i + 1 < lines.length && lines[i + 1].indent > indent) {
-            const childIndent = lines[i + 1].indent;
-            const parsed = parseBlock(i + 1, childIndent);
+            const parsed = parseBlock(i + 1, lines[i + 1].indent);
             container.push(parsed.value);
             i = parsed.next;
           } else {
@@ -354,18 +353,50 @@ function stripBold(value) {
 
 function extractNamedRules(lines) {
   const rules = [];
-  for (const bullet of collectBullets(lines)) {
-    const match = bullet.match(/^\*\*(The [^*]+?(?:Rule|Principle|Fallback))[.:]?\*\*\s*(.*)$/i);
-    if (match) rules.push({ name: stripBold(match[1]), body: stripBold(match[2]) });
-  }
+  const seen = new Set();
+  const add = (name, body) => {
+    const cleanName = stripBold(name).replace(/["“”]/g, '').replace(/[.:]\s*$/, '').trim();
+    const cleanBody = stripBold(body).replace(/\s+/g, ' ').trim();
+    if (!cleanName || !cleanBody || seen.has(cleanName.toLowerCase())) return;
+    seen.add(cleanName.toLowerCase());
+    rules.push({ name: cleanName, body: cleanBody });
+  };
+
+  // Legacy/Impeccable inline form: **The X Rule.** body (possibly continuing).
   const joined = lines.join('\n');
-  const inline = /\*\*(The [^*]+?(?:Rule|Principle|Fallback))[.:]?\*\*\s*([^\n]+)/gi;
+  const inlineStart = /\*\*(The [^*]+?(?:Rule|Principle|Fallback))[.:]?\*\*/gi;
+  const matches = [];
   let match;
-  while ((match = inline.exec(joined)) !== null) {
-    const name = stripBold(match[1]);
-    if (!rules.some((rule) => rule.name.toLowerCase() === name.toLowerCase())) {
-      rules.push({ name, body: stripBold(match[2]) });
+  while ((match = inlineStart.exec(joined)) !== null) {
+    matches.push({ name: match[1], start: match.index, end: inlineStart.lastIndex });
+  }
+  for (let i = 0; i < matches.length; i += 1) {
+    const current = matches[i];
+    const end = i + 1 < matches.length ? matches[i + 1].start : joined.length;
+    const body = joined.slice(current.end, end).split(/\n#{2,3}\s/)[0];
+    add(current.name, body);
+  }
+
+  // Heading form: ### The "X" Rule / Principle / Fallback
+  for (let i = 0; i < lines.length; i += 1) {
+    const heading = lines[i].match(/^###\s+(.+?)\s*$/);
+    if (!heading) continue;
+    const name = heading[1].replace(/["“”]/g, '').trim();
+    if (!/^The\b.*\b(?:Rule|Principle|Fallback)\b/i.test(name)) continue;
+    const body = [];
+    for (let j = i + 1; j < lines.length; j += 1) {
+      if (/^###{0,1}\s/.test(lines[j])) break;
+      body.push(lines[j]);
     }
+    add(name, body.join(' '));
+  }
+
+  // Bullet form: **The X Rule:** body
+  for (const bullet of collectBullets(lines)) {
+    const bulletMatch = bullet.match(/^\*\*([^*]+?)\*\*\s*(.+)$/);
+    if (!bulletMatch) continue;
+    const name = bulletMatch[1].replace(/["“”]/g, '').replace(/[.:]\s*$/, '').trim();
+    if (/^The\b.*\b(?:Rule|Principle|Fallback)$/i.test(name)) add(name, bulletMatch[2]);
   }
   return rules;
 }
@@ -433,9 +464,16 @@ function extractColors(section) {
   if (!section) return null;
   const subs = splitSubsections(section.lines);
   const groups = [];
+  const role = /^(primary|secondary|tertiary|neutral|accent)\b/i;
+
   for (const sub of subs) {
     const colors = collectBullets(sub.lines).map(parseColorBullet).filter(Boolean);
-    if (colors.length) groups.push({ role: sub.name || 'Palette', colors });
+    if (!colors.length) continue;
+    if (!sub.name && colors.every((color) => color.name && role.test(color.name))) {
+      for (const color of colors) groups.push({ role: color.name, colors: [color] });
+    } else {
+      groups.push({ role: sub.name || 'Palette', colors });
+    }
   }
   return {
     subtitle: section.subtitle,
@@ -445,16 +483,40 @@ function extractColors(section) {
   };
 }
 
+function normalizeFontRole(raw) {
+  const tokens = String(raw).toLowerCase().split(/[-/&\s]+/).filter(Boolean);
+  const priority = ['display', 'headline', 'body', 'ui', 'label', 'mono'];
+  const canonical = { headline: 'display', ui: 'body' };
+  for (const item of priority) {
+    if (tokens.includes(item)) return canonical[item] || item;
+  }
+  return null;
+}
+
 function extractTypography(section) {
   if (!section) return null;
   const text = section.lines.join('\n');
   const fonts = {};
-  const re = /\*\*([\w\s/&-]+?)Font:\*\*\s*([^\n(]+?)(?:\s*\(with\s+([^)]+)\))?\s*$/gmi;
+
+  // Legacy explicit form: **Display Font:** Family (with fallback)
+  const explicit = /\*\*([\w\s/]+?)Font:\*\*\s*([^\n(]+?)(?:\s*\(with\s+([^)]+)\))?\s*$/gmi;
   let match;
-  while ((match = re.exec(text)) !== null) {
-    const role = match[1].trim().toLowerCase().replace(/\s+/g, '-');
+  while ((match = explicit.exec(text)) !== null) {
+    const rawRole = match[1].trim().toLowerCase().replace(/\s+/g, '-');
+    const role = normalizeFontRole(rawRole) || rawRole;
     fonts[role] = { family: match[2].trim(), fallback: match[3]?.trim() ?? null };
   }
+
+  // Legacy Stitch prose form: **Display & Headlines (Noto Serif):** description
+  if (Object.keys(fonts).length === 0) {
+    const stitch = /\*\*([\w\s&/]+?)\s*\(([^)]+)\):\*\*\s*(.+)/g;
+    while ((match = stitch.exec(text)) !== null) {
+      const rawRole = match[1].trim().toLowerCase().replace(/\s*&\s*/g, '-').replace(/\s+/g, '-');
+      const role = normalizeFontRole(rawRole) || rawRole;
+      fonts[role] = { family: match[2].trim(), fallback: null, purpose: match[3].trim() };
+    }
+  }
+
   const hierarchySection = splitSubsections(section.lines).find((sub) => /hierarch/i.test(sub.name ?? ''));
   const hierarchy = hierarchySection
     ? collectBullets(hierarchySection.lines).map((bullet) => {
@@ -462,10 +524,14 @@ function extractTypography(section) {
         return item ? { name: item[1].trim(), specs: item[2].split(',').map((s) => s.trim()), purpose: stripBold(item[3]) } : null;
       }).filter(Boolean)
     : [];
+
+  const paragraphs = collectParagraphs(section.lines).filter(
+    (p) => !/^\*\*[\w\s/&]+Font:/i.test(p) && !/^\*\*[\w\s/&]+\([^)]+\):/i.test(p)
+  );
   return {
     subtitle: section.subtitle,
     fonts,
-    character: collectParagraphs(section.lines)[0] ?? null,
+    character: paragraphs[0] ?? null,
     hierarchy,
     rules: extractNamedRules(section.lines),
   };
@@ -481,15 +547,39 @@ function extractNarrativeSection(section) {
   };
 }
 
+function parseShadowBullet(bullet) {
+  const match = bullet.match(/^\*\*(.+?)\*\*\s*\(`?([^`]+?)`?\):\s*(.*)$/);
+  if (!match) return null;
+  const rawValue = match[2].replace(/^box-shadow:\s*/i, '').trim();
+  const looksLikeShadow = /rgba?\(|\b(?:px|rem|em)\b|^-?\d+\s/i.test(rawValue) && /\d/.test(rawValue);
+  if (!looksLikeShadow) return null;
+  return {
+    name: stripBold(match[1]),
+    value: rawValue,
+    purpose: stripBold(match[3]) || null,
+  };
+}
+
 function extractElevation(section) {
   if (!section) return null;
   const shadows = [];
-  const shadowRe = /(?:box-shadow\s*:\s*)?(-?\d+(?:px|rem|em)\s+-?\d+(?:px|rem|em)[^`\n;]*)/gi;
+  const seen = new Set();
+  const addShadow = (entry) => {
+    if (!entry) return;
+    const key = `${entry.name ?? ''}::${entry.value}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    shadows.push(entry);
+  };
+
+  for (const bullet of collectBullets(section.lines)) addShadow(parseShadowBullet(bullet));
+
+  const shadowRe = /box-shadow\s*:\s*([^`;\n]+)/gi;
   for (const line of section.lines) {
     let match;
     while ((match = shadowRe.exec(line)) !== null) {
-      const value = match[1].replace(/[`).]+$/, '').trim();
-      if (!shadows.some((entry) => entry.value === value)) shadows.push({ name: null, value, purpose: null });
+      const value = match[1].replace(/[`.)]+$/, '').trim();
+      if (value) addShadow({ name: null, value, purpose: null });
     }
   }
   return {
