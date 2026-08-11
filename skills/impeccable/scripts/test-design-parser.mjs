@@ -65,7 +65,7 @@ assert.equal(richLegacyModel.colors.groups[0].role, 'Primary');
 assert.equal(richLegacyModel.colors.groups[1].role, 'Secondary');
 assert.equal(richLegacyModel.elevation.shadows[0].name, 'Ambient');
 assert.match(richLegacyModel.elevation.shadows[0].value, /0 12px 40px/);
-assert.equal(richLegacyModel.overview.philosophy.length, 0);
+assert.match(richLegacyModel.overview.philosophy[0], /Surfaces remain flat/i);
 assert.equal(richLegacyModel.diagnostics.length, 0);
 
 const modern = `---
