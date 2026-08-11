@@ -33,7 +33,7 @@ Chat is overhead. No recap, no tutorial output, no pasting PRODUCT / DESIGN bodi
 node .claude/skills/impeccable/scripts/live.mjs
 ```
 
-Output JSON: `{ ok, serverPort, serverToken, pageFiles, hasProduct, product, productPath, hasDesign, design, designPath }`. `pageFiles` is the list of HTML entries the live script was injected into. Keep PRODUCT.md and DESIGN.md in mind for variant generation; **DESIGN.md wins on visual decisions; PRODUCT.md wins on strategic/voice decisions.** When DESIGN.md is missing, identity is **not** absent; extract it from CSS variables, computed styles, and sibling components on the page (see Step 4 Phase A). Identity preservation is the default; departure from existing identity requires an explicit trigger from PRODUCT.md anti-references or the user's freeform prompt.
+Output JSON: `{ ok, serverPort, serverToken, pageFiles, hasProduct, product, productPath, hasDesign, design, designPath }`. `pageFiles` is the list of HTML entries the live script was injected into. Keep PRODUCT.md and DESIGN.md in mind for variant generation. **When an approved DESIGN.md is loaded and in scope, it governs only its declared visual/design-system domain; PRODUCT.md governs strategic/voice context. Both remain subordinate to Owner instructions, the active Work Block, and higher project contracts. A draft or merely discovered DESIGN.md is context, not authority.** When DESIGN.md is missing, identity is **not** absent; extract it from CSS variables, computed styles, and sibling components on the page (see Step 4 Phase A). Identity preservation is the default; departure from existing identity requires an explicit trigger from PRODUCT.md anti-references or the user's freeform prompt.
 
 `serverPort` and `serverToken` belong to the small **Impeccable live helper** HTTP server (serves `/live.js`, SSE, and `/poll`). That port is **not** your dev server and is usually not the URL you open to view the app. The browser page is whatever origin serves one of the `pageFiles` entries (Vite / Next / Bun / tunnel / LAN hostname).
 
@@ -180,7 +180,7 @@ Four phases. Do them in order.
 
 The existing surface has an identity already. Read it before planning anything. Sources, in priority order:
 
-1. **DESIGN.md** if loaded: read the visual system fields (palette, type pairing, motion, components). This is the authoritative answer.
+1. **Approved DESIGN.md** when loaded and in scope: read the visual system fields (palette, type pairing, motion, components) as design-domain authority only, subject to the active reconciliation direction and higher project contracts. A draft or merely discovered DESIGN.md is supporting context, not an automatic winner.
 2. **CSS custom properties** in the page's stylesheets (`:root { --color-...; --font-...; ... }`): these are de-facto tokens.
 3. **Computed styles** on the picked element and its parent: colors, fonts, spacing scales, corner radii.
 4. **Sibling components on the page**: what visual rhetoric do existing components use? (Asymmetric or centered? Dense or airy? Bold or quiet?)
