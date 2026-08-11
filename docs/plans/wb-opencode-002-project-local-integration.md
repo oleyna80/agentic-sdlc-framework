@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-opencode-002-project-local-integration
 work_block_id: WB-OPENCODE-002
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-04
 process_level: Managed
@@ -127,3 +127,90 @@ docs/plans/wb-opencode-002-project-local-integration.md
 - Verifier: required, independent and read-only.
 - Closeout: success only after both assurance verdicts are `READY`; otherwise
   reporting-only with residual risks preserved.
+
+## Stage 0 Addendum — 2026-08-11 Owner-approved replacement candidate
+
+This addendum records the explicit Owner amendment in this session. It returns
+the corrected candidate definition to Stage 0 only to resolve the Critic
+conditions before the bounded amendment execution; it does not close this Work
+Block or create a terminal readiness claim.
+
+### Corrected candidate subject and scope
+
+- Historical candidate `8ec1621dd839137f5888ac99fe7ad5a59a60bff0` contains
+  unresolved markers and is not `READY`.
+- The corrected replacement candidate is the full commit
+  `63f88e3174668a8707445e54807c9cfcb2fbb81c`.
+- The adapter bridge scope is limited to these seven pre-existing root mirrors:
+  - `.opencode/skills/critic-review/SKILL.md`
+  - `.opencode/skills/reviewer/SKILL.md`
+  - `.opencode/skills/scoped-coder/SKILL.md`
+  - `.opencode/skills/ssot-sync-closeout/SKILL.md`
+  - `.opencode/skills/subagent-mission-brief/SKILL.md`
+  - `.opencode/skills/task-decomposition/SKILL.md`
+  - `.opencode/skills/verifier/SKILL.md`
+- The historical root/template configuration parity is limited to
+  `opencode.json` and `template/opencode.json` having `skills.paths:
+  ["skills"]`. This static parity does **not** claim that `skills.paths`
+  discovers any of the seven mirrors.
+
+### Explicit exclusions and remaining limitation
+
+- `.opencode/skills/skill-library-maintenance/**` is excluded.
+- All changes introduced after the corrected candidate by `cd79823`,
+  `6342296`, and `d90d016` are excluded.
+- Live OpenCode discovery and permission-merging behavior remain `UNVERIFIED`.
+  A live smoke requires separate Owner approval, a capability record, and a
+  separately approved execution; this amendment neither invokes nor authorizes
+  it.
+
+### Gate re-resolution
+
+- Critic gate: `APPROVE_WITH_CHANGES`; its replacement-subject, bounded-scope,
+  explicit-exclusion, and static-coverage conditions are satisfied by this
+  addendum.
+- Amendment execution write gate: `READY` for one Coder and the exclusive
+  amendment paths below.
+- Reviewer and Verifier assurance remains pending and independent. No
+  `READY`, completion, or closeout verdict is asserted by this addendum.
+
+### Corrected-candidate and amendment write-set record
+
+The original write-set above remains historical record. The corrected-candidate
+path manifest additionally records the seven bridge paths and the configuration
+paths listed here; they are evidence of the replacement candidate, not writable
+paths for this amendment:
+
+```text
+opencode.json
+template/opencode.json
+.opencode/skills/critic-review/SKILL.md
+.opencode/skills/reviewer/SKILL.md
+.opencode/skills/scoped-coder/SKILL.md
+.opencode/skills/ssot-sync-closeout/SKILL.md
+.opencode/skills/subagent-mission-brief/SKILL.md
+.opencode/skills/task-decomposition/SKILL.md
+.opencode/skills/verifier/SKILL.md
+FILE_REGISTRY.yml
+```
+
+The exclusive write-set for this amendment execution is exactly:
+
+```text
+docs/plans/wb-opencode-002-project-local-integration.md
+PROJECT_MAP.md
+scripts/test-integration-contracts.py
+```
+
+## Final State
+
+- **Stage state:** completed
+- **Review gate:** READY
+- **Verification verdict:** READY
+- **Drift gate:** ALIGNED
+- **Closeout mode:** success-closeout
+- **Task status:** completed
+
+Live OpenCode discovery and permission-merging behavior remains `UNVERIFIED`;
+it was not part of this deterministic closeout and still requires separate Owner
+approval and a live capability record.

@@ -25,7 +25,8 @@ completed_work_blocks:
   - docs/plans/wb-core-003c-completed-state-assurance-binding.md
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
   - docs/plans/wb-core-003e-closure-evidence-correction.md
-active_work_block: docs/plans/wb-opencode-002-project-local-integration.md
+  - docs/plans/wb-opencode-002-project-local-integration.md
+active_work_block: null
 -->
 
 ## Current Operational Architecture
@@ -50,8 +51,12 @@ current operational architecture decision is
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
 This worktree also carries an optional project-local OpenCode surface at the
-repository root. It is a runtime adapter only; it does not change the
-runtime-neutral authority model or make OpenCode the framework Orchestrator.
+repository root. `.opencode/` contains logical-role agents and separately
+enumerated optional bridge skills. Both are runtime-adapter-only surfaces:
+they grant no authority, do not change the runtime-neutral authority model, and
+do not make OpenCode the framework Orchestrator. Runtime discovery of the
+optional bridge skills remains `UNVERIFIED` pending separately approved live
+smoke evidence.
 
 ## Accepted Target Architecture — Not Yet Promoted
 
@@ -228,6 +233,7 @@ Missing network, revision, or license evidence fails closed.
 | `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded mode |
 | `opencode.json` | runtime adapter | Project-local OpenCode instructions and permission baseline; no authority |
 | `.opencode/agents/` | runtime adapter | Project-local logical-role subagents; live smoke required |
+| `.opencode/skills/` | runtime adapter | Optional bridge skills: `critic-review`, `reviewer`, `scoped-coder`, `ssot-sync-closeout`, `subagent-mission-brief`, `task-decomposition`, and `verifier`; discovery unverified and no authority |
 | `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
@@ -320,9 +326,10 @@ Completed:
 18. WB-CORE-003E — completed bounded closure-evidence correction for
     WB-CORE-003D; governance evidence only, no runtime, protocol, or VCS action.
 
-Active: `docs/plans/wb-opencode-002-project-local-integration.md` — project-local OpenCode integration; execution is
-bounded to its approved write-set and does not activate providers, MCP, plugins,
-hooks, or server mode.
+19. WB-OPENCODE-002 — completed project-local OpenCode runtime-adapter
+    integration; live discovery and permission-merging behavior remain unverified.
+
+No active implementation Work Block.
 
 Planned:
 

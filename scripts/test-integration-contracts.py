@@ -176,6 +176,24 @@ def static_contracts() -> None:
         if forbidden in opencode:
             fail(f"OpenCode baseline must not configure {forbidden}")
 
+    bridge_skill_paths = (
+        ".opencode/skills/critic-review/SKILL.md",
+        ".opencode/skills/reviewer/SKILL.md",
+        ".opencode/skills/scoped-coder/SKILL.md",
+        ".opencode/skills/ssot-sync-closeout/SKILL.md",
+        ".opencode/skills/subagent-mission-brief/SKILL.md",
+        ".opencode/skills/task-decomposition/SKILL.md",
+        ".opencode/skills/verifier/SKILL.md",
+    )
+    root_opencode = load_json(ROOT / "opencode.json")
+    template_skill_paths = (opencode.get("skills") or {}).get("paths")
+    root_skill_paths = (root_opencode.get("skills") or {}).get("paths")
+    if template_skill_paths != ["skills"] or root_skill_paths != template_skill_paths:
+        fail("root/template OpenCode skills.paths must have exact historical parity")
+    for relative in bridge_skill_paths:
+        root_bridge = ROOT / relative
+        require(root_bridge)
+
     for role in ("architect", "critic", "coder", "reviewer", "verifier"):
         data = frontmatter(TEMPLATE / f".opencode/agents/{role}.md")
         if data.get("mode") != "subagent":
