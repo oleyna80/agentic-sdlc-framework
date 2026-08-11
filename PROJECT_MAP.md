@@ -26,6 +26,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
   - docs/plans/wb-core-003e-closure-evidence-correction.md
   - docs/plans/wb-opencode-002-project-local-integration.md
+  - docs/plans/wb-design-001-openai-frontend-delta.md
 active_work_block: null
 -->
 
@@ -328,6 +329,9 @@ Completed:
 
 19. WB-OPENCODE-002 — completed project-local OpenCode runtime-adapter
     integration; live discovery and permission-merging behavior remain unverified.
+
+20. WB-DESIGN-001 — completed Controlled refresh of `frontend-design` with a
+    provider-neutral OpenAI methodological delta; no runtime or tool activation.
 
 No active implementation Work Block.
 
