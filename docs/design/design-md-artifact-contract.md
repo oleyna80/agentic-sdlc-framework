@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: domain_artifact_contract
 artifact_id: portable-design-md
-status: review
+status: approved
 owner_role: architect
 created_at: 2026-08-11
 upstream_reference: google-labs-code/design.md
