@@ -15,6 +15,7 @@ A calm working interface.
 - **Ink** (#112233): text.
 ## Typography
 **Body Font:** Inter (with sans-serif)
+**Character:** Editorial warmth with practical clarity.
 ### Hierarchy
 - **Body** (400, 16px, 1.5): Reading.
 ## Elevation
@@ -32,6 +33,8 @@ const legacyModel = parseDesignMd(legacy);
 assert.equal(legacyModel.schemaVersion, 2);
 assert.equal(legacyModel.overview.creativeNorthStar, 'Quiet Tool');
 assert.equal(legacyModel.colors.groups.length, 1);
+assert.equal(legacyModel.colors.groups[0].colors[0].description, 'text.');
+assert.equal(legacyModel.typography.character, 'Editorial warmth with practical clarity.');
 assert.ok(legacyModel.elevation);
 assert.equal(legacyModel.layout, null);
 assert.equal(legacyModel.shapes, null);
@@ -62,7 +65,9 @@ const richLegacyModel = parseDesignMd(richLegacy);
 assert.equal(richLegacyModel.typography.fonts.display.family, 'Noto Serif');
 assert.equal(richLegacyModel.typography.fonts.body.family, 'Public Sans');
 assert.equal(richLegacyModel.colors.groups[0].role, 'Primary');
+assert.equal(richLegacyModel.colors.groups[0].colors[0].description, 'Primary action.');
 assert.equal(richLegacyModel.colors.groups[1].role, 'Secondary');
+assert.equal(richLegacyModel.colors.groups[1].colors[0].description, 'Sparse annotation.');
 assert.equal(richLegacyModel.elevation.shadows[0].name, 'Ambient');
 assert.match(richLegacyModel.elevation.shadows[0].value, /0 12px 40px/);
 assert.match(richLegacyModel.overview.philosophy[0], /Surfaces remain flat/i);
@@ -115,6 +120,7 @@ Fast mechanical transitions; respect reduced motion.
 const modernModel = parseDesignMd(modern);
 assert.equal(modernModel.designMdFormatVersion, 'alpha');
 assert.equal(modernModel.frontmatter.colors.primary, 'oklch(62% 0.18 250)');
+assert.equal(modernModel.colors.groups[0].colors[0].description, 'action accent.');
 assert.deepEqual(modernModel.omitted, [
   { section: 'spacing', reason: null },
   { section: 'rounded', reason: 'Square geometry' },
