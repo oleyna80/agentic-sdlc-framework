@@ -7,9 +7,9 @@ status: in_progress
 owner_role: orchestrator
 created_at: 2026-08-11
 process_level: Standard
-governance_profile: Standard
+governance_profile: Controlled
 branch: agent/frontend-design-openai-delta
-owner_approval: current explicit Owner instruction to create a new branch and adapt the OpenAI frontend-design delta
+owner_approval: current explicit Owner instruction to create a new branch, adapt the OpenAI frontend-design delta, and proceed through targeted assurance and PR preparation
 critic_gate: APPROVE_WITH_CHANGES — provider-specific defaults excluded before Execute
 write_gate: READY
 writer: one Coder, Orchestrator disclosed
@@ -66,6 +66,18 @@ rule. In particular, this Work Block does not require:
 - fixed font counts, accent counts, or other style constants;
 - dependency, runtime, MCP, hook, browser-tool, or configuration changes.
 
+## Risk and governance profile
+
+This is a small, bounded, reversible skill/documentation change with no runtime,
+dependency, deployment, data, security-boundary, or external side effect. The
+current operational governance taxonomy therefore uses `Controlled`, which
+requires one Coder, deterministic checks where applicable, targeted
+review/verification, and a rollback path. Independent Reviewer/Verifier sessions
+are not mandatory for this profile; any same-context role pass must be labeled
+honestly and must not be described as independent.
+
+Rollback is limited to reverting the Work Block and `frontend-design` skill delta.
+
 ## Critic gate
 
 **APPROVE_WITH_CHANGES.** The useful OpenAI contribution is architectural and
@@ -80,7 +92,7 @@ procedural rather than a set of literal visual defaults. Execute only after:
 
 These conditions are incorporated in the approved scope above.
 
-## Write-set
+## Execute write-set
 
 Exactly:
 
@@ -89,7 +101,7 @@ docs/plans/wb-design-001-openai-frontend-delta.md
 skills/frontend-design/SKILL.md
 ```
 
-No other path is writable in this Execute stage.
+No other path is writable during product-method implementation.
 
 ## Acceptance
 
@@ -101,20 +113,35 @@ No other path is writable in this Execute stage.
 - No new tools, dependencies, runtime configuration, hooks, or MCP are added.
 - No OpenAI-specific visual constants are promoted into universal policy.
 - `SKILL.md` frontmatter remains valid under the local skill convention.
-- The diff is limited to the approved write-set.
+- The implementation diff is limited to the approved Execute write-set.
 
-## Transitional lifecycle note
+## Lifecycle sync authorization
 
-This branch is an Execute-stage subject, not yet a closeout or PR-ready lifecycle
-projection. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` intentionally remain
-unchanged in this bounded implementation write-set and therefore continue to
-show no active implementation Work Block. Before any closeout or PR-readiness
-claim, the Work Block must return to Define for an explicitly approved lifecycle
-sync write-set, then receive applicable read-only assurance. Until then this
-file plus the current explicit Owner instruction are the authority for the
-bounded branch work; no release-state consistency claim is made for this branch.
+The Owner subsequently approved transition to the next stage. After the
+implementation subject is reviewed and verified under the Controlled profile,
+the Orchestrator may synchronize only the following lifecycle/evidence surfaces:
+
+```text
+docs/plans/wb-design-001-openai-frontend-delta.md
+PROJECT_MAP.md
+FILE_REGISTRY.yml
+docs/reports/reviews/wb-design-001-openai-frontend-delta-review.md
+docs/reports/verification/wb-design-001-openai-frontend-delta-verification.md
+docs/reports/closeout/wb-design-001-openai-frontend-delta.md
+```
+
+This lifecycle sync must not alter the already-frozen product-method content in
+`skills/frontend-design/SKILL.md`. Any material method edit after assurance
+requires a new freeze and applicable re-review/re-verification.
 
 ## Assurance and handoff
 
-After Execute, freeze the branch head and run read-only review/verification
-before closeout or PR publication. Merge remains separately Owner-controlled.
+- Targeted Reviewer: required, read-only against a frozen subject; same-context
+  role separation is permitted by `Controlled` but must be labeled non-independent.
+- Targeted Verifier: required, evidence-based against acceptance criteria and
+  deterministic repository checks available through CI; same-context role
+  separation must be labeled non-independent.
+- Evaluation posture: not required because the change is deterministic policy/
+  documentation text and no agent behavior benchmark is part of acceptance.
+- PR publication and CI are authorized by the Owner's transition approval.
+- Merge remains separately Owner-controlled.
