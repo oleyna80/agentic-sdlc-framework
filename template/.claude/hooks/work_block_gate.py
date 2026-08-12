@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Claude Code PreToolUse guard for Work Block source-write authority."""
+"""Claude Code PreToolUse guard for cooperative Work Block write scope."""
 from __future__ import annotations
 
-import datetime as dt
 import fnmatch
 import json
 import os
 from pathlib import Path, PurePosixPath
-import re
-import subprocess
 import sys
 
 GATE_PATH = Path(".agent/active-work-block.json")
@@ -16,6 +13,7 @@ DEFAULT_COORDINATION = [
     ".agent/active-work-block.json",
     ".agent/critic-gate.md",
     ".agent/verification-gate.md",
+    ".codex/write-gate.md",
     "docs/plans/**",
     "docs/specs/**",
     "docs/tasklist/**",
@@ -90,21 +88,6 @@ def load_gate(root: Path) -> dict:
     return gate
 
 
-def git(root: Path, *args: str) -> str:
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            cwd=root,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        deny(f"Cannot inspect git state: {exc}")
-    return result.stdout.strip()
-
-
 def matches(path: str, patterns: list[str]) -> bool:
     candidate = path.rstrip("/")
     for raw in patterns:
@@ -127,31 +110,17 @@ def coordination(gate: dict) -> list[str]:
     return DEFAULT_COORDINATION
 
 
-def expiry(value: object) -> dt.datetime:
-    if not isinstance(value, str) or not value.strip():
-        deny("write_gate.expires_at must be a non-empty timestamp.")
-    try:
-        parsed = dt.datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
-    except ValueError as exc:
-        deny(f"Invalid write_gate.expires_at: {exc}")
-        raise AssertionError from exc
-    if parsed.tzinfo is None:
-        deny("write_gate.expires_at must include a timezone.")
-    return parsed.astimezone(dt.timezone.utc)
-
-
-def validate_source_gate(gate: dict, root: Path) -> list[str]:
-    if gate.get("schema_version") != 1:
-        deny("Unsupported active Work Block schema_version.")
+def validate_source_gate(gate: dict) -> list[str]:
+    if gate.get("schema_version") != 3:
+        deny("Source writes require active-work-block schema_version=3.")
+    if gate.get("authority_mode") != "github_capability":
+        deny("Source writes require authority_mode=github_capability.")
     if not str(gate.get("work_block_id") or "").strip():
         deny("Active Work Block requires work_block_id.")
 
     write_gate = gate.get("write_gate")
     if not isinstance(write_gate, dict) or write_gate.get("status") != "READY":
         deny("Source writes require write_gate.status=READY.")
-    expires = expiry(write_gate.get("expires_at"))
-    if dt.datetime.now(dt.timezone.utc) >= expires:
-        deny(f"Write gate expired at {expires.isoformat()}.")
 
     specification = gate.get("specification")
     if not isinstance(specification, dict):
@@ -160,13 +129,6 @@ def validate_source_gate(gate: dict, root: Path) -> list[str]:
         deny("Active Work Block requires specification.path.")
     if not str(specification.get("revision") or "").strip():
         deny("Active Work Block requires specification.revision.")
-
-    base = str(gate.get("base_commit") or "").strip()
-    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", base):
-        deny("Active Work Block requires a valid base_commit SHA.")
-    head = git(root, "rev-parse", "HEAD")
-    if not head.startswith(base) and not base.startswith(head):
-        deny(f"Stale gate: HEAD {head[:12]} != base_commit {base[:12]}.")
 
     critic = gate.get("critic")
     if not isinstance(critic, dict):
@@ -177,15 +139,10 @@ def validate_source_gate(gate: dict, root: Path) -> list[str]:
     if required:
         if status not in {"READY", "DEGRADED", "FALLBACK", "SKIPPED"}:
             deny("Required Critic state is unresolved.")
-        if status in {"READY", "DEGRADED", "FALLBACK"} and verdict not in {
-            "APPROVE",
-            "SUPPLEMENT",
-        }:
+        if status != "SKIPPED" and verdict not in {"APPROVE", "SUPPLEMENT"}:
             deny("Required Critic verdict must be APPROVE or SUPPLEMENT.")
         if status == "SKIPPED" and not str(critic.get("skip_reason") or "").strip():
             deny("Skipped Critic requires skip_reason.")
-    elif status == "SKIPPED" and not str(critic.get("skip_reason") or "").strip():
-        deny("Skipped Critic requires skip_reason.")
 
     write_set = gate.get("write_set")
     if not isinstance(write_set, list) or not any(str(value).strip() for value in write_set):
@@ -215,7 +172,7 @@ def main() -> None:
     if matches(path, coordination_paths):
         return
 
-    write_set = validate_source_gate(gate, root)
+    write_set = validate_source_gate(gate)
     if not matches(path, write_set):
         deny(
             f"Source write outside approved scope: {path}. "
