@@ -45,7 +45,7 @@ authorities conflict or an action would change their relationship.
 
 | Role | Authority |
 | --- | --- |
-| Owner | Approves objectives, scope, material risk, promotions, commits, pushes, and external impact. |
+| Owner | Approves objectives, material risk, promotions, consequential external actions, and final acceptance. |
 | Orchestrator | Frames lifecycle, routes roles, consolidates evidence, and reports residual risk. |
 | Architect / Analyst | Read-only impact, dependency, or design analysis. |
 | Critic | Read-only challenge before execution. |
@@ -90,11 +90,32 @@ acceptance checks, preserve unrelated work, and confirm the Work Block permits
 the write. Return to Define for a material requirement, authority, risk, or
 scope change.
 
-Stop for explicit Owner approval before dependencies, configuration, secrets,
-environment, hooks, runtime adapters, CI behavior, database/schema work,
-deployment, live mutation, candidate promotion, destructive action, staging,
-commit, or push. Never overwrite, revert, stage, commit, or delete unrelated
-work, and never place credentials or secrets in artifacts or evidence.
+Normal reversible development operations are not Owner Hard Stops merely
+because they change Git state. When the Work Block permits the paths, an agent
+may stage, create local commits, push a normal feature branch, and create/update
+a pull request without an SSH-signed authorization record.
+
+The public framework repository uses GitHub as the external default-branch
+boundary. `main` is protected by the active repository ruleset: changes require
+a pull request and the required status checks; deletion and non-fast-forward
+updates are blocked. Do not bypass, weaken, or replace that ruleset from a Work
+Block.
+
+Stop and use an externally controlled Owner capability before production/live
+infrastructure, live data/schema mutation, credential/secret operations,
+destructive Git/filesystem actions, direct protected/default-branch mutation,
+irreversible external publish, or real client-facing communication. In consumer
+projects, the normal agent credential must not contain production/VPS/DB/secrets
+or production workflow-dispatch authority.
+
+Project-local hooks remain cooperative guardrails. They may enforce write-sets
+and deny obvious dangerous commands early, but they are not a cryptographic or
+OS security boundary and must not be described as one.
+
+Per-Work-Block SSH signing, detached `.sig` files, `allowed_signers`, and
+authorization-bootstrap commits are retired from the normal development path.
+Historical records may remain as audit evidence; they do not create current
+authority.
 
 Before parallel execution, Stage 0 must record the immutable common base,
 stream ownership matrix, empty worker-path intersection, isolation identifiers,
