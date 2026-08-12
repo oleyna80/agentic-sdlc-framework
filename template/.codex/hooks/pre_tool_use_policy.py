@@ -278,7 +278,6 @@ def check_bash(event: dict, gate: dict, root: Path) -> None:
         return
 
     if re.search(r"\bgit\s+commit\b", command, re.I):
-        write_set = validate_source_gate(gate)
         staged = [
             value
             for value in git(root, "diff", "--cached", "--name-only", "--diff-filter=ACMRD").splitlines()
@@ -286,7 +285,12 @@ def check_bash(event: dict, gate: dict, root: Path) -> None:
         ]
         if not staged:
             raise Denied("git commit has no staged paths to validate.")
-        allowed = write_set + coordination(gate)
+        coordination_paths = coordination(gate)
+        source = [path for path in staged if not matches(path, coordination_paths)]
+        if not source:
+            require_scope(staged, coordination_paths, "Coordination commit")
+            return
+        allowed = validate_source_gate(gate) + coordination_paths
         require_scope(staged, allowed, "Staged commit")
         return
 
