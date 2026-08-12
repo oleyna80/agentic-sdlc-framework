@@ -108,7 +108,7 @@ def write_gate(repo: Path, *, status: str = "READY") -> None:
             "path": "docs/specs/fixture.md" if status == "READY" else "",
             "revision": "v1" if status == "READY" else "",
         },
-        "base_commit": git(repo, "rev-parse", "HEAD") if (repo / ".git").exists() else "",
+        "base_commit": "",
         "write_gate": {"status": status, "opened_at": "fixture" if status == "READY" else None},
         "critic": {
             "required": True,
@@ -240,6 +240,18 @@ def hook_fixtures() -> None:
             decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
             "READY",
         )
+
+        # Coordination-only governance commits must remain possible while source
+        # is BLOCKED; otherwise the local process recreates a bootstrap deadlock.
+        coordination_file = repo / "docs/plans/wb.md"
+        coordination_file.write_text("# Work Block\n", encoding="utf-8")
+        git(repo, "add", "docs/plans/wb.md")
+        assert_allowed(
+            "coordination-only commit while blocked",
+            decision(PRE_TOOL, repo, event(repo, "Bash", "git commit -m governance")),
+        )
+        git(repo, "reset", "-q", "HEAD", "--", "docs/plans/wb.md")
+        coordination_file.unlink()
 
         write_gate(repo)
         assert_allowed(
