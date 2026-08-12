@@ -25,10 +25,10 @@ completed_work_blocks:
   - docs/plans/wb-core-003c-completed-state-assurance-binding.md
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
   - docs/plans/wb-core-003e-closure-evidence-correction.md
-  - docs/plans/wb-core-003f-github-native-authority-model.md
   - docs/plans/wb-opencode-002-project-local-integration.md
   - docs/plans/wb-design-001-openai-frontend-delta.md
   - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
+  - docs/plans/wb-core-003f-github-native-authority-model.md
 active_work_block: null
 -->
 
