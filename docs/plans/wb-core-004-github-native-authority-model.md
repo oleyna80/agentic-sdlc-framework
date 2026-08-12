@@ -1,6 +1,6 @@
 # WB-CORE-004 — GitHub-Native Authority Model
 
-Status: IN_PROGRESS
+Status: READY_FOR_MERGE
 Date: 2026-08-12
 Owner: Project Owner
 Baseline: `12bb1a11dce4957f2258869314016b1b544f2017`
@@ -102,6 +102,21 @@ They are explicitly **not** a cryptographic or OS security boundary.
 9. Framework `contracts` and `release-state` required checks pass on the PR.
 10. Critic, Reviewer, and Verifier find no BLOCKER/HIGH issue before merge.
 
+## Assurance summary
+
+Implementation subject through `8b1300fcf1cae4b63141335818514084ce91030b` completed the schema-v3 authority migration and the corrective hardening discovered during assurance.
+
+Recorded evidence:
+
+- `docs/reports/reviews/wb-core-004-critic.md` — APPROVE after resolving premature closeout, broad/tag push, Claude Bash write-set, and documentation-parity findings;
+- `docs/reports/reviews/wb-core-004-review.md` — READY, no remaining BLOCKER/HIGH finding;
+- `docs/reports/verification/wb-core-004-verification.md` — READY;
+- Framework Contracts run `31624961564` — success on evidence head `c7400ca569b58f94ba68a64fb8ba341e975092e8`;
+- Release State Contract run `31624961808` — success on the same evidence head;
+- GitHub ruleset `19916164` remains active and unchanged.
+
+The Critic/Reviewer/Verifier records are explicitly same-session connector-backed assurance and are not represented as independent human or separate-runtime review. The exact final PR head must still satisfy the repository-required `contracts` and `release-state` checks before merge.
+
 ## Migration
 
 Existing signed authorization records may remain as historical evidence. They are not required by schema v3 and must not be treated as current authority.
@@ -110,4 +125,4 @@ Consumer projects may adopt this model incrementally: first install the schema/h
 
 ## Merge authority
 
-This Work Block authorizes implementation and feature-branch/PR activity. It does not authorize bypassing the existing GitHub ruleset or merging a failing PR.
+This Work Block authorizes implementation and feature-branch/PR activity. It does not authorize bypassing the existing GitHub ruleset or merging a failing PR. Merge is permitted only through the protected PR path after the exact final head satisfies the required checks and the PR is no longer Draft.
