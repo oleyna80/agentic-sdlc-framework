@@ -102,20 +102,20 @@ def write_gate(repo: Path, *, status: str = "READY") -> None:
     gate = {
         "schema_version": 3,
         "authority_mode": "github_capability",
-        "work_block_id": "wb-fixture" if status == "READY" else "",
+        "work_block_id": "wb-fixture",
         "governance_profile": "Managed",
         "specification": {
-            "path": "docs/specs/fixture.md" if status == "READY" else "",
-            "revision": "v1" if status == "READY" else "",
+            "path": "docs/specs/fixture.md",
+            "revision": "v1",
         },
         "base_commit": "",
         "write_gate": {"status": status, "opened_at": "fixture" if status == "READY" else None},
         "critic": {
             "required": True,
-            "status": "READY" if status == "READY" else "PENDING",
-            "verdict": "APPROVE" if status == "READY" else "PENDING",
-            "report": "docs/reports/critic-fixture.md" if status == "READY" else "",
-            "isolation": "separate_subagent" if status == "READY" else "unknown",
+            "status": "READY",
+            "verdict": "APPROVE",
+            "report": "docs/reports/critic-fixture.md",
+            "isolation": "separate_subagent",
             "skip_reason": "",
         },
         "write_set": ["src/**", "tests/**"] if status == "READY" else [],
@@ -241,8 +241,6 @@ def hook_fixtures() -> None:
             "READY",
         )
 
-        # Coordination-only governance commits must remain possible while source
-        # is BLOCKED; otherwise the local process recreates a bootstrap deadlock.
         coordination_file = repo / "docs/plans/wb.md"
         coordination_file.write_text("# Work Block\n", encoding="utf-8")
         git(repo, "add", "docs/plans/wb.md")
