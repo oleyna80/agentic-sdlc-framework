@@ -168,17 +168,45 @@ def push_segments(command: str) -> list[str]:
     ]
 
 
-def destructive_push(command: str) -> bool:
+def parse_push_segment(segment: str) -> tuple[list[str], list[str]]:
+    try:
+        tokens = shlex.split(segment, posix=True)
+    except ValueError:
+        return [], []
+    positional = [token for token in tokens if not token.startswith("-")]
+    return tokens, positional
+
+
+def destructive_or_broad_push(command: str) -> bool:
+    broad_flags = {"--delete", "--mirror", "--all", "--prune"}
     for segment in push_segments(command):
-        try:
-            tokens = shlex.split(segment, posix=True)
-        except ValueError:
+        tokens, positional = parse_push_segment(segment)
+        if not tokens and segment:
             return True
-        if any(token == "--delete" or token.startswith("--delete=") for token in tokens):
+        if any(
+            token in broad_flags
+            or any(token.startswith(f"{flag}=") for flag in broad_flags)
+            for token in tokens
+        ):
             return True
-        positional = [token for token in tokens if not token.startswith("-")]
         if len(positional) > 1 and any(refspec.startswith(":") for refspec in positional[1:]):
             return True
+    return False
+
+
+def tag_publish(command: str) -> bool:
+    for segment in push_segments(command):
+        tokens, positional = parse_push_segment(segment)
+        if not tokens and segment:
+            return True
+        if any(token in {"--tags", "--follow-tags"} for token in tokens):
+            return True
+        if len(positional) > 1:
+            refspecs = positional[1:]
+            if refspecs and refspecs[0] == "tag":
+                return True
+            if any("refs/tags/" in refspec.lstrip("+") for refspec in refspecs):
+                return True
     return False
 
 
@@ -202,12 +230,9 @@ def refspec_targets_default(refspec: str, current: str) -> bool:
 def pushes_default_branch(command: str, root: Path) -> bool:
     branch = current_branch(root)
     for segment in push_segments(command):
-        try:
-            tokens = shlex.split(segment, posix=True)
-        except ValueError:
+        tokens, positional = parse_push_segment(segment)
+        if not tokens and segment:
             return branch in {"main", "master"}
-
-        positional = [token for token in tokens if not token.startswith("-")]
         if len(positional) <= 1:
             if branch in {"main", "master"}:
                 return True
@@ -251,8 +276,10 @@ def check_command(command: str, gate: dict, root: Path) -> None:
         deny("Destructive recursive rm is outside the normal agent capability boundary.")
     if force_push(command):
         deny("Force push is outside the normal agent capability boundary.")
-    if destructive_push(command):
-        deny("Destructive remote branch deletion is outside the normal agent capability boundary.")
+    if destructive_or_broad_push(command):
+        deny("Broad or destructive remote push is outside the normal agent capability boundary.")
+    if tag_publish(command):
+        deny("External tag publication is outside the normal agent capability boundary.")
     if re.search(r"\bgit\s+push\b", command, re.I) and pushes_default_branch(command, root):
         deny("Direct protected/default-branch push is outside the normal agent capability boundary; use a pull request.")
 
