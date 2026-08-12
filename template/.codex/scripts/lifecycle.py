@@ -8,6 +8,7 @@ OS, workflow, and credential boundaries.
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import json
 import subprocess
@@ -141,6 +142,13 @@ def default_state(reason: str = "coordination") -> dict:
     }
 
 
+def validate_state(value: dict) -> None:
+    if value.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"state requires schema_version={SCHEMA_VERSION}")
+    if value.get("authority_mode") != AUTHORITY_MODE:
+        raise ValueError(f"state requires authority_mode={AUTHORITY_MODE}")
+
+
 def validate_open(args: argparse.Namespace) -> None:
     if not args.work_block_id.strip():
         raise ValueError("open requires a non-empty --work-block-id")
@@ -181,9 +189,17 @@ def open_state(root: Path, args: argparse.Namespace, current: dict) -> dict:
         "skip_reason": args.critic_skip_reason.strip(),
     }
     if isinstance(current.get("integrations"), dict):
-        value["integrations"] = current["integrations"]
+        value["integrations"] = copy.deepcopy(current["integrations"])
     if isinstance(current.get("coordination_write_set"), list):
-        value["coordination_write_set"] = current["coordination_write_set"]
+        value["coordination_write_set"] = list(current["coordination_write_set"])
+    return value
+
+
+def blocked_copy(current: dict, reason: str) -> dict:
+    validate_state(current)
+    value = copy.deepcopy(current)
+    value["write_gate"] = {"status": "BLOCKED", "opened_at": None}
+    value["lifecycle_note"] = reason
     return value
 
 
@@ -210,9 +226,13 @@ def main() -> int:
     opening.add_argument("--critic-isolation", default="same_context")
     opening.add_argument("--critic-skip-reason", default="")
 
-    for command in ("freeze", "close"):
-        item = subparsers.add_parser(command)
-        item.add_argument("--reason", required=True)
+    freeze = subparsers.add_parser("freeze")
+    freeze.add_argument("--reason", required=True)
+    close = subparsers.add_parser("close")
+    close.add_argument("--reason", required=True)
+    close.add_argument(
+        "--mode", choices=("success-closeout", "reporting-only"), required=True
+    )
 
     args = parser.parse_args()
     root = args.root.resolve()
@@ -220,6 +240,7 @@ def main() -> int:
 
     if args.command == "status":
         value = read(state)
+        validate_state(value)
         print(json.dumps(value, sort_keys=True))
         return 0
 
@@ -227,11 +248,13 @@ def main() -> int:
     if args.command == "prepare":
         value = default_state(args.reason)
     elif args.command == "open":
+        validate_state(current)
         value = open_state(root, args, current)
+    elif args.command == "freeze":
+        value = blocked_copy(current, args.reason)
     else:
-        value = default_state(args.reason)
-        if args.command == "close":
-            value["closeout_mode"] = "success"
+        value = blocked_copy(current, args.reason)
+        value["closeout_mode"] = args.mode
 
     atomic(state, value)
     print(json.dumps(value, sort_keys=True))
