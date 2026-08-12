@@ -95,6 +95,7 @@ def main() -> int:
         (repo / ".agent").mkdir()
         (repo / "src").mkdir()
         (repo / "src/app.py").write_text("value = 1\n", encoding="utf-8")
+        (repo / ".env.example").write_text("SAFE_EXAMPLE=value\n", encoding="utf-8")
         git(repo, "init", "-q", "-b", "feature")
         git(repo, "config", "user.email", "fixture@example.com")
         git(repo, "config", "user.name", "Fixture")
@@ -106,6 +107,7 @@ def main() -> int:
         allowed(repo, "git commit -m normal-feature-commit")
         allowed(repo, "git push origin feature")
         allowed(repo, "git status --short")
+        allowed(repo, "cat .env.example")
 
         # Protected/default branch and history-rewriting pushes remain denied locally,
         # and GitHub rules provide the external framework boundary.
@@ -113,6 +115,10 @@ def main() -> int:
             "git push origin main",
             "git push origin master",
             "git push origin HEAD:refs/heads/main",
+            "git push origin feature:main",
+            "git push origin feature:refs/heads/main",
+            "git push origin :main",
+            "git push origin --delete main",
         ):
             denied(repo, command, "default-branch")
         for command in (
@@ -125,6 +131,8 @@ def main() -> int:
 
         git(repo, "branch", "-m", "main")
         denied(repo, "git push origin HEAD", "default-branch")
+        allowed(repo, "git push origin feature")
+        allowed(repo, "git push origin main:feature")
         git(repo, "branch", "-m", "feature")
 
         for command in (
@@ -149,6 +157,7 @@ def main() -> int:
         denied(repo, "docker push ghcr.io/example/app:sha-123", "external image publish")
         denied(repo, "psql db -c 'UPDATE users SET x=1'", "live-data")
         denied(repo, "cat .env", "credential")
+        denied(repo, "cat .env.local", "credential")
         denied(repo, "sendmail client@example.invalid", "client-facing")
 
         denied(repo, "codex exec review", "integrations.approved")
