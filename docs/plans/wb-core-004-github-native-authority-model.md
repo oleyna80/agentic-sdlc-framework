@@ -2,7 +2,7 @@
 
 Status: IN_PROGRESS
 Date: 2026-08-12
-Owner: oleyna80
+Owner: Project Owner
 Baseline: `12bb1a11dce4957f2258869314016b1b544f2017`
 
 ## Objective
