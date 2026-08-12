@@ -25,6 +25,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003c-completed-state-assurance-binding.md
   - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
   - docs/plans/wb-core-003e-closure-evidence-correction.md
+  - docs/plans/wb-core-003f-github-native-authority-model.md
   - docs/plans/wb-opencode-002-project-local-integration.md
   - docs/plans/wb-design-001-openai-frontend-delta.md
   - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
@@ -97,10 +98,15 @@ WB-CORE-003D. It applied a two-pass assurance sequence, obtained independent
 preliminary and final preflight READY/READY/ALIGNED, and closed with no active
 Work Block remaining. It did not reopen the parallel-write-set protocol or alter
 product Work Block sequencing.
-WB-CORE-004 through WB-CORE-007 remain future Work Blocks requiring their own
-scope, authority, write-set, assurance, and approvals. WB-CORE-006 retains
+WB-CORE-003F completed the inserted GitHub-native authority-model migration. It
+retired per-Work-Block SSH signing from the normal development path, preserved
+Work Block/write-set/assurance discipline, and moved consequential security
+authority to external GitHub/OS/workflow/credential capability boundaries. It
+did not promote the Portable Kit or consume the pre-existing product roadmap ID.
+WB-CORE-004 through WB-CORE-007 remain future product Work Blocks requiring their
+own scope, authority, write-set, assurance, and approvals. WB-CORE-007 retains
 promotion and legacy archival ownership. Separate explicit Owner approval remains
-required before merge.
+required for each future merge.
 
 ## Authority Order
 
@@ -246,6 +252,8 @@ Missing network, revision, or license evidence fails closed.
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
 | `docs/plans/wb-core-001-normative-architecture.md` | completed Work Block | Accepted normative architecture and repository closeout for the portable kit |
+| `docs/plans/wb-core-003f-github-native-authority-model.md` | completed Work Block | GitHub-native capability boundary and retired normal-path SSH authorization |
+| `docs/reports/closeout/wb-core-003f-github-native-authority-model.md` | completed closeout | Repository closeout for the authority-model migration |
 | `docs/specs/portable-agentic-sdlc-project-kit.md` | accepted target | Portable-kit normative target contract; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | accepted target | Accepted project-kit versus control-plane boundary; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | accepted target | Accepted role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
@@ -341,6 +349,10 @@ Completed:
     internal frontend-design/Impeccable compatibility reconciliation; no Google
     tooling, MCP, runtime, bootstrap, or provider activation.
 
+22. WB-CORE-003F — completed Managed GitHub-native authority-model migration;
+    normal scoped development no longer requires SSH-signed Work Block records,
+    while consequential authority remains external to mutable project state.
+
 No active implementation Work Block.
 
 Planned:
@@ -350,10 +362,11 @@ Planned:
 - WB-CORE-006 — HardwareLab pilot;
 - WB-CORE-007 — promotion and legacy archive.
 
-WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A was an
-inserted governance follow-up, not a replacement for that sequence. Planned
-status grants no execution authority. Each future Work Block requires separate
-Owner authority, exact scope, write-set, assurance, and closeout.
+WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A through
+WB-CORE-003F are inserted governance/control-plane follow-ups, not replacements
+for that product sequence. Planned status grants no execution authority. Each
+future Work Block requires separate Owner authority, exact scope, write-set,
+assurance, and closeout.
 
 ## Boundaries
 
