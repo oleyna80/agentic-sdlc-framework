@@ -3,9 +3,7 @@
 ## Status
 
 Implemented generated-project baseline for project instructions, logical-role
-subagents, explicit permissions, and opt-in plugins/MCP. Updated for OpenCode
-August 2026 capabilities: expanded permission keys, skill system, plugin hooks,
-server API, and session management.
+subagents, explicit permissions, and opt-in plugins/MCP.
 
 Target-environment smoke evidence is still required before using OpenCode for a
 Managed, Assured, or Distributed Work Block.
@@ -24,6 +22,27 @@ Managed, Assured, or Distributed Work Block.
 The built-in Plan and Build agents may still be used, but the Work Block must
 record which logical function they perform and their effective permissions.
 
+## Authority Boundary
+
+OpenCode implements the same schema-v3 model as the other supported runtimes:
+
+```text
+authority_mode = github_capability
+```
+
+Runtime permissions and project-local hooks are cooperative guardrails. They do
+not create production authority and are not a cryptographic or OS security
+boundary.
+
+Per-Work-Block SSH signing is retired from the normal development path. A Coder
+does not need an Owner signing key, `ssh-keygen`, an authorization record, or a
+detached signature to edit approved source, create a local commit, or push a
+normal feature branch.
+
+Consequential authority belongs outside the mutable project: GitHub rules and
+least-privilege tokens, Actions permissions, OS isolation, and separately held
+production/VPS/database/secrets.
+
 ## Installed Project Files
 
 ```text
@@ -37,8 +56,8 @@ opencode.json
     └── verifier.md
 ```
 
-No provider, model, plugin, MCP server, API key, or external directory is enabled
-by the framework.
+No provider, model, plugin, MCP server, API key, production secret, or external
+directory is enabled by the framework.
 
 ## Project Configuration
 
@@ -50,70 +69,71 @@ by the framework.
   `snapshot: true`;
 - explicitly denies common secret paths;
 - denies external-directory access;
-- requires approval for edits, Bash, web, task delegation, MCP tools,
+- requires approval for edits, most Bash, web, task delegation, MCP tools,
   question prompts, doom-loop recovery, and todo writes;
-- allows only harmless Git inspection and list commands without approval;
-- denies commit, push, destructive Git, and `rm` commands;
+- allows harmless Git inspection and local `git commit` without a signature;
+- prompts for `git push` so normal feature pushes are visible to the runtime;
+- denies destructive Git and `rm` commands;
 - starts with empty `mcp` and `plugin` collections;
-- leaves `enabled_providers` and `disabled_providers` unconfigured;
-- ignores common generated and volatile paths in the file watcher.
+- leaves provider selection unconfigured.
 
-OpenCode's runtime permission result is one of `allow`, `ask`, or `deny`.
-Project, agent, session, and auto-mode behavior must be considered together.
-Explicit `deny` rules must remain effective even when auto approval is enabled.
+The shared governance contract still forbids direct protected/default-branch
+mutation, force push, production/live infrastructure, live data, credential or
+secret operations, irreversible external publish, and real client-facing
+communication in the normal agent channel.
+
+OpenCode's runtime permission result is one of `allow`, `ask`, or `deny`:
+
+- `ask` is a runtime prompt, not Owner security authority;
+- `allow` does not expand the Work Block write-set;
+- `deny` is useful defense in depth;
+- external GitHub/OS/credential controls remain authoritative for consequential
+  actions.
 
 ## Permission Keys
 
-The baseline documents all OpenCode permission keys and explicitly configures
-the safety-sensitive ones. `glob` and `grep` retain the runtime default of
-`allow`; runtime permission rules remain guardrails, while governance authority
-comes only from the Work Block.
+The baseline explicitly configures safety-sensitive permissions.
 
 | Key | Default | Guardrail purpose |
 |---|---|---|
-| `read` | `allow` (with secret denies) | File reads; secret paths explicitly denied |
-| `edit` | `ask` | All file modifications (write/edit/patch) |
-| `bash` | `ask` (with allow/deny patterns) | Shell commands; git inspection allowed, destructive denied |
-| `glob` | `allow` | File globbing |
-| `grep` | `allow` | Content search |
+| `read` | `allow` with secret denies | File reads |
+| `edit` | `ask` | File modifications |
+| `bash` | `ask` with explicit Git/destructive rules | Shell commands |
 | `list` | `allow` | Directory listing |
-| `task` | `{ "*": "ask" }` | Subagent invocation; per-agent glob matching supported |
-| `skill` | `{ "*": "allow", "internal-*": "deny" }` | Skill loading; reserved `internal-*` naming-convention guard (no current targets) |
-| `question` | `ask` | Interactive user questions during execution |
-| `doom_loop` | `ask` | Recovery prompts when agent repeats identical calls |
-| `todowrite` | `ask` | Todo list modifications |
+| `task` | `{ "*": "ask" }` | Subagent invocation |
+| `skill` | `{ "*": "allow", "internal-*": "deny" }` | Skill loading |
+| `question` | `ask` | Interactive questions |
+| `doom_loop` | `ask` | Repetition recovery |
+| `todowrite` | `ask` | Todo updates |
 | `lsp` | `ask` | LSP queries |
 | `webfetch` | `ask` | URL fetching |
 | `websearch` | `ask` | Web search |
-| `external_directory` | `deny` | Paths outside project working directory |
-| `mcp_*` | `ask` | MCP tool invocation |
+| `external_directory` | `deny` | Outside-project paths |
+| `mcp_*` | `ask` | MCP invocation |
 
-Granular `task` permission supports per-subagent glob matching:
+Project Bash policy intentionally uses:
 
-```json
-{ "task": { "*": "deny", "reviewer": "allow" } }
+```text
+git commit*      allow
+git push*        ask
+git reset --hard* deny
+git clean*       deny
+rm *             deny
 ```
 
-Rules are evaluated by pattern match; the last matching rule wins. Use `*`
-as catch-all, then specific overrides.
+The Coder has the same normal Git posture. Architect, Critic, Reviewer, and
+Verifier keep commit/push denied because their logical functions are read-only
+apart from explicitly bounded evidence artifacts.
 
 ## Permission Boundary
 
-Permissions are guardrails, not the Work Block authority source.
+The generated Coder uses `edit: ask`. The permission prompt gives the human or
+runtime a visibility point; the active Work Block and write-set still define the
+permitted source scope.
 
-- `ask` means the runtime requests approval; it does not mean the action is
-  approved by governance.
-- `allow` means the runtime may execute without prompting; it does not expand
-  role or scope.
-- `deny` blocks the runtime action and should be used for immutable project
-  boundaries such as secrets, external directories, commit, and push.
-
-The generated Coder uses `edit: ask` because the baseline cannot prove the
-machine-readable Work Block write-set at the tool interception layer. The human
-or orchestrator must compare every proposed edit with the active write-set.
-
-Do not use `--auto` for a state-changing Work Block until the project has
-verified every applicable deny rule and recorded the residual risk.
+Do not use a runtime permission prompt to authorize a production deploy, secret
+change, destructive operation, or protected/default-branch bypass. Those require
+an externally controlled capability.
 
 ## Subagents
 
@@ -122,17 +142,14 @@ Project agents live in `.opencode/agents/` and use `mode: subagent`.
 They omit concrete models so provider and model routing remain private/runtime
 configuration. Agent permissions are stricter than or equal to project defaults:
 
-- Architect, Critic, Reviewer, and Verifier deny edits;
-- Coder requires approval for edits and denies commit/push/destructive commands;
-- nested task delegation is denied for all bundled subagents;
+- Architect, Critic, Reviewer, and Verifier deny source edits;
+- Coder prompts for edits, allows local commits, and prompts for normal pushes;
+- all roles deny destructive Git and `rm`;
+- nested task delegation is denied for bundled subagents;
 - external-directory access is denied;
-- question prompts, doom-loop recovery, and todo writes require approval;
-- web and MCP capabilities require approval;
-- skill loading is allowed; the `internal-*` deny is a reserved naming-convention
-  guard with no current skill targets.
+- web and MCP capabilities require approval.
 
-The main session may invoke subagents automatically or by explicit mention.
-Record the actual child-session IDs or other launch evidence when assurance
+Record actual child-session IDs or other launch evidence when assurance
 independence matters.
 
 ## Plugins and MCP
@@ -142,14 +159,14 @@ in the framework baseline.
 
 Before activation:
 
-1. complete `docs/templates/integration-admission-template.md`;
+1. complete the integration-admission record;
 2. identify exact plugin/MCP tools and permission names;
 3. add allow/ask/deny rules for each tool;
 4. confirm secret and external-directory boundaries;
 5. run safe and denied-action smoke fixtures;
 6. record version, provider, model, and capability evidence.
 
-See `integrations/` and `docs/mcp-tool-policy.md`.
+Admission does not grant production authority.
 
 ## Capability Snapshot
 
@@ -161,81 +178,38 @@ status: available_unverified
 capabilities:
   project_instructions: configured
   project_subagents: configured
-  child_sessions: observed_or_unknown
   granular_permissions: configured
   per_agent_permissions: configured
-  per_agent_task_permissions: configured
   skills: observed_or_unknown
-  skill_permission_globbing: configured
   mcp: disabled
   plugins: disabled
-  plugin_hooks: not_implemented
-  server_api: not_configured
-  session_management: observed_or_unknown
-  default_agent: configured
-  subagent_depth_control: configured
-  snapshot_undo: configured
-  compaction_control: not_configured
-  provider_allowlist: not_configured
-  websearch: provider_or_environment_dependent
   external_directory_guard: configured
-  write_set_hook: unavailable
+  local_commit: configured
+  feature_push_prompt: configured
+  production_authority: unavailable_by_design
   worktrees: external_workflow
   os_isolation: false
 limitations:
-  - runtime permission prompts do not validate the Work Block write-set
+  - runtime permission prompts do not independently prove the Work Block write-set
   - provider/model availability depends on local configuration
-  - plugins and MCP can add tools that need separate permission rules
-  - plugin hooks (tool.execute.before) require JS/TS and separate integration admission
-  - server API requires explicit opencode serve setup
+  - plugins and MCP can add tools that need separate admission
   - same checkout and machine unless separately isolated
 ```
 
-Upgrade `observed_or_unknown` only after a target-environment smoke.
-
-## Plugin Hooks (Experimental)
-
-OpenCode plugins are JavaScript/TypeScript modules that can subscribe to events
-including `tool.execute.before`, `permission.asked`, `shell.env`, and session
-lifecycle events. These could implement governance enforcement (write-gate
-checks, audit logging) but require:
-
-- separate integration admission;
-- JS/TS runtime (Bun) in the target environment;
-- explicit permission rules for plugin-added tools;
-- target-environment verification.
-
-The framework baseline does not install plugins. See `integrations/` for the
-admission contract.
-
-## Server API
-
-`opencode serve` starts a headless HTTP server exposing sessions, messages,
-config, files, agents, and events via OpenAPI 3.1. `opencode run --attach`
-connects to a running server. This enables external orchestration patterns
-(e.g., a Python script driving Work Block lifecycle) but requires explicit
-setup, authentication (`OPENCODE_SERVER_PASSWORD`), and governance admission.
-
-The baseline does not configure or start a server.
+Upgrade `observed_or_unknown` only after target-environment smoke evidence.
 
 ## Activation
 
 1. Bootstrap the project.
-2. Review `opencode.json` and `.opencode/agents/`.
-3. Run OpenCode in the project and initialize only if it will not overwrite the
-   approved `AGENTS.md` contract.
-4. Confirm the runtime reads the committed `AGENTS.md`.
-5. Inspect effective provider/model and permissions.
-6. Verify all permission keys are present: `question`, `doom_loop`, `todowrite`,
-   `lsp`, `list`, `task` (glob), `skill` (glob), `external_directory`.
-7. Run one read-only Architect or Reviewer task.
-8. Confirm a bundled read-only agent cannot edit.
-9. Confirm commit, push, secret reads, and external-directory access are denied.
-10. Confirm the reserved `internal-*` skill deny rejects a fixture skill.
-11. Confirm a bundled subagent cannot read project-denied secret paths
-    (agent-level `read: allow` scalar vs project `read` map merge semantics).
-12. Run a disposable Coder edit inside a test write-set with explicit approval.
-13. Record the capability snapshot and limitations.
+2. Review `opencode.json`, `.opencode/agents/`, `AGENTS.md`, and the active Work Block.
+3. Confirm the runtime reads the committed operating contract.
+4. Inspect effective provider/model and permissions.
+5. Confirm read-only roles cannot write source.
+6. Confirm Coder edits are restricted to the approved write-set by process and runtime prompts.
+7. Confirm local Coder commit works without SSH signing.
+8. Confirm normal feature push prompts rather than requiring a signed authorization.
+9. Confirm force/default-branch/destructive/secret/external-directory operations remain denied by the applicable local/external boundaries.
+10. Record the capability snapshot and limitations.
 
 ## Assurance and Isolation
 
@@ -252,6 +226,7 @@ When agents or permissions do not behave as documented:
 - label the runtime adapter degraded;
 - use Plan/read-only mode or a separate verified runtime;
 - preserve the same artifacts and logical functions;
+- do not infer production authority from local state;
 - do not claim a passing assurance gate without evidence.
 
 ## Official References

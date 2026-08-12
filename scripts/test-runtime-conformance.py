@@ -73,7 +73,6 @@ def codex_contract() -> dict[str, dict[str, Any]]:
 
 
 def claude_limited_write_boundary(role: str, body: str, path: Path) -> bool:
-    """Validate write tools on a non-Coder are limited to evidence/draft/memory."""
     lower = body.lower()
     assert "read-only" in lower, f"Claude non-Coder lacks read-only declaration: {path}"
     assert re.search(
@@ -144,6 +143,23 @@ def claude_contract() -> dict[str, dict[str, Any]]:
         ".claude/hooks/assurance_gate.py",
     ):
         assert required in commands
+
+    pre_tool = settings.get("hooks", {}).get("PreToolUse", [])
+    scope_matchers = [
+        str(group.get("matcher") or "")
+        for group in pre_tool
+        if isinstance(group, dict)
+        and ".claude/hooks/work_block_gate.py" in json.dumps(group, sort_keys=True)
+    ]
+    assert any("Bash" in matcher for matcher in scope_matchers), (
+        "Claude Work Block scope guard must intercept Bash mutations"
+    )
+    claude_scope_guard = (
+        TEMPLATE / ".claude/hooks/work_block_gate.py"
+    ).read_text(encoding="utf-8")
+    for marker in ("git commit", "Complex mutating Bash", "Staged commit"):
+        assert marker in claude_scope_guard, f"Claude Bash scope guard missing {marker!r}"
+
     assert "enabledMcpjsonServers" not in settings
     return result
 
@@ -182,8 +198,10 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
         assert permission.get("external_directory") == "deny"
         bash = permission.get("bash")
         assert isinstance(bash, dict)
-        assert bash.get("git commit*") == "deny"
-        assert bash.get("git push*") == "deny"
+        expected_commit = "allow" if role == "coder" else "deny"
+        expected_push = "ask" if role == "coder" else "deny"
+        assert bash.get("git commit*") == expected_commit
+        assert bash.get("git push*") == expected_push
         assert bash.get("git reset --hard*") == "deny"
         assert bash.get("git clean*") == "deny"
         assert bash.get("rm *") == "deny"
@@ -207,6 +225,7 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
         if role == "coder":
             assert "write-set" in body
             assert "write gate" in body.lower()
+            assert "local commits are allowed" in body.lower()
         result[role] = {
             "implementation_write": role == "coder",
             "limited_artifact_write": False,
@@ -228,6 +247,13 @@ def opencode_contract() -> dict[str, dict[str, Any]]:
     assert config["permission"]["lsp"] == "ask"
     assert config["permission"]["list"] == "allow"
     assert config["permission"]["mcp_*"] == "ask"
+    project_bash = config["permission"]["bash"]
+    assert isinstance(project_bash, dict)
+    assert project_bash.get("git commit*") == "allow"
+    assert project_bash.get("git push*") == "ask"
+    assert project_bash.get("git reset --hard*") == "deny"
+    assert project_bash.get("git clean*") == "deny"
+    assert project_bash.get("rm *") == "deny"
     task_perm = config["permission"]["task"]
     assert isinstance(task_perm, dict)
     assert task_perm.get("*") == "ask"
@@ -275,6 +301,14 @@ def shared_gate_contract() -> None:
 
     for relative in (".codex/scripts/lifecycle.py", ".codex/scripts/doctor.py"):
         assert (TEMPLATE / relative).is_file(), f"missing Codex helper: {relative}"
+
+    gate = json.loads(
+        (TEMPLATE / ".agent/active-work-block.json").read_text(encoding="utf-8")
+    )
+    assert gate.get("schema_version") == 3
+    assert gate.get("authority_mode") == "github_capability"
+    assert "authorization" not in gate
+    assert "hard_stop_approvals" not in gate
 
     shared = (TEMPLATE / ".agent/hooks/hard_stop_policy.py").read_text(
         encoding="utf-8"
