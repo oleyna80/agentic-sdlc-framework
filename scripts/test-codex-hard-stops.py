@@ -131,8 +131,18 @@ def main() -> int:
             "git push origin --delete main",
             "git push origin :feature",
             "git push origin --delete feature",
+            "git push --all origin",
+            "git push origin --mirror",
+            "git push --prune origin",
         ):
             denied(repo, command, "destructive")
+        for command in (
+            "git push --tags origin",
+            "git push --follow-tags origin feature",
+            "git push origin refs/tags/v1.0.0",
+            "git push origin tag v1.0.0",
+        ):
+            denied(repo, command, "tag publication")
 
         git(repo, "branch", "-m", "main")
         denied(repo, "git push origin HEAD", "default-branch")
