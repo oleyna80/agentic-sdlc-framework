@@ -182,6 +182,26 @@ def main() -> None:
         )
         assert opened.returncode == 0, opened.stdout + opened.stderr
 
+        # Closeout cannot be declared while required assurance is unresolved.
+        blocked(
+            repo,
+            "close",
+            "--reason",
+            "premature",
+            "--mode",
+            "success-closeout",
+            contains="assurance.review",
+        )
+        blocked(
+            repo,
+            "close",
+            "--reason",
+            "premature-reporting",
+            "--mode",
+            "reporting-only",
+            contains="assurance.review",
+        )
+
         # Freeze and close preserve evidence while blocking further source work.
         current = state(repo)
         current["assurance"]["review"].update(
