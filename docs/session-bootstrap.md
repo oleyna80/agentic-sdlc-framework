@@ -80,7 +80,7 @@ Before implementation, answer:
 - What actual isolation is available?
 - Which logical functions are required?
 - Is evaluation required; what plan/rubric/benchmark revisions and event sources apply?
-- What Hard Stops, side effects, and assurance evidence apply?
+- What external Hard Stops, side effects, and assurance evidence apply?
 
 ## Authority and Conflict Rules
 
@@ -111,10 +111,11 @@ For agent behavior and permission:
 1. current Owner instruction;
 2. active `AGENTS.md`;
 3. runtime-neutral Governance Core;
-4. active Work Block scope/write-set/approvals;
+4. active Work Block scope/write-set;
 5. canonical lifecycle protocol;
 6. active runtime and admitted integration adapters;
-7. operational logs and generated artifacts.
+7. external GitHub/OS/credential capability boundary for consequential actions;
+8. operational logs and generated artifacts.
 
 Installation profile and evaluation scores are not authority layers.
 
@@ -155,14 +156,22 @@ Then separately record for the runtime actually used:
 - whether degraded execution requires later independent evidence.
 
 Static conformance does not prove a live runtime or OS isolation.
-For a selected Codex profile, use `.codex/scripts/lifecycle.py status` only as
-local state evidence; it cannot open authority by inference. Before an approved
-`open`, provide the separately held trust anchor explicitly:
-`export AGENTIC_SDLC_OWNER_SIGNERS=/absolute/path/to/owner-signers`. The anchor
-must not reside in mutable project `HEAD`; the committed authorization JSON and
-its detached `.sig` must verify as `owner@agentic-sdlc` under namespace
-`agentic-sdlc-authorization`. Use
-`.codex/scripts/doctor.py` without `--live` in routine checks. Its explicit
+
+For a selected Codex profile, use `.codex/scripts/lifecycle.py status` as local
+coordination-state evidence. Schema v3 uses `authority_mode=github_capability`:
+`open` records the approved Work Block/specification/write-set/Critic context and
+planning baseline without an Owner private key, `ssh-keygen`, `allowed_signers`,
+a detached signature, or an authorization-bootstrap commit.
+
+Per-Work-Block SSH signing was retired because the local cryptographic state
+machine introduced circular bootstrap, replay/H0-H1-H2, expiry, digest, and
+runtime-parity complexity while project-local hooks still were not an OS
+security boundary. Normal reversible development now relies on Work Block and
+write-set process guardrails; consequential authority is enforced externally by
+GitHub rules/protected branches, least-privilege credentials, Actions
+permissions, OS isolation, and separately held production/VPS/DB/secrets.
+
+Use `.codex/scripts/doctor.py` without `--live` in routine checks. Its explicit
 `--live` path is a disposable-local CLI availability/version check only; an
 `AVAILABLE` result does not claim hooks or native smoke passed. A native smoke
 requires separately admitted hook execution and is `UNVERIFIED` when unavailable.
@@ -183,6 +192,11 @@ Approved implementation/evaluation plans:
 Approved write-set:
 Affected layers:
 Next gate:
+External Hard Stops / capability boundary:
+Evaluation required / plan / event sources:
+Required assurance:
+Relevant files read:
+Next action:
 ```
 
 Inspect relevant uncommitted diffs before planning edits. Never stage or overwrite
@@ -193,9 +207,12 @@ unrelated work silently.
 - current source and approved artifacts outrank memory;
 - `.agent/bootstrap-profile.json` and `.agent/active-work-block.default.json` are portable;
 - `.agent/active-work-block.json`, project config, `memory_bank/`, and runtime memory are local operational state;
-- blocked default must be approval-free, integration-free, empty-write-set,
-  `closeout_mode=pending`, and contain optional PENDING unbound evaluation state;
+- blocked default must use schema v3 `authority_mode=github_capability`, empty
+  source write-set, `closeout_mode=pending`, and optional PENDING unbound
+  evaluation state;
 - its `coordination_write_set` must exactly match canonical safe paths;
+- historical signed authorization files may remain as audit evidence but do not
+  create current authority;
 - health checks must not replace an existing active Work Block;
 - evaluation plans/reports/events are portable evidence only when secret-free,
   attributable, and explicitly bound to the Work Block;
@@ -235,7 +252,7 @@ Isolation:
 Scope / out of scope:
 Write-set:
 Git status:
-Hard Stops:
+External Hard Stops / capability boundary:
 Evaluation required / plan / event sources:
 Required assurance:
 Relevant files read:
