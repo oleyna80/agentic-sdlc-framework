@@ -143,6 +143,23 @@ def claude_contract() -> dict[str, dict[str, Any]]:
         ".claude/hooks/assurance_gate.py",
     ):
         assert required in commands
+
+    pre_tool = settings.get("hooks", {}).get("PreToolUse", [])
+    scope_matchers = [
+        str(group.get("matcher") or "")
+        for group in pre_tool
+        if isinstance(group, dict)
+        and ".claude/hooks/work_block_gate.py" in json.dumps(group, sort_keys=True)
+    ]
+    assert any("Bash" in matcher for matcher in scope_matchers), (
+        "Claude Work Block scope guard must intercept Bash mutations"
+    )
+    claude_scope_guard = (
+        TEMPLATE / ".claude/hooks/work_block_gate.py"
+    ).read_text(encoding="utf-8")
+    for marker in ("git commit", "Complex mutating Bash", "Staged commit"):
+        assert marker in claude_scope_guard, f"Claude Bash scope guard missing {marker!r}"
+
     assert "enabledMcpjsonServers" not in settings
     return result
 
