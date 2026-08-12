@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 22
+version: 23
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -197,6 +197,7 @@ migration_state:
     - docs/plans/wb-core-003c-completed-state-assurance-binding.md
     - docs/plans/wb-core-003d-parallel-write-set-orchestration.md
     - docs/plans/wb-core-003e-closure-evidence-correction.md
+    - docs/plans/wb-core-003f-github-native-authority-model.md
     - docs/plans/wb-opencode-002-project-local-integration.md
     - docs/plans/wb-design-001-openai-frontend-delta.md
     - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
@@ -213,8 +214,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-design-002-portable-design-md-artifact-contract.md
-  closeout_report: docs/reports/closeout/wb-design-002-portable-design-md-artifact-contract.md
+  latest_completed_work_block: docs/plans/wb-core-003f-github-native-authority-model.md
+  closeout_report: docs/reports/closeout/wb-core-003f-github-native-authority-model.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -423,6 +424,14 @@ entries:
     lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  docs/plans/wb-core-003f-github-native-authority-model.md:
+    role: completed_managed_github_native_authority_and_capability_boundary_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    authority: governance_and_runtime_guardrail_contract
 
   docs/plans/wb-opencode-002-project-local-integration.md:
     role: managed_project_local_opencode_integration_work_block
