@@ -117,8 +117,6 @@ def main() -> int:
             "git push origin HEAD:refs/heads/main",
             "git push origin feature:main",
             "git push origin feature:refs/heads/main",
-            "git push origin :main",
-            "git push origin --delete main",
         ):
             denied(repo, command, "default-branch")
         for command in (
@@ -128,6 +126,13 @@ def main() -> int:
             "git push origin +feature",
         ):
             denied(repo, command, "Force push")
+        for command in (
+            "git push origin :main",
+            "git push origin --delete main",
+            "git push origin :feature",
+            "git push origin --delete feature",
+        ):
+            denied(repo, command, "destructive")
 
         git(repo, "branch", "-m", "main")
         denied(repo, "git push origin HEAD", "default-branch")
