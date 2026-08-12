@@ -1,20 +1,25 @@
-# Authorization Records
+# Authorization Records — Legacy Compatibility
 
-Each authorization JSON requires a detached sibling signature:
-`<record>.json.sig`. Lifecycle and PreToolUse independently reload both exact
-`HEAD` blobs, reject dirty or widened material, and verify the JSON with
-`ssh-keygen -Y verify`, namespace `agentic-sdlc-authorization`, and principal
-`owner@agentic-sdlc`.
+Per-Work-Block SSH-signed authorization records are retired from the default
+Agentic SDLC development path as of WB-CORE-004.
 
-The locally held trust anchor is deliberately outside the project and must be
-provided explicitly for every authority-bearing operation:
+New projects and normal Work Blocks do **not** require:
 
-```bash
-export AGENTIC_SDLC_OWNER_SIGNERS=/absolute/path/to/owner-signers
-```
+- an Owner private signing key;
+- `ssh-keygen -Y sign` / `verify`;
+- an external `allowed_signers` file;
+- detached `<record>.json.sig` files;
+- authorization-bootstrap commits.
 
-It is an OpenSSH `allowed_signers` file; do not place it in repository `HEAD`.
-The helper never creates, edits, or signs authorization records. Hooks remain
-cooperative controls and do not prevent hook bypass or an OS-level same-user
-writer from altering local project files; the external trust anchor prevents
-that writer from forging a valid Owner signature.
+The reason is architectural: project-local hooks are cooperative controls, not
+an OS security boundary, while the signed state machine added circular bootstrap,
+replay, H0/H1/H2, expiry, and runtime-parity complexity around ordinary reversible
+Git operations.
+
+The preferred security boundary is external capability separation: GitHub
+rulesets/protected branches, least-privilege agent credentials, GitHub Actions
+permissions, OS isolation, and separately held production/VPS/DB/secrets.
+
+This directory may remain so historical signed authorization records can be kept
+as audit evidence. Their presence does not grant current authority and generated
+schema v3 gates do not bind to them.
