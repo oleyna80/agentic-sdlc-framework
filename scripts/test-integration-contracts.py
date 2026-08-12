@@ -2,7 +2,6 @@
 """Static and executable fixtures for runtime/integration adapter contracts."""
 from __future__ import annotations
 
-import datetime as dt
 import json
 from pathlib import Path
 import shutil
@@ -140,7 +139,11 @@ def static_contracts() -> None:
     bash = permissions.get("bash")
     if not isinstance(bash, dict):
         fail("OpenCode Bash permission map missing")
-    for pattern in ("git commit*", "git push*", "git reset --hard*", "git clean*", "rm *"):
+    if bash.get("git commit*") != "allow":
+        fail("OpenCode normal local commit must be allowed")
+    if bash.get("git push*") != "ask":
+        fail("OpenCode push must require a runtime prompt, not SSH authorization")
+    for pattern in ("git reset --hard*", "git clean*", "rm *"):
         if bash.get(pattern) != "deny":
             fail(f"OpenCode Bash permission must deny {pattern!r}")
     task_perm = permissions.get("task")
@@ -220,6 +223,18 @@ def static_contracts() -> None:
                 fail(
                     f"OpenCode {role} read permission must set {pattern!r} to {expected!r}"
                 )
+        role_bash = role_permissions.get("bash")
+        if not isinstance(role_bash, dict):
+            fail(f"OpenCode {role} Bash permission map missing")
+        expected_commit = "allow" if role == "coder" else "deny"
+        expected_push = "ask" if role == "coder" else "deny"
+        if role_bash.get("git commit*") != expected_commit:
+            fail(f"OpenCode {role} git commit permission must be {expected_commit}")
+        if role_bash.get("git push*") != expected_push:
+            fail(f"OpenCode {role} git push permission must be {expected_push}")
+        for pattern in ("git reset --hard*", "git clean*", "rm *"):
+            if role_bash.get(pattern) != "deny":
+                fail(f"OpenCode {role} Bash permission must deny {pattern!r}")
         if role_permissions.get("task") != "deny":
             fail(f"OpenCode {role} nested task delegation must be denied")
         if role_permissions.get("mcp_*") != "ask":
@@ -264,8 +279,12 @@ def static_contracts() -> None:
             fail(f"provider-named compatibility path remains: {path.relative_to(ROOT)}")
 
     gate = load_json(TEMPLATE / ".agent/active-work-block.json")
-    if gate.get("schema_version") != 2:
-        fail("active Work Block schema_version must remain 2")
+    if gate.get("schema_version") != 3:
+        fail("active Work Block schema_version must be 3")
+    if gate.get("authority_mode") != "github_capability":
+        fail("active Work Block authority_mode must be github_capability")
+    if "authorization" in gate or "hard_stop_approvals" in gate:
+        fail("legacy signed authority fields must be absent from schema v3")
     if gate.get("integrations") != {"approved": [], "admission_records": []}:
         fail("generated integration approvals must start empty")
     assurance = gate.get("assurance")
@@ -352,15 +371,15 @@ def event(repo: Path, tool: str, **tool_input: str) -> dict[str, Any]:
 def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
     gate: dict[str, Any] = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "authority_mode": "github_capability",
         "work_block_id": "wb-integration-fixture",
         "governance_profile": "Managed",
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
         "base_commit": head,
         "write_gate": {
             "status": "READY" if ready else "BLOCKED",
-            "opened_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-            "expires_at": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=1)).isoformat(),
+            "opened_at": "fixture" if ready else None,
         },
         "critic": {
             "required": True,
@@ -412,20 +431,25 @@ def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
         "write_set": ["src/**", "tests/**"],
         "coordination_write_set": [
             ".agent/active-work-block.json",
+            ".agent/critic-gate.md",
+            ".agent/verification-gate.md",
+            ".codex/write-gate.md",
             "docs/plans/**",
             "docs/specs/**",
+            "docs/tasklist/**",
             "docs/reports/**",
+            "docs/architecture/drafts/**",
+            "memory_bank/**",
         ],
-        "hard_stop_approvals": {
-            "git_commit": False,
-            "git_push": False,
-            "default_branch_push": False,
-            "destructive": False,
-            "live_infra": False,
-            "live_data": False,
-            "credentials": False,
-            "client_communications": False,
-        },
+        "external_hard_stops": [
+            "protected_default_branch_mutation",
+            "destructive",
+            "live_infra",
+            "live_data",
+            "credentials",
+            "client_communications",
+            "irreversible_publish",
+        ],
     }
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
@@ -469,7 +493,6 @@ def executable_fixtures() -> None:
         subprocess.run(["git", "add", "."], cwd=repo, check=True)
         subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
 
-        # Integration admission is tested inside an active approval window.
         gate = write_gate(repo, ready=True)
         assert_denied(
             "external Codex CLI without admission",
@@ -486,10 +509,8 @@ def executable_fixtures() -> None:
             run_script(hard_stop, repo, event(repo, "Bash", command="codex review")),
         )
 
-        # This fixture also exercises the still-v1 Claude write guard; reset its
-        # disposable gate after the schema-v2 shared Hard Stop assertions.
-        gate["schema_version"] = 1
         gate["write_gate"]["status"] = "BLOCKED"
+        gate["write_gate"]["opened_at"] = None
         persist(repo, gate)
         assert_allowed(
             "blocked coordination write",
@@ -502,6 +523,7 @@ def executable_fixtures() -> None:
         )
 
         gate["write_gate"]["status"] = "READY"
+        gate["write_gate"]["opened_at"] = "fixture"
         persist(repo, gate)
         assert_allowed(
             "in-scope Claude source write",
