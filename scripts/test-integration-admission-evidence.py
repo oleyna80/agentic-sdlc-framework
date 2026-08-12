@@ -80,7 +80,7 @@ def main() -> int:
 
         write_gate(repo, [])
         denied, reason = run(repo, "codex review")
-        if not denied or "admission_records" not in reason:
+        if not denied or "admission evidence" not in reason:
             raise AssertionError(
                 "approved integration ID without admission evidence must be denied; "
                 f"got {reason!r}"
