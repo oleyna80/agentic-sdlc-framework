@@ -180,8 +180,16 @@ def pushes_default_branch(command: str, root: Path) -> bool:
         except ValueError:
             return branch in {"main", "master"}
         positional = [token for token in tokens if not token.startswith("-")]
-        if branch in {"main", "master"} and len(positional) <= 1:
-            return True
+        if branch in {"main", "master"}:
+            # No explicit refspec (`git push [remote]`) pushes the current branch,
+            # and explicit `HEAD` also denotes the current branch. An explicitly
+            # named non-default ref such as `git push origin feature` is not a
+            # direct default-branch mutation.
+            if len(positional) <= 1:
+                return True
+            refspecs = positional[1:]
+            if any(ref.upper() == "HEAD" for ref in refspecs):
+                return True
     return False
 
 
