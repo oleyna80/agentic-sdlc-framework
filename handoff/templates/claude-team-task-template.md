@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 artifact_type: runtime_task
 task_id: YYYYMMDDTHHMMSSZ-claude-runner-001
 work_block_id: wb-xxx
@@ -27,7 +27,15 @@ forbidden_scope:
   - credentials/**
   - "*.pem"
   - "*.key"
-hard_stop_approvals: []
+external_capabilities: []
+external_hard_stops:
+  - protected_default_branch_mutation
+  - destructive
+  - live_infra
+  - live_data
+  - credentials
+  - client_communications
+  - irreversible_publish
 result_destination: handoff/done/
 log_destination: handoff/logs/
 ---
@@ -87,11 +95,17 @@ allowed_scope:
 
 These are project files and will be scope-audited. Do not add them by default.
 
-## Hard Stops
+## Capability Boundary
 
-Do not commit, push, deploy, access credentials, mutate live systems/data, send
-communications, install unapproved dependencies, or expand scope unless the
-frontmatter and referenced Owner approval explicitly permit it.
+A Coder may create local commits and a normal feature-branch push when the Work
+Block and runtime credential permit them. SSH-signed Work Block authorization is
+not required for these normal reversible Git operations.
+
+`external_capabilities` records capabilities already supplied by an external
+boundary; editing this task cannot create production, secret, live-data,
+destructive, irreversible-publish, or protected/default-branch authority.
+Consequential operations listed in `external_hard_stops` require the separately
+controlled GitHub/OS/credential channel.
 
 ## Required Checks
 
