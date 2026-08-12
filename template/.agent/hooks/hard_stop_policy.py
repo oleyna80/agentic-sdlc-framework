@@ -55,7 +55,9 @@ CONSEQUENTIAL = [
     ),
     (
         re.compile(
-            r"(^|[\s/])(\.env([.][\w.-]+)?|credentials|secrets)([\s/]|$)|"
+            r"(^|[\s/])"
+            r"(\.env(?:\.(?!example(?:[\s/]|$))[\w.-]+)?|credentials|secrets)"
+            r"([\s/]|$)|"
             r"\b(rotate|revoke)\b[^\n]*(token|secret|key|credential)",
             re.I,
         ),
@@ -166,30 +168,39 @@ def push_segments(command: str) -> list[str]:
     ]
 
 
+def canonical_branch_ref(value: str) -> str:
+    ref = value.strip()
+    if ref.startswith("refs/heads/"):
+        ref = ref[len("refs/heads/") :]
+    return ref
+
+
+def refspec_targets_default(refspec: str, current: str) -> bool:
+    value = refspec.lstrip("+")
+    if ":" in value:
+        _source, destination = value.split(":", 1)
+        return canonical_branch_ref(destination) in {"main", "master"}
+    if value.upper() == "HEAD":
+        return current in {"main", "master"}
+    return canonical_branch_ref(value) in {"main", "master"}
+
+
 def pushes_default_branch(command: str, root: Path) -> bool:
     branch = current_branch(root)
     for segment in push_segments(command):
-        if re.search(
-            r"(?:^|\s)[+:]?(?:HEAD:)?(?:refs/heads/)?(?:main|master)(?:\s|$)",
-            segment,
-            re.I,
-        ):
-            return True
         try:
             tokens = shlex.split(segment, posix=True)
         except ValueError:
             return branch in {"main", "master"}
+
         positional = [token for token in tokens if not token.startswith("-")]
-        if branch in {"main", "master"}:
-            # No explicit refspec (`git push [remote]`) pushes the current branch,
-            # and explicit `HEAD` also denotes the current branch. An explicitly
-            # named non-default ref such as `git push origin feature` is not a
-            # direct default-branch mutation.
-            if len(positional) <= 1:
+        if len(positional) <= 1:
+            if branch in {"main", "master"}:
                 return True
-            refspecs = positional[1:]
-            if any(ref.upper() == "HEAD" for ref in refspecs):
-                return True
+            continue
+        refspecs = positional[1:]
+        if any(refspec_targets_default(refspec, branch) for refspec in refspecs):
+            return True
     return False
 
 
