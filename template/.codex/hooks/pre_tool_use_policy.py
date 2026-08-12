@@ -216,6 +216,16 @@ def patch_paths(command: str, root: Path) -> list[str]:
     return paths
 
 
+def explicit_tool_path(event: dict, root: Path) -> list[str]:
+    value = event.get("tool_input")
+    if not isinstance(value, dict):
+        raise Denied("Write tool input must be an object.")
+    raw = value.get("file_path") or value.get("path")
+    if not isinstance(raw, str) or not raw.strip():
+        raise Denied("Write tool input is missing file_path/path.")
+    return [normalize(raw, root)]
+
+
 def shell_paths(command: str, root: Path) -> list[str]:
     paths: list[str] = []
     for match in REDIRECTS.finditer(command):
@@ -292,12 +302,16 @@ def main() -> None:
     try:
         if tool == "Bash":
             check_bash(event, gate, root)
-        else:
+        elif tool == "apply_patch":
             value = event.get("tool_input")
             command = value.get("command") if isinstance(value, dict) else None
             if not isinstance(command, str):
-                raise Denied(f"Unsupported write tool shape for {tool}; use apply_patch.")
+                raise Denied("apply_patch input is missing tool_input.command.")
             check_paths(patch_paths(command, root), gate)
+        elif tool in {"Edit", "Write"}:
+            check_paths(explicit_tool_path(event, root), gate)
+        else:
+            raise Denied(f"Unsupported write tool: {tool}")
     except Denied as exc:
         block(str(exc))
 
