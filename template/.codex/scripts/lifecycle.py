@@ -38,6 +38,13 @@ EXTERNAL_HARD_STOPS = [
     "client_communications",
     "irreversible_publish",
 ]
+ASSURANCE_STATUSES = {"PENDING", "READY", "SKIPPED", "DEGRADED", "BLOCKED"}
+ASSURANCE_VERDICTS = {
+    "review": {"READY", "CHANGES_REQUIRED", "BLOCKED", "UNVERIFIED"},
+    "verification": {"READY", "BLOCKED", "UNVERIFIED"},
+    "evaluation": {"READY", "BLOCKED", "UNVERIFIED"},
+    "drift": {"ALIGNED", "ALIGNMENT_REQUIRED", "BLOCKED", "UNVERIFIED"},
+}
 
 
 def now() -> str:
@@ -203,6 +210,58 @@ def blocked_copy(current: dict, reason: str) -> dict:
     return value
 
 
+def validate_closeout_state(current: dict, mode: str) -> None:
+    validate_state(current)
+    assurance = current.get("assurance")
+    if not isinstance(assurance, dict):
+        raise ValueError("close requires assurance state")
+
+    normalized: dict[str, tuple[bool, str, str]] = {}
+    for name in ("review", "verification", "evaluation", "drift"):
+        state = assurance.get(name)
+        if not isinstance(state, dict):
+            raise ValueError(f"close requires assurance.{name} state")
+        required = state.get("required") is True
+        status = str(state.get("status") or "")
+        verdict = str(state.get("verdict") or "")
+        skip_reason = str(state.get("skip_reason") or "").strip()
+        if status not in ASSURANCE_STATUSES:
+            raise ValueError(f"assurance.{name}.status is invalid or missing")
+        if status == "PENDING":
+            raise ValueError(f"assurance.{name} is still PENDING")
+        if status == "SKIPPED":
+            if required:
+                raise ValueError(f"required assurance.{name} cannot be SKIPPED")
+            if not skip_reason:
+                raise ValueError(f"skipped assurance.{name} requires skip_reason")
+        elif verdict not in ASSURANCE_VERDICTS[name]:
+            raise ValueError(f"assurance.{name}.verdict is unresolved or invalid")
+        normalized[name] = (required, status, verdict)
+
+    if mode != "success-closeout":
+        return
+
+    required_review, review_status, review_verdict = normalized["review"]
+    required_verification, verification_status, verification_verdict = normalized[
+        "verification"
+    ]
+    required_evaluation, evaluation_status, evaluation_verdict = normalized["evaluation"]
+    required_drift, drift_status, drift_verdict = normalized["drift"]
+
+    if required_review and (review_status != "READY" or review_verdict != "READY"):
+        raise ValueError("success-closeout requires assurance.review READY/READY")
+    if required_verification and (
+        verification_status != "READY" or verification_verdict != "READY"
+    ):
+        raise ValueError("success-closeout requires assurance.verification READY/READY")
+    if required_evaluation and (
+        evaluation_status != "READY" or evaluation_verdict != "READY"
+    ):
+        raise ValueError("success-closeout requires assurance.evaluation READY/READY")
+    if required_drift and (drift_status != "READY" or drift_verdict != "ALIGNED"):
+        raise ValueError("success-closeout requires assurance.drift READY/ALIGNED")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -253,6 +312,7 @@ def main() -> int:
     elif args.command == "freeze":
         value = blocked_copy(current, args.reason)
     else:
+        validate_closeout_state(current, args.mode)
         value = blocked_copy(current, args.reason)
         value["closeout_mode"] = args.mode
 
