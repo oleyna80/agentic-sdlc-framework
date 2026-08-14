@@ -53,9 +53,6 @@ Upstream references verified 2026-08-14:
   only Claude Code-specific routing notes.
 - `runtimes/claude-code/README.md` — document the import-shim model and remove
   redundant bootstrap wording that assumes separate manual reading of both files.
-- `scripts/test-bootstrap-profiles.py` — add a narrow regression assertion that a
-  generated Claude profile keeps the `@AGENTS.md` import and the thin-shim
-  boundary.
 - this Work Block and bounded assurance evidence.
 
 ### Out of scope
@@ -63,16 +60,17 @@ Upstream references verified 2026-08-14:
 - changes to root or template `AGENTS.md`;
 - changes to governance, Hard Stops, permissions, hooks, subagent authority, or
   integration admission;
-- new skills, commands, plugins, MCP servers, or runtime dependencies;
+- new tests, validators, skills, commands, plugins, MCP servers, or runtime
+  dependencies solely for this convergence;
 - Portable Kit promotion or any use of reserved `WB-CORE-004` through
   `WB-CORE-007` product Work Block IDs.
 
 ## Critic result
 
 **APPROVE.** The smallest sufficient change is a thin import shim plus runtime
-adapter documentation and one existing-test regression assertion. Creating a new
-skill, new validator, or new governance rule would add machinery without solving
-an additional problem.
+adapter documentation. Existing bootstrap/profile tests already verify that the
+selected Claude surface is generated and valid; adding a dedicated validator or
+new test mechanism for one import line would be disproportionate.
 
 ## Write-set
 
@@ -80,7 +78,6 @@ an additional problem.
 docs/plans/wb-core-003g-claude-agents-import-convergence.md
 template/CLAUDE.md
 runtimes/claude-code/README.md
-scripts/test-bootstrap-profiles.py
 docs/reports/reviews/wb-core-003g-claude-agents-import-convergence.md
 docs/reports/verification/wb-core-003g-claude-agents-import-convergence.md
 ```
@@ -93,10 +90,9 @@ One Coder owns the implementation paths. No parallel writers are required.
    pointers and non-expansion rules.
 2. Reconcile `runtimes/claude-code/README.md` to describe `CLAUDE.md` as an import
    shim rather than a second project contract.
-3. Add a narrow scaffold regression assertion for the import and duplicate-policy
-   boundary.
-4. Review the frozen diff for accidental loss of Claude-specific runtime guidance.
-5. Verify bootstrap/profile contracts and generated Claude profile behavior.
+3. Review the frozen diff for accidental loss of Claude-specific runtime guidance.
+4. Verify the existing bootstrap/profile contract still includes the Claude
+   surface and inspect the generated-template import contract directly.
 
 ## Acceptance criteria
 
@@ -110,8 +106,9 @@ One Coder owns the implementation paths. No parallel writers are required.
    does not tell agents to manually load duplicated shared policy.
 5. Existing authority, hooks, permissions, integrations, and bootstrap profile
    composition remain unchanged.
-6. Generated Claude-capable profiles retain the import after placeholder
-   replacement and validation.
+6. The existing Claude installation profile continues to require and copy
+   `CLAUDE.md`; direct inspection confirms the template import survives normal
+   placeholder replacement because `@AGENTS.md` contains no template variable.
 7. No new framework mechanism is introduced solely to support this convergence.
 
 ## Assurance
@@ -119,8 +116,8 @@ One Coder owns the implementation paths. No parallel writers are required.
 - **Evaluation:** NOT_REQUIRED — deterministic documentation/scaffold contract;
   no nondeterministic model-output behavior is an acceptance criterion.
 - **Review:** required against the frozen stacked diff.
-- **Verification:** existing bootstrap/profile contract plus targeted content
-  assertions.
+- **Verification:** existing bootstrap/profile contract plus direct template and
+  profile inspection; CI remains the executable repository contract boundary.
 - **Drift:** confirm shared policy remains in `AGENTS.md`/governance/workflows and
   Claude-specific detail remains in the runtime adapter.
 
