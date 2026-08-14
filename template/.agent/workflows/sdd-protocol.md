@@ -28,6 +28,8 @@ blocked -> ready -> in_progress -> completed
 
 Track gates and outcomes separately:
 
+- **Requirements-quality gate:** `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED`
+- **Define consistency gate:** `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED`
 - **Write gate:** `READY | BLOCKED`
 - **Critic gate:** `READY | BLOCKED | SKIPPED | DEGRADED`
 - **Review gate:** `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED`
@@ -35,6 +37,10 @@ Track gates and outcomes separately:
 - **Evaluation verdict:** `READY | BLOCKED | UNVERIFIED | NOT_REQUIRED`
 - **Drift gate:** `READY | BLOCKED | UNVERIFIED | SKIPPED`
 - **Closeout mode:** `success-closeout | reporting-only`
+
+Requirements-quality and Define consistency results are pre-execution evidence.
+They do not grant source-write authority. The Write Gate remains the source-write
+control point.
 
 Only all required gates in a passing state permit `success-closeout`.
 `BLOCKED`, `UNVERIFIED`, or unresolved `CHANGES_REQUIRED` permits diagnostics,
@@ -52,7 +58,7 @@ The Work Block selects the smallest sufficient governance profile:
 
 - **Advisory:** read-only analysis; no repository mutation.
 - **Controlled:** one bounded executor, explicit scope/write-set, basic review and deterministic checks.
-- **Managed:** approved specification and plan, Critic, Reviewer, Verifier, and evaluation for non-deterministic or consequential agent behavior.
+- **Managed:** approved specification and plan, requirements-quality/consistency gates for formal feature work, Critic, Reviewer, Verifier, and evaluation for non-deterministic or consequential agent behavior.
 - **Assured:** stronger independence, fixed evaluation rubric/benchmark revisions, drift audit, runtime evidence.
 - **Distributed:** multiple runtimes/worktrees/teams with explicit handoff, observable-event provenance, and consolidation.
 
@@ -77,12 +83,13 @@ rounds; a limit or eligibility failure returns to Owner decision.
 
 ## Owner
 
-Orchestrator. Architect and Critic functions may be delegated.
+Orchestrator. Architect, requirements-review, consistency-analysis, and Critic
+functions may be delegated within their authority boundaries.
 
 ## Purpose
 
-Convert a request into an approved, bounded, auditable Work Block before source
-changes begin.
+Convert a request into an approved, bounded, auditable, implementation-ready Work
+Block before source changes begin.
 
 ## Required Inputs
 
@@ -105,14 +112,31 @@ changes begin.
    - identify accepted architecture decisions;
    - treat plans and tasklists as derived artifacts.
 
-3. **Classify risk and authority**
+3. **Clarify material requirements when needed**
+   - use `requirements-clarification` for formal or materially ambiguous work;
+   - resolve repository/discovery facts from evidence instead of asking the Owner;
+   - record reasonable non-material defaults as explicit assumptions;
+   - batch independent material questions when safe;
+   - ask dependent material questions sequentially;
+   - keep Define blocked when no safe answer exists.
+
+4. **Run requirements-quality review when required**
+   - Managed, Assured, and Distributed formal feature work requires a
+     requirements-quality verdict before successful Define completion;
+   - evaluate the written requirements, not implementation behavior;
+   - use `requirements-quality-review` and record
+     `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED`;
+   - Controlled work selects the gate by risk; Quick Fix/NDR use their narrower
+     contracts.
+
+5. **Classify risk and authority**
    - side-effect class;
    - DB/data action mode;
    - Hard Stops;
    - rollback/recovery expectations;
    - required governance profile.
 
-4. **Negotiate runtime capability**
+6. **Negotiate runtime capability**
    - active runtime and adapter;
    - subagent/session/worktree support;
    - hooks and sandbox availability;
@@ -121,31 +145,69 @@ changes begin.
    - observable-event capability;
    - fallback path for missing capability.
 
-5. **Define execution topology**
+7. **Define execution topology**
    - logical functions required;
    - runtime binding for each function;
    - one Coder per write-set;
    - parallel work only for independent scopes;
    - consolidation owner.
 
-6. **Route skills**
+8. **Route skills**
    - checked;
    - matched;
    - used;
    - skipped with reason.
 
-7. **Create the implementation and assurance plans**
+9. **Create implementation/assurance plans and traceable tasks**
    - ordered tasks;
    - explicit write-set;
-   - dependencies;
+   - dependencies and safe parallelization;
    - review and verification plan;
    - evaluation requirement and approved plan path;
-   - drift triggers.
+   - drift triggers;
+   - for formal Managed/Assured/Distributed tasklists, use stable `REQ-*`,
+     `AC-*`, and `TASK-*` references for requirement implementation tasks;
+   - classify setup/foundation, assurance, and documentation work honestly rather
+     than inventing fake requirement IDs.
 
-8. **Run Critic function when triggered**
-   - challenge scope, assumptions, authority, risk, topology, verification, and evaluation design;
-   - record `APPROVE`, `SUPPLEMENT`, or `RECONSIDER`;
-   - rerun Define for material gaps.
+10. **Validate structural traceability when the stable-ID format is in use**
+    - run `python3 scripts/validate-define-traceability.py --spec <spec> --tasks <tasklist>`;
+    - orphan requirements, orphan acceptance criteria, unknown references,
+      malformed requirement tasks, duplicate IDs, or missing task paths keep the
+      structural check `BLOCKED`;
+    - the validator proves structure only, never product correctness.
+
+11. **Run read-only pre-execution consistency analysis**
+    - use `spec-consistency-analysis` to compare specification, accepted
+      architecture/plan, tasks, dependencies, and write-set;
+    - route fixes back to the artifact that owns the problem;
+    - do not silently rewrite approved normative artifacts during analysis;
+    - record `READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED`.
+
+12. **Run Critic function when triggered**
+    - challenge scope, assumptions, authority, risk, topology, requirements-quality
+      evidence, consistency evidence, verification, and evaluation design;
+    - record `APPROVE`, `SUPPLEMENT`, or `RECONSIDER`;
+    - rerun Define for material gaps.
+
+## Formal Traceability Syntax
+
+Specification:
+
+```text
+- REQ-001: Required behavior.
+- AC-001 [req=REQ-001]: Measurable acceptance criterion.
+```
+
+Tasklist:
+
+```text
+- [ ] TASK-001 [type=requirement] [req=REQ-001] [ac=AC-001] [paths=src/a.py,tests/test_a.py] Implement behavior.
+```
+
+Allowed task types: `requirement`, `enabling`, `assurance`, `documentation`.
+Non-requirement task types may use `req=-` and `ac=-` when no direct product
+trace exists, but every task still declares explicit paths/write-set.
 
 ## Evaluation Triggers
 
@@ -164,9 +226,13 @@ alone neither requires nor waives evaluation.
 ## Exit Conditions
 
 - active specification identified and approved or marked with explicit approval requirement;
+- blocking ambiguity resolved or Define remains blocked;
+- required requirements-quality gate passing;
 - architecture baseline identified;
 - Work Block complete;
-- write-set approved;
+- traceable tasklist/write-set complete when required;
+- deterministic traceability validation passing when required;
+- Define consistency gate passing when required;
 - runtime capability and isolation recorded;
 - verification/review/evaluation/drift plan recorded;
 - Critic gate resolved when triggered;
@@ -186,6 +252,7 @@ Coder. Exactly one write-capable Coder per write-set.
 
 - write gate `READY`;
 - approved specification and implementation plan;
+- required Stage 0 requirements-quality/consistency/traceability checks resolved;
 - explicit write-set;
 - side-effect and Hard Stop classification;
 - required runtime capability available or an approved degraded fallback recorded;
@@ -231,6 +298,9 @@ Stage 2 contains four distinct functions:
 
 They may be executed by separate agents or by separate passes of one runtime,
 but actual independence and limitations must be recorded.
+
+Requirements-quality review is a Stage 0 review of the specification. It does not
+replace Stage 2 review/verification of the delivered implementation.
 
 ## 2A — Independent Review
 
@@ -393,7 +463,8 @@ Orchestrator.
 7. engineering memory;
 8. operational memory and logs.
 
-Plans and tasklists never silently override an approved specification.
+Plans, requirements-quality reports, consistency reports, validator results, and
+tasklists never silently override an approved specification.
 
 ## Successful Closeout Conditions
 
@@ -437,4 +508,5 @@ The Orchestrator must record why the full lifecycle and evaluation were not requ
 - Use the strongest available fallback and record actual runtime and isolation.
 - A degraded review or evaluation cannot upgrade a blocked verification result.
 - Missing observable trajectory evidence cannot be described as a pass.
+- Missing required requirements-quality/consistency/traceability evidence cannot be described as a passing Define stage.
 - No agent may grant itself authority because a tool is technically available.
