@@ -16,7 +16,6 @@ write_gate: READY
 writer: one bounded Coder-equivalent implementation stream
 base_revision: 8adf9adcb29dafb3dba9e7ee23bd33f9a392958d
 implementation_state: completed_pending_assurance
-validated_revision: a9fa7896abd26d931a3b53b10d2c1022e53f9550
 ---
 
 # WB-DEFINE-001 — Requirements Quality and Traceability Pipeline
@@ -133,27 +132,17 @@ problem. It never silently rewrites approved requirements.
 - Verifier check against the acceptance criteria above;
 - drift check against governance, bootstrap, skills, and generated SDD protocol.
 
-## Implementation Evidence
+## Implementation State
 
-Implementation is complete on validated revision
-`a9fa7896abd26d931a3b53b10d2c1022e53f9550`, pending formal independent assurance.
+Implementation is complete and the Work Block remains open for formal assurance.
+Provider-native CI status is external operational evidence and must be read from
+the exact current PR head rather than copied into this normative Work Block.
 
-Provider-native checks on that exact revision:
-
-- **Release State Contract #662:** `success`;
-- **Framework Contracts #1080:** `success`.
-
-Framework Contracts includes successful runtime-neutral SDLC contracts,
-evaluation contracts, NDR/CI routing, full installation-profile/runtime
-conformance, integration adapters, Codex adapter gates, governance validation,
-release-state validation, publication scaffold validation, and disposable default
-generated-project bootstrap.
-
-The Define traceability fixture suite also asserts byte-for-byte parity between
+The Define traceability fixture suite also requires byte-for-byte parity between
 the framework validator and the generated-project validator.
 
-These checks are deterministic evidence only. They do not satisfy the pending
-independent Critic/Reviewer/Verifier duties for this Managed Work Block.
+Deterministic checks do not satisfy the pending independent
+Critic/Reviewer/Verifier duties for this Managed Work Block.
 
 ## Stop conditions
 
