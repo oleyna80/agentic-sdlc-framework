@@ -10,6 +10,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR_PATH = ROOT / "scripts" / "validate-define-traceability.py"
+TEMPLATE_VALIDATOR_PATH = ROOT / "template" / "scripts" / "validate-define-traceability.py"
 
 spec = importlib.util.spec_from_file_location("define_traceability", VALIDATOR_PATH)
 assert spec and spec.loader
@@ -34,6 +35,15 @@ def require_verdict(name: str, result: dict[str, object], expected: str) -> None
         raise AssertionError(f"{name}: expected {expected}, got {actual}: {result}")
 
 
+def require_template_parity() -> None:
+    framework_source = VALIDATOR_PATH.read_text(encoding="utf-8")
+    template_source = TEMPLATE_VALIDATOR_PATH.read_text(encoding="utf-8")
+    if framework_source != template_source:
+        raise AssertionError(
+            "generated-project validate-define-traceability.py drifted from framework validator"
+        )
+
+
 VALID_SPEC = """# Spec
 - REQ-001: Customer can create a booking.
 - REQ-002: A consumed slot rejects a competing booking.
@@ -50,6 +60,7 @@ VALID_TASKS = """# Tasks
 
 
 def main() -> int:
+    require_template_parity()
     require_verdict("valid", run_case(VALID_SPEC, VALID_TASKS), "READY")
 
     orphan_requirement_tasks = VALID_TASKS.replace(
