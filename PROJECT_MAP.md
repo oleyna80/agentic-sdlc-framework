@@ -398,8 +398,9 @@ Active:
 
 - WB-DEFINE-001 — Managed framework-native adaptation of clarification,
   requirements-quality review, stable requirement/acceptance/task traceability,
-  and read-only pre-execution consistency analysis. It does not install Spec Kit
-  or alter the Portable Kit product Work Block sequence.
+  and read-only pre-execution consistency analysis. Canonical active record:
+  `docs/plans/wb-define-001-requirements-quality-traceability.md`. It does not
+  install Spec Kit or alter the Portable Kit product Work Block sequence.
 
 Planned:
 
