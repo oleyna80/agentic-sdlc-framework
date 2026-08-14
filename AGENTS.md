@@ -60,6 +60,37 @@ it does not replace the Portable Kit's accepted separate-role ADR boundary.
 
 ## 4. Lifecycle and capability selection
 
+### Engineering decision posture
+
+Before adding architecture, controls, gates, abstractions, or process, prefer the
+**simplest sufficient solution** for the actual requirement, credible risk, and
+operating scale.
+
+- Design for the real number of users, operators, deployers, exposure, and data
+  sensitivity; do not default to hypothetical enterprise scale.
+- A meaningful increase in complexity must address a concrete failure, credible
+  threat, or explicit requirement and must outperform a simpler alternative.
+- Security must be proportional to the threat model. Do not add cryptographic
+  ceremony, multi-stage authorization, or equivalent machinery to reversible
+  development work without a real independent boundary that justifies it.
+- Prefer existing platform, OS, repository-hosting, runtime, and CI/CD
+  capabilities over custom project-local mechanisms when they are sufficient.
+- Prefer incremental and reversible changes. Observe real limitations before
+  building controls for hypothetical future problems.
+- Treat every new guardrail, validator, workflow, abstraction, and automation as
+  its own maintenance cost and failure surface.
+- Distinguish blockers and material risks from optional improvements. Stop when
+  acceptance criteria and required assurance are satisfied.
+- Optimize total engineering economics: implementation time, maintenance,
+  debugging, cognitive load, operational friction, agent time, and tokens are
+  part of the design cost.
+
+If a proposed solution materially increases complexity, state the simpler
+alternative considered and the concrete reason it is insufficient. Detailed
+rationale is in `docs/engineering-memory/engineering-decision-principles.md`;
+retired or rejected approaches and reusable lessons are recorded in
+`docs/engineering-memory/lessons-learned.md`.
+
 Use `governance/lifecycle.md` and the SDD protocol: Define → Execute → Assure
 → Close. Non-trivial framework changes use an approved Work Block, a resolved
 Critic gate, one Coder per exclusive isolated write-set, then required
