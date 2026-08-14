@@ -130,6 +130,40 @@ are satisfied, prefer completion over additional sophistication.
 Further improvement should require a concrete benefit, new evidence, or a new
 requirement rather than the mere possibility of making the design more complex.
 
+## 11. Keep always-on agent contracts small
+
+`AGENTS.md` is loaded early and should optimize for signal, not completeness.
+Keep only stable rules that materially affect most agent work plus links to the
+canonical detail.
+
+Use this placement rule:
+
+- **AGENTS.md:** stable always-on behavior, authority boundaries, project-wide
+  technical defaults, and navigation;
+- **workflows:** detailed lifecycle/state-transition procedures;
+- **skills:** reusable triggered procedures for a specific kind of task;
+- **governance:** stable normative authority and lifecycle contracts;
+- **engineering memory/evidence:** rationale, historical lessons, retired
+  approaches, recovery knowledge, and why a rule exists;
+- **specifications/architecture:** project or feature-specific technical choices;
+- **operational memory:** current progress and temporary context.
+
+Do not duplicate a skill or workflow inside `AGENTS.md` when a short route to it
+is sufficient. Do not keep historical narrative in the always-on contract merely
+to explain a current rule.
+
+The framework has two intentionally different agent contracts:
+
+1. repository-root `AGENTS.md` governs development of the Agentic SDLC Framework
+   itself (self-hosting);
+2. `template/AGENTS.md` is the portable baseline copied into generated consumer
+   projects.
+
+Changes to one do not automatically belong in the other. The portable contract
+may contain generic project-operation guidance and stable project-specific
+technical fields; framework-internal migration history and self-hosting details
+must not leak into it.
+
 ## Default decision rule
 
 When uncertain, choose the simplest reliable and maintainable solution
