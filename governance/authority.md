@@ -75,12 +75,10 @@ authority: read_only
 A declared isolation level is evidence, not self-authenticating proof. Runtime
 adapters must record how it was achieved and any residual limitations.
 
-## GitHub-Native Capability Boundary
+## External Capability Boundary
 
-For repositories hosted on GitHub, prefer external GitHub controls over a
-project-local cryptographic approval state machine.
-
-Normal development may include, when allowed by the Work Block and credential:
+For repositories hosted on GitHub, normal development may include, when allowed
+by the Work Block and credential:
 
 - editing approved paths;
 - tests/builds;
@@ -89,34 +87,23 @@ Normal development may include, when allowed by the Work Block and credential:
 - pull-request creation and updates;
 - CI/review inspection.
 
-Default-branch authority is external. For this framework, the active `main`
-ruleset requires pull requests and the required status checks, rejects branch
-deletion and non-fast-forward updates, and has no configured bypass actor.
+Default/protected-branch and production authority should be enforced outside
+mutable project state wherever practical. Use repository rules, least-privilege
+credentials, workflow/environment permissions, OS isolation, and separately held
+production/VPS/database/secret capabilities according to the actual risk.
 
-Consumer projects should give the agent a dedicated least-privilege credential.
-A typical production project grants only the repository permissions required for
-source/PR work and keeps workflow-dispatch, environment administration, VPS/DB
-credentials, and production secrets outside the normal agent credential.
+Project-local text files, hooks, signatures, or approval state must not be treated
+as an independent security boundary merely because they are verifiable. If a
+stronger authorization boundary is required, place it in an independently
+controlled capability appropriate to the threat model.
 
-The Owner approval for a production action should therefore occur at the
-external boundary (for example, manually starting an exact GitHub Actions
-deployment) rather than by signing a mutable project-local authorization file.
+For the framework repository, current protected-branch behavior is hosting-
+platform state and should be verified live when it matters rather than copied as
+permanent policy text.
 
-## Retired Default: SSH-Signed Work-Block Authorization
-
-Per-Work-Block SSH signatures and authorization-bootstrap commits are **not the
-default authority mechanism**.
-
-They were retired because they introduced circular bootstrap and replay/state
-complexity (authorization commit, H0/H1/H2 binding, expiry, specification digest,
-and runtime parity) while still relying on project-local hooks that are not an
-OS security boundary. The control mechanism became a larger failure surface than
-ordinary reversible Git operations.
-
-Historical signed authorization artifacts may remain for audit/reference. New
-projects and normal Work Blocks must not require an Owner private key,
-`ssh-keygen`, detached `.sig`, or external `allowed_signers` file merely to edit,
-commit, or push a feature branch.
+Historical rationale for retired authority mechanisms belongs in engineering
+memory/evidence, not this normative contract. For this repository, see
+`docs/engineering-memory/lessons-learned.md`.
 
 ## Non-Expansion Rule
 
