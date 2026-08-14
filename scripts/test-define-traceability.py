@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +14,7 @@ VALIDATOR_PATH = ROOT / "scripts" / "validate-define-traceability.py"
 spec = importlib.util.spec_from_file_location("define_traceability", VALIDATOR_PATH)
 assert spec and spec.loader
 validator = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = validator
 spec.loader.exec_module(validator)
 
 
