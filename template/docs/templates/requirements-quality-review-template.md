@@ -1,21 +1,21 @@
 ---
 schema_version: 1
 artifact_type: requirements_quality_review
-work_block_id: {{WORK_BLOCK_ID}}
-specification: {{SPECIFICATION_PATH_OR_ID}}
-specification_revision: {{SPECIFICATION_REVISION}}
+work_block_id: [WORK_BLOCK_ID]
+specification: [SPECIFICATION_PATH_OR_ID]
+specification_revision: [SPECIFICATION_REVISION]
 reviewer_role: reviewer
-isolation: {{ISOLATION}}
+isolation: [ISOLATION]
 verdict: pending
 ---
 
-# Requirements Quality Review — {{TITLE}}
+# Requirements Quality Review — [TITLE]
 
 ## Subject
 
-- Specification: `{{SPECIFICATION_PATH_OR_ID}}`
-- Revision: `{{SPECIFICATION_REVISION}}`
-- Work Block: `{{WORK_BLOCK_ID}}`
+- Specification: `[SPECIFICATION_PATH_OR_ID]`
+- Revision: `[SPECIFICATION_REVISION]`
+- Work Block: `[WORK_BLOCK_ID]`
 - Review boundary: written requirements only; implementation behavior is out of scope
 
 ## Result Matrix
@@ -37,22 +37,22 @@ Use `READY`, `CHANGES_REQUIRED`, `BLOCKED`, or `UNVERIFIED` for material row sta
 
 ## Findings
 
-### RQ-001 — {{SHORT_TITLE}}
+### RQ-001 — [SHORT_TITLE]
 
 - Severity: `blocking | material | advisory`
-- Requirement/section: `{{REFERENCE}}`
-- Quality dimension: `{{DIMENSION}}`
-- Finding: {{PRECISE_REQUIREMENTS_GAP}}
-- Why it matters: {{DOWNSTREAM_IMPACT}}
+- Requirement/section: `[REFERENCE]`
+- Quality dimension: `[DIMENSION]`
+- Finding: [PRECISE_REQUIREMENTS_GAP]
+- Why it matters: [DOWNSTREAM_IMPACT]
 - Owning remediation: `clarification | specification | architecture | Owner`
 
 ## Remaining Owner Decisions
 
-- {{NONE_OR_DECISION}}
+- [NONE_OR_DECISION]
 
 ## Inspection Gaps
 
-- {{NONE_OR_GAP}}
+- [NONE_OR_GAP]
 
 ## Verdict
 
