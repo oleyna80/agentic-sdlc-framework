@@ -9,24 +9,27 @@ read next.
 `{{PROJECT_NAME}}` uses a runtime-neutral Agentic SDLC control plane with four
 separable layers:
 
-1. **Governance Core** — authority, lifecycle, artifacts, evaluation, risk gates,
-   capability negotiation, assurance, and closeout.
-2. **Portable workflow** — specifications, decisions, Work Blocks, implementation
-   and evaluation plans, tasks, reports, skills, memory, and observable evidence.
+1. **Governance Core** — authority, lifecycle, artifacts, Define-stage
+   requirements quality/traceability, evaluation, risk gates, capability
+   negotiation, assurance, and closeout.
+2. **Portable workflow** — specifications, clarifications, requirements-quality
+   reviews, decisions, Work Blocks, implementation/evaluation plans, traceable
+   tasks, reports, skills, memory, and observable evidence.
 3. **Runtime adapters** — Codex, Claude Code, OpenCode, generic, or another
    approved execution runtime.
 4. **Integration adapters** — optional plugins, MCP servers, external runtime
    CLIs, hosted tools, and audited file transport.
 
-Runtime, model, judge, integration, or installation-profile selection never
-changes governance authority.
+Runtime, model, judge, integration, installation profile, requirements-quality
+verdict, or traceability validator result never changes governance authority.
 
 ## Installation Profile
 
 Read `.agent/bootstrap-profile.json` first when runtime availability matters. It
 records which runtime implementation surfaces and skills were installed. It is
 installation evidence only and does not grant Work Block authority, integration
-admission, credentials, side-effect permission, or a passing evaluation verdict.
+admission, credentials, side-effect permission, a passing requirements-quality
+verdict, or a passing evaluation verdict.
 
 Possible conditional surfaces:
 
@@ -45,11 +48,13 @@ Absence of an unselected runtime surface is expected.
 4. accepted architecture decisions and external contracts;
 5. approved implementation and evaluation plans and write-set;
 6. active tasklist;
-7. review, verification, evaluation, drift, integration, and closeout evidence;
+7. requirements-quality, consistency, review, verification, evaluation, drift,
+   integration, and closeout evidence;
 8. durable engineering memory;
 9. runtime/integration policy, operational logs, generated output, references.
 
-Reports, scores, judges, and logs are evidence; they do not silently revise product
+Requirements-quality reports, tasklists, validator output, scores, judges, and
+logs are evidence or derived artifacts; they do not silently revise product
 requirements or open authority gates.
 
 ## Work Block Profiles
@@ -64,7 +69,57 @@ Each Work Block selects independently:
 - **Evaluation posture:** not required or an approved deterministic/output/trajectory plan.
 
 The installation profile constrains local availability; it does not activate a
-runtime, integration, or evaluation authority.
+runtime, integration, requirements-quality, or evaluation authority.
+
+## Define-Stage Requirements Quality
+
+`governance/define-quality.md` strengthens Stage 0 for formal feature work:
+
+```text
+specification draft
+  -> requirements clarification
+  -> requirements-quality review
+  -> architecture / implementation plan
+  -> traceable task decomposition + write-set
+  -> deterministic traceability validation
+  -> read-only specification/plan/task consistency analysis
+  -> Critic
+  -> write gate READY
+```
+
+Clarification uses an evidence-first policy:
+
+- repository/discovery-resolvable fact -> resolve from authoritative evidence;
+- reasonable non-material default -> record as explicit assumption;
+- material independent ambiguity -> ask in a small bounded batch;
+- material dependent ambiguity -> ask sequentially;
+- unresolved blocking ambiguity -> keep Define blocked.
+
+Formal traceability uses stable identifiers:
+
+```text
+- REQ-001: Required behavior.
+- AC-001 [req=REQ-001]: Measurable acceptance criterion.
+- [ ] TASK-001 [type=requirement] [req=REQ-001] [ac=AC-001] [paths=src/a.py,tests/test_a.py] Implement behavior.
+```
+
+Enabling, assurance, and documentation tasks may use `req=-` and `ac=-` when they
+do not directly implement a product requirement. Every task still declares an
+explicit path/write-set. Do not create fake requirements to satisfy validation.
+
+Use:
+
+```text
+skills: requirements-clarification, requirements-quality-review,
+        task-decomposition, spec-consistency-analysis
+docs/templates/requirements-quality-review-template.md
+docs/templates/traceable-tasklist-template.md
+scripts/validate-define-traceability.py
+```
+
+The validator checks structural coverage only. It cannot prove that the
+requirements are correct, complete, secure, or valuable, and it never grants
+source-write authority.
 
 ## Narrow Deterministic Repair
 
@@ -102,7 +157,8 @@ scripts/validate-evaluation.py
 |---|---|---|
 | `AGENTS.md` | normative | Compact project operating contract |
 | `.agent/bootstrap-profile.json` | generated | Resolved installation profile and path contract |
-| `governance/` | normative | Runtime-neutral authority, lifecycle, artifacts, evaluation, capabilities |
+| `governance/` | normative | Runtime-neutral authority, lifecycle, artifacts, Define quality, evaluation, capabilities |
+| `governance/define-quality.md` | normative | Clarification, requirements-quality review, traceability, pre-execution consistency |
 | `governance/evaluation.md` | normative | Deterministic/output/observable trajectory contract |
 | `.agent/workflows/sdd-protocol.md` | normative | Define / Execute / Assure / Close semantics |
 | `.agent/ROSTER.md` | normative | Logical roles, skill routing, runtime binding, isolation |
@@ -113,10 +169,13 @@ scripts/validate-evaluation.py
 | `docs/specs/` | normative | Approved product and technical behavior |
 | `docs/architecture/` | normative | Accepted architecture decisions and contracts |
 | `docs/plans/` | derived/log | Approved plans and Work Blocks |
-| `docs/tasklist/` | derived | Active task decomposition |
+| `docs/tasklist/` | derived | Active task decomposition with optional stable REQ/AC/TASK traceability |
+| `docs/reports/requirements/` | evidence | Define-stage requirements-quality reviews |
 | `docs/evals/` | evidence/config | Approved evaluation plans, fixtures, observable events |
 | `docs/reports/evaluations/` | evidence | Evaluation matrices, gaps, risks, verdicts |
 | `docs/reports/` | evidence | All assurance, integration, and closeout evidence |
+| `docs/templates/requirements-quality-review-template.md` | normative template | Requirements-quality review contract |
+| `docs/templates/traceable-tasklist-template.md` | normative template | Requirement/acceptance/task/write-set traceability |
 | `docs/templates/` | normative templates | Work Block, evaluation, reports, integration admission |
 | `docs/engineering-memory/` | durable reference | Evidence-backed reusable decisions |
 | `memory_bank/` | operational/local | Current focus, progress, pending decisions, logs |
@@ -124,6 +183,7 @@ scripts/validate-evaluation.py
 | `integrations/` | adapter documentation | Optional bridge/tool/transport admission |
 | `scripts/bootstrap.sh` | health check | Validates profile/default and restores local state |
 | `scripts/validate-installation-profile.py` | validator | Selected paths, kinds, absent surfaces, blocked default |
+| `scripts/validate-define-traceability.py` | validator | Structural REQ/AC/TASK coverage and reference consistency |
 | `scripts/validate-evaluation.py` | validator | Evaluation plan/report consistency and closeout binding |
 | `scripts/repair-lifecycle.py` | validator | Fail-closed NDR record limit validation |
 | `docs/templates/repair-record-template.md` | normative template | NDR scope, verification, and stop-condition record |
@@ -135,6 +195,7 @@ scripts/validate-evaluation.py
 - no plugin, external bridge, MCP server, or watcher is enabled automatically;
 - no provider-named authority agent is installed;
 - external runtime calls require active integration approval;
+- requirements-quality and consistency reports are evidence, not write authority;
 - blocked default evaluation is optional, `PENDING`, unbound, and has no authority;
 - credentials and private runtime state remain local;
 - observable evidence must exclude secrets, protected payloads, and hidden reasoning.
@@ -143,7 +204,8 @@ scripts/validate-evaluation.py
 
 ```text
 Define
-  discovery -> architecture -> specification -> implementation/evaluation plans -> critic
+  discovery -> specification -> clarification -> requirements quality -> architecture/plan
+  -> traceable tasks -> consistency analysis -> critic
 
 Execute
   scoped implementation -> self-check -> observable event capture -> frozen diff
@@ -155,14 +217,17 @@ Close
   SSOT sync -> engineering memory -> closeout report
 ```
 
-Required evaluation must be `READY` for `success-closeout`. Optional evaluation
-may be skipped only with a concrete reason.
+Required Define-stage quality checks must be resolved before the write gate can be
+`READY` where the selected governance profile requires them. Required evaluation
+must be `READY` for `success-closeout`. Optional evaluation may be skipped only
+with a concrete reason.
 
 ## Generated, Derived, Evidence, and Local Boundaries
 
 - specifications and accepted architecture decisions are normative;
 - implementation/evaluation plans and tasklists are derived/configuration;
-- reports and observable events are evidence, not requirement authority;
+- requirements-quality, consistency, review, verification, evaluation, drift,
+  and closeout reports are evidence, not requirement authority;
 - `.agent/bootstrap-profile.json` is generated installation evidence;
 - engineering memory is durable only when evidence-backed and secret-free;
 - `memory_bank/**` and runtime memory are operational/local by default;
@@ -177,13 +242,14 @@ Always for non-trivial work:
 2. `.agent/bootstrap-profile.json` when runtime availability matters;
 3. active Work Block;
 4. active specification and revision;
-5. approved implementation/evaluation plans;
+5. approved implementation/evaluation plans and active tasklist;
 6. relevant architecture decisions;
 7. repository status and current diff.
 
 Read conditionally:
 
-- relevant Governance Core contract, especially `evaluation.md`;
+- relevant Governance Core contract, especially `define-quality.md` and `evaluation.md`;
+- requirements-quality/consistency evidence required by the active Work Block;
 - detailed SDLC protocol and role/skill roster;
 - installed/approved runtime adapter;
 - selected integration adapter and admission record;
@@ -193,5 +259,5 @@ Read conditionally:
 Do not treat an absent unselected runtime surface as corruption.
 
 Update this map and `FILE_REGISTRY.yml` when installation composition, authority,
-source-of-truth order, lifecycle, evaluation, integration, gates, adapters, or
-normative/evidence/local boundaries change.
+source-of-truth order, lifecycle, Define quality, evaluation, integration, gates,
+adapters, or normative/evidence/local boundaries change.
