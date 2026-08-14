@@ -1,13 +1,13 @@
 ---
 schema_version: 1
 artifact_type: tasklist
-work_block_id: {{WORK_BLOCK_ID}}
-specification: {{SPECIFICATION_PATH_OR_ID}}
-specification_revision: {{SPECIFICATION_REVISION}}
+work_block_id: [WORK_BLOCK_ID]
+specification: [SPECIFICATION_PATH_OR_ID]
+specification_revision: [SPECIFICATION_REVISION]
 status: draft
 ---
 
-# Traceable Tasklist — {{TITLE}}
+# Traceable Tasklist — [TITLE]
 
 ## Contract
 
@@ -29,19 +29,19 @@ Do not invent fake requirement IDs for enabling or assurance work.
 
 ## Setup / Enabling
 
-- [ ] TASK-001 [type=enabling] [req=-] [ac=-] [paths={{PATHS}}] {{DESCRIPTION}}
+- [ ] TASK-001 [type=enabling] [req=-] [ac=-] [paths=[PATHS]] [DESCRIPTION]
 
 ## Requirement Delivery
 
-- [ ] TASK-010 [type=requirement] [req=REQ-001] [ac=AC-001] [paths={{PATHS}}] {{DESCRIPTION}}
+- [ ] TASK-010 [type=requirement] [req=REQ-001] [ac=AC-001] [paths=[PATHS]] [DESCRIPTION]
 
 ## Assurance
 
-- [ ] TASK-090 [type=assurance] [req=-] [ac=-] [paths={{PATHS}}] {{DESCRIPTION}}
+- [ ] TASK-090 [type=assurance] [req=-] [ac=-] [paths=[PATHS]] [DESCRIPTION]
 
 ## Documentation / Closeout
 
-- [ ] TASK-100 [type=documentation] [req=-] [ac=-] [paths={{PATHS}}] {{DESCRIPTION}}
+- [ ] TASK-100 [type=documentation] [req=-] [ac=-] [paths=[PATHS]] [DESCRIPTION]
 
 ## Dependencies and Parallelization
 
@@ -60,8 +60,8 @@ Run:
 
 ```bash
 python3 scripts/validate-define-traceability.py \
-  --spec {{SPECIFICATION_PATH}} \
-  --tasks {{TASKLIST_PATH}}
+  --spec [SPECIFICATION_PATH] \
+  --tasks [TASKLIST_PATH]
 ```
 
 A `BLOCKED` result prevents successful pre-execution consistency completion.
