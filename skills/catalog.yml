@@ -9,12 +9,14 @@ selection_policy:
 - Category membership is for discovery; it does not cause a skill to load.
 domains:
   planning:
-    description: Discovery, estimation, decomposition, and architecture framing before
-      a write stage.
+    description: Discovery, requirements clarification, estimation, decomposition,
+      consistency analysis, and architecture framing before a write stage.
     skills:
     - architecture-discovery
     - context-snapshot
     - project-estimation
+    - requirements-clarification
+    - spec-consistency-analysis
     - task-decomposition
     - technical-discovery
   design:
@@ -54,10 +56,11 @@ domains:
     - merge-protocol
     - output-skill
   review_and_verification:
-    description: Independent decision review, code review, testing, specification
-      alignment, evidence gathering, and closeout.
+    description: Independent requirements review, decision review, code review,
+      testing, specification alignment, evidence gathering, and closeout.
     skills:
     - critic-review
+    - requirements-quality-review
     - reviewer
     - verifier
     - spec-drift-audit
