@@ -18,6 +18,8 @@
 
 - **Current Stage:** [Define | Execute | Assure | Close]
 - **Stage State:** [blocked | ready | in_progress | completed]
+- **Requirements Quality Gate:** [PENDING | READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED]
+- **Define Consistency Gate:** [PENDING | READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED]
 - **Write Gate:** [READY | BLOCKED]
 - **Critic Gate:** [PENDING | READY | BLOCKED | SKIPPED | DEGRADED]
 - **Review Gate:** [PENDING | READY | CHANGES_REQUIRED | BLOCKED | UNVERIFIED | SKIPPED]
@@ -26,6 +28,9 @@
 - **Drift Gate:** [PENDING | READY | BLOCKED | UNVERIFIED | SKIPPED]
 - **Closeout Mode:** [pending | success-closeout | reporting-only]
 - **Owner Approval Evidence:** [message/reference | not required]
+
+Requirements-quality and Define-consistency states are pre-execution evidence.
+They never grant source-write authority; the Write Gate remains separate.
 
 ## Objective
 
@@ -39,7 +44,7 @@ repository/runtime state, evidence, documentation, and what must remain clean.]
 ## Done Criteria
 
 - [ ] [Measurable outcome]
-- [ ] [Required deterministic, output, and trajectory evidence exists]
+- [ ] [Required Define-quality, deterministic, output, and trajectory evidence exists]
 - [ ] [Repository/runtime state is clean or documented]
 
 ## Normative Baseline
@@ -49,12 +54,17 @@ repository/runtime state, evidence, documentation, and what must remain clean.]
 - **Specification Revision:** [commit/hash/version]
 - **Accepted Architecture Decisions:** [paths/IDs]
 - **External Contracts:** [API/schema/legal/provider/user contract or not applicable]
+- **Requirements Clarification:** [not required | completed reference | blocking decisions]
+- **Requirements Quality Review:** [not required | report path and verdict]
 - **Derived Implementation Plan:** [path]
-- **Approved Evaluation Plan:** [not required | docs/evals/<id>/plan.json]
 - **Active Tasklist:** [path]
+- **Traceability Validation:** [not required | command/result]
+- **Define Consistency Analysis:** [not required | report/reference and verdict]
+- **Approved Evaluation Plan:** [not required | docs/evals/<id>/plan.json]
 
 Rule: approved specification and accepted architecture decisions outrank plans,
-tasklists, evaluation reports, and operational logs.
+tasklists, requirements-quality/consistency reports, evaluation reports, and
+operational logs.
 
 ## Repository Preflight
 
@@ -94,8 +104,9 @@ tasklists, evaluation reports, and operational logs.
 - **Parallel writers:** [no | separate worktrees and non-overlapping write-sets]
 - **Scope guard:** [git diff/status/path validation]
 
-Lifecycle reports, evaluation evidence, logs, and gate artifacts are counted
-separately from implementation files when applying Quick-Fix and trigger thresholds.
+Lifecycle reports, Define-quality/evaluation evidence, logs, and gate artifacts
+are counted separately from implementation files when applying Quick-Fix and
+trigger thresholds.
 
 ## Risk and Authority
 
@@ -120,8 +131,8 @@ separately from implementation files when applying Quick-Fix and trigger thresho
 - [ ] Payment/order/stock/CRM/external consequential mutation
 - [ ] Material specification, evaluation-plan, or scope expansion
 
-For each checked item, record approval state and evidence. Evaluation cannot open
-or waive a Hard Stop.
+For each checked item, record approval state and evidence. Define-quality or
+evaluation evidence cannot open or waive a Hard Stop.
 
 ## Runtime Capability Snapshot
 
@@ -168,7 +179,10 @@ Rules:
 | Function | Logical Role | Runtime | Model Class | Actual Model | Isolation | Authority | Adapter / Integration / Launch Evidence |
 |---|---|---|---|---|---|---|---|
 | Orchestration | Orchestrator | [runtime] | [class] | [optional] | [level] | workflow | [reference] |
-| Architecture | Architect | [runtime] | [class] | [optional] | [level] | read-only/drafts | [reference] |
+| Architecture / Specification | Architect | [runtime] | [class] | [optional] | [level] | read-only/drafts | [reference] |
+| Requirements Clarification | Architect | [runtime] | [class] | [optional] | [level] | read-only/drafts | [reference] |
+| Requirements Quality Review | Reviewer specialization | [runtime] | [class] | [optional] | [level] | read-only/evidence | [reference] |
+| Define Consistency Analysis | Read-only analysis specialization | [runtime] | [class] | [optional] | [level] | read-only/evidence | [reference] |
 | Critic | Critic | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
 | Implementation | Coder | [runtime] | [class] | [optional] | [level] | write-set | [reference] |
 | Review | Reviewer | [runtime] | [class] | [optional] | [level] | read-only | [reference] |
@@ -197,6 +211,10 @@ Model/provider/integration names do not define roles or authority.
 
 ## Implementation Plan
 
+For formal traceable work, use `docs/templates/traceable-tasklist-template.md`
+and `scripts/validate-define-traceability.py` instead of duplicating the detailed
+task graph here. Keep this table as the Work Block-level execution summary.
+
 | Task | Owner Role | Write-Set | Dependencies | Expected Evidence | Status |
 |---|---|---|---|---|---|
 | [Task] | [role] | [paths] | [deps] | [evidence] | [planned] |
@@ -208,10 +226,24 @@ Model/provider/integration names do not define roles or authority.
 
 ## Assurance Plan
 
+### Requirements Quality
+
+- **Required:** [yes/no; profile/risk trigger]
+- **Specification subject:** [path/revision]
+- **Expected report:** [docs/reports/requirements/<work-block-id>.md]
+- **Required verdict:** [READY | valid documented skip]
+
+### Define Consistency
+
+- **Required:** [yes/no; profile/risk trigger]
+- **Inputs:** [spec/architecture/plan/tasklist/write-set/traceability result]
+- **Expected result/report:** [reference]
+- **Required verdict:** [READY | valid documented skip]
+
 ### Critic
 
 - **Required:** [yes/no; trigger]
-- **Inputs:** [spec/plan/risk/topology/integration admissions/evaluation design]
+- **Inputs:** [spec/plan/risk/topology/requirements-quality/consistency/integration admissions/evaluation design]
 - **Expected report:** [path]
 
 ### Independent Review
@@ -258,63 +290,3 @@ Model/provider/integration names do not define roles or authority.
 - **Files added/moved/removed:** [none | list]
 - **PROJECT_MAP update:** [yes/no; why]
 - **FILE_REGISTRY update:** [yes/no; why]
-- **Specification update:** [yes/no; approval state]
-- **Architecture decision update:** [yes/no; path]
-- **Runtime / integration adapter update:** [yes/no; paths]
-- **Evaluation contract/update:** [yes/no; paths]
-- **User/engineering documentation update:** [yes/no; paths]
-- **Engineering memory candidate:** [yes/no; classification]
-- **Generated/local boundary change:** [yes/no; why]
-
-## Commit / Publication Scope
-
-- **Files to stage:** [explicit paths]
-- **Files to leave unstaged:** [list]
-- **Commit/push approval:** [not requested | requested | approved evidence]
-- **Release/deploy approval:** [not applicable | required | evidence]
-
-## Execution Log
-
-| Time | Stage | Function | Runtime / Integration | Action / Decision | Evidence | Status |
-|---|---|---|---|---|---|---|
-| [time] | [stage] | [function] | [runtime/integration] | [action] | [reference] | [status] |
-
-Record observable trajectory events or references only. Do not include hidden
-reasoning, private chain-of-thought, model scratchpads, secrets, or protected payloads.
-
-## Closeout
-
-### Result
-
-- **Final Result:** [actual vs expected]
-- **Closeout Classification:** [SUCCESS | REPORTING_ONLY]
-- **Task Status:** [completed only when required gates pass | blocked/incomplete]
-- **Review Verdict:** [verdict/path]
-- **Verification Verdict:** [verdict/path]
-- **Evaluation Verdict:** [READY/BLOCKED/UNVERIFIED/NOT_REQUIRED and path]
-- **Drift Verdict:** [verdict/path]
-- **Integration Evidence:** [none | admission/smoke/result paths]
-- **Residual Risks:** [list]
-- **Inspection Gaps:** [list]
-
-### Specification and SSOT Sync
-
-- **Specification changed:** [no | approved change path/revision]
-- **Architecture decisions synchronized:** [yes/no/not applicable]
-- **Implementation/evaluation plans and tasklist synchronized:** [yes/no]
-- **Runtime/integration documentation synchronized:** [yes/no/not applicable]
-- **Reports linked:** [paths]
-
-### Knowledge and Retrospective
-
-- **What worked:** [evidence-based]
-- **What failed or caused friction:** [evidence-based]
-- **What not to repeat:** [specific]
-- **Reusable knowledge:** [path | none]
-- **Engineering memory classification:** [promoted | operational-only | not-applicable]
-- **Framework updates to consider:** [list]
-- **Follow-up Work Blocks:** [IDs/paths]
-
-`SUCCESS` requires all required assurance gates, including evaluation when required,
-to pass. Otherwise use `REPORTING_ONLY`; do not claim merge, deploy, release, or
-completion readiness.
