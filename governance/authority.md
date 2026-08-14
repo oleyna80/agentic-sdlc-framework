@@ -97,13 +97,11 @@ as an independent security boundary merely because they are verifiable. If a
 stronger authorization boundary is required, place it in an independently
 controlled capability appropriate to the threat model.
 
-For the framework repository, current protected-branch behavior is hosting-
-platform state and should be verified live when it matters rather than copied as
-permanent policy text.
+Protected-branch behavior is hosting-platform state and should be verified live
+when it matters rather than copied as permanent policy text.
 
-Historical rationale for retired authority mechanisms belongs in engineering
-memory/evidence, not this normative contract. For this repository, see
-`docs/engineering-memory/lessons-learned.md`.
+Historical rationale for retired authority mechanisms belongs in project
+engineering memory or closeout evidence, not this normative contract.
 
 ## Non-Expansion Rule
 
