@@ -12,7 +12,7 @@ governance_profile: Managed
 branch: agent/define-quality-pipeline
 owner_approval: Owner approved moving from Spec Kit benchmark to framework-native implementation
 critic_gate: pending
-write_gate: READY
+write_gate: BLOCKED
 writer: one bounded Coder-equivalent implementation stream
 base_revision: 8adf9adcb29dafb3dba9e7ee23bd33f9a392958d
 implementation_state: completed_pending_assurance
@@ -135,6 +135,9 @@ problem. It never silently rewrites approved requirements.
 ## Implementation State
 
 Implementation is complete and the Work Block remains open for formal assurance.
+The source write gate is now `BLOCKED`; any corrective source edit requires the
+applicable corrective loop and explicit reopening under the Work Block contract.
+
 Provider-native CI status is external operational evidence and must be read from
 the exact current PR head rather than copied into this normative Work Block.
 
