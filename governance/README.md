@@ -11,6 +11,7 @@ OpenCode, Antigravity, or any future agent runtime:
 - Which role may decide, write, review, verify, evaluate, or approve?
 - Which side effects require a hard stop?
 - What deterministic, output, and observable trajectory evidence is required?
+- Where did a reusable framework mechanism come from, and how was it changed locally?
 - What happens when a capability, review, verification, or evaluation step is unavailable?
 - When may a Work Block be declared successful?
 
@@ -21,6 +22,7 @@ OpenCode, Antigravity, or any future agent runtime:
 | `authority.md` | Stable logical roles, authority boundaries, runtime/model/isolation separation |
 | `lifecycle.md` | Runtime-neutral lifecycle functions, stage transitions, degraded paths |
 | `artifacts.md` | Portable artifact chain, status, versioning, evidence, and SSOT rules |
+| `decision-provenance.md` | Adopted/adapted/experience-derived design provenance and source/attribution boundary |
 | `evaluation.md` | Deterministic tests, output evaluation, observable trajectory assurance, judge limits, and verdicts |
 | `runtime-capabilities.md` | Capability negotiation and topology selection |
 
@@ -34,6 +36,11 @@ configuration, or project-local private configuration.
 Evaluation governance defines observable evidence and verdict semantics. It does
 not require or authorize access to private chain-of-thought, hidden reasoning,
 model scratchpads, or internal deliberation.
+
+Decision provenance records where reusable design mechanisms came from and how
+they were changed locally. External sources remain research inputs rather than
+authority, and provenance classification does not replace license review or
+third-party attribution requirements.
 
 ## Core Principle
 
