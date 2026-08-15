@@ -347,7 +347,7 @@ def replace_placeholders(
         "{{PROJECT_NAME}}": project_name,
         "{{PROJECT_SLUG}}": project_slug,
         "{{PROJECT_ROOT}}": str(final_project_root),
-        "{{SOURCE_DIRS}}": "src/*, app/*",
+        "{{SOURCE_DIRS}}": "to be defined",
         "{{TECH_STACK}}": "to be defined",
     }
     for path in tree_root.rglob("*"):

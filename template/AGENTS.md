@@ -12,7 +12,7 @@ engineering memory/evidence.
 
 - Project: `{{PROJECT_NAME}}`
 - Technology stack: `{{TECH_STACK}}`
-- Primary source roots: `{{SOURCE_DIRS}}`
+- Primary source roots: `to be defined`
 
 Keep stable project-specific technical defaults here when they materially affect
 most agent work: language/runtime constraints, package manager, canonical build
@@ -31,7 +31,7 @@ For non-trivial work, load the smallest sufficient context:
 3. `.agent/bootstrap-profile.json` when runtime/tool availability matters;
 4. active Work Block/current task, approved specification/revision, and relevant
    architecture decisions;
-5. approved implementation/evaluation plans when applicable;
+5. approved implementation and evaluation plans when applicable;
 6. current branch/status and relevant diff.
 
 Use `docs/session-bootstrap.md` for the fuller preflight. Read governance,
@@ -111,6 +111,11 @@ Always preserve these boundaries:
 - unrelated working-tree changes must be preserved.
 
 A skill provides method, not scope or permission.
+
+Once a Work Block is approved and its local write gate is `READY`, continue
+routine internal lifecycle transitions without repeated Owner approval. Stop for
+Owner input only when an external Hard Stop, material scope/authority/risk change,
+missing required capability/evidence, or another unresolved blocker requires it.
 
 ## 6. Write and external capability boundaries
 

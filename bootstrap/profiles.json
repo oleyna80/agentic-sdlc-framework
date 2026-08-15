@@ -33,6 +33,7 @@
     ".agent/workflows/sdd-protocol.md",
     ".agent/skills/README.md",
     "docs/session-bootstrap.md",
+    "docs/architecture/README.md",
     "docs/engineering-memory/README.md",
     "docs/engineering-memory/engineering-decision-principles.md",
     "docs/evals/README.md",
