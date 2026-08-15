@@ -150,6 +150,8 @@ require_absent_pattern "template/AGENTS.md" 'GPT Critic|GPT Verifier|Codex Revie
 require_absent_pattern "template/.agent/ROSTER.md" '^\| GPT Critic|^\| GPT Verifier|^\| Codex Reviewer'
 require_absent_pattern "template/.agent/workflows/sdd-protocol.md" 'Claude critic|GPT critic|Claude verifier|GPT verifier'
 require_absent_pattern "template/CLAUDE.md" 'gpt-critic|gpt-verifier|codex-reviewer|Claude agents remain the authoritative'
+[ "$(awk 'NF { print; exit }' "$ROOT/template/CLAUDE.md")" = "@AGENTS.md" ] || \
+  fail "template/CLAUDE.md first instruction must be @AGENTS.md"
 
 # Portable review, verification, evaluation, and drift schemas use one vocabulary.
 require_contains "governance/artifacts.md" 'verdict: `READY \| CHANGES_REQUIRED \| BLOCKED \| UNVERIFIED`'
