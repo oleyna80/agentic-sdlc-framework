@@ -10,11 +10,11 @@ last_updated: 2026-08-15
 process_level: Standard
 governance_profile: Managed
 branch: agent/wb-core-003g-claude-agents-import
-owner_approval: current Owner instruction to make CLAUDE.md a thin @AGENTS.md import and start the Work Block
+owner_approval: current Owner instruction to make CLAUDE.md a thin @AGENTS.md import and continue the approved Work Block
 critic_gate: APPROVE_WITH_REVIEW_CORRECTION
 write_gate: READY
 writer: one scoped Coder
-base_revision: 4c4cc08f22c999777f75dc2f6bf801c68042c0be
+base_revision: 935c2d29123b5c4fe3dbf99ceb0f6fc7c9dc57cf
 ---
 
 # WB-CORE-003G — Claude `@AGENTS.md` Import Convergence
@@ -80,13 +80,26 @@ Independent frozen-subject review of
 returned **CHANGES_REQUIRED** with one material finding: existing profile tests
 proved that `CLAUDE.md` exists but did not protect the semantic integrity of the
 critical `@AGENTS.md` import. The review recommended one assertion in the
-existing SDD contract test rather than new test machinery. That correction is
-accepted as proportional and within the objective of this Work Block.
+existing SDD contract test rather than new test machinery. That correction was
+accepted as proportional and implemented.
 
 The same review identified one minor runtime-adapter wording issue: `.mcp.json`
 is not part of the plain `claude-code` profile unless the separate MCP integration
-component is selected. The wording is corrected without changing profile
+component is selected. The wording was corrected without changing profile
 composition.
+
+A second independent read-only re-review of the corrected stacked subject
+`4c4cc08f22c999777f75dc2f6bf801c68042c0be -> ae62a5448b6fc5f521ceff7239940001abc88507`
+returned **READY** with both findings resolved and no new BLOCKER/MATERIAL issue.
+That review also correctly noted that Framework Contracts #1113 failed on an
+inherited parent PR #37 contract before the new `@AGENTS.md` assertion executed.
+The parent failure was therefore an integration-evidence gap, not a WB-CORE-003G
+implementation defect.
+
+Because PR #37 and the later self-hosting reconciliation PR #39 are now merged,
+this branch has been synchronized non-destructively with current `main`. The
+base/head pair changed, so final closeout requires green CI and one narrow
+independent re-review of the new frozen subject.
 
 ## Write-set
 
@@ -110,8 +123,13 @@ One Coder owns the implementation paths. No parallel writers are required.
    literally.
 3. Protect the critical import with one deterministic assertion in the existing
    `scripts/test-sdd-contract.sh` contract suite.
-4. Review the frozen diff for accidental loss of Claude-specific runtime guidance.
-5. Verify bootstrap/profile contracts and generated Claude profile behavior.
+4. Preserve the logical child delta while synchronizing the branch to current
+   `main` without rebase or force-push.
+5. Verify the final `main -> head` diff remains limited to the five intended
+   WB-CORE-003G files.
+6. Run current Framework Contracts and Release State Contract on the synchronized
+   head.
+7. Freeze the synchronized head and obtain final narrow independent assurance.
 
 ## Acceptance criteria
 
@@ -131,29 +149,48 @@ One Coder owns the implementation paths. No parallel writers are required.
 7. Generated Claude-capable profiles retain both `AGENTS.md` and the Claude import
    shim after placeholder replacement and validation.
 8. No new framework mechanism is introduced solely to support this convergence.
+9. The synchronized diff against current `main` contains only the intended five
+   WB-CORE-003G files and does not reintroduce parent/root governance changes.
+10. Current CI is green on the final frozen head before closeout.
 
 ## Assurance
 
 - **Evaluation:** NOT_REQUIRED — deterministic documentation/scaffold contract;
   no nondeterministic model-output behavior is an acceptance criterion.
-- **Review:** required against the final frozen stacked diff. First independent
-  pass returned CHANGES_REQUIRED; a second independent pass is required after
-  corrections.
-- **Verification:** existing bootstrap/profile contracts plus the targeted import
-  assertion in `scripts/test-sdd-contract.sh`.
+- **Review:** original review CHANGES_REQUIRED, corrected stacked re-review READY;
+  one final narrow re-review is required because synchronization changed the
+  frozen base/head pair.
+- **Verification:** current bootstrap/profile contracts plus the targeted import
+  assertion in `scripts/test-sdd-contract.sh`; current CI must execute that
+  assertion successfully on the synchronized head.
 - **Drift:** confirm shared policy remains in `AGENTS.md`/governance/workflows and
   Claude-specific detail remains in the runtime adapter.
 
-The independent review also observed that Framework Contracts is already red on
-the stacked base because of a parent PR #37 `template/AGENTS.md` ordering check.
-That inherited prerequisite failure is not attributed to WB-CORE-003G and should
-be resolved in the parent stack before final closeout evidence is considered
-green.
+The previous inherited PR #37 CI failure has been resolved and PR #37 is merged.
+WB-CORE-003H / PR #39 is also merged, so the root self-hosting authority drift
+noted by the earlier review is no longer an outstanding dependency. Historical
+red CI on `ae62a544...` is retained as provenance but is not current closeout
+evidence.
 
-## Dependency / stacking
+## Dependency / synchronization
 
-This branch is based on `agent/engineering-decision-principles` / Draft PR #37.
-Its PR targets that branch while #37 is open. After #37 is merged, the follow-up
-may be rebased/retargeted to `main` without changing its logical scope.
+PR #37 was the original stacked parent. It has been independently assured and
+squash-merged into `main`; WB-CORE-003H / PR #39 was subsequently assured and
+merged as well.
 
-No merge is authorized by this Work Block.
+On 2026-08-15 current `main` at
+`935c2d29123b5c4fe3dbf99ceb0f6fc7c9dc57cf` was merged non-destructively into
+`agent/wb-core-003g-claude-agents-import`. Conflict resolution used current
+`main` as the baseline and preserved only the WB-CORE-003G child delta. In
+particular, `scripts/test-sdd-contract.sh` kept all current parent/root contract
+additions and added only the previously reviewed two-line `@AGENTS.md` assertion.
+No rebase, force-push, or history rewrite was used.
+
+After this synchronization PR #38 was retargeted from
+`agent/engineering-decision-principles` to `main`. The immediate synchronized
+head before this Work Block record update was
+`d8c5f5227b98701472a6b68bf2a00a7483b31f0a`, and its diff against current
+`main` contained exactly the same five logical WB-CORE-003G files.
+
+No merge of PR #38 is authorized by this Work Block; final merge remains
+Owner-controlled after current CI and final independent assurance.
