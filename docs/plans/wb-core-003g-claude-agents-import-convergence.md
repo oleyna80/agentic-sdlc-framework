@@ -6,12 +6,12 @@ work_block_id: WB-CORE-003G
 status: in_progress
 owner_role: orchestrator
 created_at: 2026-08-14
-last_updated: 2026-08-14
+last_updated: 2026-08-15
 process_level: Standard
 governance_profile: Managed
 branch: agent/wb-core-003g-claude-agents-import
 owner_approval: current Owner instruction to make CLAUDE.md a thin @AGENTS.md import and start the Work Block
-critic_gate: APPROVE
+critic_gate: APPROVE_WITH_REVIEW_CORRECTION
 write_gate: READY
 writer: one scoped Coder
 base_revision: 4c4cc08f22c999777f75dc2f6bf801c68042c0be
@@ -33,7 +33,7 @@ maximize signal and route to canonical detail rather than copy it.
 The parent change in PR #37 separates framework self-hosting instructions from
 the portable project contract and makes `template/AGENTS.md` the canonical
 cross-runtime project entry point. The existing `template/CLAUDE.md` still
-repeats substantial shared policy and has already drifted from the current
+repeated substantial shared policy and had already drifted from the current
 feature-branch commit/push rule.
 
 Current Anthropic documentation explicitly supports `@AGENTS.md` imports for
@@ -51,8 +51,11 @@ Upstream references verified 2026-08-14:
 
 - `template/CLAUDE.md` — replace duplicated shared policy with `@AGENTS.md` plus
   only Claude Code-specific routing notes.
-- `runtimes/claude-code/README.md` — document the import-shim model and remove
-  redundant bootstrap wording that assumes separate manual reading of both files.
+- `runtimes/claude-code/README.md` — document the import-shim model and align
+  installation-profile wording with actual Claude/MCP composition.
+- `scripts/test-sdd-contract.sh` — add one narrow deterministic assertion that
+  the first non-empty instruction in `template/CLAUDE.md` remains exactly
+  `@AGENTS.md`.
 - this Work Block and bounded assurance evidence.
 
 ### Out of scope
@@ -60,17 +63,30 @@ Upstream references verified 2026-08-14:
 - changes to root or template `AGENTS.md`;
 - changes to governance, Hard Stops, permissions, hooks, subagent authority, or
   integration admission;
-- new tests, validators, skills, commands, plugins, MCP servers, or runtime
-  dependencies solely for this convergence;
+- new skills, commands, plugins, MCP servers, runtime dependencies, validators,
+  or test frameworks;
+- unrelated self-hosting drift outside the generated Claude project surface;
 - Portable Kit promotion or any use of reserved `WB-CORE-004` through
   `WB-CORE-007` product Work Block IDs.
 
-## Critic result
+## Critic and independent review
 
-**APPROVE.** The smallest sufficient change is a thin import shim plus runtime
-adapter documentation. Existing bootstrap/profile tests already verify that the
-selected Claude surface is generated and valid; adding a dedicated validator or
-new test mechanism for one import line would be disproportionate.
+Initial Critic result: **APPROVE.** The smallest sufficient implementation was a
+thin import shim plus runtime adapter documentation; no new governance, skill,
+hook, or validator was justified.
+
+Independent frozen-subject review of
+`4c4cc08f22c999777f75dc2f6bf801c68042c0be -> 2f38ff1406ff62730e07d72a63fb1e0d21da8a28`
+returned **CHANGES_REQUIRED** with one material finding: existing profile tests
+proved that `CLAUDE.md` exists but did not protect the semantic integrity of the
+critical `@AGENTS.md` import. The review recommended one assertion in the
+existing SDD contract test rather than new test machinery. That correction is
+accepted as proportional and within the objective of this Work Block.
+
+The same review identified one minor runtime-adapter wording issue: `.mcp.json`
+is not part of the plain `claude-code` profile unless the separate MCP integration
+component is selected. The wording is corrected without changing profile
+composition.
 
 ## Write-set
 
@@ -78,6 +94,7 @@ new test mechanism for one import line would be disproportionate.
 docs/plans/wb-core-003g-claude-agents-import-convergence.md
 template/CLAUDE.md
 runtimes/claude-code/README.md
+scripts/test-sdd-contract.sh
 docs/reports/reviews/wb-core-003g-claude-agents-import-convergence.md
 docs/reports/verification/wb-core-003g-claude-agents-import-convergence.md
 ```
@@ -89,10 +106,12 @@ One Coder owns the implementation paths. No parallel writers are required.
 1. Replace `template/CLAUDE.md` with `@AGENTS.md` plus concise Claude-specific
    pointers and non-expansion rules.
 2. Reconcile `runtimes/claude-code/README.md` to describe `CLAUDE.md` as an import
-   shim rather than a second project contract.
-3. Review the frozen diff for accidental loss of Claude-specific runtime guidance.
-4. Verify the existing bootstrap/profile contract still includes the Claude
-   surface and inspect the generated-template import contract directly.
+   shim rather than a second project contract and describe MCP profile semantics
+   literally.
+3. Protect the critical import with one deterministic assertion in the existing
+   `scripts/test-sdd-contract.sh` contract suite.
+4. Review the frozen diff for accidental loss of Claude-specific runtime guidance.
+5. Verify bootstrap/profile contracts and generated Claude profile behavior.
 
 ## Acceptance criteria
 
@@ -103,28 +122,38 @@ One Coder owns the implementation paths. No parallel writers are required.
 3. Claude-specific settings, hooks, subagents, skills, runtime capability, and
    adapter locations remain discoverable.
 4. `runtimes/claude-code/README.md` accurately describes the import behavior and
-   does not tell agents to manually load duplicated shared policy.
+   installation-profile semantics without implying that the plain Claude profile
+   installs MCP configuration.
 5. Existing authority, hooks, permissions, integrations, and bootstrap profile
    composition remain unchanged.
-6. The existing Claude installation profile continues to require and copy
-   `CLAUDE.md`; direct inspection confirms the template import survives normal
-   placeholder replacement because `@AGENTS.md` contains no template variable.
-7. No new framework mechanism is introduced solely to support this convergence.
+6. Existing executable contract tests fail if the first non-empty instruction in
+   `template/CLAUDE.md` is no longer exactly `@AGENTS.md`.
+7. Generated Claude-capable profiles retain both `AGENTS.md` and the Claude import
+   shim after placeholder replacement and validation.
+8. No new framework mechanism is introduced solely to support this convergence.
 
 ## Assurance
 
 - **Evaluation:** NOT_REQUIRED — deterministic documentation/scaffold contract;
   no nondeterministic model-output behavior is an acceptance criterion.
-- **Review:** required against the frozen stacked diff.
-- **Verification:** existing bootstrap/profile contract plus direct template and
-  profile inspection; CI remains the executable repository contract boundary.
+- **Review:** required against the final frozen stacked diff. First independent
+  pass returned CHANGES_REQUIRED; a second independent pass is required after
+  corrections.
+- **Verification:** existing bootstrap/profile contracts plus the targeted import
+  assertion in `scripts/test-sdd-contract.sh`.
 - **Drift:** confirm shared policy remains in `AGENTS.md`/governance/workflows and
   Claude-specific detail remains in the runtime adapter.
+
+The independent review also observed that Framework Contracts is already red on
+the stacked base because of a parent PR #37 `template/AGENTS.md` ordering check.
+That inherited prerequisite failure is not attributed to WB-CORE-003G and should
+be resolved in the parent stack before final closeout evidence is considered
+green.
 
 ## Dependency / stacking
 
 This branch is based on `agent/engineering-decision-principles` / Draft PR #37.
-Its PR should target that branch while #37 is open. After #37 is merged, the
-follow-up may be rebased/retargeted to `main` without changing its logical scope.
+Its PR targets that branch while #37 is open. After #37 is merged, the follow-up
+may be rebased/retargeted to `main` without changing its logical scope.
 
 No merge is authorized by this Work Block.
