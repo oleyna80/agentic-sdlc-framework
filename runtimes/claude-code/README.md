@@ -43,7 +43,9 @@ CLAUDE.md                    # thin @AGENTS.md import shim
 └── agent-memory/
 ```
 
-`.mcp.json` is inert/empty by default. No plugin, MCP server, external runtime,
+When the optional `integration:mcp-config` component is installed, `.mcp.json`
+is present and empty/inert by default. The `claude-code` profile itself does not
+enable an MCP integration automatically. No plugin, MCP server, external runtime,
 credential, watcher, or service is enabled automatically.
 
 ## Session bootstrap
@@ -178,5 +180,3 @@ they do not alter framework authority.
 - Claude Code configuration diagnostics:
   <https://code.claude.com/docs/en/debug-your-config>
 - Shared project contract: `AGENTS.md`
-- Lifecycle procedure: `.agent/workflows/sdd-protocol.md`
-- Integration adapters: `integrations/`
