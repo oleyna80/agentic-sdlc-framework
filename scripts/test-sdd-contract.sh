@@ -81,6 +81,7 @@ for path in \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.claude/hooks/work_block_gate.py" \
   "template/.claude/hooks/assurance_gate.py" \
+  "template/docs/architecture/README.md" \
   "template/docs/templates/work-block-template.md" \
   "template/docs/templates/spec-drift-report-template.md" \
   "template/docs/templates/integration-admission-template.md" \
@@ -140,9 +141,17 @@ assert_before "template/AGENTS.md" 'approved specification' 'approved implementa
 assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/docs/templates/work-block-template.md" 'Approved Specification:' 'Derived Implementation Plan:'
 
-# Stable logical roles; provider/model/integration names remain implementation details.
+# Portable project facts must remain explicit when bootstrap cannot know them.
+require_contains "template/AGENTS.md" 'Primary source roots: `to be defined`'
+require_absent_pattern "template/AGENTS.md" 'Primary source roots: `src[/][*], app[/][*]`'
+require_contains "bootstrap/bootstrap_project.py" 'SOURCE_DIRS.*to be defined'
+
+# Stable logical roles live in canonical authority; portable AGENTS routes to it.
+require_contains "template/AGENTS.md" 'Role authority is defined by `governance/authority.md`'
+require_contains "template/AGENTS.md" 'Operational routing is in'
+require_contains "template/AGENTS.md" 'routine internal lifecycle transitions without repeated Owner approval'
 for role in Owner Orchestrator Architect Critic Coder Reviewer Verifier; do
-  require_contains "template/AGENTS.md" "[|] $role [|]"
+  require_contains "governance/authority.md" "^[|] $role [|]"
 done
 require_contains "template/.agent/ROSTER.md" 'Runtime-specific agent names, models, plugins'
 require_contains "template/.agent/ROSTER.md" 'spec-drift-audit'
@@ -200,6 +209,7 @@ done
 require_contains "bootstrap/profiles.json" '"minimal": "core"'
 require_contains "bootstrap/profiles.json" '"full": "multi-runtime"'
 require_contains "bootstrap/profiles.json" 'governance/evaluation.md'
+require_contains "bootstrap/profiles.json" 'docs/architecture/README.md'
 require_contains "bootstrap/profiles.json" 'scripts/validate-evaluation.py'
 require_contains "template/scripts/bootstrap.sh" 'validate-installation-profile.py'
 require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
@@ -231,9 +241,10 @@ require_contains "template/.claude/agents/verifier.md" 'READY.*BLOCKED.*UNVERIFI
 require_contains "skills/verifier/SKILL.md" 'READY.*BLOCKED.*UNVERIFIED'
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
 require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
+require_contains "governance/lifecycle.md" 'NDR is a mechanically constrained submode of `Controlled`'
 require_contains "governance/lifecycle.md" 'at most three sequentially discovered eligible NDR items'
 require_contains "governance/artifacts.md" 'dynamic Git or CI counters'
-require_contains "template/AGENTS.md" 'NDR is a `Controlled` submode'
+require_contains "template/AGENTS.md" 'Use `.agent/workflows/sdd-protocol.md` for the detailed lifecycle'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'one independent'
 require_contains "template/docs/templates/repair-record-template.md" 'machine-readable'
 require_contains "template/docs/templates/combined-assurance-report-template.md" 'Assurance isolation'
