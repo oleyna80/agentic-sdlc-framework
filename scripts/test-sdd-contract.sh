@@ -113,6 +113,11 @@ require_contains "template/.agent/workflows/sdd-protocol.md" 'Drift gate:.*READY
 require_contains "template/.agent/workflows/sdd-protocol.md" 'observable events only'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'private chain-of-thought'
 
+# Framework self-hosting workflow must preserve normal reversible Git authority.
+require_file ".agent/workflows/sdd-protocol.md"
+require_contains ".agent/workflows/sdd-protocol.md" 'approved Work Block/write-set, including staging, local commits, and normal'
+require_absent_pattern ".agent/workflows/sdd-protocol.md" 'staging, commit, or push'
+
 # Work Block binds governance separately from runtime/model/isolation/integration.
 require_contains "template/docs/templates/work-block-template.md" 'Governance Profile:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Specification:'
