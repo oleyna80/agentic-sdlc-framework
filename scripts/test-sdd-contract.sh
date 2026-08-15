@@ -144,6 +144,7 @@ assert_before "template/docs/templates/work-block-template.md" 'Approved Specifi
 # Portable project facts must remain explicit when bootstrap cannot know them.
 require_contains "template/AGENTS.md" 'Primary source roots: `to be defined`'
 require_absent_pattern "template/AGENTS.md" 'Primary source roots: `src[/][*], app[/][*]`'
+require_contains "bootstrap/bootstrap_project.py" 'SOURCE_DIRS.*to be defined'
 
 # Stable logical roles live in canonical authority; portable AGENTS routes to it.
 require_contains "template/AGENTS.md" 'Role authority is defined by `governance/authority.md`'
