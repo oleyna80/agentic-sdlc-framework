@@ -12,7 +12,7 @@ engineering memory/evidence.
 
 - Project: `{{PROJECT_NAME}}`
 - Technology stack: `{{TECH_STACK}}`
-- Primary source roots: `{{SOURCE_DIRS}}`
+- Primary source roots: `to be defined`
 
 Keep stable project-specific technical defaults here when they materially affect
 most agent work: language/runtime constraints, package manager, canonical build
@@ -111,6 +111,11 @@ Always preserve these boundaries:
 - unrelated working-tree changes must be preserved.
 
 A skill provides method, not scope or permission.
+
+Once a Work Block is approved and its local write gate is `READY`, continue
+routine internal lifecycle transitions without repeated Owner approval. Stop for
+Owner input only when an external Hard Stop, material scope/authority/risk change,
+missing required capability/evidence, or another unresolved blocker requires it.
 
 ## 6. Write and external capability boundaries
 
