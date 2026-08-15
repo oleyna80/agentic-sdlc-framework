@@ -81,6 +81,7 @@ for path in \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.claude/hooks/work_block_gate.py" \
   "template/.claude/hooks/assurance_gate.py" \
+  "template/docs/architecture/README.md" \
   "template/docs/templates/work-block-template.md" \
   "template/docs/templates/spec-drift-report-template.md" \
   "template/docs/templates/integration-admission-template.md" \
@@ -140,9 +141,14 @@ assert_before "template/AGENTS.md" 'approved specification' 'approved implementa
 assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/docs/templates/work-block-template.md" 'Approved Specification:' 'Derived Implementation Plan:'
 
+# Portable project facts must remain explicit when bootstrap cannot know them.
+require_contains "template/AGENTS.md" 'Primary source roots: `to be defined`'
+require_absent_pattern "template/AGENTS.md" 'Primary source roots: `src[/][*], app[/][*]`'
+
 # Stable logical roles live in canonical authority; portable AGENTS routes to it.
 require_contains "template/AGENTS.md" 'Role authority is defined by `governance/authority.md`'
 require_contains "template/AGENTS.md" 'Operational routing is in'
+require_contains "template/AGENTS.md" 'routine internal lifecycle transitions without repeated Owner approval'
 for role in Owner Orchestrator Architect Critic Coder Reviewer Verifier; do
   require_contains "governance/authority.md" "^[|] $role [|]"
 done
@@ -202,6 +208,7 @@ done
 require_contains "bootstrap/profiles.json" '"minimal": "core"'
 require_contains "bootstrap/profiles.json" '"full": "multi-runtime"'
 require_contains "bootstrap/profiles.json" 'governance/evaluation.md'
+require_contains "bootstrap/profiles.json" 'docs/architecture/README.md'
 require_contains "bootstrap/profiles.json" 'scripts/validate-evaluation.py'
 require_contains "template/scripts/bootstrap.sh" 'validate-installation-profile.py'
 require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
