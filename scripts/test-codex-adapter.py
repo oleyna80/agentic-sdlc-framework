@@ -227,6 +227,8 @@ def static_contracts() -> None:
     guard = PRE_TOOL.read_text(encoding="utf-8")
     for marker in (
         "validate_define_quality",
+        "validate_governance_profile",
+        "VALID_GOVERNANCE_PROFILES",
         "FORMAL_DEFINE_PROFILES",
         "requirements_review",
         "traceability",
@@ -304,21 +306,60 @@ def hook_fixtures() -> None:
         )
 
         gate = write_gate(repo)
+        gate.pop("governance_profile")
+        persist_gate(repo, gate)
+        assert_denied(
+            "missing governance profile",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "governance_profile",
+        )
+
+        for label, invalid_profile in (
+            ("empty governance profile", ""),
+            ("whitespace governance profile", "   "),
+            ("unknown governance profile", "Manged"),
+            ("non-string governance profile", 42),
+        ):
+            gate = write_gate(repo)
+            gate["governance_profile"] = invalid_profile
+            persist_gate(repo, gate)
+            assert_denied(
+                label,
+                decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+                "governance_profile",
+            )
+
+        gate = write_gate(repo, profile="Advisory")
+        persist_gate(repo, gate)
+        assert_denied(
+            "Advisory source write",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "Advisory",
+        )
+
+        write_gate(repo, profile="Controlled")
+        assert_allowed(
+            "Controlled non-applicable Define-quality remains proportional",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+        )
+
+        for profile in ("Managed", "Assured", "Distributed"):
+            gate = write_gate(repo, profile=profile)
+            gate["define_quality"]["required"] = False
+            persist_gate(repo, gate)
+            assert_denied(
+                f"{profile} required=false cannot bypass",
+                decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+                "required=false",
+            )
+
+        gate = write_gate(repo)
         gate.pop("define_quality")
         persist_gate(repo, gate)
         assert_denied(
             "Managed missing Define-quality",
             decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
             "define_quality",
-        )
-
-        gate = write_gate(repo)
-        gate["define_quality"]["required"] = False
-        persist_gate(repo, gate)
-        assert_denied(
-            "Managed required=false cannot bypass",
-            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
-            "required=false",
         )
 
         gate = write_gate(repo)
@@ -337,12 +378,6 @@ def hook_fixtures() -> None:
             "Managed blank Define-quality evidence",
             decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
             "requirements_review",
-        )
-
-        write_gate(repo, profile="Controlled")
-        assert_allowed(
-            "Controlled non-applicable Define-quality remains proportional",
-            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
         )
 
         write_gate(repo)
