@@ -185,12 +185,19 @@ for enabling or assurance work merely to satisfy a validator.
 
 ### Deterministic validation
 
-`validate-define-traceability.py` checks structural coverage only. It may prove
-that IDs and references are complete and internally consistent; it cannot prove
-that requirements are correct, sufficient, secure, or valuable.
+`validate-define-traceability.py` checks structural coverage only. All task types
+remain subject to syntax, duplicate-ID, explicit-path, and unknown-reference
+validation when they carry references. **Only `type=requirement` tasks count as
+implementation coverage** for `REQ-*` and `AC-*`.
 
-A structural failure keeps the pre-execution traceability check `BLOCKED` until
-corrected.
+An enabling, assurance, or documentation task may carry a meaningful requirement
+or acceptance reference for context, but that reference cannot satisfy the
+implementation-coverage requirement.
+
+The validator may prove that IDs and references are complete and internally
+consistent; it cannot prove that requirements are correct, sufficient, secure,
+or valuable. A structural failure keeps the pre-execution traceability check
+`BLOCKED` until corrected.
 
 ## 4. Pre-Execution Consistency Analysis
 
@@ -238,6 +245,99 @@ Use:
 - `BLOCKED` — required evidence/decision is unavailable;
 - `UNVERIFIED` — the analyzer could not inspect required artifacts reliably.
 
+## 5. Executable Define-Quality Prerequisite
+
+The three Define-quality functions above remain separate evidence producers, but
+they are represented at the source-transition boundary by **one aggregate
+prerequisite** in the existing schema-v3 active Work Block. This is intentionally
+not three additional gates.
+
+Canonical aggregate shape:
+
+```json
+"define_quality": {
+  "required": false,
+  "status": "PENDING",
+  "requirements_review": "",
+  "traceability": "",
+  "consistency_analysis": ""
+}
+```
+
+### Applicability
+
+Applicability is derived fail-closed from governance profile where the profile
+already requires formal Define discipline:
+
+```text
+Managed / Assured / Distributed -> required
+Controlled                       -> selected proportionally by risk/work mode
+Quick Fix / eligible NDR         -> normally not required unless escalated
+```
+
+For Managed, Assured, and Distributed work, mutable `required=false` is a
+configuration contradiction; it cannot disable the prerequisite. A missing or
+malformed aggregate is unresolved and blocks source execution rather than being
+inferred as success.
+
+For Controlled work, `required` remains a proportional selector. Quick Fix and
+NDR retain their existing narrower eligibility and escalation contracts.
+
+### Readiness and evidence binding
+
+When the prerequisite is applicable, source execution requires:
+
+```text
+status == READY
+trim(requirements_review) != ""
+trim(traceability) != ""
+trim(consistency_analysis) != ""
+```
+
+The evidence values are bindings, not authority grants. Hot-path source guards
+validate that the aggregate is well formed, applicable, READY, and bound to
+non-blank evidence. They do not recursively open or semantically re-run the
+referenced reports. Dedicated validators and later assurance remain responsible
+for evidence quality.
+
+### Schema-v3 migration
+
+This is an additive evidence prerequisite inside the existing schema-v3 Work
+Block state. It does not change authority mode, roles, lifecycle, Hard Stops, or
+the source Write Gate, so no schema-v4 bump is required.
+
+Migration is fail-closed:
+
+- new generated schema-v3 defaults contain `define_quality`;
+- malformed aggregate -> `BLOCKED`;
+- Managed/Assured/Distributed with missing aggregate -> `BLOCKED` / migration
+  required;
+- missing aggregate never implies `READY`.
+
+`template/.agent/active-work-block.default.json` is the canonical portable tracked
+default. A generated local `.agent/active-work-block.json` is operational state
+restored only after the canonical default passes installation-profile validation.
+The tracked template compatibility copy must remain aligned with the default at
+scaffold time but does not become a second SSOT.
+
+### Runtime capability boundary
+
+The semantic rule is runtime-neutral: formal source execution is not authorized
+until applicable Define-quality evidence is READY.
+
+Runtime adapters that actually provide source-write interception, such as the
+bundled Codex and Claude adapters, must enforce this prerequisite fail-closed.
+A runtime without equivalent interception must report that capability limitation
+truthfully and must not claim machine-enforced prevention. This contract does not
+justify inventing a universal hook layer merely for surface symmetry.
+
+### Authority boundary
+
+The aggregate is evidence state only. It grants no source-write, Git,
+integration, credential, deployment, publication, external-action, or Hard Stop
+authority. Resolving it never replaces Critic. After it is READY, the existing
+Critic -> Write Gate -> write-set path still applies in full.
+
 ## Stage 0 Integration
 
 For Managed/Assured/Distributed formal feature work, the preferred Define order is:
@@ -251,6 +351,7 @@ objective/discovery
   -> traceable task decomposition + write-set
   -> deterministic traceability validation
   -> read-only consistency analysis
+  -> aggregate Define-quality prerequisite READY
   -> Critic
   -> write gate READY
 ```
@@ -268,5 +369,6 @@ evaluation, assurance, or closeout rules.
   independent questions; existing Agentic SDLC authority/write gate retained;
   reviewer-owned requirements gate separated from implementation verification;
   deterministic stable-ID traceability added; consistency analysis remains
-  read-only and subordinate to specification authority.
+  read-only and subordinate to specification authority; aggregate Define-quality
+  evidence is machine-observable without becoming a parallel authority system.
 - **Novelty claim:** none
