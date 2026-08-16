@@ -20,6 +20,13 @@ MEMORY_FILES = (
     "review-log.md",
     "external-team-log.md",
 )
+CANONICAL_DEFINE_QUALITY_DEFAULT = {
+    "required": False,
+    "status": "PENDING",
+    "requirements_review": "",
+    "traceability": "",
+    "consistency_analysis": "",
+}
 CANONICAL_COORDINATION_WRITE_SET = [
     ".agent/active-work-block.json",
     ".agent/critic-gate.md",
@@ -117,6 +124,21 @@ def assert_corrupt_evaluation_restore_fails(project: Path, mutation) -> None:
     assert not active_path.exists()
 
 
+def assert_corrupt_define_quality_restore_fails(project: Path, mutation) -> None:
+    active_path = project / ".agent/active-work-block.json"
+    if active_path.exists():
+        active_path.unlink()
+    default_path = project / ".agent/active-work-block.default.json"
+    default_gate = load_json(default_path)
+    mutation(default_gate)
+    write_json(default_path, default_gate)
+
+    result = run([BASH, "scripts/bootstrap.sh"], project, check=False)
+    assert result.returncode != 0
+    assert "define_quality" in result.stderr
+    assert not active_path.exists()
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="profile-restore-") as temp:
         project = Path(temp) / "project"
@@ -167,6 +189,8 @@ def main() -> int:
         assert active_gate == default_gate
         assert active_gate["schema_version"] == 3
         assert active_gate["authority_mode"] == "github_capability"
+        assert active_gate["governance_profile"] == "Controlled"
+        assert active_gate["define_quality"] == CANONICAL_DEFINE_QUALITY_DEFAULT
         assert "authorization" not in active_gate
         assert "hard_stop_approvals" not in active_gate
         assert active_gate["write_gate"] == {"status": "BLOCKED", "opened_at": None}
@@ -191,6 +215,8 @@ def main() -> int:
         assert restored_gate == default_gate
         assert restored_gate["schema_version"] == 3
         assert restored_gate["authority_mode"] == "github_capability"
+        assert restored_gate["governance_profile"] == "Controlled"
+        assert restored_gate["define_quality"] == CANONICAL_DEFINE_QUALITY_DEFAULT
         assert restored_gate["write_gate"]["status"] == "BLOCKED"
         assert restored_gate["assurance"]["evaluation"] == CANONICAL_EVALUATION_DEFAULT
         assert restored_gate["coordination_write_set"] == CANONICAL_COORDINATION_WRITE_SET
@@ -211,6 +237,7 @@ def main() -> int:
         run([BASH, "scripts/bootstrap.sh"], project)
         after_second_run = load_json(project / ".agent/active-work-block.json")
         assert after_second_run["work_block_id"] == "wb-local-restore-test"
+        assert after_second_run["define_quality"] == CANONICAL_DEFINE_QUALITY_DEFAULT
         assert after_second_run["write_gate"]["status"] == "BLOCKED"
 
     with tempfile.TemporaryDirectory(prefix="profile-restore-corrupt-") as temp:
@@ -316,6 +343,34 @@ def main() -> int:
             project = Path(temp) / name
             shutil.copytree(seed_project, project)
             assert_corrupt_evaluation_restore_fails(project, mutation)
+
+    define_quality_mutations = {
+        "missing": lambda gate: gate.pop("define_quality"),
+        "required-true": lambda gate: gate["define_quality"].update({"required": True}),
+        "ready-status": lambda gate: gate["define_quality"].update({"status": "READY"}),
+        "prebound-review": lambda gate: gate["define_quality"].update(
+            {"requirements_review": "docs/reports/requirements-quality.md"}
+        ),
+        "malformed": lambda gate: gate.update({"define_quality": []}),
+    }
+    with tempfile.TemporaryDirectory(prefix="profile-restore-define-quality-") as temp:
+        seed_project = Path(temp) / "seed"
+        run(
+            [
+                BASH,
+                str(BOOTSTRAP),
+                "--profile",
+                "core",
+                str(seed_project),
+                "Define Quality Restore Contract",
+                "define-quality-restore-contract",
+            ],
+            ROOT,
+        )
+        for name, mutation in define_quality_mutations.items():
+            project = Path(temp) / name
+            shutil.copytree(seed_project, project)
+            assert_corrupt_define_quality_restore_fails(project, mutation)
 
     print("Profile clone/restore contract: OK")
     return 0
