@@ -1,260 +1,139 @@
-# Session Bootstrap
+# Session Bootstrap — Framework Maintenance
 
-Use this guide at the start of framework maintenance or before a non-trivial
-Work Block in a generated project.
+Use this guide when starting or resuming non-trivial work **on the Agentic SDLC
+Framework repository itself**. Generated consumer projects use the separate
+`template/docs/session-bootstrap.md` that is copied during bootstrap.
 
-## Goal
+The goal is progressive disclosure: load enough current context to work safely
+without reading the entire repository or carrying historical implementation
+narrative into every session.
 
-Load enough current context to act safely without reading the entire repository,
-loading every skill/runtime document, or relying on stale memory.
+## Always read for non-trivial framework work
 
-## Progressive Read Strategy
+1. root `AGENTS.md` and the current Owner instruction;
+2. active Work Block/current task and governing specification/ADR when present;
+3. current branch, commit, status, and relevant diff;
+4. `PROJECT_MAP.md` when repository structure or migration state matters.
 
-### Always Read
+Do not load every registry, runtime adapter, skill, memory file, or assurance
+report by default.
 
-For framework maintenance:
+## Read conditionally
 
-1. active workspace `AGENTS.md`, when present;
-2. current task or active Work Block;
-3. relevant accepted ADR, specification, and evaluation plan when applicable;
-4. current branch, commit, status, and relevant diff;
-5. `bootstrap/profiles.json` only when scaffold composition is affected.
+- `governance/*` for authority, lifecycle, artifact, evaluation, or capability
+  rules affected by the task;
+- `.agent/workflows/sdd-protocol.md` for detailed self-hosting stage semantics;
+- `.agent/ROSTER.md` and `.agent/skills/README.md` for role/procedure routing;
+- the matching `skills/<skill>/SKILL.md` only when its trigger applies;
+- `bootstrap/profiles.json` and bootstrap/validation code when installation
+  composition changes;
+- runtime/integration adapters only when the task affects them;
+- `FILE_REGISTRY.yml` for canonical path/authority classification;
+- relevant engineering memory for reusable rationale or known failure patterns;
+- relevant reports/evidence when verifying a prior claim or current gate.
 
-For generated-project work:
+Current higher-authority source always outranks memory and historical evidence.
 
-1. `AGENTS.md`;
-2. `.agent/bootstrap-profile.json` when runtime/tool availability matters;
-3. active Work Block or current task;
-4. approved specification/revision and relevant architecture decisions;
-5. approved evaluation plan when required;
-6. current repository state.
+## Framework preflight
 
-Installation state is evidence of copied files and selected skills only. It does
-not grant Work Block authority, evaluation approval, integration admission,
-credentials, live permissions, or runtime capability.
+Before implementation, answer briefly:
 
-### Read Conditionally
+- What exact result is required?
+- Is this read-only analysis or an authorized mutation?
+- Which specification/ADR/Work Block governs it?
+- Which files are normative, derived/configuration, evidence, generated, or
+  local operational state?
+- What paths are explicitly writable?
+- Are there unrelated dirty/untracked changes to preserve?
+- Does the change affect governance, templates, installation profiles, runtime
+  adapters, integrations, skills, publication, or generated-project behavior?
+- Which deterministic checks and assurance functions are required?
+- Are there external Hard Stops or capabilities the normal agent must not hold?
+- Is the proposed solution the simplest sufficient one for the actual risk and
+  scale?
 
-- `governance/*` for authority, lifecycle, artifact, evaluation, or capability rules.
-- `.agent/workflows/sdd-protocol.md` for generated-project stage semantics.
-- `.agent/ROSTER.md` for logical roles and skill routing.
-- the active runtime adapter under `runtimes/`.
-- runtime-specific `.codex/`, `.claude/`, `.opencode/`, MCP, plugin, or handoff
-  files only when installed/approved and used.
-- `docs/evals/` plans/events and `docs/reports/evaluations/` only when bound to the Work Block.
-- relevant skills after trigger and installation-profile matching.
-- relevant engineering memory and operational logs.
-- `PROJECT_MAP.md` and `FILE_REGISTRY.yml` for structural impact.
+If the proposal materially increases complexity, compare it with a simpler
+alternative before implementation. Use
+`docs/engineering-memory/engineering-decision-principles.md` for the detailed
+decision posture.
 
-Do not load all registries, memories, skills, runtime docs, or evaluation logs by
-default. Do not treat a deliberately unselected runtime surface as corruption.
+## Role and procedure routing
 
-## Framework-Maintenance Preflight
+Use `governance/authority.md` for role authority, `.agent/ROSTER.md` for routing,
+and `.agent/skills/README.md` for the procedure index.
 
-Before changing the framework, answer briefly:
+Do not restate a full skill inside the session record. Record which procedure was
+used and any material limitation. Unknown/unverified runtime capability is not
+assumed available.
 
-- What exact outcome is required?
-- Which Work Block and ADR govern the change?
-- Does it affect governance, evaluation, installation composition, templates,
-  runtime adapters, integrations, skills, or reference knowledge?
-- Which artifacts are normative, derived/configuration, evidence, generated, or local?
-- Does `bootstrap/profiles.json` need a component, skill-set, alias, or required-path change?
-- Which generated-project files must converge?
-- What is the approved write-set and current Git state?
-- Do bootstrap, validation, profile matrix, evaluation fixtures, conformance,
-  navigation, publication, or documentation need updates?
-- What review, verification, evaluation, drift, clone/restore, and transactional evidence is required?
-
-## Generated-Project Preflight
-
-Before implementation, answer:
-
-- What requested/resolved installation profile is recorded?
-- Which runtime implementation surfaces and skills are actually present?
-- Do `scripts/validate-installation-profile.py` and the generated health check pass?
-- What governance profile is active?
-- What specification/revision and architecture decisions govern the work?
-- What paths are in the write-set?
-- What runtime is active, and does live capability evidence exist?
-- What integration profile/admission is active, if any?
-- What actual isolation is available?
-- Which logical functions are required?
-- Is evaluation required; what plan/rubric/benchmark revisions and event sources apply?
-- What external Hard Stops, side effects, and assurance evidence apply?
-
-## Authority and Conflict Rules
-
-For framework maintenance:
-
-1. current Owner instruction;
-2. accepted framework ADR and active Work Block;
-3. `governance/` runtime-neutral rules;
-4. `PROJECT_MAP.md` and `FILE_REGISTRY.yml` structural classification;
-5. `bootstrap/profiles.json` installation composition;
-6. generated template contracts;
-7. runtime/integration adapters;
-8. reference docs, examples, logs, generated artifacts.
-
-For generated-project product intent:
-
-1. current Owner instruction or approved change request;
-2. approved specification;
-3. accepted architecture decisions and external contracts;
-4. approved implementation and evaluation plans;
-5. active tasklist;
-6. review, verification, evaluation, drift, and closeout evidence;
-7. durable engineering memory;
-8. runtime policy, operational logs, generated and external artifacts.
-
-For agent behavior and permission:
-
-1. current Owner instruction;
-2. active `AGENTS.md`;
-3. runtime-neutral Governance Core;
-4. active Work Block scope/write-set;
-5. canonical lifecycle protocol;
-6. active runtime and admitted integration adapters;
-7. external GitHub/OS/credential capability boundary for consequential actions;
-8. operational logs and generated artifacts.
-
-Installation profile and evaluation scores are not authority layers.
-
-## Evaluation Preflight
-
-When evaluation is required, record:
-
-- evaluation ID, approved plan path/revision, and frozen subject revision;
-- deterministic checks and evidence locations;
-- output criteria, thresholds, weights, and evaluator types;
-- required/prohibited observable trajectory events and event sources;
-- rubric, benchmark/dataset, and judge-policy revisions;
-- actual runtime/model class/isolation boundary;
-- blocking criteria, gaps, and aggregate verdict rule.
-
-Trajectory evidence is limited to observable tool, gate, check, retry, side-effect,
-stopping, and artifact events. Never request or store private chain-of-thought,
-hidden reasoning, model scratchpads, secrets, or unredacted protected payloads.
-
-An unavailable check/event source is `BLOCKED`, `UNVERIFIED`, or `not_run`, never `pass`.
-
-## Installation and Runtime Capability Check
-
-From `.agent/bootstrap-profile.json`, record:
-
-- requested/resolved installation profile;
-- selected components and runtime guidance;
-- selected skills and mirrors;
-- known unselected runtime surfaces;
-- validator result.
-
-Then separately record for the runtime actually used:
-
-- capability available, unavailable, or unknown;
-- version/config/auth/smoke evidence;
-- actual isolation and observable-event capability;
-- fallback and residual limitation;
-- whether degraded execution requires later independent evidence.
-
-Static conformance does not prove a live runtime or OS isolation.
-
-For a selected Codex profile, use `.codex/scripts/lifecycle.py status` as local
-coordination-state evidence. Schema v3 uses `authority_mode=github_capability`:
-`open` records the approved Work Block/specification/write-set/Critic context and
-planning baseline without an Owner private key, `ssh-keygen`, `allowed_signers`,
-a detached signature, or an authorization-bootstrap commit.
-
-Per-Work-Block SSH signing was retired because the local cryptographic state
-machine introduced circular bootstrap, replay/H0-H1-H2, expiry, digest, and
-runtime-parity complexity while project-local hooks still were not an OS
-security boundary. Normal reversible development now relies on Work Block and
-write-set process guardrails; consequential authority is enforced externally by
-GitHub rules/protected branches, least-privilege credentials, Actions
-permissions, OS isolation, and separately held production/VPS/DB/secrets.
-
-Use `.codex/scripts/doctor.py` without `--live` in routine checks. Its explicit
-`--live` path is a disposable-local CLI availability/version check only; an
-`AVAILABLE` result does not claim hooks or native smoke passed. A native smoke
-requires separately admitted hook execution and is `UNVERIFIED` when unavailable.
-
-## Repository Preflight
-
-```text
-Branch:
-Commit:
-Status:
-Unrelated dirty files:
-Untracked artifacts:
-Installation profile / affected profile manifest:
-Installed runtime surfaces:
-Active Work Block:
-Governing ADR/specification:
-Approved implementation/evaluation plans:
-Approved write-set:
-Affected layers:
-Next gate:
-External Hard Stops / capability boundary:
-Evaluation required / plan / event sources:
-Required assurance:
-Relevant files read:
-Next action:
-```
-
-Inspect relevant uncommitted diffs before planning edits. Never stage or overwrite
-unrelated work silently.
-
-## Portable, Operational, and Evidence State
-
-- current source and approved artifacts outrank memory;
-- `.agent/bootstrap-profile.json` and `.agent/active-work-block.default.json` are portable;
-- `.agent/active-work-block.json`, project config, `memory_bank/`, and runtime memory are local operational state;
-- blocked default must use schema v3 `authority_mode=github_capability`, empty
-  source write-set, `closeout_mode=pending`, and optional PENDING unbound
-  evaluation state;
-- its `coordination_write_set` must exactly match canonical safe paths;
-- historical signed authorization files may remain as audit evidence but do not
-  create current authority;
-- health checks must not replace an existing active Work Block;
-- evaluation plans/reports/events are portable evidence only when secret-free,
-  attributable, and explicitly bound to the Work Block;
-- durable engineering memory must be evidence-backed and secret-free.
-
-## Structural Impact Check
-
-When adding or redefining important paths, inspect:
-
-- README, setup, maps, and registries;
-- Governance Core and accepted ADRs;
-- `bootstrap/profiles.json`, bootstrap engine, generated state, clone/transactional tests;
-- template operating contracts, evaluation validator, and health checks;
-- runtime/integration adapters and conformance tests;
-- skill catalog and profile-selected skills;
-- publication inventory/privacy rules;
-- examples and engineering documentation.
-
-Related files identify impact, not automatic permission.
-
-## Minimal Session Start Record
+## Repository state record
 
 ```text
 Stage:
 Objective:
 Expected result:
+Role/function:
+Governing specification/ADR:
 Work Block:
-Governing ADR/specification:
-Installation profile:
-Installed runtime surfaces:
-Governance profile:
-Affected layers:
-Runtime adapter and capability evidence:
-Integration profile/admission:
-Logical role/function:
-Isolation:
-Scope / out of scope:
+Scope / exclusions:
 Write-set:
-Git status:
-External Hard Stops / capability boundary:
-Evaluation required / plan / event sources:
-Required assurance:
+Branch / commit:
+Git status / unrelated work:
+Affected repository layers:
+Runtime/integration capability needed:
+External Hard Stops:
+Required checks / assurance:
 Relevant files read:
 Next action:
 ```
+
+Inspect relevant uncommitted diffs before planning edits. Never stage, overwrite,
+or discard unrelated work silently.
+
+## Capability and security check
+
+Separate process permission from technical capability.
+
+For any runtime/tool used, record only what matters to the task:
+
+- available / unavailable / unknown;
+- relevant version/config/auth/smoke evidence;
+- actual isolation;
+- fallback and residual limitation.
+
+Normal reversible feature-branch development is governed by the active Work
+Block/write-set and repository process. Consequential production, live-data,
+credential, destructive, protected-branch, irreversible-publication, and real
+client-facing actions require the applicable externally controlled capability.
+
+Historical rationale for earlier authority mechanisms is kept in engineering
+memory and closeout evidence rather than this startup guide.
+
+## Structural impact check
+
+When adding or redefining an important path or contract, inspect the affected
+subset of:
+
+- root `AGENTS.md`, `PROJECT_MAP.md`, and `FILE_REGISTRY.yml`;
+- Governance Core and accepted ADRs/specifications;
+- `bootstrap/profiles.json`, bootstrap engine, generated defaults, and profile
+  validation fixtures;
+- `template/AGENTS.md`, template workflow/skills, and generated-project docs;
+- runtime/integration adapters and conformance tests;
+- publication/privacy rules;
+- engineering memory and user-facing documentation.
+
+Related files indicate impact, not automatic permission to edit them.
+
+## Evidence and memory
+
+- evidence must be reproducible and bound to the subject it claims to verify;
+- unavailable checks remain unavailable/unverified, never silently passed;
+- durable rationale, lessons, and recurring failure patterns belong in
+  `docs/engineering-memory/`;
+- temporary progress belongs in `memory_bank/`;
+- raw transcripts, hidden reasoning, secrets, and protected payloads do not
+  belong in either location.
+
+At closeout, state changed files, checks run/skipped, assurance result, residual
+risk, reusable knowledge classification, and the next action.

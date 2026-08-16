@@ -3,6 +3,10 @@
 This directory stores durable project engineering memory that future humans and
 agents should be able to trust without reading old chat history.
 
+The framework also installs `engineering-decision-principles.md` as a baseline
+reference linked from `AGENTS.md`. It is framework guidance, not evidence that a
+project-specific decision has already been made.
+
 ## What Belongs Here
 
 - Architecture, runtime, integration, and delivery decisions that affect future
@@ -11,6 +15,8 @@ agents should be able to trust without reading old chat history.
 - Temporary exceptions with expiry or review triggers.
 - Reproducible setup, verification, and recovery procedures.
 - Recurring failure patterns with evidence and future checks.
+- Decision rationale and lessons that should not inflate the always-on
+  `AGENTS.md` contract.
 
 ## What Does Not Belong Here
 
@@ -43,6 +49,8 @@ verify the current state and update this directory during closeout.
 
 ## Files
 
+- `engineering-decision-principles.md` - framework baseline for proportional,
+  simple, evidence-driven engineering decisions.
 - `decision-record-template.md` - copy this shape for durable engineering
   decisions.
 - `source-of-truth-chains.md` - map important questions to their highest
