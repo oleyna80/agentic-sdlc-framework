@@ -12,6 +12,13 @@ import subprocess
 import sys
 
 GATE_PATH = Path(".agent/active-work-block.json")
+FORMAL_DEFINE_PROFILES = {"Managed", "Assured", "Distributed"}
+DEFINE_QUALITY_STATUSES = {"PENDING", "READY", "BLOCKED"}
+DEFINE_QUALITY_EVIDENCE = (
+    "requirements_review",
+    "traceability",
+    "consistency_analysis",
+)
 DEFAULT_COORDINATION = [
     ".agent/active-work-block.json",
     ".agent/critic-gate.md",
@@ -145,6 +152,45 @@ def coordination(gate: dict) -> list[str]:
     return DEFAULT_COORDINATION
 
 
+def validate_define_quality(gate: dict) -> None:
+    profile = str(gate.get("governance_profile") or "").strip()
+    formal_required = profile in FORMAL_DEFINE_PROFILES
+    value = gate.get("define_quality")
+
+    if value is None:
+        if formal_required:
+            raise Denied(
+                f"{profile} source writes require define_quality state; migrate the active Work Block."
+            )
+        return
+    if not isinstance(value, dict):
+        raise Denied("Active Work Block define_quality must be an object.")
+
+    required = value.get("required")
+    if not isinstance(required, bool):
+        raise Denied("define_quality.required must be boolean.")
+    status = value.get("status")
+    if status not in DEFINE_QUALITY_STATUSES:
+        raise Denied("define_quality.status must be PENDING, READY, or BLOCKED.")
+    for field in DEFINE_QUALITY_EVIDENCE:
+        if not isinstance(value.get(field), str):
+            raise Denied(f"define_quality.{field} must be a string evidence reference.")
+
+    if formal_required and required is not True:
+        raise Denied(
+            f"{profile} requires define_quality; required=false cannot disable the prerequisite."
+        )
+    if not (formal_required or required):
+        return
+    if status != "READY":
+        raise Denied("Applicable Define-quality prerequisite must have status=READY.")
+    for field in DEFINE_QUALITY_EVIDENCE:
+        if not str(value.get(field) or "").strip():
+            raise Denied(
+                f"Applicable Define-quality prerequisite requires non-blank {field} evidence."
+            )
+
+
 def validate_source_gate(gate: dict) -> list[str]:
     if gate.get("schema_version") != 3:
         raise Denied("Source writes require active-work-block schema_version=3.")
@@ -152,6 +198,8 @@ def validate_source_gate(gate: dict) -> list[str]:
         raise Denied("Source writes require authority_mode=github_capability.")
     if not str(gate.get("work_block_id") or "").strip():
         raise Denied("Active Work Block requires work_block_id.")
+
+    validate_define_quality(gate)
 
     write_gate = gate.get("write_gate")
     if not isinstance(write_gate, dict) or write_gate.get("status") != "READY":
