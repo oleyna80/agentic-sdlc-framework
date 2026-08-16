@@ -35,6 +35,12 @@ def require_verdict(name: str, result: dict[str, object], expected: str) -> None
         raise AssertionError(f"{name}: expected {expected}, got {actual}: {result}")
 
 
+def require_error(name: str, result: dict[str, object], fragment: str) -> None:
+    errors = [str(value) for value in result.get("errors", [])]
+    if not any(fragment.lower() in error.lower() for error in errors):
+        raise AssertionError(f"{name}: missing error containing {fragment!r}: {errors}")
+
+
 def require_template_parity() -> None:
     framework_source = VALIDATOR_PATH.read_text(encoding="utf-8")
     template_source = TEMPLATE_VALIDATOR_PATH.read_text(encoding="utf-8")
@@ -61,38 +67,95 @@ VALID_TASKS = """# Tasks
 
 def main() -> int:
     require_template_parity()
-    require_verdict("valid", run_case(VALID_SPEC, VALID_TASKS), "READY")
+    require_verdict("positive READY", run_case(VALID_SPEC, VALID_TASKS), "READY")
 
     orphan_requirement_tasks = VALID_TASKS.replace(
         "- [ ] TASK-020 [type=requirement] [req=REQ-002] [ac=AC-002] [paths=src/booking.py,tests/test_booking.py] Implement slot conflict handling.\n",
         "",
     )
-    require_verdict(
-        "orphan requirement/task",
-        run_case(VALID_SPEC, orphan_requirement_tasks),
-        "BLOCKED",
-    )
+    result = run_case(VALID_SPEC, orphan_requirement_tasks)
+    require_verdict("orphan REQ", result, "BLOCKED")
+    require_error("orphan REQ", result, "REQ-002 has no implementation task")
 
-    unknown_ref_tasks = VALID_TASKS.replace("REQ-002] [ac=AC-002", "REQ-999] [ac=AC-002")
-    require_verdict("unknown requirement", run_case(VALID_SPEC, unknown_ref_tasks), "BLOCKED")
+    orphan_ac_tasks = VALID_TASKS.replace(
+        "[req=REQ-002] [ac=AC-002]",
+        "[req=REQ-002] [ac=AC-001]",
+    )
+    result = run_case(VALID_SPEC, orphan_ac_tasks)
+    require_verdict("orphan AC", result, "BLOCKED")
+    require_error("orphan AC", result, "AC-002 has no traced implementation task")
+
+    unknown_req_tasks = VALID_TASKS.replace("REQ-002] [ac=AC-002", "REQ-999] [ac=AC-002")
+    result = run_case(VALID_SPEC, unknown_req_tasks)
+    require_verdict("unknown REQ", result, "BLOCKED")
+    require_error("unknown REQ", result, "unknown requirement REQ-999")
+
+    unknown_ac_tasks = VALID_TASKS.replace("[ac=AC-002]", "[ac=AC-999]", 1)
+    result = run_case(VALID_SPEC, unknown_ac_tasks)
+    require_verdict("unknown AC", result, "BLOCKED")
+    require_error("unknown AC", result, "unknown acceptance criterion AC-999")
+
+    duplicate_req_spec = VALID_SPEC.replace(
+        "- REQ-002: A consumed slot rejects a competing booking.\n",
+        "- REQ-002: A consumed slot rejects a competing booking.\n- REQ-001: Duplicate requirement.\n",
+    )
+    result = run_case(duplicate_req_spec, VALID_TASKS)
+    require_verdict("duplicate REQ", result, "BLOCKED")
+    require_error("duplicate REQ", result, "duplicate requirement REQ-001")
+
+    duplicate_ac_spec = VALID_SPEC + "- AC-001 [req=REQ-001]: Duplicate acceptance criterion.\n"
+    result = run_case(duplicate_ac_spec, VALID_TASKS)
+    require_verdict("duplicate AC", result, "BLOCKED")
+    require_error("duplicate AC", result, "duplicate acceptance criterion AC-001")
+
+    duplicate_task_tasks = VALID_TASKS + (
+        "- [ ] TASK-010 [type=assurance] [req=-] [ac=-] [paths=tests/test_duplicate.py] Duplicate task id.\n"
+    )
+    result = run_case(VALID_SPEC, duplicate_task_tasks)
+    require_verdict("duplicate TASK", result, "BLOCKED")
+    require_error("duplicate TASK", result, "duplicate task TASK-010")
 
     malformed_requirement_task = VALID_TASKS.replace(
         "[type=requirement] [req=REQ-001] [ac=AC-001]",
         "[type=requirement] [req=-] [ac=-]",
     )
-    require_verdict(
-        "missing requirement trace",
-        run_case(VALID_SPEC, malformed_requirement_task),
-        "BLOCKED",
-    )
+    result = run_case(VALID_SPEC, malformed_requirement_task)
+    require_verdict("malformed requirement task", result, "BLOCKED")
+    require_error("malformed requirement task", result, "must reference REQ and AC IDs")
 
-    enabling_without_fake_requirement = VALID_TASKS.replace(
+    missing_paths_tasks = VALID_TASKS.replace(
+        "[paths=src/booking.py,tests/test_booking.py] Implement booking creation.",
+        "[paths=-] Implement booking creation.",
+    )
+    result = run_case(VALID_SPEC, missing_paths_tasks)
+    require_verdict("missing paths", result, "BLOCKED")
+    require_error("missing paths", result, "requires explicit paths/write-set")
+
+    non_requirement_coverage_bypass = """# Tasks
+- [ ] TASK-001 [type=assurance] [req=REQ-001] [ac=AC-001] [paths=tests/test_booking.py] Verify booking creation.
+- [ ] TASK-002 [type=documentation] [req=REQ-002] [ac=AC-002] [paths=docs/booking.md] Document slot conflict handling.
+"""
+    result = run_case(VALID_SPEC, non_requirement_coverage_bypass)
+    require_verdict("non-requirement coverage bypass", result, "BLOCKED")
+    require_error("non-requirement coverage bypass", result, "REQ-001 has no implementation task")
+    require_error("non-requirement coverage bypass", result, "AC-002 has no traced implementation task")
+
+    unknown_ref_on_non_requirement = VALID_TASKS.replace(
+        "[type=assurance] [req=-] [ac=-]",
+        "[type=assurance] [req=REQ-999] [ac=AC-999]",
+    )
+    result = run_case(VALID_SPEC, unknown_ref_on_non_requirement)
+    require_verdict("unknown references on non-requirement task", result, "BLOCKED")
+    require_error("unknown references on non-requirement task", result, "unknown requirement REQ-999")
+    require_error("unknown references on non-requirement task", result, "unknown acceptance criterion AC-999")
+
+    non_requirement_without_fake_requirement = VALID_TASKS.replace(
         "[type=enabling] [req=-] [ac=-]",
         "[type=documentation] [req=-] [ac=-]",
     )
     require_verdict(
-        "non-requirement task",
-        run_case(VALID_SPEC, enabling_without_fake_requirement),
+        "non-requirement task without fake IDs",
+        run_case(VALID_SPEC, non_requirement_without_fake_requirement),
         "READY",
     )
 
