@@ -14,6 +14,20 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "template"
+DEFAULT_DEFINE_QUALITY = {
+    "required": False,
+    "status": "PENDING",
+    "requirements_review": "",
+    "traceability": "",
+    "consistency_analysis": "",
+}
+READY_DEFINE_QUALITY = {
+    "required": True,
+    "status": "READY",
+    "requirements_review": "docs/reports/requirements-quality.md",
+    "traceability": "docs/reports/traceability.json",
+    "consistency_analysis": "docs/reports/define-consistency.md",
+}
 
 
 def fail(message: str) -> None:
@@ -283,6 +297,10 @@ def static_contracts() -> None:
         fail("active Work Block schema_version must be 3")
     if gate.get("authority_mode") != "github_capability":
         fail("active Work Block authority_mode must be github_capability")
+    if gate.get("governance_profile") != "Controlled":
+        fail("generated Work Block default profile must remain Controlled")
+    if gate.get("define_quality") != DEFAULT_DEFINE_QUALITY:
+        fail("generated Work Block must contain canonical Define-quality default")
     if "authorization" in gate or "hard_stop_approvals" in gate:
         fail("legacy signed authority fields must be absent from schema v3")
     if gate.get("integrations") != {"approved": [], "admission_records": []}:
@@ -302,6 +320,17 @@ def static_contracts() -> None:
         fail("generated evaluation assurance must start PENDING")
     if gate.get("closeout_mode") != "pending":
         fail("generated closeout_mode must start pending")
+
+    claude_guard = (TEMPLATE / ".claude/hooks/work_block_gate.py").read_text(encoding="utf-8")
+    for marker in (
+        "validate_define_quality",
+        "FORMAL_DEFINE_PROFILES",
+        "requirements_review",
+        "traceability",
+        "consistency_analysis",
+    ):
+        if marker not in claude_guard:
+            fail(f"Claude Work Block guard missing Define-quality marker: {marker}")
 
     claude_entry = (TEMPLATE / "CLAUDE.md").read_text(encoding="utf-8").lower()
     for stale in ("gpt-critic", "gpt-verifier", "codex-reviewer"):
@@ -377,6 +406,7 @@ def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
         "governance_profile": "Managed",
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
         "base_commit": head,
+        "define_quality": dict(READY_DEFINE_QUALITY),
         "write_gate": {
             "status": "READY" if ready else "BLOCKED",
             "opened_at": "fixture" if ready else None,
@@ -519,7 +549,7 @@ def executable_fixtures() -> None:
         assert_denied(
             "blocked source write",
             run_script(write_guard, repo, event(repo, "Write", file_path="src/app.py")),
-            "READY",
+            "write_gate.status=READY",
         )
 
         gate["write_gate"]["status"] = "READY"
@@ -535,6 +565,43 @@ def executable_fixtures() -> None:
             "outside approved scope",
         )
 
+        gate = write_gate(repo, ready=True)
+        gate.pop("define_quality")
+        persist(repo, gate)
+        assert_denied(
+            "Claude Managed missing Define-quality",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "define_quality",
+        )
+
+        gate = write_gate(repo, ready=True)
+        gate["define_quality"]["required"] = False
+        persist(repo, gate)
+        assert_denied(
+            "Claude Managed required=false cannot bypass",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "required=false",
+        )
+
+        gate = write_gate(repo, ready=True)
+        gate["define_quality"]["status"] = "PENDING"
+        persist(repo, gate)
+        assert_denied(
+            "Claude Managed Define-quality pending",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "status=READY",
+        )
+
+        gate = write_gate(repo, ready=True)
+        gate["define_quality"]["consistency_analysis"] = "   "
+        persist(repo, gate)
+        assert_denied(
+            "Claude blank Define-quality evidence",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "consistency_analysis",
+        )
+
+        gate = write_gate(repo, ready=True)
         for name in ("review", "verification"):
             (repo / f"docs/reports/{name}.md").write_text(
                 f"# {name.title()}\n", encoding="utf-8"
