@@ -14,15 +14,18 @@ owner_approval: Owner approved the corrective course on 2026-08-16 after indepen
 critic_gate: READY
 corrective_critic_round_1: SUPPLEMENT
 corrective_critic_round_2: APPROVE
+corrective_critic_round_3: APPROVE
 write_gate: BLOCKED
-writer: one bounded Coder-equivalent corrective stream; corrective source Execute complete and frozen
+writer: one bounded Coder-equivalent corrective stream; R-02A source Execute complete and frozen
 base_revision: 9d4d50764ca5fee8b03fa5883a95ad89617f1cbf
 historical_initial_base_revision: 8adf9adcb29dafb3dba9e7ee23bd33f9a392958d
-implementation_state: corrective_implementation_completed_pending_assurance
+implementation_state: corrective_r02a_completed_pending_reassurance
 process_deviation: docs/reports/process/wb-define-001-process-deviation.md
 corrective_critic_round_1_report: docs/reports/reviews/wb-define-001-corrective-critic-round-1.md
 corrective_critic_round_2_report: docs/reports/reviews/wb-define-001-corrective-critic-round-2.md
+corrective_critic_round_3_report: docs/reports/reviews/wb-define-001-corrective-critic-round-3.md
 corrective_implementation_report: docs/reports/implementation/wb-define-001-corrective-execute.md
+corrective_r02a_implementation_report: docs/reports/implementation/wb-define-001-corrective-r02a.md
 ---
 
 # WB-DEFINE-001 — Requirements Quality and Traceability Pipeline
@@ -135,11 +138,12 @@ that owns the problem. It never silently rewrites approved requirements.
 
 | Finding | Current status | Corrective disposition |
 | --- | --- | --- |
-| P-01 — Managed implementation ran before mandatory Critic | historical deviation recorded | Owner disposition preserved; Round 2 governs only future corrective Execute and does not rewrite history |
-| R-01 — non-requirement task can satisfy implementation coverage | corrected, pending final assurance | coverage now comes only from `type=requirement`; all carried refs still receive structural validation |
-| R-02 — required Define readiness is not machine-observable at source gate | corrected, pending final assurance | one aggregate schema-v3 `define_quality` prerequisite with profile-derived applicability, evidence binding, restore validation, and capability-aware interception |
-| R-03 — portable Work Block template was truncated | resolved, pending final assurance | synchronized full current-main template preserved; only additive Define-quality mapping added |
-| V-01 — adversarial fixture suite is incomplete | corrected, pending final assurance | complete required deterministic matrix added, including R-01 bypass |
+| P-01 — Managed implementation ran before mandatory Critic | historical deviation recorded | Owner disposition preserved; later corrective Critics govern only future corrective Execute and do not rewrite history |
+| R-01 — non-requirement task can satisfy implementation coverage | resolved, pending fresh final assurance | coverage now comes only from `type=requirement`; all carried refs still receive structural validation |
+| R-02 — required Define readiness is not machine-observable at source gate | corrected, then narrowed by R-02A | aggregate schema-v3 prerequisite, evidence binding, restore validation, and capability-aware interception remain; Round 3 closes the malformed/missing governance-profile applicability bypass |
+| R-02A — malformed/missing governance profile can fail open | corrected, pending fresh final assurance | raw profile is type-checked, trimmed, validated against canonical enum, Advisory source writes denied, then applicability derived |
+| R-03 — portable Work Block template was truncated | resolved, pending fresh final assurance | synchronized full current-main template preserved; only additive Define-quality mapping added |
+| V-01 — adversarial fixture suite is incomplete | resolved, pending fresh final assurance | complete required deterministic matrix added, including R-01 bypass |
 | D-01 — legacy generic Reviewer wording drift | excluded | separate follow-up only if still relevant |
 
 Corrective Critic round 1 reviewed exact head
@@ -151,11 +155,21 @@ Corrective Critic round 2 reviewed the supplemented exact head
 exactly the sixteen corrective source paths below. Round 2 did not establish final
 PR readiness.
 
+Final independent assurance of head
+`3bde7e76365ee307bfdc463e623bf26f96f40524` found one remaining MATERIAL issue,
+R-02A: both source guards could treat missing, malformed, or unknown
+`governance_profile` as non-formal and therefore make Define-quality
+non-applicable.
+
+Corrective Critic round 3 reviewed that exact head, accepted the narrow repair,
+and returned `SOURCE WRITE GATE MAY REOPEN: YES` for exactly four source paths.
+
 Reports:
 
 ```text
 docs/reports/reviews/wb-define-001-corrective-critic-round-1.md
 docs/reports/reviews/wb-define-001-corrective-critic-round-2.md
+docs/reports/reviews/wb-define-001-corrective-critic-round-3.md
 ```
 
 ## Corrective Design — Implemented Subject
@@ -187,7 +201,7 @@ because the validator already has a fail-closed `UNVERIFIED` missing-input path.
 
 ### R-02 — one aggregate executable Define-quality prerequisite
 
-The existing schema-v3 Work Block state now contains one aggregate evidence
+The existing schema-v3 Work Block state contains one aggregate evidence
 prerequisite rather than separate requirements, traceability, or consistency
 authority gates:
 
@@ -206,14 +220,27 @@ literal `required` value is `false`. This field is a proportional selector only
 where the profile allows that decision; it is not trusted as an authority input
 for higher-governance profiles.
 
-#### Applicability derivation
+#### Governance profile validation and applicability derivation
 
-Source guards derive mandatory applicability fail-closed from governance state:
+Before Define-quality applicability is derived at the Codex/Claude source-write
+boundary, the raw `governance_profile` must be an actual string, must remain
+non-blank after trimming, and must belong to the canonical enum:
+
+```text
+Advisory | Controlled | Managed | Assured | Distributed
+```
+
+Missing, blank, whitespace-only, non-string, or unknown/typo values are unresolved
+and deny source writes. `Advisory` is valid governance but read-only, so source
+writes are denied explicitly.
+
+After that validation:
 
 ```text
 Managed / Assured / Distributed -> define_quality REQUIRED
 Controlled                       -> proportional risk/work-mode selection
-Quick Fix / NDR                  -> normally NOT REQUIRED unless explicitly escalated
+Advisory                         -> source writes denied
+Quick Fix / NDR                  -> represented through the existing narrower governance path; not new profile values
 ```
 
 For Managed/Assured/Distributed, mutable `define_quality.required=false` is a
@@ -261,7 +288,7 @@ Migration is fail-closed:
 
 `template/.agent/active-work-block.default.json` remains the canonical portable
 tracked default. `template/.agent/active-work-block.json` remains an aligned
-scaffold compatibility copy and not a second SSOT. The two template copies are
+scaffold compatibility copy and not a second SSOT. The two template copies remain
 byte-identical after the corrective implementation.
 
 `template/scripts/validate-installation-profile.py` validates the canonical
@@ -304,7 +331,7 @@ present.
 
 ### Governance and procedure surfaces
 
-`governance/define-quality.md` now owns the aggregate shape, profile-derived
+`governance/define-quality.md` owns the aggregate shape, profile-derived
 applicability, evidence requirements, schema-v3 migration, traceability coverage,
 and runtime-capability boundary.
 
@@ -312,7 +339,9 @@ and runtime-capability boundary.
 before Critic and the existing Write Gate while retaining runtime-neutral
 capability semantics.
 
-No corrective changes were made to:
+No Round-3 corrective changes were required to governance/schema/default/restore
+surfaces because their normative semantics were already correct. No corrective
+changes were made to:
 
 ```text
 AGENTS.md
@@ -327,10 +356,10 @@ template/PROJECT_MAP.md
 bootstrap/profiles.json
 ```
 
-## Corrective Source Write-Set — Approved and Executed
+## Corrective Source Write-Sets — Approved and Executed
 
-Round 2 approved exactly these sixteen source paths, and corrective Execute used
-all and only these paths:
+Round 2 approved exactly these sixteen source paths, and its corrective Execute
+used all and only these paths:
 
 ```text
 scripts/validate-define-traceability.py
@@ -356,11 +385,22 @@ template/.agent/workflows/sdd-protocol.md
 template/docs/templates/work-block-template.md
 ```
 
-Optional `scripts/test-bootstrap-profiles.py` was not needed and was not changed.
-No seventeenth source path was introduced.
-
 Implementation evidence:
 `docs/reports/implementation/wb-define-001-corrective-execute.md`.
+
+Round 3 approved and executed exactly four source paths for R-02A:
+
+```text
+template/.codex/hooks/pre_tool_use_policy.py
+template/.claude/hooks/work_block_gate.py
+scripts/test-codex-adapter.py
+scripts/test-integration-contracts.py
+```
+
+No fifth Round-3 source path was introduced.
+
+Round-3 implementation evidence:
+`docs/reports/implementation/wb-define-001-corrective-r02a.md`.
 
 ## Corrective Acceptance Criteria
 
@@ -373,8 +413,10 @@ Implementation evidence:
 4. Framework and generated traceability validators remain byte-identical.
 5. Formal Define-quality readiness is machine-observable through one aggregate
    schema-v3 prerequisite.
-6. Managed/Assured/Distributed applicability cannot be disabled with mutable
-   `required=false`; missing/malformed aggregate state fails closed.
+6. The source-write guards fail closed on missing, blank, malformed/non-string,
+   or unknown `governance_profile`; `Advisory` cannot source-write; Controlled
+   remains proportional; Managed/Assured/Distributed cannot disable applicability
+   with mutable `required=false`.
 7. Applicable readiness requires READY plus all three trimmed non-empty evidence
    refs.
 8. The canonical tracked default is validated before restore, and restoration
@@ -398,42 +440,59 @@ Implementation evidence:
     subject before any success-closeout/readiness claim.
 
 Acceptance criteria 1–15 have implementation and deterministic evidence available
-for independent verification. Criterion 16 remains intentionally pending.
+for fresh independent verification. Criterion 16 remains intentionally pending.
 
 ## Corrective Verification Evidence
 
-Corrective source implementation head
+The Round-2 corrective source implementation head
 `28d24f05619be045d152b2f54a87639d91c25329` passed:
 
 - Release State Contract #782 — `success`;
 - Framework Contracts #1200 — `success`.
 
-That run passed runtime-neutral SDD contracts, evaluation/NDR contracts,
-installation profiles and runtime conformance, integration adapters, Codex gates,
-governance validation, release-state validation, publication validation, and
-disposable generated-project bootstrap.
+The prior coordination-complete head
+`3bde7e76365ee307bfdc463e623bf26f96f40524` passed:
 
-The final coordination-complete frozen head is established only after this Work
-Block/evidence projection is committed. Provider-native CI for that final exact
-head must be checked independently; the earlier source-head CI is not silently
-reused as final-head evidence.
+- Release State Contract #786 — `success`;
+- Framework Contracts #1204 — `success`.
+
+The Round-3 R-02A source implementation head
+`b2f4b08c24c4b571f21c8bce4caed859611ad67b` passed:
+
+- Release State Contract #796 — `success`;
+- Framework Contracts #1214 — `success`.
+
+Framework Contracts #1214 passed runtime-neutral SDD contracts, evaluation/NDR
+contracts, installation profiles and runtime conformance, integration adapters,
+Codex adapter gates, governance validation, release-state validation, publication
+validation, disposable generated-project bootstrap, and provider snapshot. The
+new Codex and Claude governance-profile regression matrices therefore executed in
+the authoritative suite.
+
+This Work Block/evidence projection creates the new coordination-complete frozen
+subject. Provider-native CI for that exact final head must be checked again; the
+Round-3 source-head CI is not silently reused as final-head evidence.
 
 ## Current Gate State
 
-- **Stage:** Assure — corrective implementation frozen
+- **Stage:** Assure — R-02A corrective implementation frozen
 - **Historical original Critic:** missing; recorded as process deviation, not
   retroactively repaired
 - **Corrective Critic round 1:** `SUPPLEMENT` on exact head
   `9492bad041cb56ed968477e587e38b9e57c8a239`
 - **Corrective Critic round 2:** `APPROVE` on exact head
   `b48ca1e805ac9201e77b20d2a28eb7678f133691`
-- **Corrective Execute:** completed within the exact approved sixteen-path source
+- **Corrective Critic round 3:** `APPROVE` on exact head
+  `3bde7e76365ee307bfdc463e623bf26f96f40524`
+- **Round-2 Corrective Execute:** completed within the exact approved sixteen-path
+  source write-set
+- **Round-3 R-02A Execute:** completed within the exact approved four-path source
   write-set
-- **Source Write Gate:** `BLOCKED` after corrective freeze
-- **Reviewer:** pending on final frozen subject
-- **Verifier:** pending on final frozen subject
-- **Specification Drift:** pending on final frozen subject
-- **Implementation State:** `corrective_implementation_completed_pending_assurance`
+- **Source Write Gate:** `BLOCKED` after Round-3 corrective freeze
+- **Reviewer:** pending on the new final frozen subject
+- **Verifier:** pending on the new final frozen subject
+- **Specification Drift:** pending on the new final frozen subject
+- **Implementation State:** `corrective_r02a_completed_pending_reassurance`
 - **PR:** remains Draft
 - **Merge:** not authorized
 
@@ -448,6 +507,8 @@ Return to Define/Owner decision if further correction requires:
 - a new authority-bearing role or second lifecycle/constitution;
 - separate authority-like gates where one aggregate prerequisite is sufficient;
 - treating mutable `required=false` as a bypass for Managed/Assured/Distributed;
+- accepting missing/malformed/unknown governance profile as a source-write path;
+- allowing Advisory source implementation;
 - universal runtime-hook machinery solely to simulate interception where the
   runtime lacks it;
 - modification of external capability/Hard Stop semantics;
