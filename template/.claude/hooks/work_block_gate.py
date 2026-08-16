@@ -12,6 +12,13 @@ import subprocess
 import sys
 
 GATE_PATH = Path(".agent/active-work-block.json")
+VALID_GOVERNANCE_PROFILES = {
+    "Advisory",
+    "Controlled",
+    "Managed",
+    "Assured",
+    "Distributed",
+}
 FORMAL_DEFINE_PROFILES = {"Managed", "Assured", "Distributed"}
 DEFINE_QUALITY_STATUSES = {"PENDING", "READY", "BLOCKED"}
 DEFINE_QUALITY_EVIDENCE = (
@@ -152,8 +159,20 @@ def coordination(gate: dict) -> list[str]:
     return DEFAULT_COORDINATION
 
 
+def validate_governance_profile(gate: dict) -> str:
+    raw_profile = gate.get("governance_profile")
+    if not isinstance(raw_profile, str):
+        raise Denied("Active Work Block governance_profile must be a recognized string.")
+    profile = raw_profile.strip()
+    if not profile or profile not in VALID_GOVERNANCE_PROFILES:
+        raise Denied("Active Work Block governance_profile must be one of Advisory, Controlled, Managed, Assured, or Distributed.")
+    if profile == "Advisory":
+        raise Denied("Advisory governance profile does not permit source writes.")
+    return profile
+
+
 def validate_define_quality(gate: dict) -> None:
-    profile = str(gate.get("governance_profile") or "").strip()
+    profile = validate_governance_profile(gate)
     formal_required = profile in FORMAL_DEFINE_PROFILES
     value = gate.get("define_quality")
 
