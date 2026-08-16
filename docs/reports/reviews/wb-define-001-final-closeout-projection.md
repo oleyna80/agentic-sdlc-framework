@@ -4,7 +4,7 @@ artifact_type: closeout_projection
 artifact_id: wb-define-001-final-closeout-projection
 work_block_id: WB-DEFINE-001
 created_at: 2026-08-16
-status: supplemented_pending_exact_preflight
+status: exact_preflight_ready
 assured_normative_subject: 2075cafdecdb75ac5f747c466abb3c1a5f71c611
 assurance_report: docs/reports/reviews/wb-define-001-final-reassurance.md
 projection_class: exact_normative_terminal_state_preflight
@@ -211,5 +211,9 @@ The repeated preflight may return READY only if it independently proves:
 10. release-state will become structurally complete once the evidence-only closeout report is appended after exact application.
 
 If READY, the final preflight must explicitly return the expected three projected Git blob SHAs and the final aggregate SHA-256. Actual application is authorized only when those exact values can be reproduced.
+
+## Evidence-head validation
+
+The exact-preflight evidence was finalized on evidence-only PR head `e8692f7a30fe1f0e0b6f6948587b0afc31f7e3d1`, where Release State Contract #810 and Framework Contracts #1228 both passed. This CI validates the evidence-only head; it does not claim that the still-unapplied terminal normative projection already exists.
 
 This artifact and its JSON manifest are evidence/preflight material only. They do not close WB-DEFINE-001, do not change the normative subject, do not authorize merge, and do not alter external GitHub authority.
