@@ -324,6 +324,8 @@ def static_contracts() -> None:
     claude_guard = (TEMPLATE / ".claude/hooks/work_block_gate.py").read_text(encoding="utf-8")
     for marker in (
         "validate_define_quality",
+        "validate_governance_profile",
+        "VALID_GOVERNANCE_PROFILES",
         "FORMAL_DEFINE_PROFILES",
         "requirements_review",
         "traceability",
@@ -397,16 +399,21 @@ def event(repo: Path, tool: str, **tool_input: str) -> dict[str, Any]:
     }
 
 
-def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
+def write_gate(
+    repo: Path, *, ready: bool = True, profile: str = "Managed"
+) -> dict[str, Any]:
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    define_quality = dict(READY_DEFINE_QUALITY)
+    if profile == "Controlled":
+        define_quality = dict(DEFAULT_DEFINE_QUALITY)
     gate: dict[str, Any] = {
         "schema_version": 3,
         "authority_mode": "github_capability",
         "work_block_id": "wb-integration-fixture",
-        "governance_profile": "Managed",
+        "governance_profile": profile,
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
         "base_commit": head,
-        "define_quality": dict(READY_DEFINE_QUALITY),
+        "define_quality": define_quality,
         "write_gate": {
             "status": "READY" if ready else "BLOCKED",
             "opened_at": "fixture" if ready else None,
@@ -566,21 +573,60 @@ def executable_fixtures() -> None:
         )
 
         gate = write_gate(repo, ready=True)
+        gate.pop("governance_profile")
+        persist(repo, gate)
+        assert_denied(
+            "Claude missing governance profile",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "governance_profile",
+        )
+
+        for label, invalid_profile in (
+            ("Claude empty governance profile", ""),
+            ("Claude whitespace governance profile", "   "),
+            ("Claude unknown governance profile", "Manged"),
+            ("Claude non-string governance profile", 42),
+        ):
+            gate = write_gate(repo, ready=True)
+            gate["governance_profile"] = invalid_profile
+            persist(repo, gate)
+            assert_denied(
+                label,
+                run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+                "governance_profile",
+            )
+
+        gate = write_gate(repo, ready=True, profile="Advisory")
+        persist(repo, gate)
+        assert_denied(
+            "Claude Advisory source write",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "Advisory",
+        )
+
+        write_gate(repo, ready=True, profile="Controlled")
+        assert_allowed(
+            "Claude Controlled non-applicable Define-quality remains proportional",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+        )
+
+        for profile in ("Managed", "Assured", "Distributed"):
+            gate = write_gate(repo, ready=True, profile=profile)
+            gate["define_quality"]["required"] = False
+            persist(repo, gate)
+            assert_denied(
+                f"Claude {profile} required=false cannot bypass",
+                run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+                "required=false",
+            )
+
+        gate = write_gate(repo, ready=True)
         gate.pop("define_quality")
         persist(repo, gate)
         assert_denied(
             "Claude Managed missing Define-quality",
             run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
             "define_quality",
-        )
-
-        gate = write_gate(repo, ready=True)
-        gate["define_quality"]["required"] = False
-        persist(repo, gate)
-        assert_denied(
-            "Claude Managed required=false cannot bypass",
-            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
-            "required=false",
         )
 
         gate = write_gate(repo, ready=True)
