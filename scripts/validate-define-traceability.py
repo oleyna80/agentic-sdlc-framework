@@ -148,19 +148,26 @@ def validate(spec_path: Path, tasks_path: Path) -> dict[str, object]:
     ac_to_tasks: dict[str, set[str]] = {ac_id: set() for ac_id in acceptance}
 
     for task_id, task in tasks.items():
+        # References are validated for every task type that carries them.
         for req_id in task.reqs:
             if req_id not in requirements:
                 errors.append(f"{task_id} references unknown requirement {req_id}")
-            else:
-                req_to_tasks[req_id].add(task_id)
 
         for ac_id in task.acs:
             if ac_id not in acceptance:
                 errors.append(f"{task_id} references unknown acceptance criterion {ac_id}")
-            else:
-                ac_to_tasks[ac_id].add(task_id)
 
+        # Only requirement tasks represent implementation coverage. Enabling,
+        # assurance, and documentation tasks may carry useful references but
+        # cannot satisfy REQ/AC implementation coverage.
         if task.task_type == "requirement":
+            for req_id in task.reqs:
+                if req_id in requirements:
+                    req_to_tasks[req_id].add(task_id)
+            for ac_id in task.acs:
+                if ac_id in acceptance:
+                    ac_to_tasks[ac_id].add(task_id)
+
             for ac_id in task.acs:
                 if ac_id in acceptance:
                     covered_reqs = set(acceptance[ac_id].refs)
