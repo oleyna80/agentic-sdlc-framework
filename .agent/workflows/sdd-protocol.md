@@ -76,6 +76,8 @@ Inspect live capability evidence before assignment: `unknown` is unavailable.
 Choose the least-cost option only after it meets role authority, write
 permission, required isolation/independence, assurance needs, and Hard Stops.
 Record actual capability and fallback without provider-specific shared policy.
-Stop for unapproved scope, failed required checks, secrets, destructive actions,
-candidate promotion, configuration/hooks/CI/runtime work, live effects,
-staging, commit, or push.
+Stop for unapproved scope, material authority or risk changes, failed required
+checks, secrets, destructive or consequential external actions, or missing
+required capability/evidence. Normal reversible development operations inside an
+approved Work Block/write-set, including staging, local commits, and normal
+feature-branch pushes, follow `AGENTS.md` and `governance/authority.md`.
