@@ -1,11 +1,13 @@
 ---
 name: git-orchestration-flow
-description: Safe procedures for Git branch management, worktree isolation, two-pass Work Block closure projections, GitHub ruleset handling, PR thread resolution via GraphQL, and SSOT file conflict resolution. Use when managing complex Git flows, worktrees, PR merge blockers, or SSOT reconciliations.
+description: Safe procedures for Git branch management, stacked PR synchronization, frozen-subject assurance, worktree isolation, two-pass Work Block closure projections, GitHub ruleset handling, PR thread resolution, and SSOT conflict resolution. Use when managing complex Git flows, worktrees, stacked PRs, PR merge blockers, frozen heads, or SSOT reconciliations.
 ---
 
 # Git Orchestration Flow
 
-Procedural guide for managing Git branches, worktrees, PR lifecycles, and SSOT file reconciliations within an agentic SDLC framework.
+Procedural guide for managing Git branches, worktrees, PR lifecycles, stacked
+changes, frozen assurance subjects, and SSOT file reconciliations within an
+agentic SDLC framework.
 
 ## 1. Worktree Isolation & Cleanup
 
@@ -103,7 +105,13 @@ mutation {
 ## 4. SSOT File Conflict Resolution (Rebase Pattern)
 
 ### Rule
-When rebasing feature branches onto `main`, conflicts in `FILE_REGISTRY.yml` and `PROJECT_MAP.md` must be reconciled without losing historical completed Work Blocks or overwriting active state.
+When a rebase is intentionally selected for a simple feature branch, conflicts in
+`FILE_REGISTRY.yml` and `PROJECT_MAP.md` must be reconciled without losing
+historical completed Work Blocks or overwriting active state.
+
+Do **not** default to this rebase pattern for already-reviewed stacked PRs where
+preserving ancestry, frozen-subject evidence, and review history matters. Use the
+stacked synchronization procedure in Section 5 instead.
 
 ### Procedures
 
@@ -122,3 +130,42 @@ After editing conflict markers:
 git add FILE_REGISTRY.yml PROJECT_MAP.md
 GIT_EDITOR=true git rebase --continue
 ```
+
+---
+
+## 5. Stacked PR Synchronization & Frozen Assurance
+
+### Rule
+When a child PR was built on another feature branch and its parent moves or lands,
+synchronize the stack **bottom-up** and preserve the child's still-valid semantic
+delta on top of the new accepted parent.
+
+Default to a non-destructive two-parent merge plus a non-force branch update when
+review/history preservation matters. After every layer, verify the exact
+`new_parent → new_child` diff before continuing upward.
+
+Do not restore an old whole-file child version over newly accepted parent
+architecture merely to avoid conflict resolution. Accepted parent semantics win;
+reapply only the child behavior that remains in scope.
+
+Frozen assurance is SHA-bound. If the PR head moves, report `SUBJECT MOVED` and
+renew applicable assurance. Do not treat old CI/review as evidence for a new head
+without explicitly labeling it historical.
+
+Detailed algorithm, Git-object-database variant, CI evidence boundaries, file-mode
+rules, and observed GitHub API failure modes:
+
+`reference/stacked-pr-synchronization.md`
+
+### Minimum post-sync checklist
+
+- record old child and exact new parent heads;
+- preserve two-parent ancestry;
+- advance branch ref with force disabled;
+- inspect `new_parent → new_child` changed files and semantics;
+- verify accepted parent/root surfaces did not leak back into the child;
+- distinguish PR merge-ref CI from detached-head execution evidence;
+- avoid normative self-reference to the file's own current head SHA;
+- use PR metadata operations for PR body/title/base changes instead of no-op file writes;
+- renew required frozen-subject assurance after head movement;
+- never merge/default-branch mutate without the applicable Owner/repository authority.
