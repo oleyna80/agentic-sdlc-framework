@@ -56,6 +56,8 @@ Its projection-definition digest is:
 
 `7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6`
 
+Digest verification is deterministic: parse the JSON, remove the top-level `projection_definition_sha256` field, serialize the remaining object as UTF-8 JSON with recursively sorted keys, `ensure_ascii=false`, and separators `(',', ':')`, then compute SHA-256. The result must equal the value above.
+
 The manifest binds each target path to its exact current baseline blob plus an ordered list of exact string replacements:
 
 ```text
@@ -78,14 +80,10 @@ For every file, the independent preflight must:
 3. apply replacements in manifest order using UTF-8/LF bytes without whitespace normalization, formatting, reflow, YAML reserialization, or other edits;
 4. reject a missing or multiply occurring `from` sequence;
 5. compute the resulting Git blob SHA and SHA-256 for each projected file;
-6. build a canonical manifest sorted by path containing:
-   - path;
-   - baseline blob SHA;
-   - projected Git blob SHA;
-   - projected SHA-256;
-7. compute a final aggregate SHA-256 over that canonical sorted manifest.
+6. build a canonical manifest sorted by path containing `path`, `baseline_blob_sha`, `projected_git_blob_sha`, and `projected_sha256` separated by a single TAB per field and terminated by LF per record;
+7. compute a final aggregate SHA-256 over those UTF-8 canonical manifest bytes.
 
-The preflight must report all three projected blob SHAs, all three projected SHA-256 values, and the aggregate SHA-256. Those reported values become the only permitted terminal projection subject.
+The preflight must report all three projected blob SHAs, all three projected SHA-256 values, the exact canonical three-line manifest, and the aggregate SHA-256. Those reported values become the only permitted terminal projection subject.
 
 After approval, actual application must reproduce the same exact replacements against the same baseline blobs. `Semantically equivalent` is not sufficient. Actual projected file blobs and aggregate must exactly equal the values returned by the approved preflight.
 
@@ -145,7 +143,7 @@ Authority order, current/target architecture, Portable Kit promotion state, PR #
 
 ## FILE_REGISTRY terminal projection
 
-The exact manifest now includes the complete reconciliation required by `FC-01`:
+The exact manifest includes the complete reconciliation required by `FC-01`:
 
 ```yaml
 migration_state:
@@ -185,18 +183,7 @@ The closeout report remains future evidence-only output:
 
 It must be created only after the exact three-file projection has been applied and actual projected blob/aggregate values exactly match the approved preflight values.
 
-The closeout report must bind the actual resulting normative revision/aggregate and record:
-
-- Stage completed;
-- Reviewer READY;
-- Verifier READY;
-- Evaluation SKIPPED with deterministic rationale;
-- Drift ALIGNED;
-- closeout classification SUCCESS;
-- task status completed;
-- P-01 preserved as historical residual process deviation;
-- external PR/merge/VCS state non-normative and separately controlled;
-- WB-CORE-004 remains next planned product Work Block.
+The closeout report must bind the actual resulting normative revision/aggregate and record Stage completed, Reviewer READY, Verifier READY, Evaluation SKIPPED with deterministic rationale, Drift ALIGNED, closeout classification SUCCESS, task status completed, P-01 preserved as historical residual process deviation, external PR/merge/VCS state non-normative and separately controlled, and WB-CORE-004 as next planned product Work Block.
 
 The report cannot manufacture assurance for its own preceding normative projection.
 
@@ -213,7 +200,7 @@ Memory-bank synchronization and any engineering-memory classification are lower-
 The repeated preflight may return READY only if it independently proves:
 
 1. current PR head differs from the assured normative subject only by evidence-only reports;
-2. the exact projection manifest digest is `7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6`;
+2. the exact projection manifest digest is `7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6` under the canonicalization rule above;
 3. all three manifest baseline blob SHAs match the current normative files;
 4. every exact replacement source occurs once and only once;
 5. generated projected bytes produce reported per-file Git blob SHA and SHA-256 values plus one aggregate SHA-256;
