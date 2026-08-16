@@ -9,7 +9,7 @@ assured_normative_subject: 2075cafdecdb75ac5f747c466abb3c1a5f71c611
 assurance_report: docs/reports/reviews/wb-define-001-final-reassurance.md
 projection_class: exact_normative_terminal_state_preflight
 exact_projection_manifest: docs/reports/reviews/wb-define-001-final-closeout-exact-projection.json
-projection_definition_sha256: 7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6
+projection_definition_sha256: ab86f8fed38d4ffc0a2ece26c5f24099a04a9050fe3b3dd06d0c1f89b4943029
 recorded_by: orchestrator
 ---
 
@@ -34,6 +34,12 @@ The first final-close preflight returned `NOT_READY` with two MATERIAL findings:
 
 The three-path normative allowlist itself was accepted as sufficient. No fourth normative path is introduced by this supplement.
 
+A repeated exact preflight then returned `NOT_READY` with one additional MATERIAL closeout-only finding:
+
+- `FC-03` — the prior exact `PROJECT_MAP.md` replacement targets mirrored Reviewer/Verifier/Drift verdict values into normative navigation, conflicting with `mutable_assurance_mirrors: prohibited`.
+
+This supplement removes those verdict mirrors from `PROJECT_MAP.md`. The map now records only completed/no-active lifecycle and navigation facts; mutable assurance verdicts remain in the completed Work Block terminal state and evidence reports. The normative three-path allowlist is unchanged.
+
 ## Exact normative allowlist
 
 Exactly three normative paths may change:
@@ -54,7 +60,7 @@ The canonical machine-readable definition is:
 
 Its projection-definition digest is:
 
-`7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6`
+`ab86f8fed38d4ffc0a2ece26c5f24099a04a9050fe3b3dd06d0c1f89b4943029`
 
 Digest verification is deterministic: parse the JSON, remove the top-level `projection_definition_sha256` field, serialize the remaining object as UTF-8 JSON with recursively sorted keys, `ensure_ascii=false`, and separators `(',', ':')`, then compute SHA-256. The result must equal the value above.
 
@@ -141,6 +147,8 @@ The exact manifest performs only these lifecycle/navigation changes:
 
 Authority order, current/target architecture, Portable Kit promotion state, PR #37/#38/#39 semantics, and unrelated Work Block history remain untouched.
 
+Reviewer, Verifier, Drift, and other mutable assurance verdict values are not mirrored into `PROJECT_MAP.md`; the map carries lifecycle/navigation state only.
+
 ## FILE_REGISTRY terminal projection
 
 The exact manifest includes the complete reconciliation required by `FC-01`:
@@ -200,15 +208,16 @@ Memory-bank synchronization and any engineering-memory classification are lower-
 The repeated preflight may return READY only if it independently proves:
 
 1. current PR head differs from the assured normative subject only by evidence-only reports;
-2. the exact projection manifest digest is `7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6` under the canonicalization rule above;
+2. the exact projection manifest digest is `ab86f8fed38d4ffc0a2ece26c5f24099a04a9050fe3b3dd06d0c1f89b4943029` under the canonicalization rule above;
 3. all three manifest baseline blob SHAs match the current normative files;
 4. every exact replacement source occurs once and only once;
 5. generated projected bytes produce reported per-file Git blob SHA and SHA-256 values plus one aggregate SHA-256;
 6. `FC-01` is resolved inside `FILE_REGISTRY.yml` with completed role/lifecycle state;
-7. Work Block, PROJECT_MAP and FILE_REGISTRY agree on completed/no-active state;
-8. P-01 remains historical and is not retroactively repaired;
-9. no fourth normative path or new authority/lifecycle behavior is required;
-10. release-state will become structurally complete once the evidence-only closeout report is appended after exact application.
+7. `FC-03` is resolved because `PROJECT_MAP.md` contains only completed/no-active lifecycle/navigation facts and no mutable Reviewer/Verifier/Drift verdict mirrors;
+8. Work Block, PROJECT_MAP and FILE_REGISTRY agree on completed/no-active state;
+9. P-01 remains historical and is not retroactively repaired;
+10. no fourth normative path or new authority/lifecycle behavior is required;
+11. release-state will become structurally complete once the evidence-only closeout report is appended after exact application.
 
 If READY, the final preflight must explicitly return the expected three projected Git blob SHAs and the final aggregate SHA-256. Actual application is authorized only when those exact values can be reproduced.
 
