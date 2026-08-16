@@ -11,15 +11,18 @@ process_level: Standard
 governance_profile: Managed
 branch: agent/define-quality-pipeline
 owner_approval: Owner approved the corrective course on 2026-08-16 after independent assurance
-critic_gate: pending
+critic_gate: READY
 corrective_critic_round_1: SUPPLEMENT
+corrective_critic_round_2: APPROVE
 write_gate: BLOCKED
-writer: one bounded Coder-equivalent corrective stream after Critic readiness
+writer: one bounded Coder-equivalent corrective stream; corrective source Execute complete and frozen
 base_revision: 9d4d50764ca5fee8b03fa5883a95ad89617f1cbf
 historical_initial_base_revision: 8adf9adcb29dafb3dba9e7ee23bd33f9a392958d
-implementation_state: corrective_define_supplemented_pending_recritic
+implementation_state: corrective_implementation_completed_pending_assurance
 process_deviation: docs/reports/process/wb-define-001-process-deviation.md
 corrective_critic_round_1_report: docs/reports/reviews/wb-define-001-corrective-critic-round-1.md
+corrective_critic_round_2_report: docs/reports/reviews/wb-define-001-corrective-critic-round-2.md
+corrective_implementation_report: docs/reports/implementation/wb-define-001-corrective-execute.md
 ---
 
 # WB-DEFINE-001 — Requirements Quality and Traceability Pipeline
@@ -74,13 +77,12 @@ main 1474c7c5cf2f2e0e74f17aa493c39ac60fa1d94d
 Each branch was advanced by a true merge commit and fast-forward ref update with
 no rebase, force-push, or history rewrite. The synchronized PR #36 child delta no
 longer includes root `AGENTS.md` or `template/AGENTS.md`; accepted current-main
-versions remain authoritative. The old truncated Work Block template was also
-removed from the synchronized child delta before this corrective Define round.
+versions therefore remain authoritative. The old truncated Work Block template
+was removed from the synchronized child delta before the corrective Define round.
 
 ## Accepted Current-Main Constraints
 
-Corrective work must preserve the already-merged design from PRs #37, #38, and
-#39:
+Corrective work preserves the already-merged design from PRs #37, #38, and #39:
 
 - root and portable `AGENTS.md` stay compact always-on contracts;
 - detailed Define procedure belongs in workflows and reusable procedures in
@@ -88,8 +90,8 @@ Corrective work must preserve the already-merged design from PRs #37, #38, and
 - generated `CLAUDE.md` remains a thin `@AGENTS.md` import;
 - normal reversible development inside an approved Work Block/write-set retains
   the current Git-authority semantics;
-- engineering controls must be the simplest sufficient mechanism for the actual
-  risk and must not create a parallel authority system without necessity.
+- engineering controls use the simplest sufficient mechanism for the actual risk
+  and do not create a parallel authority system without necessity.
 
 ## Required Behavior
 
@@ -120,7 +122,7 @@ reference the requirements, acceptance criteria, and paths/write-set they delive
 
 Enabling, assurance, and documentation tasks may have `req=-` and `ac=-`, or may
 carry meaningful references, but they must never satisfy implementation coverage.
-Any REQ/AC references they do carry are still subject to unknown-reference
+Any REQ/AC references they do carry remain subject to unknown-reference
 validation.
 
 ### Pre-execution consistency
@@ -129,56 +131,65 @@ The consistency analyzer is read-only. It reports gaps across specification,
 architecture/plan, tasks, and write-set and routes remediation to the artifact
 that owns the problem. It never silently rewrites approved requirements.
 
-## Independent Assurance Findings and Disposition
+## Independent Assurance Findings and Corrective Disposition
 
-| Finding | Status before corrective Execute | Corrective disposition |
+| Finding | Current status | Corrective disposition |
 | --- | --- | --- |
-| P-01 — Managed implementation ran before mandatory Critic | recorded | process deviation and Owner disposition recorded; corrective Critic required before source reopening |
-| R-01 — non-requirement task can satisfy implementation coverage | open blocker | count implementation coverage only from `type=requirement`; still validate any references carried by all task types |
-| R-02 — required Define readiness is not machine-observable at source gate | open blocker | add one aggregate `define_quality` evidence prerequisite to existing schema/gates with profile-derived applicability and fail-closed migration |
-| R-03 — portable Work Block template was truncated | inherited regression resolved | use full current-main template as baseline; only additive Define-quality mapping is now allowed |
-| V-01 — adversarial fixture suite is incomplete | open blocker | add explicit cases for every promised structural fail-closed condition including R-01 bypass |
+| P-01 — Managed implementation ran before mandatory Critic | historical deviation recorded | Owner disposition preserved; Round 2 governs only future corrective Execute and does not rewrite history |
+| R-01 — non-requirement task can satisfy implementation coverage | corrected, pending final assurance | coverage now comes only from `type=requirement`; all carried refs still receive structural validation |
+| R-02 — required Define readiness is not machine-observable at source gate | corrected, pending final assurance | one aggregate schema-v3 `define_quality` prerequisite with profile-derived applicability, evidence binding, restore validation, and capability-aware interception |
+| R-03 — portable Work Block template was truncated | resolved, pending final assurance | synchronized full current-main template preserved; only additive Define-quality mapping added |
+| V-01 — adversarial fixture suite is incomplete | corrected, pending final assurance | complete required deterministic matrix added, including R-01 bypass |
 | D-01 — legacy generic Reviewer wording drift | excluded | separate follow-up only if still relevant |
 
 Corrective Critic round 1 reviewed exact head
-`9492bad041cb56ed968477e587e38b9e57c8a239` and returned `SUPPLEMENT`. Its
-accepted design constraints are recorded in
-`docs/reports/reviews/wb-define-001-corrective-critic-round-1.md`.
+`9492bad041cb56ed968477e587e38b9e57c8a239` and returned `SUPPLEMENT`.
 
-## Corrective Design
+Corrective Critic round 2 reviewed the supplemented exact head
+`b48ca1e805ac9201e77b20d2a28eb7678f133691`, resolved C-01 through C-08, returned
+`APPROVE`, and explicitly authorized reopening the existing Source Write Gate for
+exactly the sixteen corrective source paths below. Round 2 did not establish final
+PR readiness.
+
+Reports:
+
+```text
+docs/reports/reviews/wb-define-001-corrective-critic-round-1.md
+docs/reports/reviews/wb-define-001-corrective-critic-round-2.md
+```
+
+## Corrective Design — Implemented Subject
 
 ### R-01 / V-01 — structural traceability
 
-The validator must validate syntax, paths, duplicate IDs, and unknown references
-for all task types that carry those fields. It must construct requirement and
-acceptance **implementation coverage only from `type=requirement` tasks**.
+The validator validates syntax, paths, duplicate IDs, and unknown references for
+all task types that carry those fields. It constructs requirement and acceptance
+**implementation coverage only from `type=requirement` tasks**.
 
-The fixture suite must deterministically exercise at least:
+The deterministic fixture suite covers:
 
 - valid `REQ → AC → requirement TASK` → `READY`;
 - orphan requirement;
 - orphan acceptance criterion;
 - unknown requirement reference;
 - unknown acceptance reference;
-- duplicate `REQ` ID;
-- duplicate `AC` ID;
-- duplicate `TASK` ID;
+- duplicate `REQ`, `AC`, and `TASK` IDs;
 - malformed requirement task traceability;
 - missing/empty task paths/write-set;
 - non-requirement task carrying `REQ/AC` references as the only apparent
   implementation coverage → `BLOCKED`;
-- parity between framework and generated-project validator implementations.
+- unknown refs on non-requirement tasks;
+- honest non-requirement tasks with no fake IDs;
+- byte-for-byte parity between framework and generated-project validators.
 
-A CLI-level fixture for a physically missing spec/task file is desirable but is
-not a blocking V-01 requirement because the validator already has a fail-closed
-missing-input path.
+A CLI-level fixture for a physically missing spec/task file remains optional
+because the validator already has a fail-closed `UNVERIFIED` missing-input path.
 
 ### R-02 — one aggregate executable Define-quality prerequisite
 
-Use the existing schema-v3 Work Block state and existing source guards. Do **not**
-add separate requirements, traceability, or consistency authority gates.
-
-Canonical aggregate shape:
+The existing schema-v3 Work Block state now contains one aggregate evidence
+prerequisite rather than separate requirements, traceability, or consistency
+authority gates:
 
 ```json
 "define_quality": {
@@ -197,35 +208,33 @@ for higher-governance profiles.
 
 #### Applicability derivation
 
-Source guards and canonical validation must derive mandatory applicability
-fail-closed from governance state:
+Source guards derive mandatory applicability fail-closed from governance state:
 
 ```text
 Managed / Assured / Distributed -> define_quality REQUIRED
-Controlled                       -> use proportional risk/work-mode selection
+Controlled                       -> proportional risk/work-mode selection
 Quick Fix / NDR                  -> normally NOT REQUIRED unless explicitly escalated
 ```
 
 For Managed/Assured/Distributed, mutable `define_quality.required=false` is a
 configuration contradiction and cannot disable the prerequisite. Missing or
-malformed `define_quality` is unresolved and must not be inferred as success.
+malformed applicable `define_quality` is unresolved and cannot be inferred as
+success.
 
 #### Readiness evidence
 
-When applicable, source execution is not authorized unless all four conditions
-hold:
+When applicable, source execution requires all four conditions:
 
 ```text
 define_quality.status == READY
-requirements_review   != ""
-traceability           != ""
-consistency_analysis   != ""
+trim(requirements_review) != ""
+trim(traceability) != ""
+trim(consistency_analysis) != ""
 ```
 
-The hot-path source guard need not parse or semantically revalidate each referenced
-report. Non-empty evidence binding is sufficient there; the dedicated validators,
-Reviewer, Verifier, and Drift process remain responsible for deeper evidence
-quality.
+The hot-path source guard checks evidence binding without recursively opening or
+semantically revalidating the reports. Dedicated validators plus Reviewer,
+Verifier, and Drift remain responsible for deeper evidence quality.
 
 The aggregate is evidence state only. It grants no source, Git, integration,
 credential, deployment, publication, external-action, or Hard Stop authority.
@@ -234,34 +243,31 @@ applicable.
 
 #### Schema-v3 additive migration
 
-No schema-v4 bump is planned. `define_quality` is an additive prerequisite inside
-the existing schema-v3 source-control model and does not change authority mode,
-lifecycle, roles, or Hard Stops.
+No schema-v4 bump was introduced. `define_quality` is an additive prerequisite
+inside the existing schema-v3 source-control model and does not change authority
+mode, lifecycle, roles, or Hard Stops.
 
-Required migration behavior:
+Migration is fail-closed:
 
 - new generated schema-v3 defaults contain `define_quality`;
-- malformed `define_quality` → `BLOCKED`;
-- Managed/Assured/Distributed with a missing aggregate → `BLOCKED` / migration
+- malformed `define_quality` → blocked;
+- Managed/Assured/Distributed with a missing aggregate → blocked / migration
   required;
 - missing aggregate is never treated as `READY`;
-- local/restored active state may be refreshed from the canonical tracked default,
-  but absence of the field never becomes a success path.
+- local/restored active state may be restored only after canonical default
+  validation.
 
 #### Canonical and restored state
 
-`template/.agent/active-work-block.default.json` is the canonical portable tracked
-default. The template repository also currently contains
-`template/.agent/active-work-block.json`, and the scaffold copies the complete
-template before bootstrap restoration. Within that existing architecture both
-copies must receive the same additive aggregate and remain byte/semantically
-aligned. The active copy remains operational compatibility state, not a second
-SSOT.
+`template/.agent/active-work-block.default.json` remains the canonical portable
+tracked default. `template/.agent/active-work-block.json` remains an aligned
+scaffold compatibility copy and not a second SSOT. The two template copies are
+byte-identical after the corrective implementation.
 
-`template/scripts/validate-installation-profile.py` must validate the canonical
-default shape before restoration. `scripts/test-profile-restore.py` must prove
-that malformed or weaker defaults fail before unsafe restoration and that valid
-restore preserves the aggregate contract.
+`template/scripts/validate-installation-profile.py` validates the canonical
+Controlled/PENDING aggregate before restoration. `scripts/test-profile-restore.py`
+proves valid parity/restore and fail-closed behavior for missing, malformed, READY,
+prebound, or otherwise non-canonical defaults.
 
 #### Runtime-neutral policy versus technical interception
 
@@ -272,19 +278,16 @@ The semantic rule is runtime-neutral:
 
 Technical enforcement remains capability-aware:
 
-- Codex/Claude adapters that already intercept source writes **must** deny them
-  fail-closed until the applicable aggregate is ready;
-- OpenCode/generic runtimes without equivalent interception must expose/report
-  that limitation and must not claim machine-enforced prevention;
-- this Work Block must not create a new universal OpenCode/generic hook framework
-  merely to equalize implementation mechanisms.
+- Codex/Claude adapters that already intercept source writes deny them fail-closed
+  until the applicable aggregate is ready;
+- OpenCode/generic runtimes without equivalent interception retain truthful
+  capability limitations and do not claim machine-enforced prevention;
+- no universal OpenCode/generic hook framework was added merely for symmetry.
 
-### R-03 — full-template additive mapping only
+### R-03 — full-template additive mapping
 
-Synchronization removed the old truncated Work Block child version. The
-corrective implementation now **does require** one additive mapping in the full
-current-main `template/docs/templates/work-block-template.md` so durable portable
-state can record:
+The corrective implementation added only one aggregate Define-quality section to
+the complete current-main `template/docs/templates/work-block-template.md`:
 
 ```text
 Define Quality Prerequisite
@@ -295,23 +298,21 @@ Define Quality Prerequisite
 - Consistency Analysis Evidence
 ```
 
-This is one aggregate prerequisite, not three new gates. The Coder must preserve
-the complete current-main template including Navigation/Documentation Impact,
-Commit/Publication Scope, Execution Log, Closeout, SSOT Sync, Retrospective, and
-all other existing sections. Any deletion/replacement with the historical
-truncated variant is forbidden.
+The complete Navigation/Documentation Impact, Commit/Publication Scope, Execution
+Log, Closeout, SSOT Sync, Retrospective, and other current-main sections remain
+present.
 
-### Governance and procedure scope
+### Governance and procedure surfaces
 
-`governance/define-quality.md` requires an additive machine-contract section for:
-aggregate shape, applicability derivation, evidence requirements, schema-v3
-migration, and runtime-capability boundary.
+`governance/define-quality.md` now owns the aggregate shape, profile-derived
+applicability, evidence requirements, schema-v3 migration, traceability coverage,
+and runtime-capability boundary.
 
-`template/.agent/workflows/sdd-protocol.md` requires an additive portable
-procedure update reflecting the same semantic prerequisite without expanding
-`AGENTS.md`.
+`template/.agent/workflows/sdd-protocol.md` routes applicable aggregate readiness
+before Critic and the existing Write Gate while retaining runtime-neutral
+capability semantics.
 
-No corrective changes are planned to:
+No corrective changes were made to:
 
 ```text
 AGENTS.md
@@ -326,13 +327,10 @@ template/PROJECT_MAP.md
 bootstrap/profiles.json
 ```
 
-Existing registries/maps already classify Define-quality as evidence-only with no
-source-write authority.
+## Corrective Source Write-Set — Approved and Executed
 
-## Corrective Source Write-Set — Supplemented Candidate
-
-The next independent pre-execution Critic must review this exact candidate before
-the source Write Gate may reopen:
+Round 2 approved exactly these sixteen source paths, and corrective Execute used
+all and only these paths:
 
 ```text
 scripts/validate-define-traceability.py
@@ -358,19 +356,11 @@ template/.agent/workflows/sdd-protocol.md
 template/docs/templates/work-block-template.md
 ```
 
-All sixteen listed paths are **REQUIRED** in the supplemented candidate.
+Optional `scripts/test-bootstrap-profiles.py` was not needed and was not changed.
+No seventeenth source path was introduced.
 
-`scripts/test-bootstrap-profiles.py` is explicitly **OPTIONAL** and may be added
-only if implementation discovers that installation-profile validation plus
-restore tests do not adequately prove aggregate presence across generated
-profiles. Adding it for convenience alone is unnecessary.
-
-Any other source/runtime/governance path is a scope expansion and returns to
-Define before editing.
-
-Coordination/evidence paths remain governed separately and may record Critic,
-review, verification, drift, and closeout evidence without granting source-write
-authority.
+Implementation evidence:
+`docs/reports/implementation/wb-define-001-corrective-execute.md`.
 
 ## Corrective Acceptance Criteria
 
@@ -380,14 +370,13 @@ authority.
 3. Every structural failure class promised by the Work Block has an explicit
    adversarial fixture, including unknown AC, duplicate REQ/AC/TASK, missing
    paths, and the R-01 non-requirement bypass.
-4. Framework and generated traceability validators remain byte-identical or use
-   one demonstrably canonical implementation without creating a second divergent
-   source.
+4. Framework and generated traceability validators remain byte-identical.
 5. Formal Define-quality readiness is machine-observable through one aggregate
    schema-v3 prerequisite.
 6. Managed/Assured/Distributed applicability cannot be disabled with mutable
    `required=false`; missing/malformed aggregate state fails closed.
-7. Applicable readiness requires READY plus all three non-empty evidence refs.
+7. Applicable readiness requires READY plus all three trimmed non-empty evidence
+   refs.
 8. The canonical tracked default is validated before restore, and restoration
    preserves the aggregate without making the active compatibility copy a second
    SSOT.
@@ -404,51 +393,57 @@ authority.
     authority semantics remain intact.
 14. No Spec Kit runtime, `.specify/`, hooks, constitution, lifecycle state, or
     extension system is installed.
-15. Full applicable framework CI passes on the new frozen corrective head.
+15. Full applicable framework CI passes on the frozen corrected subject.
 16. Independent Reviewer, Verifier, and Drift assurance pass on that same frozen
     subject before any success-closeout/readiness claim.
 
-## Corrective Verification Plan
+Acceptance criteria 1–15 have implementation and deterministic evidence available
+for independent verification. Criterion 16 remains intentionally pending.
 
-- run the complete deterministic traceability fixture matrix;
-- run Codex/Claude source-gate negative tests for missing/malformed aggregate,
-  Managed `required=false`, PENDING/BLOCKED state, READY-with-empty-evidence, and
-  positive READY-with-evidence;
-- validate the canonical default before restore and prove restore failure on an
-  unsafe default;
-- verify `template/.agent/active-work-block.default.json` and template active copy
-  remain byte/semantically aligned;
-- run profile restore, installation-profile/runtime conformance, integration, and
-  SDD contracts;
-- run release-state and publication contracts;
-- bootstrap disposable generated projects across applicable profiles and inspect
-  aggregate presence/restoration plus truthful runtime enforcement capability;
-- inspect the Work Block template diff for additive-only preservation of the full
-  current-main template;
-- inspect the final diff for preservation of PR #37/#38/#39 contracts;
-- freeze one exact corrective head for independent Reviewer, Verifier, and Drift.
+## Corrective Verification Evidence
+
+Corrective source implementation head
+`28d24f05619be045d152b2f54a87639d91c25329` passed:
+
+- Release State Contract #782 — `success`;
+- Framework Contracts #1200 — `success`.
+
+That run passed runtime-neutral SDD contracts, evaluation/NDR contracts,
+installation profiles and runtime conformance, integration adapters, Codex gates,
+governance validation, release-state validation, publication validation, and
+disposable generated-project bootstrap.
+
+The final coordination-complete frozen head is established only after this Work
+Block/evidence projection is committed. Provider-native CI for that final exact
+head must be checked independently; the earlier source-head CI is not silently
+reused as final-head evidence.
 
 ## Current Gate State
 
-- **Stage:** Define — supplemented corrective planning
+- **Stage:** Assure — corrective implementation frozen
 - **Historical original Critic:** missing; recorded as process deviation, not
   retroactively repaired
 - **Corrective Critic round 1:** `SUPPLEMENT` on exact head
   `9492bad041cb56ed968477e587e38b9e57c8a239`
-- **Corrective Critic round 2:** `PENDING`
-- **Source Write Gate:** `BLOCKED`
-- **Corrective Execute:** not authorized
+- **Corrective Critic round 2:** `APPROVE` on exact head
+  `b48ca1e805ac9201e77b20d2a28eb7678f133691`
+- **Corrective Execute:** completed within the exact approved sixteen-path source
+  write-set
+- **Source Write Gate:** `BLOCKED` after corrective freeze
+- **Reviewer:** pending on final frozen subject
+- **Verifier:** pending on final frozen subject
+- **Specification Drift:** pending on final frozen subject
+- **Implementation State:** `corrective_implementation_completed_pending_assurance`
 - **PR:** remains Draft
 - **Merge:** not authorized
 
-No source correction may begin until a new independent Critic reviews the
-supplemented plan on a newly frozen exact head and returns an acceptable
-pre-execution verdict. Any such verdict governs only future corrective Execute
-and does not rewrite the history of the original execution.
+No further source correction may occur while the gate is `BLOCKED`. Any finding
+that requires source changes must return through the normal corrective loop before
+reopening the gate.
 
 ## Stop Conditions
 
-Return to Define/Owner decision if correction requires:
+Return to Define/Owner decision if further correction requires:
 
 - a new authority-bearing role or second lifecycle/constitution;
 - separate authority-like gates where one aggregate prerequisite is sufficient;
