@@ -4,24 +4,39 @@ artifact_type: closeout_projection
 artifact_id: wb-define-001-final-closeout-projection
 work_block_id: WB-DEFINE-001
 created_at: 2026-08-16
-status: proposed
+status: supplemented_pending_exact_preflight
 assured_normative_subject: 2075cafdecdb75ac5f747c466abb3c1a5f71c611
 assurance_report: docs/reports/reviews/wb-define-001-final-reassurance.md
-projection_class: normative_terminal_state_preflight
+projection_class: exact_normative_terminal_state_preflight
+exact_projection_manifest: docs/reports/reviews/wb-define-001-final-closeout-exact-projection.json
+projection_definition_sha256: 7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6
 recorded_by: orchestrator
 ---
 
-# WB-DEFINE-001 — Prospective Final Closeout Projection
+# WB-DEFINE-001 — Exact Prospective Final Closeout Projection
 
 ## Purpose
 
-Prepare the exact semantic terminal-state projection that may be applied only after an independent read-only final-close preflight. The already obtained `ASSURANCE READY` verdict applies to normative subject `2075cafdecdb75ac5f747c466abb3c1a5f71c611`; therefore this projection is **not yet applied** and does not claim completed lifecycle state.
+Prepare the exact byte-bound terminal-state projection for independent final-close preflight without changing the normative subject prematurely.
 
-The projection changes only repository-owned lifecycle/navigation state. It does not change source implementation, governance rules, runtime adapters, generated templates, tests, CI, authority, Hard Stops, or external GitHub state.
+The already obtained `ASSURANCE READY` verdict applies to normative subject:
 
-## Normative projection allowlist
+`2075cafdecdb75ac5f747c466abb3c1a5f71c611`
 
-Exactly three normative paths may change in the final projection:
+The current PR head may contain evidence-only reports after that subject, but no normative projection below has been applied.
+
+## Previous preflight disposition
+
+The first final-close preflight returned `NOT_READY` with two MATERIAL findings:
+
+- `FC-01` — `FILE_REGISTRY.yml` also contains a dedicated WB-DEFINE-001 entry whose `role` and `lifecycle_status` must move from active/in-progress to completed/completed when migration state becomes completed/no-active.
+- `FC-02` — semantic equivalence is insufficient. The prospective terminal subject must be byte-bound before application so actual projection can be proven identical to the subject independently inspected.
+
+The three-path normative allowlist itself was accepted as sufficient. No fourth normative path is introduced by this supplement.
+
+## Exact normative allowlist
+
+Exactly three normative paths may change:
 
 ```text
 docs/plans/wb-define-001-requirements-quality-traceability.md
@@ -29,27 +44,56 @@ PROJECT_MAP.md
 FILE_REGISTRY.yml
 ```
 
-Any other normative path requires a new Define/Critic loop rather than expansion of this projection.
+Any requirement for a fourth normative path, new lifecycle/authority semantics, or source/runtime change returns to Define/Critic.
 
-The final assurance report and eventual closeout report are evidence-only and are excluded from the normative projection subject.
+## Exact byte-bound projection definition
 
-## 1. Work Block terminal projection
+The canonical machine-readable definition is:
 
-Path:
-`docs/plans/wb-define-001-requirements-quality-traceability.md`
+`docs/reports/reviews/wb-define-001-final-closeout-exact-projection.json`
 
-Apply only these lifecycle/evidence state changes; all implementation design, findings history, R-01/R-02/R-02A/R-03/V-01 evidence, P-01 history, scope boundaries, and stop conditions remain otherwise unchanged.
+Its projection-definition digest is:
 
-### Frontmatter target
+`7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6`
 
-Replace:
+The manifest binds each target path to its exact current baseline blob plus an ordered list of exact string replacements:
 
-```yaml
-status: in_progress
-implementation_state: corrective_r02a_completed_pending_reassurance
+```text
+docs/plans/wb-define-001-requirements-quality-traceability.md
+  base blob: 676b893eb2d71eac77d482ccbcc6f54c8edfffdd
+
+PROJECT_MAP.md
+  base blob: 32808a5a10b4168ef6a3a0d73b491a232b575dc5
+
+FILE_REGISTRY.yml
+  base blob: 0cae97b700969c10816cfac14d7c5775629d9ef9
 ```
 
-with:
+### Deterministic reproduction rule
+
+For every file, the independent preflight must:
+
+1. fetch the exact baseline blob named in the manifest;
+2. require every `from` byte sequence to occur exactly once before mutation;
+3. apply replacements in manifest order using UTF-8/LF bytes without whitespace normalization, formatting, reflow, YAML reserialization, or other edits;
+4. reject a missing or multiply occurring `from` sequence;
+5. compute the resulting Git blob SHA and SHA-256 for each projected file;
+6. build a canonical manifest sorted by path containing:
+   - path;
+   - baseline blob SHA;
+   - projected Git blob SHA;
+   - projected SHA-256;
+7. compute a final aggregate SHA-256 over that canonical sorted manifest.
+
+The preflight must report all three projected blob SHAs, all three projected SHA-256 values, and the aggregate SHA-256. Those reported values become the only permitted terminal projection subject.
+
+After approval, actual application must reproduce the same exact replacements against the same baseline blobs. `Semantically equivalent` is not sufficient. Actual projected file blobs and aggregate must exactly equal the values returned by the approved preflight.
+
+## Work Block terminal projection
+
+The exact manifest changes only terminal lifecycle/evidence state while retaining implementation design, corrective chronology, P-01 history, scope boundaries, and stop conditions.
+
+Target frontmatter includes:
 
 ```yaml
 status: completed
@@ -60,7 +104,7 @@ final_assurance_report: docs/reports/reviews/wb-define-001-final-reassurance.md
 closeout_mode: success-closeout
 ```
 
-Keep:
+Existing historical/corrective fields remain, including:
 
 ```yaml
 critic_gate: READY
@@ -71,142 +115,114 @@ write_gate: BLOCKED
 process_deviation: docs/reports/process/wb-define-001-process-deviation.md
 ```
 
-The historical original Critic remains missing and must not be relabeled.
+The projection also records R-01/R-02/R-02A/R-03/V-01 as resolved, AC1–AC16 as satisfied, and replaces the pending Assure section with terminal state:
 
-### Assurance disposition target
-
-Update the Work Block's current disposition text so that:
-
-- `P-01` = historical deviation preserved / dispositioned;
-- `R-01` = resolved;
-- `R-02` / `R-02A` = resolved;
-- `R-03` = resolved;
-- `V-01` = resolved;
-- `D-01` = excluded / follow-up only if separately authorized.
-
-Do not remove the historical `ASSURANCE NOT READY`, Round-1 `SUPPLEMENT`, Round-2 `APPROVE`, Round-3 `APPROVE`, or corrective-loop chronology.
-
-### Acceptance target
-
-Record AC1 through AC16 as satisfied by the final independent assurance of exact subject `2075cafdecdb75ac5f747c466abb3c1a5f71c611`.
-
-### Terminal section target
-
-Replace the pending `Current Gate State` projection with a truthful Close state and append this terminal section:
-
-```markdown
-## Final State
-
-- **Stage State:** completed
-- **Write Gate:** CLOSED — source implementation remains blocked after the final freeze
-- **Review Gate:** READY
-- **Verification Verdict:** READY
-- **Evaluation Verdict:** SKIPPED — deterministic framework contracts and executable fixtures were sufficient; no non-deterministic output evaluation was required
-- **Drift Gate:** ALIGNED
-- **Closeout Mode:** success-closeout
-- **Task Status:** completed
-- **Assured Normative Subject:** `2075cafdecdb75ac5f747c466abb3c1a5f71c611`
-- **Final Assurance:** `docs/reports/reviews/wb-define-001-final-reassurance.md`
-- **Historical Process Deviation:** P-01 remains recorded in `docs/reports/process/wb-define-001-process-deviation.md`
-- **PR State Boundary:** repository closeout does not authorize merge; PR #36 remains subject to separate Owner merge authority
+```text
+Stage State: completed
+Write Gate: CLOSED
+Review Gate: READY
+Verification Verdict: READY
+Evaluation Verdict: SKIPPED — deterministic framework contracts and executable fixtures were sufficient; no non-deterministic output evaluation was required
+Drift Gate: ALIGNED
+Closeout Mode: success-closeout
+Task Status: completed
 ```
 
-The terminal state must explicitly say that successful repository closeout does not retroactively make the original Managed Execute governance-conformant.
+P-01 remains a historical material process deviation. Successful corrective closeout must explicitly state that it does not make the original Managed Execute governance-conformant retroactively.
 
-## 2. PROJECT_MAP terminal projection
+## PROJECT_MAP terminal projection
 
-Path: `PROJECT_MAP.md`
+The exact manifest performs only these lifecycle/navigation changes:
 
-Apply only lifecycle/navigation changes required by release-state reconciliation:
+- append WB-DEFINE-001 to machine-readable `completed_work_blocks`;
+- set `active_work_block: null`;
+- change the Key Paths WB-DEFINE-001 row from active to completed;
+- add WB-DEFINE-001 as completed item 23 in Migration Work;
+- replace the active WB entry with `No active implementation Work Block.`;
+- preserve WB-CORE-004 as the next planned product Work Block.
 
-1. In the machine-readable `release-state` block:
-   - append `docs/plans/wb-define-001-requirements-quality-traceability.md` to `completed_work_blocks`;
-   - change `active_work_block` from the WB-DEFINE-001 path to `null`.
-2. In **Key Paths**:
-   - change the WB-DEFINE-001 row from `active Work Block` to `completed Work Block`;
-   - describe it as completed Define-stage requirements quality/traceability implementation with final `READY / READY / ALIGNED` assurance.
-3. In **Migration Work**:
-   - add WB-DEFINE-001 as the next completed inserted governance/control-plane Work Block;
-   - replace the current `Active:` WB-DEFINE-001 entry with an explicit `No active implementation Work Block.` statement;
-   - preserve `WB-CORE-004` as the next planned product Work Block.
-4. Do not change authority order, runtime architecture, target architecture, Portable Kit status, PR #37/#38/#39 semantics, or any unrelated completed Work Block history.
+Authority order, current/target architecture, Portable Kit promotion state, PR #37/#38/#39 semantics, and unrelated Work Block history remain untouched.
 
-No mutable PR/merge/hosting state may be written into the map as normative lifecycle fact.
+## FILE_REGISTRY terminal projection
 
-## 3. FILE_REGISTRY terminal projection
-
-Path: `FILE_REGISTRY.yml`
-
-Apply only release-state reconciliation fields:
+The exact manifest now includes the complete reconciliation required by `FC-01`:
 
 ```yaml
 migration_state:
   completed_work_blocks:
-    # preserve all existing entries and append:
-    - docs/plans/wb-define-001-requirements-quality-traceability.md
+    # append WB-DEFINE-001
   active_work_block: null
   next_planned_work_block: WB-CORE-004
-```
 
-Update:
-
-```yaml
 release_state:
   latest_completed_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
   closeout_report: docs/reports/closeout/wb-define-001-requirements-quality-traceability.md
+  external_vcs_state: non_normative
+  authority: assurance_only
 ```
 
-Preserve:
+The dedicated entry changes from:
 
 ```yaml
-external_vcs_state: non_normative
-authority: assurance_only
+role: active_managed_define_stage_requirements_quality_and_traceability_work_block
+lifecycle_status: in_progress
 ```
 
-All other registry classifications, Define-quality entries, runtime/integration mappings, authority ordering, and installation profile data remain byte/semantically unchanged except for formatting inherently required by the bounded edit.
+to:
 
-## Evidence-only closeout to append after projection
+```yaml
+role: completed_managed_define_stage_requirements_quality_and_traceability_work_block
+lifecycle_status: completed
+```
 
-After an independent preflight returns `READY / READY / ALIGNED` for this prospective three-file terminal projection, the projection may be applied byte-equivalently. Only then may the Orchestrator append:
+`status: log`, owner, current architecture, bounded authority, Define-quality registration, runtime/integration mappings, installation profiles, and all unrelated registry content remain byte-identical.
+
+## Closeout evidence boundary
+
+The closeout report remains future evidence-only output:
 
 `docs/reports/closeout/wb-define-001-requirements-quality-traceability.md`
 
-as an evidence-only `SUCCESS` closeout report bound to the resulting exact normative subject. The closeout report must include:
+It must be created only after the exact three-file projection has been applied and actual projected blob/aggregate values exactly match the approved preflight values.
 
-- Stage execution state: completed
-- Review verdict: READY
-- Verification verdict: READY
-- Evaluation verdict: SKIPPED — deterministic
-- Drift verdict: ALIGNED
-- Closeout classification: SUCCESS
-- Task status: completed
-- final assurance report reference
-- exact final normative subject revision
-- P-01 as a preserved historical residual process deviation
-- external VCS/PR/merge state as non-normative and separately controlled
-- residual runtime limitations for cooperative hooks and non-intercepting OpenCode/generic runtimes
-- follow-up: WB-CORE-004 remains the next planned product Work Block
+The closeout report must bind the actual resulting normative revision/aggregate and record:
 
-The evidence-only closeout report must not be used to manufacture the assurance that authorizes its own normative projection.
+- Stage completed;
+- Reviewer READY;
+- Verifier READY;
+- Evaluation SKIPPED with deterministic rationale;
+- Drift ALIGNED;
+- closeout classification SUCCESS;
+- task status completed;
+- P-01 preserved as historical residual process deviation;
+- external PR/merge/VCS state non-normative and separately controlled;
+- WB-CORE-004 remains next planned product Work Block.
 
-## Engineering-memory classification
+The report cannot manufacture assurance for its own preceding normative projection.
 
-`operational-only` for this closeout projection. No `docs/engineering-memory/**` mutation is authorized in the current blocked source state. The durable lesson about fail-closed machine-observable prerequisites may be considered by a later separately scoped Work Block; this closeout does not expand scope to promote it.
+Release-state/framework CI must run only after the terminal normative projection and required closeout report coexist. A transient write sequence before the report exists is not a READY release-state claim.
 
-## Preflight acceptance
+## Tasklist and memory
 
-The final-close preflight should return `READY / READY / ALIGNED` only if all of the following hold:
+No new `docs/tasklist/...` file is required. The release-state contract does not require one for WB-DEFINE-001 and creating one now would add unnecessary normative scope.
 
-1. the three-path normative allowlist is sufficient and complete;
-2. the projection truthfully records AC1–AC16 and the exact assured subject;
-3. P-01 remains historical rather than retroactively repaired;
-4. PROJECT_MAP and FILE_REGISTRY agree on completed/no-active state and WB-CORE-004 remains next planned;
-5. `release_state.latest_completed_work_block` and the future closeout-report path are consistent;
-6. no source/runtime/governance behavior changes;
-7. no mutable external GitHub state is made normative;
-8. applying the projection would satisfy the repository completed-state/release-state contract once the evidence-only closeout report is appended;
-9. no prior assurance is claimed for a normative state it did not inspect.
+Memory-bank synchronization and any engineering-memory classification are lower-authority bookkeeping after successful repository closeout. They are not part of the three-file final projection and cannot affect its readiness.
 
-If the preflight finds that any fourth normative path is required, the projection is not approved and must return to Define rather than silently expand.
+## Acceptance for repeated exact preflight
 
-This artifact is evidence/preflight material only. It does not change lifecycle status, does not close WB-DEFINE-001, does not authorize merge, and does not alter the assured normative subject.
+The repeated preflight may return READY only if it independently proves:
+
+1. current PR head differs from the assured normative subject only by evidence-only reports;
+2. the exact projection manifest digest is `7042963bdca4f22734442e178466efcc20413984fc9ac9a60148f61e6bcb2be6`;
+3. all three manifest baseline blob SHAs match the current normative files;
+4. every exact replacement source occurs once and only once;
+5. generated projected bytes produce reported per-file Git blob SHA and SHA-256 values plus one aggregate SHA-256;
+6. `FC-01` is resolved inside `FILE_REGISTRY.yml` with completed role/lifecycle state;
+7. Work Block, PROJECT_MAP and FILE_REGISTRY agree on completed/no-active state;
+8. P-01 remains historical and is not retroactively repaired;
+9. no fourth normative path or new authority/lifecycle behavior is required;
+10. release-state will become structurally complete once the evidence-only closeout report is appended after exact application.
+
+If READY, the final preflight must explicitly return the expected three projected Git blob SHAs and the final aggregate SHA-256. Actual application is authorized only when those exact values can be reproduced.
+
+This artifact and its JSON manifest are evidence/preflight material only. They do not close WB-DEFINE-001, do not change the normative subject, do not authorize merge, and do not alter external GitHub authority.
