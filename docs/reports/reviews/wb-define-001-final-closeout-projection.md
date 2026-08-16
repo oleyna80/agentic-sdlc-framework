@@ -212,8 +212,8 @@ The repeated preflight may return READY only if it independently proves:
 
 If READY, the final preflight must explicitly return the expected three projected Git blob SHAs and the final aggregate SHA-256. Actual application is authorized only when those exact values can be reproduced.
 
-## Evidence-head validation
+## Provider evidence boundary
 
-The exact-preflight evidence was finalized on evidence-only PR head `e8692f7a30fe1f0e0b6f6948587b0afc31f7e3d1`, where Release State Contract #810 and Framework Contracts #1228 both passed. This CI validates the evidence-only head; it does not claim that the still-unapplied terminal normative projection already exists.
+Current PR head and current CI are mutable hosting-platform evidence and are intentionally not embedded as self-invalidating normative/evidence claims here. The repeated preflight must query GitHub directly and confirm that the current head differs from `2075cafdecdb75ac5f747c466abb3c1a5f71c611` only by approved evidence paths and that applicable checks are green.
 
 This artifact and its JSON manifest are evidence/preflight material only. They do not close WB-DEFINE-001, do not change the normative subject, do not authorize merge, and do not alter external GitHub authority.
