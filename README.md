@@ -80,7 +80,9 @@ execution. Documentation may be present even when a runtime implementation
 surface was not selected.
 
 `integrations/` covers optional official plugins, exact MCP server/tool admission,
-and runtime-neutral file handoff. No external integration is enabled by bootstrap.
+runtime-neutral file handoff, and an unadmitted provider-neutral Repository Graph
+Provider boundary. Graph state is local derived state only; no external
+integration is enabled by bootstrap.
 
 ### Project Artifacts and Evidence
 

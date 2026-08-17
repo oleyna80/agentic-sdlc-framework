@@ -98,6 +98,7 @@ docs/reports/evaluations/README.md
 docs/templates/evaluation-plan-template.json
 docs/templates/evaluation-report-template.json
 docs/templates/trajectory-event-template.json
+docs/templates/repository-graph-opt-in-template.md
 ```
 
 These files provide evaluation capability, not a requirement or passing verdict.
@@ -316,6 +317,17 @@ server, external runtime CLI, hosted connector, or file runner:
 7. bind integration ID and evidence path to the active Work Block.
 
 Admission does not grant child write authority. Evaluation does not grant admission.
+
+### Optional Repository Graph Provider
+
+The Repository Graph Provider is unadmitted optional external capability
+documentation, not an installed adapter. A separately Owner-approved Work Block
+must select any provider and bind its canonical root/revision, provider/version,
+provider-local state location, and creation/refresh status. Before indexing, the
+operator verifies a specific local-state exclusion through `.git/info/exclude`
+or a global exclusion. Do not add a generic graph directory or committed ignore
+rule. State is local, derived, rebuildable, non-authoritative, and not published
+by default; important findings require direct canonical-source confirmation.
 
 ## Work Block Setup
 

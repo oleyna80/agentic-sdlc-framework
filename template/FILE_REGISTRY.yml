@@ -282,6 +282,12 @@ entries:
     status: normative
     owner: owner
 
+  docs/templates/repository-graph-opt-in-template.md:
+    role: optional_repository_graph_provider_local_state_binding_template
+    status: normative
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
+
   docs/engineering-memory/**:
     role: durable_engineering_memory
     status: durable_reference
@@ -304,6 +310,12 @@ entries:
     status: integration_adapter
     owner: architect
     availability: always
+
+  integrations/repository-graph/README.md:
+    role: optional_provider_neutral_repository_graph_capability_boundary
+    status: normative
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
 
   .codex/**:
     role: codex_project_runtime_configuration

@@ -217,6 +217,7 @@ migration_state:
     - docs/plans/wb-opencode-002-project-local-integration.md
     - docs/plans/wb-design-001-openai-frontend-delta.md
     - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
+    - docs/plans/wb-repository-graph-001-optional-local-provider.md
     - docs/plans/wb-core-003f-github-native-authority-model.md
     - docs/plans/wb-define-001-requirements-quality-traceability.md
   active_work_block: null
@@ -346,6 +347,12 @@ entries:
     status: integration_adapter
     owner: architect
 
+  integrations/repository-graph/README.md:
+    role: optional_provider_neutral_repository_graph_capability_boundary
+    status: normative
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
+
   bootstrap/profiles.json:
     role: installation_profile_component_skill_and_alias_manifest
     status: installation_manifest
@@ -394,6 +401,22 @@ entries:
     role: work_block_plans_and_execution_evidence
     status: log
     owner: orchestrator
+
+  docs/specs/repository-graph-provider-contract.md:
+    role: optional_repository_graph_provider_authority_and_state_contract
+    status: normative
+    owner: architect
+
+  docs/architecture/decisions/2026-08-11-repository-graph-provider-boundary.md:
+    role: accepted_optional_repository_graph_provider_boundary
+    status: accepted
+    owner: architect
+
+  docs/plans/wb-repository-graph-001-optional-local-provider.md:
+    role: completed_optional_repository_graph_provider_boundary_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
 
   docs/plans/wb-define-001-requirements-quality-traceability.md:
     role: completed_managed_define_stage_requirements_quality_and_traceability_work_block
@@ -753,6 +776,12 @@ entries:
     role: generated_observable_trajectory_event_schema_example
     status: template
     owner: verifier
+
+  template/docs/templates/repository-graph-opt-in-template.md:
+    role: generated_future_repository_graph_provider_local_state_binding_template
+    status: template
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
 
   template/scripts/repair-lifecycle.py:
     role: generated_fail_closed_ndr_repair_record_validator

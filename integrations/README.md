@@ -124,3 +124,5 @@ Do not require or store private chain-of-thought.
 - `claude-code-codex-plugin/` — official Codex plugin used from Claude Code.
 - `mcp/` — generic MCP admission and permission boundary.
 - `file-handoff/` — audited runtime-neutral task transport.
+- `repository-graph/` — unadmitted, provider-neutral optional local derived-state
+  capability; it is not an adapter installation or provider admission.
