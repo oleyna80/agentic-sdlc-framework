@@ -22,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "template"
 ROLES = ("architect", "critic", "coder", "reviewer", "verifier")
 NON_IMPLEMENTATION_ROLES = {"architect", "critic", "reviewer", "verifier"}
+DEFAULT_DEFINE_QUALITY = {
+    "required": False,
+    "status": "PENDING",
+    "requirements_review": "",
+    "traceability": "",
+    "consistency_analysis": "",
+}
 CLAUDE_FILES = {
     "architect": "solution-architect.md",
     "critic": "critic.md",
@@ -157,8 +164,16 @@ def claude_contract() -> dict[str, dict[str, Any]]:
     claude_scope_guard = (
         TEMPLATE / ".claude/hooks/work_block_gate.py"
     ).read_text(encoding="utf-8")
-    for marker in ("git commit", "Complex mutating Bash", "Staged commit"):
-        assert marker in claude_scope_guard, f"Claude Bash scope guard missing {marker!r}"
+    for marker in (
+        "git commit",
+        "Complex mutating Bash",
+        "Staged commit",
+        "validate_define_quality",
+        "FORMAL_DEFINE_PROFILES",
+        "requirements_review",
+        "consistency_analysis",
+    ):
+        assert marker in claude_scope_guard, f"Claude scope guard missing {marker!r}"
 
     assert "enabledMcpjsonServers" not in settings
     return result
@@ -305,10 +320,33 @@ def shared_gate_contract() -> None:
     gate = json.loads(
         (TEMPLATE / ".agent/active-work-block.json").read_text(encoding="utf-8")
     )
+    default_gate = json.loads(
+        (TEMPLATE / ".agent/active-work-block.default.json").read_text(encoding="utf-8")
+    )
+    assert gate == default_gate, "template active/default Work Block copies must stay aligned"
     assert gate.get("schema_version") == 3
     assert gate.get("authority_mode") == "github_capability"
+    assert gate.get("governance_profile") == "Controlled"
+    assert gate.get("define_quality") == DEFAULT_DEFINE_QUALITY
     assert "authorization" not in gate
     assert "hard_stop_approvals" not in gate
+
+    codex_scope_guard = (
+        TEMPLATE / ".codex/hooks/pre_tool_use_policy.py"
+    ).read_text(encoding="utf-8")
+    claude_scope_guard = (
+        TEMPLATE / ".claude/hooks/work_block_gate.py"
+    ).read_text(encoding="utf-8")
+    for label, source in (("Codex", codex_scope_guard), ("Claude", claude_scope_guard)):
+        for marker in (
+            "validate_define_quality",
+            "FORMAL_DEFINE_PROFILES",
+            "requirements_review",
+            "traceability",
+            "consistency_analysis",
+            "required=false",
+        ):
+            assert marker in source, f"{label} Define-quality enforcement missing {marker!r}"
 
     shared = (TEMPLATE / ".agent/hooks/hard_stop_policy.py").read_text(
         encoding="utf-8"
@@ -324,6 +362,11 @@ def shared_gate_contract() -> None:
     assert "Work Block" in generic
     assert re.search(r"separate\s+(documented\s+)?(pass|session)", generic, re.I)
     assert "degraded" in generic.lower()
+
+    # Runtime neutrality is semantic rather than artificial hook symmetry:
+    # Codex/Claude have machine interception; OpenCode/generic remain capability-
+    # truthful rather than gaining a new universal hook in this Work Block.
+    assert not (TEMPLATE / ".opencode/hooks/work_block_gate.py").exists()
 
 
 def compare_semantics(contracts: dict[str, dict[str, dict[str, Any]]]) -> None:
