@@ -29,10 +29,17 @@ READY_DEFINE_QUALITY = {
     "traceability": "docs/reports/traceability.json",
     "consistency_analysis": "docs/reports/define-consistency.md",
 }
+GRAPH_ACTIVATION_TOKENS = ("repository-graph", "repository_graph", "graph-provider")
 
 
 def fail(message: str) -> None:
     raise AssertionError(message)
+
+
+def is_graph_activation(value: object) -> bool:
+    return isinstance(value, str) and any(
+        token in value.lower() for token in GRAPH_ACTIVATION_TOKENS
+    )
 
 
 def require(path: Path) -> None:
@@ -191,10 +198,24 @@ def static_contracts() -> None:
         if forbidden in all_boundary_text:
             fail(f"Repository Graph Provider boundary must not prescribe: {forbidden}")
 
-    bootstrap_catalog = normalized(ROOT / "bootstrap/profiles.json")
-    for forbidden in ("repository-graph", "repository_graph", "graph-provider"):
-        if forbidden in bootstrap_catalog:
-            fail(f"Repository Graph Provider must not be a bootstrap profile component or automatic activation: {forbidden}")
+    catalog = load_json(ROOT / "bootstrap/profiles.json")
+    graph_documentation_paths = {
+        "integrations/repository-graph/README.md",
+        "docs/templates/repository-graph-opt-in-template.md",
+    }
+    common_required_paths = set(catalog.get("common_required_paths") or [])
+    if not graph_documentation_paths.issubset(common_required_paths):
+        fail("Repository Graph Provider documentation must be required for every bootstrap profile")
+    for component_id, component in (catalog.get("components") or {}).items():
+        if is_graph_activation(component_id) or is_graph_activation(component.get("integration_id")):
+            fail(f"Repository Graph Provider must not declare activation component {component_id}")
+        component_paths = set(component.get("paths") or []) | set(component.get("required_paths") or [])
+        if graph_documentation_paths.intersection(component_paths):
+            fail(f"Repository Graph Provider documentation must not activate component {component_id}")
+    for profile_id, profile_definition in (catalog.get("profiles") or {}).items():
+        for component_id in profile_definition.get("components") or []:
+            if is_graph_activation(component_id):
+                fail(f"Repository Graph Provider must not activate component in profile {profile_id}")
 
     generic_graph_ignore_entries = {
         "graph/",
@@ -270,6 +291,33 @@ def repository_graph_bootstrap_fixture() -> None:
                 "FILE_REGISTRY.yml",
             ):
                 require(target / relative)
+            state = load_json(target / ".agent/bootstrap-profile.json")
+            required_paths = set(state.get("required_paths") or [])
+            for field in ("components", "integrations"):
+                activated = [
+                    value for value in (state.get(field) or []) if is_graph_activation(value)
+                ]
+                if activated:
+                    fail(f"Repository Graph Provider must not activate {field} for {profile}: {activated}")
+            for relative in (
+                "docs/templates/repository-graph-opt-in-template.md",
+                "integrations/repository-graph/README.md",
+            ):
+                if relative not in required_paths:
+                    fail(f"Repository Graph Provider documentation missing from required_paths for {profile}: {relative}")
+                documentation = target / relative
+                contents = documentation.read_bytes()
+                documentation.unlink()
+                validation = subprocess.run(
+                    [sys.executable, "scripts/validate-installation-profile.py", "."],
+                    cwd=target,
+                    capture_output=True,
+                    text=True,
+                    env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                )
+                if validation.returncode == 0 or relative not in validation.stderr:
+                    fail(f"Repository Graph Provider validator did not detect missing required path for {profile}: {relative}")
+                documentation.write_bytes(contents)
             opt_in = " ".join(
                 (target / "docs/templates/repository-graph-opt-in-template.md")
                 .read_text(encoding="utf-8")
