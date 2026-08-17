@@ -253,29 +253,51 @@ semantic parent changes were incorporated correctly.
 
 ## 6. Frozen-Subject Assurance
 
-Independent assurance is bound to an exact subject, normally:
+Independent assurance is bound to an exact subject:
 
 ```text
-base SHA -> frozen head SHA
+frozen_base_sha -> frozen_head_sha
 ```
 
 Before starting assurance:
 
-1. read PR base/head from GitHub;
-2. confirm the requested head matches exactly;
-3. capture the changed-file set/diff for that pair;
+1. read PR base SHA and head SHA from GitHub;
+2. confirm both live values match the requested frozen subject (`frozen_base_sha`
+   and `frozen_head_sha`);
+3. capture the changed-file set and diff for that exact pair;
 4. perform review read-only.
 
-Immediately before issuing the final verdict, read the PR again.
+Immediately before issuing the final verdict, re-read both `current_base_sha` and
+`current_head_sha` from GitHub and compare:
 
-If the head changed:
+```text
+current_base_sha == frozen_base_sha
+current_head_sha == frozen_head_sha
+```
+
+If either comparison fails:
 
 ```text
 SUBJECT MOVED
 ```
 
-Do not reuse the old verdict for the new head. A semantic no-op, merge-only sync,
-or evidence-only source commit still changes the frozen Git subject.
+Do not issue `READY` or any other assurance verdict for the old subject, and do
+not reuse the old verdict.
+
+### Why base movement matters
+
+A PR can be retargeted or its parent/base branch can move while the head SHA
+remains identical. That changes `base SHA -> head SHA` and therefore can change:
+
+- the actual diff;
+- changed-file set;
+- inherited semantics;
+- integration context.
+
+Thus identical head SHA alone does not prove an identical assurance subject. Any
+base or head movement changes the frozen comparison subject. A base retarget,
+base branch advance, semantic no-op commit, merge-only sync, or evidence-only
+source commit still invalidates the frozen subject.
 
 ### Historical assurance after synchronization
 
