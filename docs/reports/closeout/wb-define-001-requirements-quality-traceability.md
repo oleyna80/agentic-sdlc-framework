@@ -28,7 +28,7 @@ projection_aggregate_sha256: 59e69d55cb40b107dbd665c1e9f581cd9865eda7a96d341efca
 - **Closeout classification:** SUCCESS
 - **Task status:** completed
 - **Source Write Gate:** closed / blocked after final source freeze
-- **External VCS state:** non-normative; PR lifecycle and merge remain separately Owner-controlled hosting-platform state
+- **External VCS state:** non-normative; hosting-platform lifecycle and merge authority remain separately Owner-controlled
 
 ## Result
 
@@ -122,7 +122,7 @@ three-file aggregate. It returned `FINAL PREFLIGHT READY` and
 Because the actual applied blobs and aggregate exactly match that approved
 prospective subject, no additional post-application full Reviewer/Verifier/Drift
 cycle is required. Release-state and Framework CI remain required on the resulting
-PR head containing this evidence-only report.
+repository head containing this evidence-only report.
 
 ## Historical Process Deviation — P-01
 
@@ -169,15 +169,14 @@ WB-CORE-004 remains the next planned product Work Block.
 - OpenCode/generic runtimes do not have equivalent universal machine interception;
   this remains an explicit runtime-capability limitation rather than a false
   enforcement claim.
-- Hosting-platform PR state, required-check configuration, and merge authority are
-  external operational state and remain separately controlled.
+- Hosting-platform lifecycle, required-check configuration, and merge authority
+  are external operational state and remain separately controlled.
 
 ## Follow-Up Work
 
-- Run final Release State Contract and Framework Contracts on the PR head that
-  contains this closeout report.
-- Keep PR #36 Draft until a separate Owner decision changes hosting-platform
-  lifecycle state.
-- Do not merge PR #36 without explicit Owner authorization.
+- Run final Release State Contract and Framework Contracts on the repository head
+  that contains this closeout report.
+- Keep hosting-platform lifecycle unchanged until a separate Owner decision.
+- Do not perform merge without explicit Owner authorization.
 - WB-CORE-004 remains the next planned product Work Block and requires its own
   scope, authority, Write Gate, assurance, and closeout.
