@@ -62,6 +62,7 @@ for path in \
   "governance/lifecycle.md" \
   "governance/artifacts.md" \
   "governance/evaluation.md" \
+  "governance/define-quality.md" \
   "governance/runtime-capabilities.md" \
   "integrations/README.md" \
   "bootstrap/profiles.json" \
@@ -118,8 +119,36 @@ require_file ".agent/workflows/sdd-protocol.md"
 require_contains ".agent/workflows/sdd-protocol.md" 'approved Work Block/write-set, including staging, local commits, and normal'
 require_absent_pattern ".agent/workflows/sdd-protocol.md" 'staging, commit, or push'
 
+# Define-quality is one evidence prerequisite before Critic/Write Gate.
+require_contains "governance/define-quality.md" 'Executable Define-Quality Prerequisite'
+require_contains "governance/define-quality.md" '"define_quality"'
+require_contains "governance/define-quality.md" 'Managed / Assured / Distributed.*required'
+require_contains "governance/define-quality.md" 'required=false'
+require_contains "governance/define-quality.md" 'configuration contradiction'
+require_contains "governance/define-quality.md" 'schema-v3'
+require_contains "governance/define-quality.md" 'runtime-neutral'
+require_contains "governance/define-quality.md" 'Only `type=requirement` tasks count as'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'Define-quality prerequisite:'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'aggregate Define-quality prerequisite when applicable'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'required=false'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'cannot disable'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'non-blank requirements-review'
+assert_before "template/.agent/workflows/sdd-protocol.md" 'Resolve the aggregate Define-quality prerequisite' 'Run Critic function'
+require_contains "template/.agent/active-work-block.json" '"define_quality"'
+require_contains "template/.agent/active-work-block.json" '"requirements_review"'
+require_contains "template/.agent/active-work-block.json" '"traceability"'
+require_contains "template/.agent/active-work-block.json" '"consistency_analysis"'
+require_contains "template/.agent/active-work-block.default.json" '"define_quality"'
+require_contains "template/.codex/hooks/pre_tool_use_policy.py" 'validate_define_quality'
+require_contains "template/.claude/hooks/work_block_gate.py" 'validate_define_quality'
+require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_DEFINE_QUALITY'
+
 # Work Block binds governance separately from runtime/model/isolation/integration.
 require_contains "template/docs/templates/work-block-template.md" 'Governance Profile:'
+require_contains "template/docs/templates/work-block-template.md" 'Define Quality Prerequisite'
+require_contains "template/docs/templates/work-block-template.md" 'Requirements Review Evidence:'
+require_contains "template/docs/templates/work-block-template.md" 'Traceability Evidence:'
+require_contains "template/docs/templates/work-block-template.md" 'Consistency Analysis Evidence:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Specification:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Evaluation Plan:'
 require_contains "template/docs/templates/work-block-template.md" 'Runtime Capability Snapshot'
@@ -137,6 +166,11 @@ require_contains "template/docs/templates/work-block-template.md" 'Trajectory Re
 require_contains "template/docs/templates/work-block-template.md" 'No Hidden Reasoning:'
 require_contains "template/docs/templates/work-block-template.md" 'Drift Gate:'
 require_contains "template/docs/templates/work-block-template.md" 'Specification Drift Audit'
+require_contains "template/docs/templates/work-block-template.md" 'Navigation and Documentation Impact'
+require_contains "template/docs/templates/work-block-template.md" 'Commit / Publication Scope'
+require_contains "template/docs/templates/work-block-template.md" 'Execution Log'
+require_contains "template/docs/templates/work-block-template.md" 'Specification and SSOT Sync'
+require_contains "template/docs/templates/work-block-template.md" 'Knowledge and Retrospective'
 require_contains "template/docs/templates/integration-admission-template.md" 'Logical functions served:'
 require_contains "template/docs/templates/integration-admission-template.md" 'Data Boundary'
 require_contains "template/docs/templates/integration-admission-template.md" 'Secret and Authentication Boundary'
@@ -223,6 +257,7 @@ require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
 require_contains "template/scripts/validate-installation-profile.py" 'required_paths'
 require_contains "template/scripts/validate-installation-profile.py" 'forbidden_paths'
 require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_EVALUATION'
+require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_DEFINE_QUALITY'
 require_contains "docs/bootstrap-profiles.md" 'Installation profiles control'
 require_contains "docs/bootstrap-profiles.md" 'does not grant'
 

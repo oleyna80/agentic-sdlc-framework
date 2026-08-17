@@ -1,7 +1,7 @@
 # Machine-readable navigation registry for authority-bearing files and major zones.
 # Runtime implementation surfaces are conditional on .agent/bootstrap-profile.json.
 
-version: 7
+version: 8
 scope: generated_project
 project:
   name: "{{PROJECT_NAME}}"
@@ -20,13 +20,14 @@ installation_profile:
     - known_unselected_component_paths_must_be_absent_in_fresh_scaffold
     - blocked_default_work_block_must_validate_before_restore
     - evaluation_contract_is_available_in_every_profile
+    - define_quality_contract_is_available_in_every_profile
     - installation_does_not_grant_work_block_authority
     - integration_activation_requires_separate_admission
 
 statuses:
   normative: "governance, product, architecture, or policy source of truth"
   derived: "artifact derived from approved normative intent"
-  evidence: "critic, review, verification, evaluation, drift, integration, or closeout evidence"
+  evidence: "requirements-quality, critic, review, verification, evaluation, drift, integration, or closeout evidence"
   runtime_adapter: "runtime-specific execution configuration or guidance"
   integration_adapter: "optional plugin, MCP, external runtime, tool, or transport"
   durable_reference: "evidence-backed engineering memory"
@@ -43,6 +44,7 @@ authority_order:
     - accepted_architecture_decisions_and_external_contracts
     - approved_implementation_and_evaluation_plans
     - active_tasklist
+    - requirements_quality_review_and_define_consistency_evidence
     - review_verification_evaluation_drift_and_closeout_reports
     - durable_engineering_memory
     - runtime_integration_operational_logs
@@ -56,6 +58,16 @@ authority_order:
     - installed_runtime_adapters
     - admitted_integration_adapters
     - operational_logs_and_generated_artifacts
+
+define_quality:
+  contract: governance/define-quality.md
+  requirements_review_directory: docs/reports/requirements/**
+  requirements_review_template: docs/templates/requirements-quality-review-template.md
+  traceable_tasklist_template: docs/templates/traceable-tasklist-template.md
+  validator: scripts/validate-define-traceability.py
+  evidence_boundary: requirements_and_cross_artifact_structure_only
+  source_write_authority: none
+  authority: none
 
 evaluation_assurance:
   contract: governance/evaluation.md
@@ -106,6 +118,12 @@ entries:
     status: normative
     owner: architect
     availability: always
+
+  governance/define-quality.md:
+    role: define_stage_clarification_requirements_quality_traceability_and_consistency_contract
+    status: normative
+    owner: architect
+    authority: define_quality_only_no_source_write_authority
 
   governance/evaluation.md:
     role: deterministic_output_and_observable_trajectory_evaluation_contract
@@ -183,9 +201,15 @@ entries:
     restrictions: [no_hidden_reasoning, no_secrets, no_unredacted_protected_payloads]
 
   docs/reports/**:
-    role: critic_review_verification_evaluation_drift_integration_and_closeout_evidence
+    role: requirements_quality_critic_review_verification_evaluation_drift_integration_and_closeout_evidence
     status: evidence
     owner: verifier
+
+  docs/reports/requirements/**:
+    role: define_stage_requirements_quality_review_evidence
+    status: evidence
+    owner: reviewer
+    authority: none
 
   docs/reports/evaluations/**:
     role: output_and_observable_trajectory_evaluation_reports
@@ -201,6 +225,17 @@ entries:
     role: verification_report_contract
     status: normative
     owner: verifier
+
+  docs/templates/requirements-quality-review-template.md:
+    role: define_stage_requirements_quality_review_contract
+    status: normative
+    owner: reviewer
+    authority: none
+
+  docs/templates/traceable-tasklist-template.md:
+    role: requirement_acceptance_task_traceability_contract
+    status: normative
+    owner: orchestrator
 
   docs/templates/evaluation-plan-template.json:
     role: evaluation_plan_schema_example
@@ -247,6 +282,12 @@ entries:
     status: normative
     owner: owner
 
+  docs/templates/repository-graph-opt-in-template.md:
+    role: optional_repository_graph_provider_local_state_binding_template
+    status: normative
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
+
   docs/engineering-memory/**:
     role: durable_engineering_memory
     status: durable_reference
@@ -269,6 +310,12 @@ entries:
     status: integration_adapter
     owner: architect
     availability: always
+
+  integrations/repository-graph/README.md:
+    role: optional_provider_neutral_repository_graph_capability_boundary
+    status: normative
+    owner: architect
+    authority: none_without_separate_owner_approved_admission
 
   .codex/**:
     role: codex_project_runtime_configuration
@@ -318,6 +365,12 @@ entries:
     role: generated_installation_profile_path_kind_blocked_default_and_evaluation_default_validator
     status: normative
     owner: verifier
+
+  scripts/validate-define-traceability.py:
+    role: generated_define_stage_requirement_acceptance_task_structural_validator
+    status: normative
+    owner: verifier
+    authority: assurance_only
 
   scripts/validate-evaluation.py:
     role: generated_evaluation_plan_report_and_closeout_validator

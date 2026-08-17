@@ -14,6 +14,20 @@ TEMPLATE = ROOT / "template"
 PRE_TOOL = TEMPLATE / ".codex/hooks/pre_tool_use_policy.py"
 SUBAGENT = TEMPLATE / ".codex/hooks/subagent_context.py"
 AGENTS = ("architect", "critic", "coder", "reviewer", "verifier")
+DEFAULT_DEFINE_QUALITY = {
+    "required": False,
+    "status": "PENDING",
+    "requirements_review": "",
+    "traceability": "",
+    "consistency_analysis": "",
+}
+READY_DEFINE_QUALITY = {
+    "required": True,
+    "status": "READY",
+    "requirements_review": "docs/reports/requirements-quality.md",
+    "traceability": "docs/reports/traceability.json",
+    "consistency_analysis": "docs/reports/define-consistency.md",
+}
 
 
 def fail(message: str) -> None:
@@ -98,17 +112,21 @@ def move_patch(source: str, destination: str) -> str:
     )
 
 
-def write_gate(repo: Path, *, status: str = "READY") -> None:
+def write_gate(repo: Path, *, status: str = "READY", profile: str = "Managed") -> dict:
+    define_quality = dict(READY_DEFINE_QUALITY)
+    if profile == "Controlled":
+        define_quality = dict(DEFAULT_DEFINE_QUALITY)
     gate = {
         "schema_version": 3,
         "authority_mode": "github_capability",
         "work_block_id": "wb-fixture",
-        "governance_profile": "Managed",
+        "governance_profile": profile,
         "specification": {
             "path": "docs/specs/fixture.md",
             "revision": "v1",
         },
         "base_commit": "",
+        "define_quality": define_quality,
         "write_gate": {"status": status, "opened_at": "fixture" if status == "READY" else None},
         "critic": {
             "required": True,
@@ -144,6 +162,13 @@ def write_gate(repo: Path, *, status: str = "READY") -> None:
         "assurance": {},
         "closeout_mode": "pending",
     }
+    (repo / ".agent/active-work-block.json").write_text(
+        json.dumps(gate, indent=2) + "\n", encoding="utf-8"
+    )
+    return gate
+
+
+def persist_gate(repo: Path, gate: dict) -> None:
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
     )
@@ -192,10 +217,25 @@ def static_contracts() -> None:
         fail("gate schema must be version 3")
     if gate.get("authority_mode") != "github_capability":
         fail("gate authority_mode must be github_capability")
+    if gate.get("define_quality") != DEFAULT_DEFINE_QUALITY:
+        fail("generated gate must start with canonical Controlled Define-quality default")
     if "authorization" in gate or "hard_stop_approvals" in gate:
         fail("legacy signed authority fields remain in schema v3")
     if gate.get("write_gate") != {"status": "BLOCKED", "opened_at": None}:
         fail("generated gate must start BLOCKED")
+
+    guard = PRE_TOOL.read_text(encoding="utf-8")
+    for marker in (
+        "validate_define_quality",
+        "validate_governance_profile",
+        "VALID_GOVERNANCE_PROFILES",
+        "FORMAL_DEFINE_PROFILES",
+        "requirements_review",
+        "traceability",
+        "consistency_analysis",
+    ):
+        if marker not in guard:
+            fail(f"Codex source guard missing Define-quality marker: {marker}")
 
     lifecycle = (TEMPLATE / ".codex/scripts/lifecycle.py").read_text(encoding="utf-8")
     doctor = (TEMPLATE / ".codex/scripts/doctor.py").read_text(encoding="utf-8")
@@ -238,7 +278,7 @@ def hook_fixtures() -> None:
         assert_denied(
             "source patch while blocked",
             decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("src/app.py"))),
-            "READY",
+            "write_gate.status=READY",
         )
 
         coordination_file = repo / "docs/plans/wb.md"
@@ -264,6 +304,83 @@ def hook_fixtures() -> None:
             "in-scope Write",
             decision(PRE_TOOL, repo, event(repo, "Write", path="tests/new_test.py")),
         )
+
+        gate = write_gate(repo)
+        gate.pop("governance_profile")
+        persist_gate(repo, gate)
+        assert_denied(
+            "missing governance profile",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "governance_profile",
+        )
+
+        for label, invalid_profile in (
+            ("empty governance profile", ""),
+            ("whitespace governance profile", "   "),
+            ("unknown governance profile", "Manged"),
+            ("non-string governance profile", 42),
+        ):
+            gate = write_gate(repo)
+            gate["governance_profile"] = invalid_profile
+            persist_gate(repo, gate)
+            assert_denied(
+                label,
+                decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+                "governance_profile",
+            )
+
+        gate = write_gate(repo, profile="Advisory")
+        persist_gate(repo, gate)
+        assert_denied(
+            "Advisory source write",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "Advisory",
+        )
+
+        write_gate(repo, profile="Controlled")
+        assert_allowed(
+            "Controlled non-applicable Define-quality remains proportional",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+        )
+
+        for profile in ("Managed", "Assured", "Distributed"):
+            gate = write_gate(repo, profile=profile)
+            gate["define_quality"]["required"] = False
+            persist_gate(repo, gate)
+            assert_denied(
+                f"{profile} required=false cannot bypass",
+                decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+                "required=false",
+            )
+
+        gate = write_gate(repo)
+        gate.pop("define_quality")
+        persist_gate(repo, gate)
+        assert_denied(
+            "Managed missing Define-quality",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "define_quality",
+        )
+
+        gate = write_gate(repo)
+        gate["define_quality"]["status"] = "PENDING"
+        persist_gate(repo, gate)
+        assert_denied(
+            "Managed Define-quality pending",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "status=READY",
+        )
+
+        gate = write_gate(repo)
+        gate["define_quality"]["requirements_review"] = "   "
+        persist_gate(repo, gate)
+        assert_denied(
+            "Managed blank Define-quality evidence",
+            decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
+            "requirements_review",
+        )
+
+        write_gate(repo)
         assert_denied(
             "out-of-scope patch",
             decision(PRE_TOOL, repo, event(repo, "apply_patch", patch("README.md"))),
@@ -322,19 +439,18 @@ def hook_fixtures() -> None:
         )
 
         gate_path = repo / ".agent/active-work-block.json"
-        gate = json.loads(gate_path.read_text(encoding="utf-8"))
+        gate = write_gate(repo)
         gate["schema_version"] = 2
-        gate_path.write_text(json.dumps(gate), encoding="utf-8")
+        persist_gate(repo, gate)
         assert_denied(
             "legacy schema source write",
             decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
             "schema_version=3",
         )
-        write_gate(repo)
-        gate = json.loads(gate_path.read_text(encoding="utf-8"))
+        gate = write_gate(repo)
         gate["critic"]["status"] = "PENDING"
         gate["critic"]["verdict"] = "PENDING"
-        gate_path.write_text(json.dumps(gate), encoding="utf-8")
+        persist_gate(repo, gate)
         assert_denied(
             "unresolved Critic",
             decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),

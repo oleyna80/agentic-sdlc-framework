@@ -28,7 +28,9 @@ completed_work_blocks:
   - docs/plans/wb-opencode-002-project-local-integration.md
   - docs/plans/wb-design-001-openai-frontend-delta.md
   - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
+  - docs/plans/wb-repository-graph-001-optional-local-provider.md
   - docs/plans/wb-core-003f-github-native-authority-model.md
+  - docs/plans/wb-define-001-requirements-quality-traceability.md
 active_work_block: null
 -->
 
@@ -37,20 +39,22 @@ active_work_block: null
 The current operational framework remains the runtime-neutral control plane with
 five coordinated layers:
 
-1. **Governance Core** — authority, lifecycle, artifacts, runtime capabilities,
-   evaluation, release state, assurance, and closeout under `governance/`.
+1. **Governance Core** — authority, lifecycle, artifacts, Define-stage requirements
+   quality/traceability, runtime capabilities, evaluation, release state,
+   assurance, and closeout under `governance/`.
 2. **Runtime Adapters** — Codex, Claude Code, OpenCode, and generic execution
    mappings under `runtimes/`.
 3. **Integration Adapters** — optional bridges, MCP, and audited file transport
    under `integrations/` and `handoff/`.
 4. **Project Artifacts and Evidence** — specifications, decisions, plans,
-   evaluation plans, observable events, reports, memory, and Work Block state.
+   requirements-quality reviews, evaluation plans, observable events, reports,
+   memory, and Work Block state.
 5. **Installation Composition** — `bootstrap/profiles.json` selects which runtime
    implementation surfaces and skills are copied into a generated project.
 
-Installation composition, release-state evidence, evaluation evidence, and
-provider snapshots do not grant authority or integration admission. The accepted
-current operational architecture decision is
+Installation composition, requirements-quality evidence, release-state evidence,
+evaluation evidence, and provider snapshots do not grant authority or integration
+admission. The accepted current operational architecture decision is
 `docs/architecture/decisions/2026-07-25-runtime-neutral-control-plane.md`.
 
 This worktree also carries an optional project-local OpenCode surface at the
@@ -124,8 +128,9 @@ required for each future merge.
     caches, and external references.
 
 The active Work Block binds scope, write-set, process level, role authority, Hard
-Stops, and acceptance. Plans, tasklists, and mission briefs cannot expand it.
-Material change returns to Define and requires Work Block revision.
+Stops, and acceptance. Plans, tasklists, requirements-quality reports,
+consistency reports, and validator output cannot expand it. Material change
+returns to Define and requires Work Block revision.
 
 Runtime settings, prompts, plugins, models, tools, judges, scores, installation
 profiles, provider artifacts, and hosting-platform state implement, measure, or
@@ -148,6 +153,7 @@ subject in structured frontmatter.
 Reports are discovered from canonical evidence directories:
 
 ```text
+docs/reports/requirements/
 docs/reports/reviews/
 docs/reports/verification/
 docs/reports/evaluations/
@@ -159,6 +165,10 @@ directory classifications do not change for each report. Verdict history,
 reviewed or verified subjects, findings, coverage, limitations, and
 another-pass requirements are reconstructed from report artifacts. Indexing a
 report grants no authority.
+
+Define-stage requirements-quality and consistency verdicts are pre-execution
+evidence only. They do not open the source write gate and do not replace Critic,
+Reviewer, Verifier, evaluation, drift, or closeout.
 
 Critic, Reviewer, and Verifier use role-specific verdicts:
 
@@ -176,6 +186,32 @@ are unchanged.
 The final PR head may contain evidence-only report commits after the verified
 normative subject. CI and structural checks must pass on that resulting PR head.
 The assurance report does not need to be contained in the commit it evaluates.
+
+## Define-Stage Requirements Quality
+
+`governance/define-quality.md` adds a formal pre-execution sequence for feature
+work that needs stronger requirements discipline:
+
+```text
+specification draft
+  -> clarification
+  -> requirements-quality review
+  -> architecture / plan
+  -> traceable tasks + write-set
+  -> deterministic traceability validation
+  -> read-only consistency analysis
+  -> Critic
+  -> write gate
+```
+
+Generated projects receive `requirements-clarification`,
+`requirements-quality-review`, and `spec-consistency-analysis` in the core skill
+set, plus requirements-quality/task templates and
+`scripts/validate-define-traceability.py`.
+
+Stable `REQ-*`/`AC-*`/`TASK-*` IDs are required only where the governance profile
+and formal tasklist justify them. Enabling, assurance, and documentation tasks
+must not be forced into fake product requirements.
 
 ## Evaluation Assurance
 
@@ -235,19 +271,25 @@ Missing network, revision, or license evidence fails closed.
 
 | Path | Status | Purpose |
 |---|---|---|
-| `governance/` | normative current operations | Runtime-neutral authority, lifecycle, artifacts, evaluation, release-state, and capability contracts |
+| `governance/` | normative current operations | Runtime-neutral authority, lifecycle, artifacts, Define quality, evaluation, release-state, and capability contracts |
+| `governance/define-quality.md` | normative | Clarification, requirements-quality review, stable traceability, and read-only pre-execution consistency |
 | `governance/evaluation.md` | normative | Deterministic, output, and observable trajectory assurance |
 | `governance/release-state.md` | normative | Repository SSOT reconciliation and hosting-platform boundary |
 | `runtimes/` | runtime adapters | Runtime mappings, limitations, activation, and degraded mode |
 | `opencode.json` | runtime adapter | Project-local OpenCode instructions and permission baseline; no authority |
 | `.opencode/agents/` | runtime adapter | Project-local logical-role subagents; live smoke required |
 | `.opencode/skills/` | runtime adapter | Optional bridge skills: `critic-review`, `reviewer`, `scoped-coder`, `ssot-sync-closeout`, `subagent-mission-brief`, `task-decomposition`, and `verifier`; discovery unverified and no authority |
-| `integrations/` | integration adapters | Optional bridges, MCP, and transport admission contracts |
+| `integrations/` | integration adapters | Optional bridges, MCP, transport admission contracts, and unadmitted graph-provider documentation |
+| `integrations/repository-graph/README.md` | optional capability boundary | Provider-neutral local derived state; no provider installation or admission |
 | `bootstrap/profiles.json` | installation manifest | Components, skill sets, aliases, and required generated paths |
 | `bootstrap/bootstrap_project.py` | scaffold engine | Validates profile, stages atomically, installs skills, records state |
+| `skills/requirements-clarification/` | normative skill | Evidence-first bounded clarification before technical planning |
+| `skills/requirements-quality-review/` | normative skill | Read-only specification quality review before Critic/write gate |
+| `skills/spec-consistency-analysis/` | normative skill | Read-only spec/plan/task consistency analysis before Execute |
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
 | `docs/design/design-md-artifact-contract.md` | approved design-domain contract | Optional provider-neutral DESIGN.md authority, lifecycle, reconciliation, and interoperability contract |
 | `docs/templates/design-md-template.md` | reference template | Reusable DESIGN.md starter; never auto-installed by presence alone |
+| `docs/plans/wb-define-001-requirements-quality-traceability.md` | completed Work Block | Completed Define-stage requirements quality/traceability implementation |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
@@ -257,11 +299,13 @@ Missing network, revision, or license evidence fails closed.
 | `docs/specs/portable-agentic-sdlc-project-kit.md` | accepted target | Portable-kit normative target contract; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-product-boundary.md` | accepted target | Accepted project-kit versus control-plane boundary; not yet promoted |
 | `docs/architecture/decisions/2026-07-29-portable-kit-roles-memory-installation.md` | accepted target | Accepted role, verdict, memory, candidate, concurrency, installer, and evidence decisions |
+| `docs/reports/requirements/` | evidence class | Define-stage requirements-quality evidence |
 | `docs/reports/reviews/` | evidence class | Critic and Reviewer reports discovered by structured frontmatter |
 | `docs/reports/verification/` | evidence class | Verifier reports discovered by structured frontmatter |
 | `docs/evals/` | evaluation evidence | Approved plans, benchmarks/fixtures, and observable event evidence |
 | `docs/reports/evaluations/` | evidence class | Evaluation reports discovered by structured frontmatter |
 | `docs/reports/closeout/` | evidence class | Closeout reports discovered by structured frontmatter |
+| `template/scripts/validate-define-traceability.py` | generated validator | Requirement/acceptance/task structural coverage |
 | `template/scripts/validate-evaluation.py` | generated validator | Plan/report consistency and Work Block closeout binding |
 | `template/scripts/repair-lifecycle.py` | generated validator | NDR eligibility, repair records, and combined assurance contracts |
 | `scripts/validate-release-state.py` | repository validator | Work Block, map, registry, closeout, and release-state consistency |
@@ -282,9 +326,9 @@ Missing network, revision, or license evidence fails closed.
 | `opencode` | `opencode.json`, `.opencode/` | OpenCode baseline; live smoke required |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` | backward-compatible default |
 
-Every profile includes runtime-neutral evaluation and repair governance plus the
-core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `core`;
-`full` → `multi-runtime`.
+Every profile includes runtime-neutral Define-quality, evaluation, and repair
+governance plus the core `skill-library-maintenance` guidance. Aliases:
+`minimal`/`generic` → `core`; `full` → `multi-runtime`.
 
 ## Runtime and Integration Adapters
 
@@ -297,12 +341,19 @@ core `skill-library-maintenance` guidance. Aliases: `minimal`/`generic` → `cor
 | Official Claude Code → Codex plugin | `integrations/claude-code-codex-plugin/` | optional admission |
 | MCP | `integrations/mcp/` | disabled; exact server/tool admission required |
 | File handoff | `integrations/file-handoff/` | disabled until configured |
+| Repository Graph Provider | `integrations/repository-graph/` | unadmitted optional local derived state |
 | Existing handoff runner | `handoff/` | compatibility transport; no automatic service start |
 
 External runtime invocation admission does not grant child-runtime write
 authority.
 
 ## Migration Work
+
+The Repository Graph Provider boundary Work Block is completed:
+`docs/plans/wb-repository-graph-001-optional-local-provider.md` records
+documentation and deterministic contract coverage for an unadmitted,
+provider-neutral optional capability. The completed boundary is a Repository
+Graph Provider. It does not install, configure, or invoke a provider.
 
 Completed:
 
@@ -341,7 +392,6 @@ Completed:
 
 19. WB-OPENCODE-002 — completed project-local OpenCode runtime-adapter
     integration; live discovery and permission-merging behavior remain unverified.
-
 20. WB-DESIGN-001 — completed Controlled refresh of `frontend-design` with a
     provider-neutral OpenAI methodological delta; no runtime or tool activation.
 
@@ -349,9 +399,23 @@ Completed:
     internal frontend-design/Impeccable compatibility reconciliation; no Google
     tooling, MCP, runtime, bootstrap, or provider activation.
 
-22. WB-CORE-003F — completed Managed GitHub-native authority-model migration;
+22. WB-REPO-GRAPH-001 — completed optional local Repository Graph Provider
+    boundary; no provider was selected, installed, configured, indexed, queried,
+    or evaluated. It closed with final Reviewer READY, final Verifier READY,
+    and drift ALIGNED evidence. Any future provider admission requires its own
+    Owner-approved Work Block; provider-local exclusion verification remains a
+    project/operator responsibility.
+
+23. WB-CORE-003F — completed Managed GitHub-native authority-model migration;
     normal scoped development no longer requires SSH-signed Work Block records,
     while consequential authority remains external to mutable project state.
+
+24. WB-DEFINE-001 — completed Managed framework-native adaptation of clarification,
+    requirements-quality review, stable requirement/acceptance/task traceability,
+    and read-only pre-execution consistency analysis. It does not install Spec Kit
+    or alter the Portable Kit product Work Block sequence.
+
+Active:
 
 No active implementation Work Block.
 
@@ -363,15 +427,16 @@ Planned:
 - WB-CORE-007 — promotion and legacy archive.
 
 WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A through
-WB-CORE-003F are inserted governance/control-plane follow-ups, not replacements
-for that product sequence. Planned status grants no execution authority. Each
-future Work Block requires separate Owner authority, exact scope, write-set,
-assurance, and closeout.
+WB-CORE-003F and WB-DEFINE-001 are inserted governance/control-plane follow-ups,
+not replacements for that product sequence. Planned status grants no execution
+authority. Each future Work Block requires separate Owner authority, exact scope,
+write-set, assurance, and closeout.
 
 ## Boundaries
 
 - `governance/**` is normative for the current operational architecture.
 - `bootstrap/**` controls current scaffold composition only.
+- requirements-quality/consistency evidence grants no source-write authority.
 - `runtimes/**` and runtime implementation files cannot redefine authority.
 - integrations require admission and active Work Block scope.
 - `.agent/bootstrap-profile.json` is installation evidence, not authority.

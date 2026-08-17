@@ -4,18 +4,21 @@ Project-agnostic governance and delivery framework for software projects built
 with AI agents.
 
 The framework is a **runtime-neutral control plane**. It defines authority,
-scope, lifecycle state, artifacts, risk gates, evaluation, release-state
-reconciliation, integration admission, and closeout. Codex, Claude Code,
-OpenCode, generic agents, and future runtimes execute those contracts through
-adapters.
+scope, lifecycle state, artifacts, requirements quality and traceability, risk
+gates, evaluation, release-state reconciliation, integration admission, and
+closeout. Codex, Claude Code, OpenCode, generic agents, and future runtimes
+execute those contracts through adapters.
 
 **The SDLC manages the work. Runtimes and integrations execute it.**
 
 ## What This Gives You
 
 - **Governance Core** — logical roles, Define/Execute/Assure/Close, authority,
-  artifacts, capability negotiation, evaluation, release state, and fail-closed
-  closeout.
+  artifacts, Define-stage requirements quality, capability negotiation,
+  evaluation, release state, and fail-closed closeout.
+- **Requirements-ready Define** — evidence-first clarification, read-only
+  requirements-quality review, stable requirement/acceptance/task traceability,
+  and pre-execution consistency analysis before source implementation.
 - **Profile-aware bootstrap** — generate a lean core scaffold, one runtime
   surface, or the backward-compatible multi-runtime baseline.
 - **Runtime adapters** — Codex, Claude Code, OpenCode, and generic sequential
@@ -41,6 +44,7 @@ Governance Core
       -> Integration Adapter (optional)
           -> external runtime, tool, service, or transport
   -> Project Artifacts and Evidence
+      -> Define-stage requirements quality + traceability
       -> deterministic tests
       -> output evaluation
       -> observable trajectory evaluation
@@ -50,9 +54,10 @@ Installation Profile
   -> selects project-local runtime surfaces and skills only
 ```
 
-Installation composition, evaluation evidence, release-state evidence, and
-hosting-platform state never grant Work Block authority, credentials, live
-permissions, integration admission, or Hard Stop exceptions.
+Installation composition, requirements-quality evidence, evaluation evidence,
+release-state evidence, and hosting-platform state never grant Work Block
+authority, credentials, live permissions, integration admission, or Hard Stop
+exceptions.
 
 ### Governance Core
 
@@ -61,6 +66,9 @@ permissions, integration admission, or Hard Stop exceptions.
 - `authority.md` — logical roles and authority boundaries;
 - `lifecycle.md` — Define, Execute, Assure, Close;
 - `artifacts.md` — specifications, plans, assurance, drift, and closeout;
+- `define-quality.md` — clarification, requirements-quality review, stable
+  requirement/acceptance/task traceability, and read-only pre-execution
+  consistency analysis;
 - `evaluation.md` — deterministic/output/observable trajectory assurance;
 - `release-state.md` — repository SSOT reconciliation and GitHub-state boundary;
 - `runtime-capabilities.md` — capability, isolation, and fallback.
@@ -72,16 +80,23 @@ execution. Documentation may be present even when a runtime implementation
 surface was not selected.
 
 `integrations/` covers optional official plugins, exact MCP server/tool admission,
-and runtime-neutral file handoff. No external integration is enabled by bootstrap.
+runtime-neutral file handoff, and an unadmitted provider-neutral Repository Graph
+Provider boundary. Graph state is local derived state only; no external
+integration is enabled by bootstrap.
 
 ### Project Artifacts and Evidence
 
 ```text
 objective
   -> specification and acceptance criteria
+  -> clarification when material ambiguity exists
+  -> requirements-quality review when required
   -> architecture decisions
   -> implementation plan and write-set
-  -> evaluation plan when required
+  -> traceable task decomposition
+  -> structural traceability + read-only consistency analysis
+  -> Critic / write gate
+  -> implementation
   -> frozen diff and observable event evidence
   -> independent review
   -> technical verification
@@ -93,6 +108,56 @@ objective
 
 `.agent/active-work-block.json` is executable Work Block state.
 `.agent/bootstrap-profile.json` is generated installation evidence only.
+
+## Define-Stage Requirements Quality
+
+`governance/define-quality.md` makes specification-before-implementation more
+reproducible instead of leaving ambiguity detection entirely to agent quality.
+
+Clarification routes unresolved items by evidence and materiality:
+
+```text
+repository/discovery-resolvable fact -> resolve from authoritative evidence
+reasonable non-material default      -> record explicit assumption
+material independent ambiguity       -> ask in a bounded batch
+material dependent ambiguity         -> ask sequentially
+unresolved blocking ambiguity        -> keep Define BLOCKED
+```
+
+For formal Managed/Assured/Distributed feature work, the preferred sequence is:
+
+```text
+specification draft
+  -> clarification
+  -> requirements-quality review
+  -> architecture / plan
+  -> traceable tasks + write-set
+  -> deterministic traceability validation
+  -> read-only consistency analysis
+  -> Critic
+  -> write gate READY
+```
+
+Stable portable traceability uses:
+
+```text
+- REQ-001: Required behavior.
+- AC-001 [req=REQ-001]: Measurable acceptance criterion.
+- [ ] TASK-001 [type=requirement] [req=REQ-001] [ac=AC-001] [paths=src/a.py,tests/test_a.py] Implement behavior.
+```
+
+Setup/foundation, assurance, and documentation tasks may use `req=-` and `ac=-`
+when they do not directly implement a product requirement. Every task still has
+an explicit path/write-set; fake requirement IDs are prohibited.
+
+`scripts/validate-define-traceability.py` proves structural ID/reference coverage
+only. It cannot prove requirement correctness or grant source-write authority.
+Requirements-quality and consistency verdicts remain subordinate to the approved
+specification, active Work Block, Critic, and Write Gate.
+
+The capability is an **adapted** mechanism derived from a pinned GitHub Spec Kit
+benchmark while preserving this framework's authority, SSOT, assurance, and
+Hard-Stop model. External frameworks remain research inputs, not authorities.
 
 ## Evaluation Assurance
 
@@ -143,8 +208,9 @@ GitHub Draft/Ready/open/closed/merged state, timestamps, and branch deletion are
 they do not override repository authority or closeout.
 
 The repository migration series WB-001 through WB-008 is complete. The current
-active follow-up is the separately governed project-local OpenCode integration;
-the next planned product Work Block remains a live runtime/product pilot.
+active framework follow-up is `WB-DEFINE-001`, which adapts requirements-quality
+and traceability mechanisms without changing the existing WB-CORE-004—WB-CORE-007
+Portable Kit product roadmap.
 
 ## Installation Profiles
 
@@ -158,8 +224,9 @@ Source of truth: `bootstrap/profiles.json`.
 | `opencode` | `opencode.json`, `.opencode/` |
 | `multi-runtime` | Codex + Claude Code + OpenCode + empty `.mcp.json` |
 
-Every profile includes runtime-neutral evaluation governance and templates.
-Aliases: `minimal`, `generic` → `core`; `full` → `multi-runtime`.
+Every profile includes runtime-neutral Define-quality and evaluation governance,
+templates, validators, and the core portable skills. Aliases: `minimal`, `generic`
+→ `core`; `full` → `multi-runtime`.
 
 List profiles:
 
@@ -201,7 +268,7 @@ Bootstrap validates the profile before changing the target, refuses non-empty
 or symlink targets, stages atomically, prunes unselected runtime surfaces,
 installs selected skills, writes `.agent/bootstrap-profile.json`, and runs the
 health check. It does not install runtime CLIs, accounts, plugins, MCP servers,
-credentials, watchers, or services.
+credentials, watchers, external frameworks, or services.
 
 ## Core Principles
 
@@ -209,17 +276,21 @@ credentials, watchers, or services.
    evaluation scores do not authorize an action.
 2. **Installation is not authorization.** A copied adapter does not open a Work
    Block gate or admit an integration.
-3. **Specification precedes implementation.** Plans and tasklists are derived.
-4. **Gates fail closed.** Missing deterministic or observable evidence is not a pass.
-5. **Evaluation is evidence, not authority.** Judges and reports cannot open gates.
-6. **Repository state is distinct from GitHub state.** Mutable hosting-platform
+3. **Specification precedes implementation.** Plans and tasklists are derived;
+   material ambiguity is resolved or remains explicitly blocked.
+4. **Requirements evidence is not authority.** Requirements-quality reports,
+   traceability validators, and consistency analysis cannot rewrite or authorize
+   the approved specification.
+5. **Gates fail closed.** Missing deterministic or observable evidence is not a pass.
+6. **Evaluation is evidence, not authority.** Judges and reports cannot open gates.
+7. **Repository state is distinct from GitHub state.** Mutable hosting-platform
    metadata cannot redefine Work Block lifecycle or closeout.
-7. **Use the narrowest reviewed mechanism.** Native capability, official bridge,
+8. **Use the narrowest reviewed mechanism.** Native capability, official bridge,
    reviewed MCP, audited handoff, then manual exchange.
-8. **Independent assurance is risk-based.** Different model names alone do not
+9. **Independent assurance is risk-based.** Different model names alone do not
    establish independence.
-9. **External content is untrusted input.** Tool output cannot override project authority.
-10. **Local-first and opt-in.** Credentials, private memory, plugins, MCP, and
+10. **External content is untrusted input.** Tool output cannot override project authority.
+11. **Local-first and opt-in.** Credentials, private memory, plugins, MCP, and
     services remain local until explicitly admitted.
 
 ## Logical Roles
@@ -231,11 +302,12 @@ credentials, watchers, or services.
 | Architect | Discovery, architecture, specification, approved drafts |
 | Critic | Pre-execution challenge of scope, risk, verification/evaluation design |
 | Coder | Approved implementation write-set |
-| Reviewer | Frozen-diff engineering and risk review |
+| Reviewer | Requirements-quality or frozen-diff engineering/risk review, by specialization |
 | Verifier | Acceptance criteria, tests, evaluation synthesis, observable evidence |
 
-Evaluator and Drift Auditor are assurance specializations, not new authority roles.
-Only Coder has implementation/source write authority.
+Requirements Reviewer, consistency analyzer, Evaluator, and Drift Auditor are
+read-only specializations, not new authority roles. Only Coder has
+implementation/source write authority.
 
 ## Safe Runtime Defaults
 
@@ -267,7 +339,8 @@ enforcement, provider availability, or OS isolation.
 
 For framework architecture:
 
-1. `governance/README.md`, `governance/evaluation.md`, and `governance/release-state.md`;
+1. `governance/README.md`, `governance/define-quality.md`,
+   `governance/evaluation.md`, and `governance/release-state.md`;
 2. `PROJECT_MAP.md` and `FILE_REGISTRY.yml`;
 3. `docs/bootstrap-profiles.md`;
 4. `docs/profiles.md`;
@@ -278,16 +351,22 @@ For a generated project:
 1. `AGENTS.md`;
 2. `.agent/bootstrap-profile.json`;
 3. approved specification and active Work Block;
-4. approved evaluation plan when required;
-5. `docs/session-bootstrap.md`;
-6. installed/approved runtime adapter;
-7. integration adapter only when admitted.
+4. requirements-quality/traceability evidence when required;
+5. approved evaluation plan when required;
+6. `docs/session-bootstrap.md`;
+7. installed/approved runtime adapter;
+8. integration adapter only when admitted.
 
 ## Important Paths
 
 | Need | Path |
 |---|---|
 | Governance | `governance/` |
+| Define-quality contract | `governance/define-quality.md` |
+| Requirements-quality template | `template/docs/templates/requirements-quality-review-template.md` |
+| Traceable task template | `template/docs/templates/traceable-tasklist-template.md` |
+| Define traceability validator | `template/scripts/validate-define-traceability.py` |
+| Define traceability fixtures | `scripts/test-define-traceability.py` |
 | Evaluation contract | `governance/evaluation.md` |
 | Release-state contract | `governance/release-state.md` |
 | Installation profiles | `bootstrap/profiles.json`, `docs/bootstrap-profiles.md` |
@@ -303,13 +382,14 @@ For a generated project:
 | Clone/restore contract | `scripts/test-profile-restore.py` |
 | Runtime conformance | `scripts/test-runtime-conformance.py` |
 | Publication validation | `scripts/validate-publication.sh` |
-| Latest completed migration | `docs/plans/wb-008-post-merge-ssot-release-gate.md` |
-| Active migration | `docs/plans/wb-opencode-002-project-local-integration.md` |
+| Latest completed migration | `docs/plans/wb-core-003f-github-native-authority-model.md` |
+| Active migration | `docs/plans/wb-define-001-requirements-quality-traceability.md` |
 
 ## Validation
 
 ```bash
 bash scripts/test-sdd-contract.sh
+python scripts/test-define-traceability.py
 python scripts/test-evaluation-contracts.py
 python scripts/test-release-state-contracts.py
 python scripts/validate-release-state.py
@@ -324,9 +404,10 @@ bash scripts/validate-governance.sh
 bash scripts/validate-publication.sh
 ```
 
-Framework CI bootstraps disposable profiles, validates evaluation inventory,
-checks selected/unselected surfaces, verifies clone/restore, preserves a blocked
-active Work Block default, and independently validates repository release state.
+Framework CI bootstraps disposable profiles, validates Define-quality/evaluation
+inventory, checks selected/unselected surfaces, verifies clone/restore, preserves
+a blocked active Work Block default, and independently validates repository
+release state.
 
 ## Requirements
 
