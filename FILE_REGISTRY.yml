@@ -218,7 +218,8 @@ migration_state:
     - docs/plans/wb-design-001-openai-frontend-delta.md
     - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
     - docs/plans/wb-core-003f-github-native-authority-model.md
-  active_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
+    - docs/plans/wb-define-001-requirements-quality-traceability.md
+  active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
     - WB-CORE-004
@@ -231,8 +232,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-core-003f-github-native-authority-model.md
-  closeout_report: docs/reports/closeout/wb-core-003f-github-native-authority-model.md
+  latest_completed_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
+  closeout_report: docs/reports/closeout/wb-define-001-requirements-quality-traceability.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -395,10 +396,10 @@ entries:
     owner: orchestrator
 
   docs/plans/wb-define-001-requirements-quality-traceability.md:
-    role: active_managed_define_stage_requirements_quality_and_traceability_work_block
+    role: completed_managed_define_stage_requirements_quality_and_traceability_work_block
     status: log
     owner: orchestrator
-    lifecycle_status: in_progress
+    lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     authority: bounded_governance_and_portable_skill_change
 

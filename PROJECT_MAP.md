@@ -29,7 +29,8 @@ completed_work_blocks:
   - docs/plans/wb-design-001-openai-frontend-delta.md
   - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
   - docs/plans/wb-core-003f-github-native-authority-model.md
-active_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
+  - docs/plans/wb-define-001-requirements-quality-traceability.md
+active_work_block: null
 -->
 
 ## Current Operational Architecture
@@ -286,7 +287,7 @@ Missing network, revision, or license evidence fails closed.
 | `skills/skill-library-maintenance/` | normative skill | Read-only discovery, immutable comparison, approved adaptation, and provenance |
 | `docs/design/design-md-artifact-contract.md` | approved design-domain contract | Optional provider-neutral DESIGN.md authority, lifecycle, reconciliation, and interoperability contract |
 | `docs/templates/design-md-template.md` | reference template | Reusable DESIGN.md starter; never auto-installed by presence alone |
-| `docs/plans/wb-define-001-requirements-quality-traceability.md` | active Work Block | Define-stage requirements quality/traceability implementation |
+| `docs/plans/wb-define-001-requirements-quality-traceability.md` | completed Work Block | Completed Define-stage requirements quality/traceability implementation |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
@@ -394,13 +395,14 @@ Completed:
     normal scoped development no longer requires SSH-signed Work Block records,
     while consequential authority remains external to mutable project state.
 
+23. WB-DEFINE-001 — completed Managed framework-native adaptation of clarification,
+    requirements-quality review, stable requirement/acceptance/task traceability,
+    and read-only pre-execution consistency analysis. It does not install Spec Kit
+    or alter the Portable Kit product Work Block sequence.
+
 Active:
 
-- WB-DEFINE-001 — Managed framework-native adaptation of clarification,
-  requirements-quality review, stable requirement/acceptance/task traceability,
-  and read-only pre-execution consistency analysis. Canonical active record:
-  `docs/plans/wb-define-001-requirements-quality-traceability.md`. It does not
-  install Spec Kit or alter the Portable Kit product Work Block sequence.
+No active implementation Work Block.
 
 Planned:
 
