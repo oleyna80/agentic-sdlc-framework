@@ -131,7 +131,8 @@ def ready_report() -> dict:
 
 def active_gate() -> dict:
     return {
-        "schema_version": 1,
+        "schema_version": 3,
+        "authority_mode": "github_capability",
         "work_block_id": "wb-007",
         "assurance": {
             "evaluation": {

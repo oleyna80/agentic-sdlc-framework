@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 artifact_type: runtime_task
 task_id: YYYYMMDDTHHMMSSZ-runtime-001
 work_block_id: wb-xxx
@@ -24,7 +24,15 @@ forbidden_scope:
   - credentials/**
   - "*.pem"
   - "*.key"
-hard_stop_approvals: []
+external_capabilities: []
+external_hard_stops:
+  - protected_default_branch_mutation
+  - destructive
+  - live_infra
+  - live_data
+  - credentials
+  - client_communications
+  - irreversible_publish
 result_destination: handoff/done/
 log_destination: handoff/logs/
 ---
@@ -70,11 +78,19 @@ log_destination: handoff/logs/
 
 [Explain protected paths, unrelated work, and prohibited side effects.]
 
-## Hard Stops
+## Capability Boundary
 
-Do not commit, push, deploy, mutate live data, access credentials, send client
-communications, install unapproved dependencies, or expand scope unless the
-frontmatter and referenced Owner approval explicitly allow the action.
+Normal reversible Git activity follows the logical function and Work Block:
+a Coder may create local commits and a normal feature-branch push when its
+runtime credential permits them. Read-only functions do not gain that authority.
+
+`external_capabilities` is descriptive evidence of capabilities already supplied
+by an external boundary; it does not grant them. Never manufacture production,
+secret, live-data, destructive, irreversible-publish, or protected/default-branch
+authority by editing this task file.
+
+Consequential actions listed in `external_hard_stops` require the separately
+controlled GitHub/OS/credential channel defined by the project operating contract.
 
 ## Data and Secret Boundary
 

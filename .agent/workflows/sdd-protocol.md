@@ -9,36 +9,66 @@ it does not grant authority or install enforcement.
 Use the lifecycle states in `governance/lifecycle.md`: Define → Execute →
 Assure → Close, with execution state distinct from assurance verdicts. A failed,
 unavailable, or unverified check is never a pass. Drafts, candidates, generated
-context, and operational memory cannot override higher authority.
+context, requirements-quality reports, tasklists, and operational memory cannot
+override higher authority.
 
 ## Stage 0 — Define
 
 The Orchestrator records objective, scope/exclusions, authority chain, risk,
 side effects, Hard Stops, exact write-set, one-Coder ownership, topology,
 capability limitations, acceptance checks, required assurance, and explicit
-Owner approvals. For parallel Coder work, this record also contains a common
-immutable base revision; a stream ownership matrix of Coder, exclusive paths,
-and isolation identifier; proof that the worker-path intersection is empty;
-dependencies; named frozen handoffs; recovery points; Integration Coder and
-glue-path ownership; and the approved integration plan. A shared path is
-serialized under one owner, never concurrently edited.
+Owner approvals.
 
-For Managed work, a read-only Critic challenges this record before execution.
-`READY` means its challenge found no unresolved blocker; `BLOCKED` returns to
-Define. `SKIPPED` is only for bounded low-risk Controlled work. `DEGRADED`
-records missing independence/capability and required approval. A Critic result
-does not itself open a write gate. A Stage 0 record that authorises parallel
-Coder streams requires governance profile Managed or Assured; the Critic gate
-is mandatory and may not be SKIPPED.
+For formal Managed/Assured/Distributed work, Stage 0 also follows
+`governance/define-quality.md`:
+
+```text
+specification draft
+  -> requirements clarification
+  -> requirements-quality review
+  -> architecture / implementation plan
+  -> traceable task decomposition + write-set
+  -> deterministic traceability validation
+  -> read-only spec/plan/task consistency analysis
+  -> Critic
+  -> write gate READY
+```
+
+Repository/discovery-resolvable facts are resolved from evidence instead of
+asking the Owner. Reasonable non-material defaults are explicit assumptions.
+Independent material questions may be asked in a small bounded batch; dependent
+questions are asked sequentially. Unresolved blocking ambiguity keeps Define
+blocked.
+
+Formal requirement implementation tasks use stable `REQ-*`, `AC-*`, and
+`TASK-*` references and explicit paths. Enabling, assurance, and documentation
+tasks are classified honestly and do not require fake product requirement IDs.
+Run `scripts/validate-define-traceability.py` when that stable-ID format is in
+use. A `BLOCKED` structural result cannot be waived by a fluent analysis.
+
+For parallel Coder work, the Stage 0 record also contains a common immutable base
+revision; a stream ownership matrix of Coder, exclusive paths, and isolation
+identifier; proof that the worker-path intersection is empty; dependencies;
+named frozen handoffs; recovery points; Integration Coder and glue-path
+ownership; and the approved integration plan. A shared path is serialized under
+one owner, never concurrently edited.
+
+For Managed work, a read-only Critic challenges this record after the applicable
+requirements-quality and consistency checks. `READY` means its challenge found no
+unresolved blocker; `BLOCKED` returns to Define. `SKIPPED` is only for bounded
+low-risk Controlled work. `DEGRADED` records missing independence/capability and
+required approval. A Critic result does not itself open a write gate. A Stage 0
+record that authorises parallel Coder streams requires governance profile Managed
+or Assured; the Critic gate is mandatory and may not be SKIPPED.
 
 ## Stage 1 — Execute
 
 One Coder edits only its approved exclusive write-set after the Critic gate is
-resolved. Parallel Coders require the Stage 0 record above and distinct
-isolated worktrees or clones; their worker-path intersection must remain empty.
-Inspect Git state first, preserve unrelated work, run scoped checks, and stop
-for a scope, authority, risk, or acceptance change. Freeze each worker handoff
-at its named revision and report `DONE`, `DONE_WITH_CONCERNS`,
+resolved. Parallel Coders require the Stage 0 record above and distinct isolated
+worktrees or clones; their worker-path intersection must remain empty. Inspect Git
+state first, preserve unrelated work, run scoped checks, and stop for a scope,
+authority, risk, acceptance, or material requirement change. Freeze each worker
+handoff at its named revision and report `DONE`, `DONE_WITH_CONCERNS`,
 `NEEDS_CONTEXT`, or `BLOCKED`. Written files and worker checks are not a final
 completion or readiness claim.
 
@@ -57,18 +87,22 @@ that subject is the one frozen integrated revision and path manifest, not an
 individual worker output; worker checks are input evidence only. Review checks
 correctness, boundaries, maintainability, privacy/security, and documentation
 drift. Verification demonstrates acceptance criteria with reproducible evidence;
-missing evidence is `BLOCKED` or `UNVERIFIED`. Evaluation is selected only
-by risk or non-determinism and uses observable artifacts/events, never private
+missing evidence is `BLOCKED` or `UNVERIFIED`. Evaluation is selected only by
+risk or non-determinism and uses observable artifacts/events, never private
 reasoning. Report actual isolation; same-context assurance is never called
 independent and is unavailable where the profile requires independence.
+
+Requirements-quality review is not Stage 2 implementation assurance: it checks
+whether the specification was implementable before coding. Stage 2 still reviews
+and verifies the delivered code against the approved specification.
 
 ## Stage 3 — Close
 
 Only completed required assurance permits successful closeout. Otherwise use
 reporting-only closeout and preserve the blocker. Synchronize authoritative
 records only when their governing contract requires it; classify knowledge as
-durable, operational-only, or not-applicable; and report evidence, residual
-risk, and next action.
+durable, operational-only, or not-applicable; and report evidence, residual risk,
+and next action.
 
 ## Capability routing and hard stops
 
@@ -76,6 +110,8 @@ Inspect live capability evidence before assignment: `unknown` is unavailable.
 Choose the least-cost option only after it meets role authority, write
 permission, required isolation/independence, assurance needs, and Hard Stops.
 Record actual capability and fallback without provider-specific shared policy.
-Stop for unapproved scope, failed required checks, secrets, destructive actions,
-candidate promotion, configuration/hooks/CI/runtime work, live effects,
-staging, commit, or push.
+Stop for unapproved scope, material authority or risk changes, failed required
+checks, secrets, destructive or consequential external actions, or missing
+required capability/evidence. Normal reversible development operations inside an
+approved Work Block/write-set, including staging, local commits, and normal
+feature-branch pushes, follow `AGENTS.md` and `governance/authority.md`.

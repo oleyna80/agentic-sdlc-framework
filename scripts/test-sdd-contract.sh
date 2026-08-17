@@ -62,6 +62,7 @@ for path in \
   "governance/lifecycle.md" \
   "governance/artifacts.md" \
   "governance/evaluation.md" \
+  "governance/define-quality.md" \
   "governance/runtime-capabilities.md" \
   "integrations/README.md" \
   "bootstrap/profiles.json" \
@@ -81,6 +82,7 @@ for path in \
   "template/.agent/workflows/sdd-protocol.md" \
   "template/.claude/hooks/work_block_gate.py" \
   "template/.claude/hooks/assurance_gate.py" \
+  "template/docs/architecture/README.md" \
   "template/docs/templates/work-block-template.md" \
   "template/docs/templates/spec-drift-report-template.md" \
   "template/docs/templates/integration-admission-template.md" \
@@ -112,8 +114,41 @@ require_contains "template/.agent/workflows/sdd-protocol.md" 'Drift gate:.*READY
 require_contains "template/.agent/workflows/sdd-protocol.md" 'observable events only'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'private chain-of-thought'
 
+# Framework self-hosting workflow must preserve normal reversible Git authority.
+require_file ".agent/workflows/sdd-protocol.md"
+require_contains ".agent/workflows/sdd-protocol.md" 'approved Work Block/write-set, including staging, local commits, and normal'
+require_absent_pattern ".agent/workflows/sdd-protocol.md" 'staging, commit, or push'
+
+# Define-quality is one evidence prerequisite before Critic/Write Gate.
+require_contains "governance/define-quality.md" 'Executable Define-Quality Prerequisite'
+require_contains "governance/define-quality.md" '"define_quality"'
+require_contains "governance/define-quality.md" 'Managed / Assured / Distributed.*required'
+require_contains "governance/define-quality.md" 'required=false'
+require_contains "governance/define-quality.md" 'configuration contradiction'
+require_contains "governance/define-quality.md" 'schema-v3'
+require_contains "governance/define-quality.md" 'runtime-neutral'
+require_contains "governance/define-quality.md" 'Only `type=requirement` tasks count as'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'Define-quality prerequisite:'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'aggregate Define-quality prerequisite when applicable'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'required=false'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'cannot disable'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'non-blank requirements-review'
+assert_before "template/.agent/workflows/sdd-protocol.md" 'Resolve the aggregate Define-quality prerequisite' 'Run Critic function'
+require_contains "template/.agent/active-work-block.json" '"define_quality"'
+require_contains "template/.agent/active-work-block.json" '"requirements_review"'
+require_contains "template/.agent/active-work-block.json" '"traceability"'
+require_contains "template/.agent/active-work-block.json" '"consistency_analysis"'
+require_contains "template/.agent/active-work-block.default.json" '"define_quality"'
+require_contains "template/.codex/hooks/pre_tool_use_policy.py" 'validate_define_quality'
+require_contains "template/.claude/hooks/work_block_gate.py" 'validate_define_quality'
+require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_DEFINE_QUALITY'
+
 # Work Block binds governance separately from runtime/model/isolation/integration.
 require_contains "template/docs/templates/work-block-template.md" 'Governance Profile:'
+require_contains "template/docs/templates/work-block-template.md" 'Define Quality Prerequisite'
+require_contains "template/docs/templates/work-block-template.md" 'Requirements Review Evidence:'
+require_contains "template/docs/templates/work-block-template.md" 'Traceability Evidence:'
+require_contains "template/docs/templates/work-block-template.md" 'Consistency Analysis Evidence:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Specification:'
 require_contains "template/docs/templates/work-block-template.md" 'Approved Evaluation Plan:'
 require_contains "template/docs/templates/work-block-template.md" 'Runtime Capability Snapshot'
@@ -131,6 +166,11 @@ require_contains "template/docs/templates/work-block-template.md" 'Trajectory Re
 require_contains "template/docs/templates/work-block-template.md" 'No Hidden Reasoning:'
 require_contains "template/docs/templates/work-block-template.md" 'Drift Gate:'
 require_contains "template/docs/templates/work-block-template.md" 'Specification Drift Audit'
+require_contains "template/docs/templates/work-block-template.md" 'Navigation and Documentation Impact'
+require_contains "template/docs/templates/work-block-template.md" 'Commit / Publication Scope'
+require_contains "template/docs/templates/work-block-template.md" 'Execution Log'
+require_contains "template/docs/templates/work-block-template.md" 'Specification and SSOT Sync'
+require_contains "template/docs/templates/work-block-template.md" 'Knowledge and Retrospective'
 require_contains "template/docs/templates/integration-admission-template.md" 'Logical functions served:'
 require_contains "template/docs/templates/integration-admission-template.md" 'Data Boundary'
 require_contains "template/docs/templates/integration-admission-template.md" 'Secret and Authentication Boundary'
@@ -140,9 +180,17 @@ assert_before "template/AGENTS.md" 'approved specification' 'approved implementa
 assert_before "template/.agent/workflows/sdd-protocol.md" 'approved specification' 'approved implementation and evaluation plans'
 assert_before "template/docs/templates/work-block-template.md" 'Approved Specification:' 'Derived Implementation Plan:'
 
-# Stable logical roles; provider/model/integration names remain implementation details.
+# Portable project facts must remain explicit when bootstrap cannot know them.
+require_contains "template/AGENTS.md" 'Primary source roots: `to be defined`'
+require_absent_pattern "template/AGENTS.md" 'Primary source roots: `src[/][*], app[/][*]`'
+require_contains "bootstrap/bootstrap_project.py" 'SOURCE_DIRS.*to be defined'
+
+# Stable logical roles live in canonical authority; portable AGENTS routes to it.
+require_contains "template/AGENTS.md" 'Role authority is defined by `governance/authority.md`'
+require_contains "template/AGENTS.md" 'Operational routing is in'
+require_contains "template/AGENTS.md" 'routine internal lifecycle transitions without repeated Owner approval'
 for role in Owner Orchestrator Architect Critic Coder Reviewer Verifier; do
-  require_contains "template/AGENTS.md" "[|] $role [|]"
+  require_contains "governance/authority.md" "^[|] $role [|]"
 done
 require_contains "template/.agent/ROSTER.md" 'Runtime-specific agent names, models, plugins'
 require_contains "template/.agent/ROSTER.md" 'spec-drift-audit'
@@ -150,6 +198,8 @@ require_absent_pattern "template/AGENTS.md" 'GPT Critic|GPT Verifier|Codex Revie
 require_absent_pattern "template/.agent/ROSTER.md" '^\| GPT Critic|^\| GPT Verifier|^\| Codex Reviewer'
 require_absent_pattern "template/.agent/workflows/sdd-protocol.md" 'Claude critic|GPT critic|Claude verifier|GPT verifier'
 require_absent_pattern "template/CLAUDE.md" 'gpt-critic|gpt-verifier|codex-reviewer|Claude agents remain the authoritative'
+[ "$(awk 'NF { print; exit }' "$ROOT/template/CLAUDE.md")" = "@AGENTS.md" ] || \
+  fail "template/CLAUDE.md first instruction must be @AGENTS.md"
 
 # Portable review, verification, evaluation, and drift schemas use one vocabulary.
 require_contains "governance/artifacts.md" 'verdict: `READY \| CHANGES_REQUIRED \| BLOCKED \| UNVERIFIED`'
@@ -200,12 +250,14 @@ done
 require_contains "bootstrap/profiles.json" '"minimal": "core"'
 require_contains "bootstrap/profiles.json" '"full": "multi-runtime"'
 require_contains "bootstrap/profiles.json" 'governance/evaluation.md'
+require_contains "bootstrap/profiles.json" 'docs/architecture/README.md'
 require_contains "bootstrap/profiles.json" 'scripts/validate-evaluation.py'
 require_contains "template/scripts/bootstrap.sh" 'validate-installation-profile.py'
 require_contains "template/scripts/bootstrap.sh" 'INSTALLATION_PROFILE'
 require_contains "template/scripts/validate-installation-profile.py" 'required_paths'
 require_contains "template/scripts/validate-installation-profile.py" 'forbidden_paths'
 require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_EVALUATION'
+require_contains "template/scripts/validate-installation-profile.py" 'EXPECTED_DEFAULT_DEFINE_QUALITY'
 require_contains "docs/bootstrap-profiles.md" 'Installation profiles control'
 require_contains "docs/bootstrap-profiles.md" 'does not grant'
 
@@ -231,9 +283,10 @@ require_contains "template/.claude/agents/verifier.md" 'READY.*BLOCKED.*UNVERIFI
 require_contains "skills/verifier/SKILL.md" 'READY.*BLOCKED.*UNVERIFIED'
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
 require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
+require_contains "governance/lifecycle.md" 'NDR is a mechanically constrained submode of `Controlled`'
 require_contains "governance/lifecycle.md" 'at most three sequentially discovered eligible NDR items'
 require_contains "governance/artifacts.md" 'dynamic Git or CI counters'
-require_contains "template/AGENTS.md" 'NDR is a `Controlled` submode'
+require_contains "template/AGENTS.md" 'Use `.agent/workflows/sdd-protocol.md` for the detailed lifecycle'
 require_contains "template/.agent/workflows/sdd-protocol.md" 'one independent'
 require_contains "template/docs/templates/repair-record-template.md" 'machine-readable'
 require_contains "template/docs/templates/combined-assurance-report-template.md" 'Assurance isolation'

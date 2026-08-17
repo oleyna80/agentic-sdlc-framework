@@ -1,194 +1,182 @@
 # Claude Code Runtime Adapter
 
-## Status
+## Purpose
 
-Implemented generated-project baseline for logical-role subagents, project hooks,
-portable skills, and explicit opt-in integrations.
+This adapter maps Claude Code capabilities to the runtime-neutral Agentic SDLC
+contract. It implements shared governance; it does not redefine authority,
+source-of-truth order, lifecycle gates, external Hard Stops, or completion.
 
-This adapter implements the Governance Core. It does not redefine authority,
-source-of-truth order, Hard Stops, lifecycle gates, or completion.
+Generated Claude-capable projects use a thin `CLAUDE.md` whose first instruction
+is:
 
-## Logical Role Mapping
+```text
+@AGENTS.md
+```
+
+Claude Code therefore receives the canonical portable project contract from
+`AGENTS.md`. `CLAUDE.md` contains only Claude-specific routing notes. Shared rules
+must not be copied into both files.
+
+This follows current Claude Code guidance for repositories that already use
+`AGENTS.md`; see <https://code.claude.com/docs/en/memory>.
+
+## Installed project surface
+
+```text
+CLAUDE.md                    # thin @AGENTS.md import shim
+.claude/
+├── settings.json
+├── agents/
+│   ├── solution-architect.md
+│   ├── critic.md
+│   ├── reviewer.md
+│   ├── scoped-coder.md
+│   └── verifier.md
+├── hooks/
+│   ├── assurance_gate.py
+│   ├── critic-gate.sh
+│   ├── hard-stop.sh
+│   ├── typecheck.sh
+│   ├── verification-gate.sh
+│   └── work_block_gate.py
+├── skills/
+└── agent-memory/
+```
+
+When the optional `integration:mcp-config` component is installed, `.mcp.json`
+is present and empty/inert by default. The `claude-code` profile itself does not
+enable an MCP integration automatically. No plugin, MCP server, external runtime,
+credential, watcher, or service is enabled automatically.
+
+## Session bootstrap
+
+1. Claude Code loads `CLAUDE.md`, which imports `AGENTS.md`.
+2. Follow the progressive read strategy in `AGENTS.md` and
+   `docs/session-bootstrap.md`.
+3. Inspect `.agent/bootstrap-profile.json` when runtime/tool availability matters.
+4. Identify the active Work Block, approved write-set, and required assurance.
+5. Inspect actual Claude Code permissions, hooks, agents, plugins, MCP state, and
+   isolation before relying on a capability.
+
+Do not manually duplicate shared project policy in `CLAUDE.md` to make it more
+visible. If a rule is cross-runtime, change its canonical shared source. If it is
+a reusable procedure, route it to a skill/workflow. Keep only Claude-specific
+mechanics here or under `.claude/`.
+
+## Logical role mapping
 
 | Logical role | Claude Code implementation | Default authority |
 |---|---|---|
-| Orchestrator | Main Claude Code session | workflow and coordination artifacts |
+| Orchestrator | Main Claude Code session | workflow/coordination artifacts |
 | Architect | `.claude/agents/solution-architect.md` | read-only plus approved drafts |
 | Critic | `.claude/agents/critic.md` | read-only |
 | Coder | `.claude/agents/scoped-coder.md` | approved write-set only |
 | Reviewer | `.claude/agents/reviewer.md` | read-only |
 | Verifier | `.claude/agents/verifier.md` | read-only plus approved reports |
 
-Names in `.claude/agents/` are runtime identifiers. The logical role and active
-Work Block determine authority.
+Runtime agent names do not create new authority classes. The active shared
+contract and Work Block determine authority.
 
-Provider-named agents such as `gpt-critic`, `gpt-verifier`, and
-`codex-reviewer` are no longer part of the generated-project default. Cross-
-runtime review is performed through an admitted integration and remains bound
-to the normal Critic, Reviewer, or Verifier function.
+## Hooks and permissions
 
-## Installed Project Files
+Project hooks provide cooperative guardrails for consequential Bash operations,
+Work Block/write-set checks, staged commit scope, targeted post-edit checks, and
+assurance state. They are not an operating-system security boundary.
 
-```text
-CLAUDE.md
-.claude/
-├── settings.json
-├── agents/
-│   ├── solution-architect.md
-│   ├── critic.md
-│   ├── scoped-coder.md
-│   ├── reviewer.md
-│   └── verifier.md
-├── hooks/
-│   ├── critic-gate.sh
-│   ├── hard-stop.sh
-│   ├── typecheck.sh
-│   └── verification-gate.sh
-├── skills/
-└── agent-memory/
-```
+Effective permissions may combine user, enterprise, CLI, and project settings.
+Inspect current runtime state rather than assuming the checked-in configuration
+is the whole permission model.
 
-`.mcp.json` is present but empty by default. No plugin, MCP server, external
-runtime, credential, watcher, or service is installed or enabled automatically.
+If a required hook or permission boundary is unavailable:
 
-## Session Bootstrap
+- record the capability as degraded/unverified;
+- use a narrower permission mode, separate worktree/session/runtime, or manual
+  approval as appropriate;
+- do not infer external authority from a Claude Code permission prompt.
 
-1. Read `CLAUDE.md`.
-2. Read `AGENTS.md` and follow its progressive read set.
-3. Identify the active Work Block and approved specification.
-4. Record actual Claude Code capabilities, permission mode, hooks, integrations,
-   and isolation.
-5. Bind required logical functions to Claude Code agents or admitted external
-   integrations.
-6. Keep source writes blocked until Define is complete.
+Shared consequential-operation policy is defined outside this adapter by
+`AGENTS.md`, governance, the active Work Block, and external repository/OS/
+credential controls.
 
-`CLAUDE.md` is a runtime entry point, not a second governance contract.
+## Skills and memory
 
-## Hooks
+Portable skills are available through the generated skill surfaces selected by
+the installation profile. Skills provide procedures, never scope or authority.
 
-The generated baseline retains project hooks for:
+`.claude/agent-memory/` is runtime-local operational memory. It must not replace
+approved specifications, Work Blocks, evidence, or durable engineering memory.
+Promote reusable evidence-backed knowledge to `docs/engineering-memory/` through
+normal closeout.
 
-- consequential Bash / Hard Stop checks;
-- Critic/write-gate checks before edits;
-- targeted post-edit type checks;
-- verification-gate checks at stop.
-
-Hooks are guardrails, not OS-level isolation. They depend on the installed
-Claude Code version, project trust, settings, shell environment, and the event
-payload. Review hook source and run safe fixtures after runtime updates.
-
-If a hook is unavailable or cannot enforce the required boundary:
-
-- label the capability degraded;
-- use a more restrictive permission mode, separate worktree/runtime, or manual
-  approval;
-- do not upgrade blocked or unverified evidence.
-
-## Permissions
-
-Default project settings do not pre-authorize MCP tools or external integrations.
-
-Role agents further restrict tools in their frontmatter. The runtime's effective
-permissions must be recorded because user, enterprise, CLI, and project settings
-may combine or override one another.
-
-Hard Stops remain explicit Owner decisions even when Claude Code offers an
-approval prompt or an auto-approval mode.
-
-## Skills and Memory
-
-Portable skills are copied to `.claude/skills/` and `.agent/skills/`. Skills
-provide procedures; they do not grant tool or write authority.
-
-`.claude/agent-memory/` is runtime-local operational state. It may contain useful
-patterns but is not normative. Promote durable, evidence-backed knowledge to
-`docs/engineering-memory/` through closeout.
-
-Do not store secrets, credentials, personal data, or hidden reasoning in agent
-memory.
+Do not store secrets, credentials, personal data, protected payloads, or hidden
+reasoning in agent memory.
 
 ## Integrations
 
-### Codex from Claude Code
+External plugins, MCP servers, Codex/OpenCode bridges, browser tools, and vendor
+CLIs are integration capabilities, not governance roles. They require the
+admission and Work Block binding defined by the shared framework.
 
-Preferred route:
+Preferred Codex-from-Claude routes remain documented under:
 
-- `integrations/claude-code-codex-plugin/` — official Codex plugin.
+- `integrations/claude-code-codex-plugin/`;
+- `integrations/mcp/`;
+- `integrations/file-handoff/`.
 
-Compatibility route:
+Availability never implies activation or permission.
 
-- `integrations/mcp/` — reviewed Codex MCP configuration.
+## Capability snapshot
 
-Recovery/transport route:
-
-- `integrations/file-handoff/` — audited task/result files.
-
-None is enabled by default. An integration must have an admission record and
-must be bound to a logical function in the active Work Block.
-
-### Other MCP and Plugins
-
-Treat plugins, MCP tools, browser tools, issue trackers, and vendor CLIs as
-integration adapters. Tool access does not expand the invoking role.
-
-## Capability Snapshot
-
-Start with observed values, not assumptions:
+Record observed runtime evidence rather than assumptions. A typical snapshot may
+include:
 
 ```yaml
 runtime: claude-code
-status: available
 capabilities:
   project_instructions: observed
   custom_subagents: observed
   project_hooks: observed
   per_agent_tool_policy: observed
-  native_plan_mode: observed
-  separate_child_sessions: observed
-  plugins: unknown_until_installed
-  mcp: unknown_until_configured
-  worktrees: external_workflow
-  os_isolation: false
-limitations:
-  - same machine and checkout unless separately configured
-  - user and enterprise settings may affect effective permissions
-  - hooks are not an operating-system security boundary
+  plugins: unknown_until_inspected
+  mcp: unknown_until_inspected
+  os_isolation: false_unless_separately_configured
+  production_authority: unavailable_by_design
 ```
 
-Replace `observed` with evidence and version references in project state.
+Replace placeholders with actual version/config/smoke evidence when a Work Block
+depends on the capability.
 
-## Assurance Topology
+## Assurance and degraded mode
 
-For low-risk work, separate subagent passes may be sufficient. For stronger
-independence:
+For low-risk work, separate Claude Code passes may be sufficient when the active
+governance profile permits them. Stronger independence may require a separate
+session, worktree, runtime, container, machine, account, or human review.
 
-- use a separate Claude Code session or worktree;
-- use an admitted Codex/OpenCode integration;
-- use a separate runtime, container, account, machine, or human review where the
-  governance profile requires it.
-
-A different model name alone does not establish independence.
+A different model name alone does not establish independence. Report actual
+isolation and evidence limitations.
 
 ## Validation
 
-After bootstrap or runtime/plugin updates:
+After bootstrap or Claude Code runtime/configuration updates, verify as
+applicable:
 
-- parse `.claude/settings.json`;
-- verify only logical-role agents are active by default;
-- run harmless hook fixtures;
-- confirm `.mcp.json` is empty unless explicitly admitted;
-- confirm no committed secret values;
-- test one read-only Architect/Reviewer task;
-- test one blocked write outside the approved scope;
-- record runtime version and inspection gaps.
+- generated `CLAUDE.md` still imports `@AGENTS.md` and remains a thin shim;
+- `.claude/settings.json` parses;
+- only expected logical-role agents are present;
+- harmless hook fixtures behave as documented;
+- scope/write-set guards match the active Work Block contract;
+- selected integrations remain inactive unless explicitly admitted;
+- no committed secret values were introduced;
+- current runtime version and inspection gaps are recorded when material.
 
-## Degraded Mode
-
-When subagents or hooks are unavailable, preserve the lifecycle through separate
-manual passes or sessions. Record actual authority and isolation. Do not claim
-independent review or executable enforcement that did not occur.
+Use Claude Code `/memory` to inspect loaded instruction files and `/doctor` for
+configuration diagnostics when available. These diagnostics provide evidence;
+they do not alter framework authority.
 
 ## References
 
-- Claude Code documentation: <https://docs.anthropic.com/en/docs/claude-code/>
-- Integration adapters: `integrations/`
+- Claude Code project memory and `AGENTS.md` import guidance:
+  <https://code.claude.com/docs/en/memory>
+- Claude Code configuration diagnostics:
+  <https://code.claude.com/docs/en/debug-your-config>
+- Shared project contract: `AGENTS.md`

@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 22
+version: 24
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -35,7 +35,7 @@ artifact_authority_order:
 
 role_dimensions:
   authority_roles: [owner, orchestrator, architect, critic, coder, reviewer, verifier]
-  specializations: [evaluator, drift_auditor, security_reviewer, domain_verifier]
+  specializations: [requirements_reviewer, consistency_analyzer, evaluator, drift_auditor, security_reviewer, domain_verifier]
   separate_from_authority:
     - installation_profile
     - runtime
@@ -70,6 +70,7 @@ assurance_contract:
   evidence_history_source: report_artifacts
   indexing_grants_authority: false
   static_evidence_classes:
+    - docs/reports/requirements/**
     - docs/reports/reviews/**
     - docs/reports/verification/**
     - docs/reports/evaluations/**
@@ -82,6 +83,8 @@ assurance_contract:
     hidden_normative_changes: forbidden
     navigation_update_required: false
   verdicts:
+    requirements_quality: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
+    define_consistency: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
     critic: [APPROVE, APPROVE_WITH_CHANGES, RECONSIDER, BLOCKED]
     reviewer: [READY, CHANGES_REQUIRED, BLOCKED, UNVERIFIED]
     verifier: [READY, NOT_READY, BLOCKED, UNVERIFIED]
@@ -112,11 +115,25 @@ installation_profiles:
     - required_paths_validate_expected_filesystem_kind
     - blocked_default_work_block_validates_before_restore
     - evaluation_contract_available_in_every_profile
+    - define_quality_contract_available_in_every_profile
     - selected_runtime_surfaces_only
     - no_automatic_integration_activation
     - no_credentials_or_provider_binding
     - work_block_authority_remains_separate
     - external_skill_adaptation_requires_owner_approved_write_set
+
+define_quality:
+  contract: governance/define-quality.md
+  requirements_review_template: template/docs/templates/requirements-quality-review-template.md
+  traceable_tasklist_template: template/docs/templates/traceable-tasklist-template.md
+  generated_validator: template/scripts/validate-define-traceability.py
+  framework_validator: scripts/validate-define-traceability.py
+  contract_fixtures: scripts/test-define-traceability.py
+  evidence_boundary: requirements_and_cross_artifact_structure_only
+  source_write_authority: none
+  provenance: adapted
+  upstream_reference: github/spec-kit@bf88c9f9a82fa370c7a7257aa2b3cf10b457b65c
+  authority: none
 
 evaluation_assurance:
   contract: governance/evaluation.md
@@ -201,6 +218,8 @@ migration_state:
     - docs/plans/wb-design-001-openai-frontend-delta.md
     - docs/plans/wb-design-002-portable-design-md-artifact-contract.md
     - docs/plans/wb-repository-graph-001-optional-local-provider.md
+    - docs/plans/wb-core-003f-github-native-authority-model.md
+    - docs/plans/wb-define-001-requirements-quality-traceability.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -214,8 +233,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-repository-graph-001-optional-local-provider.md
-  closeout_report: docs/reports/closeout/wb-repository-graph-001-optional-local-provider.md
+  latest_completed_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
+  closeout_report: docs/reports/closeout/wb-define-001-requirements-quality-traceability.md
   external_vcs_state: non_normative
   authority: assurance_only
 
@@ -245,6 +264,12 @@ entries:
     role: portable_artifact_and_ssot_contract
     status: normative
     owner: architect
+
+  governance/define-quality.md:
+    role: define_stage_clarification_requirements_quality_traceability_and_consistency_contract
+    status: normative
+    owner: architect
+    authority: define_quality_only_no_source_write_authority
 
   governance/evaluation.md:
     role: deterministic_output_and_observable_trajectory_evaluation_contract
@@ -393,6 +418,14 @@ entries:
     owner: orchestrator
     lifecycle_status: completed
 
+  docs/plans/wb-define-001-requirements-quality-traceability.md:
+    role: completed_managed_define_stage_requirements_quality_and_traceability_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    authority: bounded_governance_and_portable_skill_change
+
   docs/plans/wb-core-001-normative-architecture.md:
     role: completed_portable_kit_normative_architecture_work_block
     status: log
@@ -446,6 +479,14 @@ entries:
     lifecycle_status: completed
     current_operational_architecture: runtime_neutral_control_plane
     accepted_target_architecture: portable_agentic_sdlc_project_kit
+
+  docs/plans/wb-core-003f-github-native-authority-model.md:
+    role: completed_managed_github_native_authority_and_capability_boundary_work_block
+    status: log
+    owner: orchestrator
+    lifecycle_status: completed
+    current_operational_architecture: runtime_neutral_control_plane
+    authority: governance_and_runtime_guardrail_contract
 
   docs/plans/wb-opencode-002-project-local-integration.md:
     role: managed_project_local_opencode_integration_work_block
@@ -512,6 +553,12 @@ entries:
     owner: orchestrator
     authority: none_by_indexing
 
+  docs/reports/requirements/**:
+    role: define_stage_requirements_quality_review_evidence
+    status: evidence
+    owner: reviewer
+    authority: none_by_indexing
+
   docs/reports/reviews/**:
     role: critic_and_reviewer_evidence_discovered_by_frontmatter
     status: evidence
@@ -573,6 +620,17 @@ entries:
 
   scripts/test-runtime-conformance.py:
     role: cross_runtime_logical_role_permission_and_gate_conformance_test
+    status: normative
+    owner: verifier
+
+  scripts/validate-define-traceability.py:
+    role: define_stage_requirement_acceptance_task_structural_validator
+    status: normative
+    owner: verifier
+    authority: assurance_only
+
+  scripts/test-define-traceability.py:
+    role: define_stage_traceability_positive_and_adversarial_fixtures
     status: normative
     owner: verifier
 
@@ -682,11 +740,27 @@ entries:
     status: template
     owner: verifier
 
+  template/scripts/validate-define-traceability.py:
+    role: generated_define_stage_requirement_acceptance_task_structural_validator
+    status: template
+    owner: verifier
+    authority: assurance_only
+
   template/scripts/validate-evaluation.py:
     role: generated_evaluation_plan_report_and_closeout_validator
     status: template
     owner: verifier
     authority: assurance_only
+
+  template/docs/templates/requirements-quality-review-template.md:
+    role: generated_define_stage_requirements_quality_review_template
+    status: template
+    owner: reviewer
+
+  template/docs/templates/traceable-tasklist-template.md:
+    role: generated_requirement_acceptance_task_traceability_template
+    status: template
+    owner: orchestrator
 
   template/docs/templates/evaluation-plan-template.json:
     role: generated_evaluation_plan_schema_example

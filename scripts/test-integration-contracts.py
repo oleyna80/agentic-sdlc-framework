@@ -2,7 +2,6 @@
 """Static and executable fixtures for runtime/integration adapter contracts."""
 from __future__ import annotations
 
-import datetime as dt
 import json
 import os
 from pathlib import Path
@@ -16,6 +15,20 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "template"
+DEFAULT_DEFINE_QUALITY = {
+    "required": False,
+    "status": "PENDING",
+    "requirements_review": "",
+    "traceability": "",
+    "consistency_analysis": "",
+}
+READY_DEFINE_QUALITY = {
+    "required": True,
+    "status": "READY",
+    "requirements_review": "docs/reports/requirements-quality.md",
+    "traceability": "docs/reports/traceability.json",
+    "consistency_analysis": "docs/reports/define-consistency.md",
+}
 
 
 def fail(message: str) -> None:
@@ -222,15 +235,10 @@ def static_contracts() -> None:
     graph_work_block = "docs/plans/wb-repository-graph-001-optional-local-provider.md"
     graph_closeout = "docs/reports/closeout/wb-repository-graph-001-optional-local-provider.md"
     migration_state = root_registry.get("migration_state", {})
-    release_state = root_registry.get("release_state", {})
     if migration_state.get("active_work_block") is not None:
         fail("Repository Graph Provider Close must leave no active Work Block")
     if graph_work_block not in migration_state.get("completed_work_blocks", []):
         fail("Repository Graph Provider Work Block missing from completed release state")
-    if release_state.get("latest_completed_work_block") != graph_work_block:
-        fail("Repository Graph Provider must be the latest completed Work Block")
-    if release_state.get("closeout_report") != graph_closeout:
-        fail("Repository Graph Provider Closeout linkage drifted")
     closeout = ROOT / graph_closeout
     require(closeout)
     if frontmatter(closeout).get("status") != "approved":
@@ -341,7 +349,11 @@ def repository_graph_bootstrap_fixture() -> None:
     bash = permissions.get("bash")
     if not isinstance(bash, dict):
         fail("OpenCode Bash permission map missing")
-    for pattern in ("git commit*", "git push*", "git reset --hard*", "git clean*", "rm *"):
+    if bash.get("git commit*") != "allow":
+        fail("OpenCode normal local commit must be allowed")
+    if bash.get("git push*") != "ask":
+        fail("OpenCode push must require a runtime prompt, not SSH authorization")
+    for pattern in ("git reset --hard*", "git clean*", "rm *"):
         if bash.get(pattern) != "deny":
             fail(f"OpenCode Bash permission must deny {pattern!r}")
     task_perm = permissions.get("task")
@@ -421,6 +433,18 @@ def repository_graph_bootstrap_fixture() -> None:
                 fail(
                     f"OpenCode {role} read permission must set {pattern!r} to {expected!r}"
                 )
+        role_bash = role_permissions.get("bash")
+        if not isinstance(role_bash, dict):
+            fail(f"OpenCode {role} Bash permission map missing")
+        expected_commit = "allow" if role == "coder" else "deny"
+        expected_push = "ask" if role == "coder" else "deny"
+        if role_bash.get("git commit*") != expected_commit:
+            fail(f"OpenCode {role} git commit permission must be {expected_commit}")
+        if role_bash.get("git push*") != expected_push:
+            fail(f"OpenCode {role} git push permission must be {expected_push}")
+        for pattern in ("git reset --hard*", "git clean*", "rm *"):
+            if role_bash.get(pattern) != "deny":
+                fail(f"OpenCode {role} Bash permission must deny {pattern!r}")
         if role_permissions.get("task") != "deny":
             fail(f"OpenCode {role} nested task delegation must be denied")
         if role_permissions.get("mcp_*") != "ask":
@@ -465,8 +489,16 @@ def repository_graph_bootstrap_fixture() -> None:
             fail(f"provider-named compatibility path remains: {path.relative_to(ROOT)}")
 
     gate = load_json(TEMPLATE / ".agent/active-work-block.json")
-    if gate.get("schema_version") != 2:
-        fail("active Work Block schema_version must remain 2")
+    if gate.get("schema_version") != 3:
+        fail("active Work Block schema_version must be 3")
+    if gate.get("authority_mode") != "github_capability":
+        fail("active Work Block authority_mode must be github_capability")
+    if gate.get("governance_profile") != "Controlled":
+        fail("generated Work Block default profile must remain Controlled")
+    if gate.get("define_quality") != DEFAULT_DEFINE_QUALITY:
+        fail("generated Work Block must contain canonical Define-quality default")
+    if "authorization" in gate or "hard_stop_approvals" in gate:
+        fail("legacy signed authority fields must be absent from schema v3")
     if gate.get("integrations") != {"approved": [], "admission_records": []}:
         fail("generated integration approvals must start empty")
     assurance = gate.get("assurance")
@@ -484,6 +516,19 @@ def repository_graph_bootstrap_fixture() -> None:
         fail("generated evaluation assurance must start PENDING")
     if gate.get("closeout_mode") != "pending":
         fail("generated closeout_mode must start pending")
+
+    claude_guard = (TEMPLATE / ".claude/hooks/work_block_gate.py").read_text(encoding="utf-8")
+    for marker in (
+        "validate_define_quality",
+        "validate_governance_profile",
+        "VALID_GOVERNANCE_PROFILES",
+        "FORMAL_DEFINE_PROFILES",
+        "requirements_review",
+        "traceability",
+        "consistency_analysis",
+    ):
+        if marker not in claude_guard:
+            fail(f"Claude Work Block guard missing Define-quality marker: {marker}")
 
     claude_entry = (TEMPLATE / "CLAUDE.md").read_text(encoding="utf-8").lower()
     for stale in ("gpt-critic", "gpt-verifier", "codex-reviewer"):
@@ -550,18 +595,24 @@ def event(repo: Path, tool: str, **tool_input: str) -> dict[str, Any]:
     }
 
 
-def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
+def write_gate(
+    repo: Path, *, ready: bool = True, profile: str = "Managed"
+) -> dict[str, Any]:
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    define_quality = dict(READY_DEFINE_QUALITY)
+    if profile == "Controlled":
+        define_quality = dict(DEFAULT_DEFINE_QUALITY)
     gate: dict[str, Any] = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "authority_mode": "github_capability",
         "work_block_id": "wb-integration-fixture",
-        "governance_profile": "Managed",
+        "governance_profile": profile,
         "specification": {"path": "docs/specs/fixture.md", "revision": "v1"},
         "base_commit": head,
+        "define_quality": define_quality,
         "write_gate": {
             "status": "READY" if ready else "BLOCKED",
-            "opened_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-            "expires_at": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=1)).isoformat(),
+            "opened_at": "fixture" if ready else None,
         },
         "critic": {
             "required": True,
@@ -613,20 +664,25 @@ def write_gate(repo: Path, *, ready: bool = True) -> dict[str, Any]:
         "write_set": ["src/**", "tests/**"],
         "coordination_write_set": [
             ".agent/active-work-block.json",
+            ".agent/critic-gate.md",
+            ".agent/verification-gate.md",
+            ".codex/write-gate.md",
             "docs/plans/**",
             "docs/specs/**",
+            "docs/tasklist/**",
             "docs/reports/**",
+            "docs/architecture/drafts/**",
+            "memory_bank/**",
         ],
-        "hard_stop_approvals": {
-            "git_commit": False,
-            "git_push": False,
-            "default_branch_push": False,
-            "destructive": False,
-            "live_infra": False,
-            "live_data": False,
-            "credentials": False,
-            "client_communications": False,
-        },
+        "external_hard_stops": [
+            "protected_default_branch_mutation",
+            "destructive",
+            "live_infra",
+            "live_data",
+            "credentials",
+            "client_communications",
+            "irreversible_publish",
+        ],
     }
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
@@ -670,7 +726,6 @@ def executable_fixtures() -> None:
         subprocess.run(["git", "add", "."], cwd=repo, check=True)
         subprocess.run(["git", "commit", "-qm", "baseline"], cwd=repo, check=True)
 
-        # Integration admission is tested inside an active approval window.
         gate = write_gate(repo, ready=True)
         assert_denied(
             "external Codex CLI without admission",
@@ -687,10 +742,8 @@ def executable_fixtures() -> None:
             run_script(hard_stop, repo, event(repo, "Bash", command="codex review")),
         )
 
-        # This fixture also exercises the still-v1 Claude write guard; reset its
-        # disposable gate after the schema-v2 shared Hard Stop assertions.
-        gate["schema_version"] = 1
         gate["write_gate"]["status"] = "BLOCKED"
+        gate["write_gate"]["opened_at"] = None
         persist(repo, gate)
         assert_allowed(
             "blocked coordination write",
@@ -699,10 +752,11 @@ def executable_fixtures() -> None:
         assert_denied(
             "blocked source write",
             run_script(write_guard, repo, event(repo, "Write", file_path="src/app.py")),
-            "READY",
+            "write_gate.status=READY",
         )
 
         gate["write_gate"]["status"] = "READY"
+        gate["write_gate"]["opened_at"] = "fixture"
         persist(repo, gate)
         assert_allowed(
             "in-scope Claude source write",
@@ -714,6 +768,82 @@ def executable_fixtures() -> None:
             "outside approved scope",
         )
 
+        gate = write_gate(repo, ready=True)
+        gate.pop("governance_profile")
+        persist(repo, gate)
+        assert_denied(
+            "Claude missing governance profile",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "governance_profile",
+        )
+
+        for label, invalid_profile in (
+            ("Claude empty governance profile", ""),
+            ("Claude whitespace governance profile", "   "),
+            ("Claude unknown governance profile", "Manged"),
+            ("Claude non-string governance profile", 42),
+        ):
+            gate = write_gate(repo, ready=True)
+            gate["governance_profile"] = invalid_profile
+            persist(repo, gate)
+            assert_denied(
+                label,
+                run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+                "governance_profile",
+            )
+
+        gate = write_gate(repo, ready=True, profile="Advisory")
+        persist(repo, gate)
+        assert_denied(
+            "Claude Advisory source write",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "Advisory",
+        )
+
+        write_gate(repo, ready=True, profile="Controlled")
+        assert_allowed(
+            "Claude Controlled non-applicable Define-quality remains proportional",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+        )
+
+        for profile in ("Managed", "Assured", "Distributed"):
+            gate = write_gate(repo, ready=True, profile=profile)
+            gate["define_quality"]["required"] = False
+            persist(repo, gate)
+            assert_denied(
+                f"Claude {profile} required=false cannot bypass",
+                run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+                "required=false",
+            )
+
+        gate = write_gate(repo, ready=True)
+        gate.pop("define_quality")
+        persist(repo, gate)
+        assert_denied(
+            "Claude Managed missing Define-quality",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "define_quality",
+        )
+
+        gate = write_gate(repo, ready=True)
+        gate["define_quality"]["status"] = "PENDING"
+        persist(repo, gate)
+        assert_denied(
+            "Claude Managed Define-quality pending",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "status=READY",
+        )
+
+        gate = write_gate(repo, ready=True)
+        gate["define_quality"]["consistency_analysis"] = "   "
+        persist(repo, gate)
+        assert_denied(
+            "Claude blank Define-quality evidence",
+            run_script(write_guard, repo, event(repo, "Edit", file_path="src/app.py")),
+            "consistency_analysis",
+        )
+
+        gate = write_gate(repo, ready=True)
         for name in ("review", "verification"):
             (repo / f"docs/reports/{name}.md").write_text(
                 f"# {name.title()}\n", encoding="utf-8"

@@ -2,7 +2,6 @@
 """Regression fixture: integration ID alone is not sufficient admission."""
 from __future__ import annotations
 
-import datetime as dt
 import json
 from pathlib import Path
 import subprocess
@@ -46,21 +45,15 @@ def write_gate(repo: Path, records: list[str]) -> None:
         ["git", "rev-parse", "HEAD"], cwd=repo, text=True
     ).strip()
     gate = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "authority_mode": "github_capability",
         "work_block_id": "wb-integration-admission-fixture",
         "base_commit": head,
-        "write_gate": {
-            "status": "READY",
-            "opened_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-            "expires_at": (
-                dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=1)
-            ).isoformat(),
-        },
+        "write_gate": {"status": "READY", "opened_at": "fixture"},
         "integrations": {
             "approved": ["codex-cli"],
             "admission_records": records,
         },
-        "hard_stop_approvals": {},
     }
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
@@ -87,7 +80,7 @@ def main() -> int:
 
         write_gate(repo, [])
         denied, reason = run(repo, "codex review")
-        if not denied or "admission_records" not in reason:
+        if not denied or "admission evidence" not in reason:
             raise AssertionError(
                 "approved integration ID without admission evidence must be denied; "
                 f"got {reason!r}"
