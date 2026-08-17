@@ -124,21 +124,26 @@ Resolve only the actual overlaps, then commit the merge. Do not use blanket
 When the operating environment exposes Git's object database but no convenient
 local checkout, the equivalent operation is:
 
-1. create a new tree using the **new parent tree** as `base_tree`;
-2. overlay only the intended child blobs/resolutions;
-3. create a commit with two parents: old child head first, new parent head second;
-4. update the child branch ref to the new commit with force disabled.
+1. create a resolved tree `T1` from `P1` + intended child delta (using the **new parent tree** as `base_tree` and overlaying only intended child blobs/resolutions);
+2. create commit `C1` with parents `[C0, P1]` without moving the branch ref;
+3. inspect/verify `T1` and `P1 -> C1` completely before any ref update;
+4. only after verification passes, update the child branch ref with force disabled.
 
 Conceptually:
 
 ```text
 T1 = tree(base=P1.tree, overlays=resolved_child_delta)
 C1 = commit(tree=T1, parents=[C0, P1])
+
+verify(P1 -> C1)
+
+only if verification passes:
 update_ref(child_branch, C1, force=false)
 ```
 
-The first parent keeps the child branch's history continuous. The second parent
-records the synchronization with the new parent.
+The creation of the Git commit object itself is not the consequential remote
+branch movement. The first parent keeps the child branch's history continuous.
+The second parent records the synchronization with the new parent.
 
 ### Step 3 — Resolve overlaps using parent-first semantics
 
@@ -171,23 +176,11 @@ Incorrect resolution:
 restore old detailed AGENTS.md and thereby undo the accepted parent design
 ```
 
-### Step 4 — Advance the branch non-destructively
+### Step 4 — Verify the resulting child locally
 
-The new merge commit must be a descendant of the old child head. Update the
-branch without force:
-
-```bash
-git push <remote> <child-branch>
-```
-
-or, with a ref API, explicitly use `force=false`.
-
-If a non-force update is rejected, stop and inspect why the remote child moved.
-Do not silently switch to force-push.
-
-### Step 5 — Verify the resulting child delta
-
-After synchronization, compare:
+No remote ref update may occur before local post-sync verification passes.
+After constructing or committing `C1` locally, but before pushing or updating the
+remote ref, compare:
 
 ```text
 P1 -> C1
@@ -199,18 +192,48 @@ not merely:
 C0 -> C1
 ```
 
-Check:
+Check at minimum:
 
 - changed filenames are exactly expected;
-- removed stale parent conflicts are absent;
+- intended child delta is preserved;
+- stale inherited parent paths are absent;
 - accepted parent files not owned by the child remain byte/semantically intact;
 - no unrelated files were reintroduced;
-- the PR base SHA now points to the intended parent head;
-- PR remains Draft/Ready as intended;
-- mergeability is checked but not confused with readiness.
+- semantic conflict resolution matches accepted-parent-first policy;
+- file modes are correct where applicable;
+- `C1` has the intended ancestry (`[C0, P1]`).
 
 For a research child that originally changed two files, a clean synchronization
 should still normally show exactly those two files against its new parent.
+
+If this verification fails:
+
+**STOP.** Do not push. Do not move the remote branch. Do not trigger unnecessary
+PR subject movement or CI.
+
+### Step 5 — Advance the branch non-destructively
+
+Only after local verification in Step 4 passes:
+
+- confirm the remote child branch still points to the previously recorded `C0`;
+- perform a normal non-force push or `update_ref(force=false)`:
+
+```bash
+git push <remote> <child-branch>
+```
+
+or, with a ref API, explicitly use `force=false`.
+
+If a non-force update is rejected, **STOP** and inspect why the remote child moved.
+Never silently fall back to force-push.
+
+After remote update:
+
+- re-read PR, base SHA, and head SHA metadata to confirm they reflect the expected
+  synchronized subject;
+- confirm the PR base SHA now points to the intended parent head (`P1`);
+- confirm the PR remains Draft/Ready as intended;
+- check mergeability, but do not describe remote mergeability as proof of semantic correctness.
 
 ## 5. Retargeting vs Synchronizing
 
@@ -366,10 +389,12 @@ For every synchronized stack layer verify:
 [ ] exact new parent head recorded
 [ ] synchronization is non-destructive
 [ ] merge commit has old child + new parent ancestry
-[ ] branch ref advanced with force disabled
 [ ] new parent -> new child changed-file set inspected
 [ ] accepted parent semantics preserved on overlapping files
 [ ] no unrelated parent/root surfaces leaked into child delta
+[ ] local verification passed before remote ref movement
+[ ] remote child still matched recorded C0 before update
+[ ] branch ref advanced with force disabled
 [ ] PR base/head metadata matches intended stack
 [ ] old frozen assurance labeled historical
 [ ] fresh CI/assurance scheduled when required
