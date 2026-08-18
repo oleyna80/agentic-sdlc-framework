@@ -53,7 +53,12 @@ critic_gate: PENDING
 - **Required:** yes
 - **Status:** PENDING
 - **Requirements Review Evidence:** pending
-- **Traceability Evidence:** pending
+- **Traceability Evidence:** PASS — `validate-define-traceability.py` against
+  `docs/specs/wb-skill-001-role-skill-convergence.md`
+  (`34f29fbfccf5a8d56a8eaf0879805d43f9264354`) and
+  `docs/tasklist/wb-skill-001-role-skill-convergence.md`
+  (`348b9b924c47425b5c58ea6f64440157545c08b6`) on the local Define subject
+  based on `da86496723ec9d4474181d366cf3761069a3def2`: READY
 - **Consistency Analysis Evidence:** pending
 
 No implementation/source write is authorized yet. Creating or updating this
@@ -117,9 +122,11 @@ At completion:
 
 ## Normative Baseline
 
-- **Approved Specification:** this Owner instruction and this Work Block.
-- **Specification Status:** approved for Define inventory only.
-- **Specification Revision:** `3ec044953a854dd8906a4849df507357bd3b87f0`.
+- **Approved Specification:** `docs/specs/wb-skill-001-role-skill-convergence.md`.
+- **Specification Status:** proposed; pending independent requirements-quality
+  review.
+- **Specification Revision:** local pending Define revision based on
+  `da86496723ec9d4474181d366cf3761069a3def2` until this artifact set is committed.
 - **Accepted Architecture Decisions:** `AGENTS.md`, `governance/authority.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, and
   `governance/decision-provenance.md`.
@@ -129,8 +136,8 @@ At completion:
   `skills/catalog.yml`.
 - **External Contracts:** not applicable.
 - **Approved Evaluation Plan:** not required.
-- **Active Tasklist:** this Work Block; no active machine Work Block state is
-  changed by this Define run.
+- **Active Tasklist:** `docs/tasklist/wb-skill-001-role-skill-convergence.md`;
+  no active machine Work Block state is changed by this Define run.
 
 ## Repository Preflight
 
@@ -236,30 +243,17 @@ for implementation and the source Write Gate remains BLOCKED.
 - **Skipped:** implementation, Critic, independent review, and verification are
   deferred by the blocked source Write Gate.
 
-## Requirements and Acceptance Criteria
+## Define Requirements and Traceability
 
-| Requirement | Acceptance criteria | Future delivery paths |
-|---|---|---|
-| REQ-001 — role-skill convergence | AC-001 through AC-004 | four routed role skills |
-| REQ-002 — direct-adapter coherence | AC-005 | required Claude/Codex adapters |
-| REQ-003 — deterministic drift prevention | AC-006 | `scripts/test-sdd-contract.sh` |
-| REQ-004 — truthful provenance | AC-007 | materially revised reusable skills and this Work Block |
+The authoritative behavioral requirements and measurable acceptance criteria
+are `REQ-001` through `REQ-012` and `AC-001` through `AC-014` in
+`docs/specs/wb-skill-001-role-skill-convergence.md`. The traceable proposed
+implementation and assurance tasks are in
+`docs/tasklist/wb-skill-001-role-skill-convergence.md`.
 
-- [ ] **AC-001:** Routed Critic, Coder, Reviewer, and Verifier skills use the
-  current lifecycle and authority model, with no authority-bearing `Control
-  Tower`, Stage 0.5, or nonexistent AGENTS citations.
-- [ ] **AC-002:** Coder Git language permits normal reversible operations in an
-  approved scope while retaining actual Hard Stops.
-- [ ] **AC-003:** Critic, Reviewer, and Verifier preserve their distinct current
-  verdict contracts and read-only boundaries.
-- [ ] **AC-004:** No critical skill retains unrelated product paths, language,
-  route, infrastructure, or nonexistent-helper assumptions as universal rules.
-- [ ] **AC-005:** Direct Claude/Codex adapters do not contradict the corrected
-  role procedures or current lifecycle/gate semantics.
-- [ ] **AC-006:** Existing contract-test coverage narrowly detects the listed
-  critical-role drift without scanning historical evidence repository-wide.
-- [ ] **AC-007:** Each changed reusable skill records a primary provenance class,
-  source chain, local delta, and no unsupported novelty claim.
+This Work Block is the implementation/assurance plan. The tasklist's source
+paths are an inventory-derived candidate write-set, not a Critic-approved or
+Owner-authorized implementation write-set.
 
 ## Implementation Plan
 
