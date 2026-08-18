@@ -11,10 +11,16 @@ owner_approval: Owner-authorized Define artifact for WB-SKILL-001; pending indep
 
 ## Purpose and Authority
 
-This specification defines the behavioral result of the WB-SKILL-001
-corrective implementation. The Work Block remains the authority and execution
-plan. This document neither opens a source Write Gate nor grants a role,
-runtime, or Git capability.
+This specification defines the required behavior for the WB-SKILL-001
+corrective implementation. The approved revision of this specification is the
+behavioral authority for the Work Block. The Work Block records bounded
+execution scope, planning, write-set, lifecycle state, evidence routing, and
+authority already granted by higher-authority contracts; it cannot override or
+silently redefine the approved specification. If execution planning conflicts
+with the approved specification, return to Define and correct the derivative
+Work Block or revise the owning specification according to the authority chain.
+This document neither opens a source Write Gate nor grants a role, runtime, or
+Git capability.
 
 The subject is the current critical role-skill execution path identified in the
 accepted inventory. Historical evidence is preserved and is not a correction

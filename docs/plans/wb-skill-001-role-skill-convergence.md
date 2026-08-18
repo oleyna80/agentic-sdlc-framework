@@ -52,13 +52,19 @@ critic_gate: PENDING
 
 - **Required:** yes
 - **Status:** PENDING
-- **Requirements Review Evidence:** pending
+- **Requirements Review Evidence:** Historical round 1 —
+  `docs/reports/requirements/wb-skill-001.md`; subject
+  `83e6f7df063056a3c8c579bd518df17d279f6f6e`; evidence commit
+  `97e7be5aa502d410a8636c32634e621c40c90801`; verdict
+  `CHANGES_REQUIRED`; finding: specification authority wording required
+  correction. This evidence is historical / superseded for current readiness
+  purposes and is not passing evidence. Current state: **PENDING FRESH
+  INDEPENDENT RE-REVIEW**.
 - **Traceability Evidence:** PASS — `validate-define-traceability.py` against
   `docs/specs/wb-skill-001-role-skill-convergence.md`
-  (`34f29fbfccf5a8d56a8eaf0879805d43f9264354`) and
+  (`2e58550c1619bf690ebde36a54782e610f9fc072`) and
   `docs/tasklist/wb-skill-001-role-skill-convergence.md`
-  (`348b9b924c47425b5c58ea6f64440157545c08b6`) on the local Define subject
-  based on `da86496723ec9d4474181d366cf3761069a3def2`: READY
+  (`348b9b924c47425b5c58ea6f64440157545c08b6`): READY
 - **Consistency Analysis Evidence:** pending
 
 No implementation/source write is authorized yet. Creating or updating this
