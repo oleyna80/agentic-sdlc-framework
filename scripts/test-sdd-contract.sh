@@ -281,6 +281,51 @@ require_contains "template/.agent/verification-gate.md" 'Drift:.*PENDING'
 # Reviewer/verifier direct consumers retain portable verdicts.
 require_contains "template/.claude/agents/verifier.md" 'READY.*BLOCKED.*UNVERIFIED'
 require_contains "skills/verifier/SKILL.md" 'READY.*BLOCKED.*UNVERIFIED'
+
+# WB-SKILL-001: routed role procedures and direct runtime adapters use the
+# current governance vocabulary rather than retired runtime-local authority.
+for path in \
+  "skills/critic-review/SKILL.md" \
+  "skills/scoped-coder/SKILL.md" \
+  "skills/reviewer/SKILL.md" \
+  "skills/verifier/SKILL.md" \
+  "template/.claude/agents/critic.md" \
+  "template/.claude/agents/scoped-coder.md" \
+  "template/.claude/agents/reviewer.md" \
+  "template/.claude/agents/verifier.md" \
+  "template/.codex/AGENTS.md" \
+  "template/.codex/critic.md" \
+  "template/.codex/instructions.md"; do
+  require_file "$path"
+  require_absent_pattern "$path" 'Control Tower|Stage 0[.]5|Structural Authority Model|[.]claude/skills/(critic|reviewer|verifier)/scripts'
+done
+
+require_contains "skills/critic-review/SKILL.md" 'APPROVE.*SUPPLEMENT.*RECONSIDER'
+require_contains "skills/critic-review/SKILL.md" 'RECONSIDER.*Define'
+require_contains "skills/scoped-coder/SKILL.md" 'approved write-set'
+require_contains "skills/scoped-coder/SKILL.md" 'local commits'
+require_contains "skills/scoped-coder/SKILL.md" 'feature-branch pushes'
+require_contains "skills/reviewer/SKILL.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
+require_contains "template/.claude/agents/reviewer.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
+require_contains "skills/verifier/SKILL.md" 'reproducible'
+require_contains "template/.codex/AGENTS.md" 'governance/lifecycle.md'
+
+# WB41-R1: direct runtime adapters must retain the critical semantics they restate.
+require_contains "template/.codex/AGENTS.md" 'Define.*Execute.*Assure.*Close'
+require_contains "template/.codex/AGENTS.md" 'APPROVE.*SUPPLEMENT.*RECONSIDER'
+require_contains "template/.codex/AGENTS.md" 'functional verdict is'
+require_contains "template/.codex/AGENTS.md" 'distinct from operational gate state'
+require_contains "template/.codex/AGENTS.md" 'Reviewer returns.*READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
+require_contains "template/.codex/AGENTS.md" 'returns.*READY.*BLOCKED.*UNVERIFIED.*reproducible evidence'
+require_contains "template/.codex/AGENTS.md" 'ordinary reversible edits, tests, staging, local'
+require_contains "template/.codex/AGENTS.md" 'feature-branch pushes'
+require_contains "template/.codex/AGENTS.md" 'only when the'
+require_absent_pattern "template/.codex/AGENTS.md" 'Verifier.*(sole|exclusive).*(blocker|authority|gate)|only Verifier'
+require_absent_pattern "template/.codex/AGENTS.md" 'Do not stage, commit, or push[^.]*explicit Owner approval'
+require_contains "template/.claude/agents/scoped-coder.md" 'staging, local commits, normal'
+require_contains "template/.claude/agents/scoped-coder.md" 'feature-branch pushes'
+require_contains "template/.claude/agents/scoped-coder.md" 'permitted only when the'
+
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
 require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
 require_contains "governance/lifecycle.md" 'NDR is a mechanically constrained submode of `Controlled`'
