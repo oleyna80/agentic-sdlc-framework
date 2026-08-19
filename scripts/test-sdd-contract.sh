@@ -309,6 +309,23 @@ require_contains "skills/reviewer/SKILL.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*U
 require_contains "template/.claude/agents/reviewer.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
 require_contains "skills/verifier/SKILL.md" 'reproducible'
 require_contains "template/.codex/AGENTS.md" 'governance/lifecycle.md'
+
+# WB41-R1: direct runtime adapters must retain the critical semantics they restate.
+require_contains "template/.codex/AGENTS.md" 'Define.*Execute.*Assure.*Close'
+require_contains "template/.codex/AGENTS.md" 'APPROVE.*SUPPLEMENT.*RECONSIDER'
+require_contains "template/.codex/AGENTS.md" 'functional verdict.*distinct from operational gate state'
+require_contains "template/.codex/AGENTS.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
+require_contains "template/.codex/AGENTS.md" 'Verifier.*READY.*BLOCKED.*UNVERIFIED'
+require_contains "template/.codex/AGENTS.md" 'ordinary reversible edits, tests, staging, local'
+require_contains "template/.codex/AGENTS.md" 'feature-branch pushes'
+require_contains "template/.codex/AGENTS.md" 'only when the'
+require_absent_pattern "template/.codex/AGENTS.md" 'Verifier.*(sole|exclusive).*(blocker|authority|gate)|only Verifier'
+require_absent_pattern "template/.codex/AGENTS.md" '(never|must not|do not)[[:space:]]+(commit|push)|never[[:space:]]+commit/push'
+require_contains "template/.claude/agents/scoped-coder.md" 'staging, local commits, normal'
+require_contains "template/.claude/agents/scoped-coder.md" 'feature-branch pushes'
+require_contains "template/.claude/agents/scoped-coder.md" 'permitted only when the'
+require_absent_pattern "template/.claude/agents/scoped-coder.md" '(never|must not|do not)[[:space:]]+(commit|push)|never[[:space:]]+commit/push'
+
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
 require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
 require_contains "governance/lifecycle.md" 'NDR is a mechanically constrained submode of `Controlled`'
