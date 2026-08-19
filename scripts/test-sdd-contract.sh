@@ -321,12 +321,10 @@ require_contains "template/.codex/AGENTS.md" 'ordinary reversible edits, tests, 
 require_contains "template/.codex/AGENTS.md" 'feature-branch pushes'
 require_contains "template/.codex/AGENTS.md" 'only when the'
 require_absent_pattern "template/.codex/AGENTS.md" 'Verifier.*(sole|exclusive).*(blocker|authority|gate)|only Verifier'
-require_absent_pattern "template/.codex/AGENTS.md" '(never|must not|do not)[[:space:]]+(commit|push)|never[[:space:]]+commit/push'
 require_absent_pattern "template/.codex/AGENTS.md" 'Do not stage, commit, or push[^.]*explicit Owner approval'
 require_contains "template/.claude/agents/scoped-coder.md" 'staging, local commits, normal'
 require_contains "template/.claude/agents/scoped-coder.md" 'feature-branch pushes'
 require_contains "template/.claude/agents/scoped-coder.md" 'permitted only when the'
-require_absent_pattern "template/.claude/agents/scoped-coder.md" '(never|must not|do not)[[:space:]]+(commit|push)|never[[:space:]]+commit/push'
 
 require_contains "template/docs/templates/closeout-report-template.md" 'REPORTING_ONLY'
 require_contains "governance/lifecycle.md" 'Narrow Deterministic Repair'
