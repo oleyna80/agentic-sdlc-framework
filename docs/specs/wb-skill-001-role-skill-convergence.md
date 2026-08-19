@@ -2,9 +2,10 @@
 schema_version: 1
 artifact_type: specification
 artifact_id: wb-skill-001-role-skill-convergence
-status: proposed
+status: approved
 created_at: 2026-08-18
-owner_approval: Owner-authorized Define artifact for WB-SKILL-001; pending independent requirements-quality review
+updated_at: 2026-08-19
+owner_approval: Owner confirmed continuation and the exact source write-set in this session on 2026-08-19; governing contracts remain higher authority.
 ---
 
 # WB-SKILL-001 — Framework-Native Role Skill Convergence Specification

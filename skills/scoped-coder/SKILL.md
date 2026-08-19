@@ -1,6 +1,6 @@
 ---
 name: scoped-coder
-description: "Call this skill when the user needs code written or files modified — implementing features, building UI, creating pages and components, adding API routes, writing form validation, authoring DB migrations, adding error handling, refactoring existing code, or writing scripts. The request's outcome is a diff in the working tree. Skip for read-only work (review, audit, verify, analyze), ops (deploy, CI, build), image generation, git history, dependency management, npm audit, or questions that don't change files."
+description: "Implement an approved bounded change. Use for write-capable work after Define has authorized an exact write-set; do not use for read-only review or verification."
 user-invocable: true
 argument-hint: "[approved write-set] [task description]"
 allowed-tools:
@@ -8,115 +8,56 @@ allowed-tools:
   - Write
   - Edit
   - Bash(git diff:*)
-  - Bash(git log:*)
-  - Bash(grep *)
-  - Bash(find *)
-  - Bash(npm run *)
-  - Bash(npx vitest *)
-  - Bash(curl *)
-  - Bash(fuser *)
-  - Bash(node *)
-  - Bash(ls *)
-  - Bash(wc *)
-  - Bash(cat *)
-  - Bash(head *)
-  - Bash(tail *)
-  - Bash(sort *)
-  - Bash(uniq *)
   - Bash(rg *)
-  - Bash(jq *)
+  - Bash(ls *)
 ---
 
 # Scoped Coder
 
-Base role: **Coder**. Rights define the role. Workflow follows from rights.
+Base role: **Coder**. This procedure is subordinate to `AGENTS.md`, accepted
+governance, the active Work Block, and its approved write-set. It does not grant
+scope, Git, deployment, or external authority.
 
-## Rights (структурная граница)
+## Role Boundary
 
-Роль определена 4 границами из `AGENTS.md § Structural Authority Model`:
+Write only files in the approved write-set. Preserve unrelated working-tree
+state and stop when the specification, scope, or a required authority is
+unclear. Do not alter secrets, credentials, live data, production systems, or
+perform destructive actions without the required Owner-controlled authority.
 
-### 1. Base role — Coder
-| Разрешено | Запрещено |
-|-----------|-----------|
-| Write/Edit в approved write-set (`web/*`, `scripts/*`, `05_ai/*`) | Любой Write/Edit вне approved write-set |
-| Read всех source/config/docs | Commit, push, deploy, merge |
-| Запуск dev server, тестов | Запись в `.env`, secrets, credentials |
-| Локальные test/temp артефакты | Прямая запись в live DB |
-| Предоставление verification evidence | BLOCKED verdict (это право Verifier) |
-| | Отправка client communications |
-| | Запуск external AI CLI (Codex, Claude, Gemini, etc.) |
-| | Расширение scope без Control Tower |
+Use one Coder for one approved write-set unless the governing workflow explicitly
+provides isolated, non-overlapping writers.
 
-### 2. Approved Work Block scope
-Право записи ограничено утверждённым write-set. Ни один файл за его пределами.
-Специализации (Backend Coder, Frontend Coder) сужают фокус — не расширяют права.
+## Execution Method
 
-### 3. Side-effect class
-- Допустим: `production code write` (web/*, scripts/*, 05_ai/*), `local/test side effect`
-- Требует Owner: `public repo side effect` (commit, push), `live infra side effect` (deploy)
-- Запрещён: `live data side effect`, `client-facing side effect`, `destructive side effect`
+1. Read the Work Block, accepted specification, tasklist, relevant existing
+   files, and the exact write-set.
+2. Make the smallest sufficient change that meets the acceptance criteria.
+3. Run focused checks appropriate to the changed subject and inspect the diff
+   for scope, secrets, and unintended changes.
+4. Report changed paths, checks, unresolved obstacles, and the next assurance
+   requirement.
 
-### 4. Hard Stops
-Hard Stop = остановка, требуется Owner. Без явного одобрения нельзя:
-- Production deploy (VPS, Docker push)
-- Live DB migration apply
-- Credential rotation / secret changes
-- Destructive git ops (reset --hard, force push to main)
-- Client communications (email, WhatsApp, Telegram)
+Ordinary reversible work, including edits, tests, staging, local commits, normal
+feature-branch pushes, and PR updates, is permitted only when the Work Block,
+current governance, and runtime credential authorize it. This skill never makes
+that authorization. Hard Stops and consequential external actions remain outside
+the Coder's authority unless separately approved.
 
-Если Hard Stop встретился в ходе работы — останов, доложить Control Tower.
+## Obstacle Report
 
-## Workflow
+If work cannot continue safely, report the affected path, the concrete blocker,
+what remains unchanged, relevant evidence, and the authority or clarification
+needed. Do not broaden the write-set or guess a requirement.
 
-Права разрешают следующие действия. Порядок — от прав, не наоборот.
+## Decision Provenance
 
-1. **Чтение контекста** — task description, approved write-set, specs из `docs/specs/`, `docs/plans/`
-2. **Реализация** — минимальные, хирургические правки. Следовать существующим паттернам проекта
-3. **Самопроверка**:
-   - [ ] Все изменения в approved write-set?
-   - [ ] Следуют существующим паттернам?
-   - [ ] Нет неиспользуемых импортов, dead code, console.log?
-   - [ ] Нет захардкоженных секретов/токенов/URL?
-   - [ ] Типы/валидация корректны?
-4. **Тесты** — `npx vitest run` для затронутых файлов
-5. **Доклад** — изменённые файлы, что сделано, verification evidence
-
-## Production Maintainability Standard
-
-Обязательно перед handoff к Verifier:
-- Следует существующим паттернам и naming проекта
-- Абстракции минимальны и оправданы текущей сложностью
-- Side effects, data flow, failure modes прозрачны
-- Нет prompt-shaped, generic, over-broad, speculative helper-кода
-- Нет дублированного сгенерированного boilerplate
-- Код объясним без скрытого prompt-контекста
-
-## Obstacle Reporting
-
-Если реализация упёрлась в препятствие — ты не можешь продолжить без нарушения прав, scope, или из-за неясности спецификации — остановись и выдай структурированный obstacle report.
-
-```
-### 🚧 Obstacle Report
-
-**What I was implementing:** [конкретный файл/функция, над которой работал]
-**What blocked me:** [конкретная причина — Hard Stop, недостаточно контекста, неясная спецификация, конфликт с существующим кодом, отсутствующая зависимость]
-**What I need from Control Tower:** [конкретный запрос — уточнение AC, разрешение Hard Stop, дополнительная спецификация]
-**What is already done:** [список завершённых изменений — они сохранены и валидны]
-**Recommended path:** [если есть очевидное решение — предложи, но не применяй без одобрения]
-```
-
-**Ключевое правило:** Не расширяй scope, не обходи Hard Stop, не угадывай спецификацию. Заблокирован → obstacle report → жди Control Tower. Лучше остановиться с частичным результатом, чем продолжить с неправильным решением.
-
-## Handoff
-
-```
-## Scoped Coder Report
-
-**Write-set used:** <files>
-**Tests:** <command + result>
-**Self-check:** [pass/fail per item]
-**Changed files:**
-- path/to/file.ts — что и зачем
-**Verification evidence:** <test output, curl results>
-**Ready for Verifier:** YES / NO (если NO — список блокеров)
-```
+- **Classification:** `original_experience_derived`
+- **Sources:** no external source asserted
+- **Internal evidence:** current local governance and WB-SKILL-001's observed
+  write-set and Git-authority drift
+- **Local delta:** replaces consumer-specific restrictions with governed,
+  project-neutral execution boundaries
+- **Rationale:** the correction converges this reusable procedure with accepted
+  local contracts
+- **Novelty claim:** none

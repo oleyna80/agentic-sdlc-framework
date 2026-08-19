@@ -2,17 +2,19 @@
 
 ## Status and Scope Binding
 
-All source tasks below are proposed only. They require Managed Define-quality
-evidence, a separate Critic disposition, an exact Critic-approved write-set,
-and Owner approval before Execute. This tasklist does not open the source Write
-Gate.
+The Owner has confirmed the exact twelve-path source write-set below after the
+separate Critic disposition. Define synchronization and its final independent
+consistency recheck remain prerequisites to Execute; this tasklist itself does
+not open the source Write Gate. Coordination/evidence files are role-authorized
+records, not additions to the Coder source write-set. No staging, commit, push,
+or PR action is authorized by this tasklist.
 
 ## Requirement Tasks
 
-- [ ] TASK-001 [type=requirement] [req=REQ-001,REQ-002,REQ-003,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-003,AC-004,AC-011,AC-012] [paths=skills/critic-review/SKILL.md] Converge the routed Critic procedure while preserving the accepted functional-verdict and gate-state distinction.
-- [ ] TASK-002 [type=requirement] [req=REQ-001,REQ-002,REQ-004,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-005,AC-006,AC-009,AC-011,AC-012] [paths=skills/scoped-coder/SKILL.md] Converge the routed Coder procedure to write-set, Git-authority, Hard Stop, and project-neutral requirements.
-- [ ] TASK-003 [type=requirement] [req=REQ-001,REQ-002,REQ-005,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-007,AC-009,AC-011,AC-012] [paths=skills/reviewer/SKILL.md] Converge the routed Reviewer procedure to the frozen-subject, verdict, evidence, and project-neutral requirements.
-- [ ] TASK-004 [type=requirement] [req=REQ-001,REQ-002,REQ-006,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-008,AC-009,AC-011,AC-012] [paths=skills/verifier/SKILL.md] Converge the routed Verifier procedure to reproducible verification, non-exclusive progression, and project-neutral requirements.
+- [ ] TASK-001 [type=requirement] [req=REQ-001,REQ-002,REQ-003,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-003,AC-004,AC-011,AC-012] [paths=skills/critic-review/SKILL.md] Converge the routed Critic procedure while preserving the accepted functional-verdict and gate-state distinction; record `original_experience_derived` provenance from current local governance, a local convergence delta, and no novelty claim.
+- [ ] TASK-002 [type=requirement] [req=REQ-001,REQ-002,REQ-004,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-005,AC-006,AC-009,AC-011,AC-012] [paths=skills/scoped-coder/SKILL.md] Converge the routed Coder procedure to write-set, Git-authority, Hard Stop, and project-neutral requirements; record the same truthful local-convergence provenance.
+- [ ] TASK-003 [type=requirement] [req=REQ-001,REQ-002,REQ-005,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-007,AC-009,AC-011,AC-012] [paths=skills/reviewer/SKILL.md] Converge the routed Reviewer procedure to the frozen-subject, verdict, evidence, and project-neutral requirements; record the same truthful local-convergence provenance.
+- [ ] TASK-004 [type=requirement] [req=REQ-001,REQ-002,REQ-006,REQ-007,REQ-009,REQ-010] [ac=AC-001,AC-002,AC-008,AC-009,AC-011,AC-012] [paths=skills/verifier/SKILL.md] Converge the routed Verifier procedure to reproducible verification, non-exclusive progression, and project-neutral requirements; record the same truthful local-convergence provenance.
 - [ ] TASK-005 [type=requirement] [req=REQ-003,REQ-008,REQ-009] [ac=AC-003,AC-004,AC-010,AC-011] [paths=template/.claude/agents/critic.md] Correct the direct Claude Critic adapter because the inventory established a live role/lifecycle/read-only contradiction.
 - [ ] TASK-006 [type=requirement] [req=REQ-004,REQ-008] [ac=AC-005,AC-006,AC-010] [paths=template/.claude/agents/scoped-coder.md] Correct only the direct Claude Coder adapter wording that remains semantically contradictory.
 - [ ] TASK-007 [type=requirement] [req=REQ-005,REQ-008,REQ-009] [ac=AC-007,AC-010,AC-011] [paths=template/.claude/agents/reviewer.md] Correct the direct Claude Reviewer adapter because its current verdict/authority language conflicts with the shared contract.
@@ -34,10 +36,10 @@ Gate.
 
 ## Define and Assurance Tasks
 
-- [ ] TASK-014 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-skill-001-role-skill-convergence.md,docs/specs/wb-skill-001-role-skill-convergence.md,docs/tasklist/wb-skill-001-role-skill-convergence.md] Maintain the authoritative Define plan, specification, task traceability, and pending evidence bindings without granting source authority.
-- [ ] TASK-015 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-001-critic.md] Obtain a separate read-only Critic review of the exact proposed source write-set before any Execute transition.
+- [x] TASK-014 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-skill-001-role-skill-convergence.md,docs/specs/wb-skill-001-role-skill-convergence.md,docs/tasklist/wb-skill-001-role-skill-convergence.md,docs/reports/requirements/wb-skill-001-consistency.md] Maintain the authoritative Define plan, specification, task traceability, and evidence bindings without granting source authority.
+- [x] TASK-015 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-001-critic.md] Obtain a separate read-only Critic review of the exact proposed source write-set before any Execute transition; functional verdict `SUPPLEMENT` is addressed by this Define synchronization.
 - [ ] TASK-016 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-001-independent-review.md] Obtain independent read-only implementation review against the frozen source subject after Execute.
-- [ ] TASK-017 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-001-verification.md] Obtain read-only reproducible verification, including the focused regression check, against the frozen source subject.
+- [ ] TASK-017 [type=assurance] [req=-] [ac=-] [paths=docs/reports/verification/wb-skill-001-verification.md] Obtain read-only reproducible verification, including the focused regression check, against the frozen source subject.
 
 ## Explicitly Deferred
 

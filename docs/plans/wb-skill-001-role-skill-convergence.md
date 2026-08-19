@@ -6,12 +6,12 @@ work_block_id: WB-SKILL-001
 status: in_progress
 owner_role: Owner
 created_at: 2026-08-18
-last_updated: 2026-08-18
+last_updated: 2026-08-19
 governance_profile: Managed
 branch: agent/wb-skill-001-role-skill-convergence
 base_revision: 3ec044953a854dd8906a4849df507357bd3b87f0
-write_gate: BLOCKED
-critic_gate: PENDING
+write_gate: READY
+critic_gate: READY
 ---
 
 # WB-SKILL-001 — Framework-Native Role Skill Convergence
@@ -23,7 +23,8 @@ critic_gate: PENDING
 - **Date:** 2026-08-18
 - **Owner:** Owner-authorized framework maintenance initiated in this conversation.
 - **Owner role:** Owner
-- **Orchestrator:** logical Orchestrator; Codex is currently bound only to Define inventory.
+- **Orchestrator:** Codex, responsible for bounded Define synchronization and
+  transition coordination.
 - **Governance Profile:** Managed
 - **Execution Mode:** staged approval
 - **Verification Tier:** standard
@@ -36,41 +37,50 @@ critic_gate: PENDING
 
 ## Lifecycle State
 
-- **Current Stage:** Define
+- **Current Stage:** Execute
 - **Stage State:** in_progress
-- **Write Gate:** BLOCKED
-- **Critic Gate:** PENDING
+- **Write Gate:** READY — final independent consistency recheck completed;
+  limited to the exact twelve Coder source paths.
+- **Critic Gate:** READY — operational state after the separate Critic
+  `SUPPLEMENT` was bound and its Define requirements were addressed; this is
+  distinct from the Critic functional verdict.
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
 - **Drift Gate:** PENDING
 - **Closeout Mode:** pending
-- **Owner Approval Evidence:** this Owner instruction, limited to Define
-  coordination and this Work Block path
+- **Owner Approval Evidence:** Owner message on 2026-08-19: “подтверждаю
+  продолжение воркблока. оформляй синхронизацию и переходи к реализации
+  write-set.” It authorizes the exact twelve source paths bound below after the
+  current Define synchronization. It does not authorize staging, commit, push,
+  PR creation, merge, deploy, or destructive action.
 
 ### Define Quality Prerequisite
 
 - **Required:** yes
-- **Status:** PENDING
+- **Status:** READY
 - **Requirements Review Evidence:** Historical round 1 —
   `docs/reports/requirements/wb-skill-001.md`; subject
   `83e6f7df063056a3c8c579bd518df17d279f6f6e`; evidence commit
   `97e7be5aa502d410a8636c32634e621c40c90801`; verdict
   `CHANGES_REQUIRED`; finding: specification authority wording required
   correction. This evidence is historical / superseded for current readiness
-  purposes and is not passing evidence. Current state: **PENDING FRESH
-  INDEPENDENT RE-REVIEW**.
+  purposes and is not passing evidence. Fresh re-review:
+  `docs/reports/requirements/wb-skill-001-rereview.md`; subject
+  `073b6c4ca2bde67f0ddbb16e180ed5838abdfe3b`; verdict `READY`.
 - **Traceability Evidence:** PASS — `validate-define-traceability.py` against
   `docs/specs/wb-skill-001-role-skill-convergence.md`
   (`2e58550c1619bf690ebde36a54782e610f9fc072`) and
   `docs/tasklist/wb-skill-001-role-skill-convergence.md`
   (`348b9b924c47425b5c58ea6f64440157545c08b6`): READY
-- **Consistency Analysis Evidence:** pending
+- **Consistency Analysis Evidence:** `READY` —
+  `docs/reports/requirements/wb-skill-001-consistency.md`; initial documentary
+  gaps were resolved, then independently rechecked in a separate delegated
+  context in the same runtime/session (not OS-isolated).
 
-No implementation/source write is authorized yet. Creating or updating this
-Work Block is coordination work only. The Managed aggregate remains pending
-until its required independent evidence bindings are established; this inventory
-does not claim to open the source Write Gate.
+Managed Define quality is complete. The source Write Gate is READY only for the
+exact twelve Coder source paths bound below; no Git/publication authority is
+created by this transition.
 
 ## Objective
 
@@ -129,10 +139,10 @@ At completion:
 ## Normative Baseline
 
 - **Approved Specification:** `docs/specs/wb-skill-001-role-skill-convergence.md`.
-- **Specification Status:** proposed; pending independent requirements-quality
-  review.
-- **Specification Revision:** local pending Define revision based on
-  `da86496723ec9d4474181d366cf3761069a3def2` until this artifact set is committed.
+- **Specification Status:** approved on 2026-08-19 after Owner confirmation and
+  requirements-quality re-review `READY`.
+- **Specification Revision:** current working revision; no commit or publication
+  is implied by this state.
 - **Accepted Architecture Decisions:** `AGENTS.md`, `governance/authority.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, and
   `governance/decision-provenance.md`.
@@ -161,10 +171,6 @@ At completion:
 
 ### Must Resolve Before Source Execute
 
-- Managed Define-quality evidence bindings and a separate Critic review of the
-  exact proposed source write-set.
-- Owner approval of the exact source write-set after Critic disposition permits
-  progression.
 - Material-revision provenance for every reusable skill actually changed.
 
 ### May Resolve During Future Work
@@ -177,9 +183,9 @@ At completion:
 
 ### In Scope Now
 
-- Create this Work Block and record a repository-wide read-only inventory.
-- Define the future bounded corrective write-set, acceptance criteria, assurance
-  model, and regression-test recommendation.
+- Complete Define synchronization and its independent recheck.
+- Execute only the exact twelve source paths in the approved Coder write-set,
+  including the narrow existing-contract-test extension.
 
 ### Out of Scope
 
@@ -194,18 +200,39 @@ At completion:
 
 ## Write-Set
 
+**Role-authorized coordination/evidence paths:**
+
 ```text
 docs/plans/wb-skill-001-role-skill-convergence.md
+docs/specs/wb-skill-001-role-skill-convergence.md
+docs/tasklist/wb-skill-001-role-skill-convergence.md
+docs/reports/reviews/wb-skill-001-critic.md
+docs/reports/requirements/wb-skill-001-consistency.md
 ```
 
-- **One Coder per write-set:** yes; this Define coordination write has no source
-  implementation Coder.
+**Approved Coder source write-set (exactly twelve paths):**
+
+```text
+skills/critic-review/SKILL.md
+skills/scoped-coder/SKILL.md
+skills/reviewer/SKILL.md
+skills/verifier/SKILL.md
+template/.claude/agents/critic.md
+template/.claude/agents/scoped-coder.md
+template/.claude/agents/reviewer.md
+template/.claude/agents/verifier.md
+template/.codex/AGENTS.md
+template/.codex/critic.md
+template/.codex/instructions.md
+scripts/test-sdd-contract.sh
+```
+
+- **One Coder per source write-set:** yes.
 - **Parallel writers:** no.
 - **Scope guard:** `git status --short`, `git diff --check`, and changed-path
-  validation before local commit.
-
-The proposed future source write-set is recorded below only; it is not approved
-for implementation and the source Write Gate remains BLOCKED.
+  validation. The untracked evaluation brief remains excluded.
+- **Gate state:** READY for these twelve paths only; no source path may be added
+  by a report or coordination update.
 
 ## Risk and Authority
 
@@ -214,7 +241,8 @@ for implementation and the source Write Gate remains BLOCKED.
 - **Sensitive Domains:** governance procedure consistency.
 - **Output Non-Determinism:** none; the subject is deterministic text and
   contract-test alignment.
-- **Autonomous Tool/Trajectory Risk:** none in this Define run.
+- **Autonomous Tool/Trajectory Risk:** low; the source subject is deterministic
+  text and a shell contract test, but authority/lifecycle drift is material.
 - **Threat Model Required:** no new threat model; future review must preserve
   existing authority and Hard Stop boundaries.
 - **Rollback / Recovery:** revert only this known Work Block commit if Owner
@@ -223,19 +251,19 @@ for implementation and the source Write Gate remains BLOCKED.
 ## Hard Stops in Scope
 
 - [x] Push, PR creation, merge, rebase, force push, branch deletion, and
-  production/deployment/credential/destructive actions are forbidden.
-- [x] Source skill, governance, runtime-hook, machine Work Block state, Spec
-  Kit, and canonical aggregate changes are forbidden in this Define run.
-- [ ] A local commit of this sole Work Block file is explicitly authorized by the
-  Owner instruction after the stated validations; it does not authorize push.
+  production/deployment/credential/destructive actions are not authorized.
+- [x] No source path outside the exact twelve paths, no governance/machine Work
+  Block state, no Spec Kit, and no canonical aggregate change is authorized.
+- [x] Staging and local commit are not authorized by the current Owner message.
 
 ## Function Bindings
 
 | Function | Logical Role | Runtime | Isolation | Authority | Evidence |
 |---|---|---|---|---|---|
-| Orchestration | Orchestrator | Codex | same session | Define coordination only | this Work Block |
-| Critic | Critic | not yet bound | not yet established | read-only | required before source Execute |
-| Implementation | Coder | not yet bound | not yet established | no source write authority | future approved write-set only |
+| Orchestration | Orchestrator | Codex | same runtime/session | coordination paths only | this Work Block and bound evidence |
+| Consistency | Consistency Analyzer | Codex delegated subagent | separate delegated context in same runtime/session; not OS-isolated | read-only | consistency report |
+| Critic | Critic | Codex delegated subagent | separate delegated context in same runtime/session; not OS-isolated | read-only | `docs/reports/reviews/wb-skill-001-critic.md` |
+| Implementation | Coder | Codex main thread | one active writer, same runtime/session | exact twelve source paths after gate READY | scoped diff/self-check |
 | Review | Reviewer | not yet bound | not yet established | read-only | required after source change |
 | Verification | Verifier | not yet bound | not yet established | read-only | required after source change |
 | Evaluation | not required | n/a | n/a | n/a | deterministic subject |
@@ -244,10 +272,12 @@ for implementation and the source Write Gate remains BLOCKED.
 
 - **Checked:** `skills/SKILL-CONVENTION.md`, `skills/catalog.yml`, and all
   relevant role/reusable skill surfaces in the inventory.
-- **Matched / Used:** no external procedural skill was invoked; this is an
-  Owner-scoped framework Define inventory.
-- **Skipped:** implementation, Critic, independent review, and verification are
-  deferred by the blocked source Write Gate.
+- **Matched / Used:** current repo procedures `skills/critic-review/SKILL.md`
+  and `skills/scoped-coder/SKILL.md` were read as procedural inputs; authority
+  remains in the governing contracts and this approved Work Block.
+- **Completed:** separate Critic review and initial consistency analysis.
+- **Pending:** final consistency recheck, then Coder execution; independent
+  implementation review and verification remain post-Execute requirements.
 
 ## Define Requirements and Traceability
 
@@ -257,17 +287,17 @@ are `REQ-001` through `REQ-012` and `AC-001` through `AC-014` in
 implementation and assurance tasks are in
 `docs/tasklist/wb-skill-001-role-skill-convergence.md`.
 
-This Work Block is the implementation/assurance plan. The tasklist's source
-paths are an inventory-derived candidate write-set, not a Critic-approved or
-Owner-authorized implementation write-set.
+This Work Block is the implementation/assurance plan. The tasklist source paths
+are now the exact Owner-authorized Coder write-set stated above, contingent on
+the final Define consistency recheck; coordination evidence cannot expand it.
 
 ## Implementation Plan
 
 | Task | Owner Role | Write-Set | Dependencies | Expected Evidence | Status |
 |---|---|---|---|---|---|
 | Define inventory | Orchestrator | this Work Block only | baseline contracts | inventory below | completed in this revision |
-| Critical role correction | one Coder | proposed A paths | Define quality, Critic, Owner approval | scoped diff/self-check | planned, blocked |
-| Adapter/test coherence | same Coder | proposed B paths | approved critical design | focused test diff | planned, blocked |
+| Critical role correction | one Coder | approved A paths | Define quality READY | scoped diff/self-check | in progress |
+| Adapter/test coherence | same Coder | approved B paths | Define quality READY | focused test diff | in progress |
 | Assurance | Critic, Reviewer, Verifier | reports only | frozen subject | required reports/checks | planned, blocked |
 
 ## Define Inventory — Legacy Role-Skill Convergence
@@ -313,9 +343,10 @@ template/.codex/instructions.md
 scripts/test-sdd-contract.sh
 ```
 
-The exact source write-set above is proposed, not approved. It must be reviewed
-by a separate Critic, bound explicitly in the Work Block, and receive Owner
-approval before Execute.
+The exact twelve-path source write-set above received separate Critic review
+(`SUPPLEMENT`, addressed by this synchronization) and Owner confirmation on
+2026-08-19. It remains blocked only until the final independent consistency
+recheck of this synchronized Work Block.
 
 ### Deferred Legacy Surfaces
 
@@ -369,13 +400,12 @@ historical reports or create a general-purpose policy engine.
 ### Provenance Plan
 
 No historical provenance gap alone blocks Define. Before materially revising any
-reusable skill, the future Coder/Reviewer must record the primary provenance
-class, source chain, local delta, and novelty claim according to
-`governance/decision-provenance.md`. The currently known correction is a
-convergence to accepted local governance, not a novelty claim. Exact prior
-source-history provenance is **unresolved pending the future material diff**;
-it must be recorded as unresolved rather than fabricated if it cannot be
-established confidently.
+reusable skill, the Coder/Reviewer must record the primary provenance class,
+source chain, local delta, and novelty claim according to
+`governance/decision-provenance.md`. The current correction is derived from
+local operating experience and accepted local governance; each changed shared
+skill will state `original_experience_derived`, its internal evidence, the
+convergence delta, and no novelty claim. No external source is asserted.
 
 ### Define Stop Conditions
 
@@ -394,8 +424,9 @@ write-set.
 - **Required:** yes — Managed reusable role/governance-adjacent procedure change.
 - **Inputs:** exact future write-set, this inventory, accepted contracts,
   provenance plan, and deterministic test design.
-- **Expected report:** `docs/reports/reviews/wb-skill-001-critic.md` or an
-  approved current reporting path, determined before source Execute.
+- **Report:** `docs/reports/reviews/wb-skill-001-critic.md`; functional verdict
+  `SUPPLEMENT`. Its bounded Define requirements are addressed by this
+  synchronization; it does not itself open the source Write Gate.
 
 ### Independent Review
 
@@ -429,7 +460,8 @@ write-set.
 
 ## Navigation and Documentation Impact
 
-- **Files added/moved/removed:** this Work Block only in Define.
+- **Files added/moved/removed:** Define evidence and coordination artifacts only;
+  no source path is changed before the gate is READY.
 - **PROJECT_MAP / FILE_REGISTRY update:** no; this is an in-progress plan and no
   active machine Work Block state is changed.
 - **Runtime adapter update:** proposed only, listed above.
@@ -437,12 +469,10 @@ write-set.
 
 ## Commit / Publication Scope
 
-- **Files to stage:** `docs/plans/wb-skill-001-role-skill-convergence.md` only,
-  after the stated validation passes or its documented result is understood.
+- **Files to stage:** none; staging is not currently authorized.
 - **Files to leave unstaged:** `Repository Graph Evaluation Brief.md` and every
-  path outside the single coordination file.
-- **Commit/push approval:** local commit explicitly approved by this instruction;
-  push is not approved.
+  changed path until a separate Owner instruction authorizes staging.
+- **Commit/push approval:** neither is authorized.
 - **Release/deploy approval:** not applicable.
 
 ## Execution Log
@@ -452,10 +482,15 @@ write-set.
 | 2026-08-18 | Define | Orchestrator | Verified exact `main`/`origin/main`; preserved expected untracked brief; created local branch. | Git preflight | completed |
 | 2026-08-18 | Define | Orchestrator | Read governing contracts and completed read-only repository-wide role-skill/direct-adapter inventory. | inventory above | completed |
 | 2026-08-18 | Define | Orchestrator | Recorded source write gate as BLOCKED and proposed future bounded write-set only. | lifecycle state | completed |
+| 2026-08-19 | Define | Requirements-quality Reviewer | Fresh re-review of the corrected specification completed with `READY`; it does not open a write gate. | `docs/reports/requirements/wb-skill-001-rereview.md` | completed |
+| 2026-08-19 | Define | Critic | Separate read-only review returned functional verdict `SUPPLEMENT`: proceed after binding evidence, exact scope, and provenance. | `docs/reports/reviews/wb-skill-001-critic.md` | completed |
+| 2026-08-19 | Define | Orchestrator | Bound Owner confirmation, exact twelve source paths, Critic disposition, provenance approach, and coordination/source-path distinction. | this synchronized Work Block | completed |
+| 2026-08-19 | Define | Consistency Analyzer | Final read-only recheck returned `READY`; exact scope, evidence separation, provenance plan, and no-commit/no-push boundary align. | `docs/reports/requirements/wb-skill-001-consistency.md` | completed |
+| 2026-08-19 | Execute | Orchestrator | Opened the bounded source Write Gate and assigned the sole Coder write-set. | lifecycle state and exact source list | in progress |
 
 ## Closeout
 
-This Work Block is not closed. Source implementation, source assurance, push,
-and PR creation have not been performed. The next action is a separate Critic
-review of the exact proposed source scope after Managed Define-quality evidence
-is resolved as applicable.
+This Work Block is not closed. Source implementation is in progress; source
+assurance, staging, commit, push, and PR creation have not been performed. The
+next action is Coder implementation and scoped self-check inside the exact
+twelve-path source write-set.
