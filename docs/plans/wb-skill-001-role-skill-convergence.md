@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-skill-001-role-skill-convergence
 work_block_id: WB-SKILL-001
-status: in_progress
+status: completed
 owner_role: Owner
 created_at: 2026-08-18
 last_updated: 2026-08-19
@@ -14,7 +14,7 @@ write_gate: READY
 critic_gate: READY
 review_gate: READY
 verification_verdict: READY
-drift_gate: BLOCKED
+drift_gate: ALIGNED
 ---
 
 # WB-SKILL-001 — Framework-Native Role Skill Convergence
@@ -38,8 +38,8 @@ drift_gate: BLOCKED
 
 ## Lifecycle State
 
-- **Current Stage:** Assure
-- **Stage State:** in_progress
+- **Current Stage:** Close
+- **Stage State:** completed
 - **Write Gate:** READY — the approved twelve-path source implementation is
   complete; the source gate is not reopened by closeout synchronization.
 - **Critic Gate:** READY — operational state after the separate Critic
@@ -50,22 +50,20 @@ drift_gate: BLOCKED
 - **Verification Verdict:** READY — independent Technical Verifier returned
   `READY` for the same exact implementation subject after executing all required
   canonical checks in a fresh temporary clone.
-- **Evaluation Verdict:** NOT_REQUIRED
-- **Drift Gate:** BLOCKED — first independent Drift Audit returned
-  `ALIGNMENT_REQUIRED`; implementation/specification are aligned, but stale
-  lifecycle/task/evidence/PR metadata required this synchronization and a
-  subsequent passing re-audit.
-- **Closeout Mode:** pending
+- **Evaluation Verdict:** SKIPPED — deterministic framework procedure,
+  documentation, and contract validation require no non-deterministic evaluation.
+- **Drift Gate:** ALIGNED — final independent re-audit of the evidence-only
+  synchronization confirmed alignment without reopening source or specification.
+- **Closeout Mode:** success-closeout
 
 ### Owner authority evidence
 
 Authority was staged during the Work Block. Earlier Owner instructions opened
 and corrected the bounded implementation/corrective Git flow. The current
-closeout synchronization is separately authorized by the Owner on 2026-08-19
-for exactly five coordination/evidence repository paths plus PR #41 body
-metadata, required checks, one feature-branch commit/push, with the twelve source
-paths and approved specification explicitly excluded and merge explicitly
-forbidden.
+terminal closeout is separately authorized by the Owner on 2026-08-19 for
+exactly six coordination/evidence repository paths plus PR #41 body metadata,
+required checks, one feature-branch commit/push, with the twelve source paths
+and approved specification explicitly excluded and merge explicitly forbidden.
 
 This record documents authority already granted; it does not retroactively grant
 or broaden authority.
@@ -131,7 +129,7 @@ The assured implementation subject achieved the approved objective:
 
 - [x] The approved critical and supporting source paths converge to the governing
   contracts without creating a second lifecycle or authority model.
-- [ ] Required provenance, Critic, independent review, verification, and drift
+- [x] Required provenance, Critic, independent review, verification, and drift
   evidence are repository-bound and a passing re-audit confirms aligned
   closeout state.
 - [x] The scoped deterministic regression check passes and unrelated legacy /
@@ -195,6 +193,7 @@ docs/tasklist/wb-skill-001-role-skill-convergence.md
 docs/reports/reviews/wb-skill-001-independent-review.md
 docs/reports/verification/wb-skill-001-verification.md
 docs/reports/drift/wb-skill-001-role-skill-convergence.md
+docs/reports/closeout/wb-skill-001-role-skill-convergence.md
 ```
 
 PR #41 body metadata is separately authorized in the same instruction.
@@ -249,7 +248,7 @@ approved Work Block if later evidence establishes a critical-path need.
 - [x] no production/deployment/credential/destructive action is authorized;
 - [x] protected/default branch mutation, force/history rewriting, branch deletion,
   and merge remain outside current authority;
-- [x] current Owner authority permits only the five closeout repository paths,
+- [x] current Owner authority permits only the six closeout repository paths,
   PR body metadata, required checks, commit, and normal feature-branch push.
 
 ## Function Bindings
@@ -263,8 +262,8 @@ approved Work Block if later evidence establishes a critical-path need.
 | Implementation | one Coder | bounded writer | exact twelve source paths | completed at assured HEAD `6744f107…` |
 | Independent Review | Reviewer | independent separate chat | read-only | `docs/reports/reviews/wb-skill-001-independent-review.md` — READY for exact assured subject |
 | Technical Verification | Verifier — Gemini 3.7 High | fresh temporary clone | read-only | `docs/reports/verification/wb-skill-001-verification.md` — READY for exact assured subject |
-| Evaluation | not required | n/a | n/a | NOT_REQUIRED |
-| Specification Drift Audit | independent Drift Auditor | independent read-only audit | read-only | `docs/reports/drift/wb-skill-001-role-skill-convergence.md` — ALIGNMENT_REQUIRED before this synchronization |
+| Evaluation | skipped | n/a | n/a | deterministic procedure/documentation and contract validation; no non-deterministic evaluation required |
+| Specification Drift Audit | independent Drift Auditor | independent read-only audit | read-only | `docs/reports/drift/wb-skill-001-role-skill-convergence.md` — ALIGNED after evidence-only synchronization |
 
 ## Skills and Procedure Use
 
@@ -273,8 +272,8 @@ approved Work Block if later evidence establishes a critical-path need.
   remained in governance and the Work Block.
 - Independent Reviewer and Verifier are complete for the assured implementation
   subject.
-- Current remaining assurance action is bounded evidence-only re-freeze/recheck
-  and Specification Drift re-audit after this synchronization revision.
+- The later evidence-only revision received bounded re-freeze/recheck and final
+  Specification Drift re-audit before Close.
 
 ## Implementation and Assurance Plan
 
@@ -285,9 +284,9 @@ approved Work Block if later evidence establishes a critical-path need.
 | Adapter/test coherence | same Coder | approved B source paths | contract test and CI | completed |
 | Independent implementation review | Reviewer | read-only exact frozen subject | independent review report | READY |
 | Technical verification | Verifier | read-only exact frozen subject | isolated command/evidence matrix | READY |
-| Initial Specification Drift Audit | Drift Auditor | read-only | drift report | ALIGNMENT_REQUIRED |
-| Closeout synchronization | Orchestrator | five evidence/coordination paths + PR body | this revision | in progress |
-| Re-freeze / recheck / drift re-audit | independent applicable assurance | evidence-only delta | required before successful Close | pending |
+| Initial Specification Drift Audit | Drift Auditor | read-only | drift report | ALIGNMENT_REQUIRED; correction completed |
+| Closeout synchronization | Orchestrator | six evidence/coordination paths + PR body | terminal closeout report | completed |
+| Re-freeze / recheck / drift re-audit | independent applicable assurance | evidence-only delta | terminal drift re-audit | ALIGNED |
 
 ## Assurance Evidence
 
@@ -314,12 +313,13 @@ approved Work Block if later evidence establishes a critical-path need.
 ### Agent Evaluation
 
 - **Required:** no
-- **Verdict:** NOT_REQUIRED
+- **Verdict:** SKIPPED — deterministic framework procedure, documentation, and
+  contract validation require no non-deterministic evaluation.
 
 ### Specification Drift Audit
 
 - **Subject:** same assured implementation subject
-- **Verdict:** `ALIGNMENT_REQUIRED`
+- **Initial verdict:** `ALIGNMENT_REQUIRED`
 - **Implementation/specification:** aligned, 12/12 REQ and 14/14 AC covered
 - **Correction class:** stale plan/task/evidence/PR documentation only
 - **Report:** `docs/reports/drift/wb-skill-001-role-skill-convergence.md`
@@ -331,8 +331,9 @@ adds the expected Reviewer, Verifier, and Drift evidence paths and updates the
 Work Block/tasklist and PR body so future agents can recover current state
 without relying on hidden conversational history.
 
-No PROJECT_MAP / FILE_REGISTRY update is currently indicated because the Work
-Block is not yet successfully closed.
+No PROJECT_MAP / FILE_REGISTRY update is required by this bounded Work Block;
+the terminal evidence is carried in its approved plan, tasklist, reports, and
+PR body.
 
 ## Git / PR Execution Narrative
 
@@ -341,7 +342,7 @@ performed became stale after subsequent Owner-authorized execution. PR #41 now
 contains the implementation and corrective commits on branch
 `agent/wb-skill-001-role-skill-convergence`.
 
-The current Owner authorization permits this five-path closeout synchronization,
+The final Owner authorization permits this six-path terminal closeout,
 required checks, one commit, normal feature-branch push, and PR #41 body update.
 It explicitly prohibits edits to the twelve source paths and specification and
 does not authorize merge.
@@ -359,19 +360,25 @@ does not authorize merge.
 | 2026-08-19 | Assure | Independent Reviewer | Corrective review rounds converged; final exact-subject verdict `READY`. | independent review report | completed |
 | 2026-08-19 | Assure | Independent Verifier | Fresh isolated clone; all required commands exit 0; verdict `READY`. | verification report | completed |
 | 2026-08-19 | Assure | Drift Auditor | Implementation/spec aligned; stale coordination/evidence metadata found. | drift report | ALIGNMENT_REQUIRED |
-| 2026-08-19 | Assure | Orchestrator | Owner authorized bounded five-path + PR-body closeout synchronization; no source/spec/merge. | Owner instruction | in progress |
+| 2026-08-19 | Assure | Orchestrator | Owner authorized bounded five-path + PR-body synchronization; no source/spec/merge. | Owner instruction | completed |
+| 2026-08-19 | Assure | Independent Technical Verifier | Re-froze and independently executed the required evidence-only `6744f107…` → `47a2d78d…` command suite; all required checks passed. | verification report terminal binding | READY |
+| 2026-08-19 | Assure | Drift Auditor | Final re-audit of the evidence-only synchronization returned `ALIGNED`. | drift report terminal re-audit | completed |
+| 2026-08-19 | Close | Orchestrator | Owner authorized six-path terminal closeout, PR body update, checks, commit, and feature-branch push; source/spec/merge excluded. | terminal closeout report | completed |
 
 ## Closeout
 
-WB-SKILL-001 is **not yet closed**. Source implementation is complete and the
-exact implementation subject has independent Reviewer and Verifier `READY`.
-The first Drift Audit found only coordination/evidence/documentation drift.
+WB-SKILL-001 is successfully closed as a coordination/evidence closeout. The
+assured implementation subject remains `3ec044953…` → `6744f107…`; the later
+`6744f107…` → `47a2d78…` synchronization was independently demonstrated as
+evidence-only, rechecked, and re-audited `ALIGNED`. No source path or approved
+specification was reopened. PR merge remains outside this Work Block's authority.
 
-This synchronization records those facts but necessarily creates a later
-coordination/evidence-only PR HEAD. Before successful Close, the framework must:
+## Final State
 
-1. demonstrate that the later delta contains only authorized coordination/evidence
-   paths and no source/specification change;
-2. perform the bounded re-freeze/recheck required for that evidence-only head;
-3. rerun Specification Drift Audit and obtain `ALIGNED`;
-4. keep merge under explicit Owner control.
+- **Stage State:** completed
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic framework procedure, documentation, and contract validation require no non-deterministic evaluation.
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed

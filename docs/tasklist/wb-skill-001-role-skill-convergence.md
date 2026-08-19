@@ -17,6 +17,7 @@ The Owner separately authorized the current closeout synchronization on
 - `docs/reports/reviews/wb-skill-001-independent-review.md`
 - `docs/reports/verification/wb-skill-001-verification.md`
 - `docs/reports/drift/wb-skill-001-role-skill-convergence.md`
+- `docs/reports/closeout/wb-skill-001-role-skill-convergence.md`
 
 and PR #41 body metadata, including required checks, commit, and feature-branch
 push. The authorization does not permit modification of the twelve source paths
@@ -65,9 +66,10 @@ complete, while lifecycle/task/evidence/PR metadata required synchronization.
 The audit is persisted at
 `docs/reports/drift/wb-skill-001-role-skill-convergence.md`.
 
-A passing re-audit remains required before successful Close. The source
-implementation and approved specification are not reopened by this bookkeeping
-correction.
+The final re-audit of the evidence-only synchronization returned `ALIGNED`.
+Successful Close is therefore recorded in the bounded terminal closeout report.
+The source implementation and approved specification were not reopened by this
+bookkeeping correction.
 
 ## Explicitly Deferred
 

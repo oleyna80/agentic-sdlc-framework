@@ -124,7 +124,23 @@ a technical implementation defect.
 
 ## Close eligibility
 
-Successful Close is **not yet permitted**. After the authorized
-coordination/evidence synchronization, a fresh Drift Audit must return a passing
-alignment verdict; any required bounded assurance rebind for the new evidence-only
-HEAD must also be satisfied.
+At the initial audited subject, successful Close was **not yet permitted**.
+After the authorized coordination/evidence synchronization, a fresh Drift Audit
+had to return a passing alignment verdict and any required bounded assurance
+rebind for the new evidence-only HEAD had to be satisfied.
+
+## Terminal re-audit
+
+The required evidence-only synchronization was subsequently re-frozen at
+`47a2d78d3cc5fb960caec6a4381833518a021649`. Independent verification confirmed
+that the `6744f1071090c98b59de9160b05b2cf4fb20158e` →
+`47a2d78d3cc5fb960caec6a4381833518a021649` delta contained only the authorized
+five coordination/evidence paths, with the approved specification and all twelve
+assured source blobs unchanged. The required local checks passed.
+
+**Terminal re-audit verdict: ALIGNED**
+
+The initial `ALIGNMENT_REQUIRED` verdict above remains a truthful historical
+finding for the assured implementation subject. Its required correction has now
+been completed; this terminal result does not extend earlier READY evidence to
+arbitrary later source changes.

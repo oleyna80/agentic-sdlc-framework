@@ -79,3 +79,13 @@ metadata staleness, not subject movement.
 - **New findings:** none
 - **Reviewer verdict:** **READY**
 - **Independent Verification permitted:** yes, for the exact frozen subject above.
+
+## Terminal closeout binding
+
+This Reviewer verdict remains bound solely to the assured implementation subject
+`3ec044953a854dd8906a4849df507357bd3b87f0` →
+`6744f1071090c98b59de9160b05b2cf4fb20158e`. The later
+`6744f1071090c98b59de9160b05b2cf4fb20158e` →
+`47a2d78d3cc5fb960caec6a4381833518a021649` revision was independently shown
+to be coordination/evidence-only; this report does not extend READY to
+arbitrary later source changes.
