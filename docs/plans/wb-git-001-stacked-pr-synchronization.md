@@ -3,16 +3,16 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-git-001-stacked-pr-synchronization
 work_block_id: WB-GIT-001
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-16
 last_updated: 2026-08-20
 process_level: Standard
 governance_profile: Controlled
-branch: agent/git-orchestration-stacked-sync
-owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16; Owner approved corrective normalization of the three-path implementation write-set on 2026-08-20
+branch: agent/wb-git-001-corrective
+owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16; Owner approved corrective normalization and terminal closeout of this bounded Work Block on 2026-08-20
 critic_gate: SKIPPED
-write_gate: READY
+write_gate: BLOCKED
 writer: one bounded Coder-equivalent documentation stream
 base_revision: 1474c7c5cf2f2e0e74f17aa493c39ac60fa1d94d
 ---
@@ -152,7 +152,25 @@ docs/plans/wb-git-001-stacked-pr-synchronization.md
 
 ## Current State
 
-- Stage: Execute — corrective procedure normalization
-- Write Gate: READY for the three paths above
-- Critic: SKIPPED proportionally; no architecture/authority change
-- Merge: not authorized
+- Stage: Close — success closeout
+- Review Gate: READY for the exact corrective source subject recorded in the
+  review evidence
+- Verification Verdict: READY for the exact corrective source subject recorded
+  in the verification evidence
+- Drift Gate: ALIGNED for the exact corrective source subject recorded in the
+  drift evidence
+- Evaluation Verdict: NOT_REQUIRED; acceptance is deterministic
+  documentation/procedure and contract behavior
+- Closeout Mode: success-closeout
+- Write Gate: BLOCKED; no further source writes are authorized under this Work
+  Block. `CLOSED` is descriptive only and not a gate value.
+- Merge: not authorized or performed
+
+## Closeout Evidence
+
+- Review: `docs/reports/reviews/wb-git-001-stacked-pr-synchronization.md`
+- Verification:
+  `docs/reports/verification/wb-git-001-stacked-pr-synchronization.md`
+- Drift: `docs/reports/drift/wb-git-001-stacked-pr-synchronization.md`
+- Terminal record:
+  `docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md`
