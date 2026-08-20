@@ -136,10 +136,10 @@ GIT_EDITOR=true git rebase --continue
 ## 5. Stacked PR Synchronization & Frozen Assurance
 
 Use this workflow when a child PR was built on another feature branch and its
-parent/base has moved or merged. Read
-`reference/stacked-pr-synchronization.md` for terminology, illustrative cases,
-evidence-record examples, and Git-tree mode background. The workflow, decision
-rules, and stops are defined here.
+parent/base has moved or merged. When terminology, illustrative cases,
+evidence-record formats, or Git-tree mode background needs clarification, read
+`reference/stacked-pr-synchronization.md`. The workflow, decision rules, and
+stops are defined here.
 
 ### Rule
 
