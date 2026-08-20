@@ -3,16 +3,16 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-git-001-stacked-pr-synchronization
 work_block_id: WB-GIT-001
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-16
-last_updated: 2026-08-16
+last_updated: 2026-08-20
 process_level: Standard
 governance_profile: Controlled
-branch: agent/git-orchestration-stacked-sync
-owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16
+branch: agent/wb-git-001-corrective
+owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16; Owner approved corrective normalization and terminal closeout of this bounded Work Block on 2026-08-20
 critic_gate: SKIPPED
-write_gate: READY
+write_gate: BLOCKED
 writer: one bounded Coder-equivalent documentation stream
 base_revision: 1474c7c5cf2f2e0e74f17aa493c39ac60fa1d94d
 ---
@@ -59,6 +59,20 @@ The procedure is derived from observed repository operations, including:
 
 These are operating lessons, not new Git semantics or GitHub authority rules.
 
+## Provenance
+
+- **Classification:** `original_experience_derived`
+- **Sources:** no external design asserted as the basis for this mechanism
+- **Internal evidence:** the observed PR #38 synchronization; stack #34 → #35
+  → #36 on 2026-08-16; GitHub Contents API no-op commit behavior; and repeated
+  frozen-subject assurance invalidation described in Evidence Basis
+- **Local delta:** records these internal operating lessons as a reusable,
+  framework-governed Git orchestration procedure with explicit authority and
+  assurance boundaries
+- **Rationale:** the mechanism originated from this repository's observed
+  operations rather than an identified external design materially shaping it
+- **Novelty claim:** none
+
 ## In Scope
 
 ```text
@@ -79,7 +93,7 @@ docs/plans/wb-git-001-stacked-pr-synchronization.md
 
 ## Required Procedure Content
 
-The reference must explain:
+`SKILL.md` must define the executable procedure, including:
 
 1. bottom-up stacked synchronization;
 2. how to derive the intended child delta from old parent → old child;
@@ -102,16 +116,19 @@ The reference must explain:
 
 1. Existing `git-orchestration-flow` remains the single skill owner for this
    procedure.
-2. Main skill remains compact and routes stacked/frozen-subject work to one
-   detailed reference.
-3. Reference contains a deterministic bottom-up algorithm and post-sync
-   verification checklist.
-4. Procedure defaults to non-destructive synchronization and does not recommend
+2. Main skill contains the core workflow, execution order, decision framework,
+   and hard stops for stacked/frozen-subject work while remaining within the
+   skill-directory size guidance.
+3. Reference contains only supporting terminology, examples, evidence-record
+   formats, and background; it contains no workflow instructions.
+4. Main skill contains a deterministic bottom-up algorithm and post-sync
+   verification requirements.
+5. Procedure defaults to non-destructive synchronization and does not recommend
    rebase/force-push when preserving review/history is material.
-5. Procedure distinguishes accepted-parent conflict resolution from blind
+6. Procedure distinguishes accepted-parent conflict resolution from blind
    old-file overlay.
-6. Frozen-head and CI evidence caveats are explicit.
-7. No authority, runtime, hook, or CI behavior is changed.
+7. Frozen-head and CI evidence caveats are explicit.
+8. No authority, runtime, hook, or CI behavior is changed.
 
 ## Verification
 
@@ -119,12 +136,39 @@ The reference must explain:
 - confirm the existing skill catalog still has one `git-orchestration-flow`
   entry and no duplicate skill was introduced;
 - run applicable publication/framework contracts through PR CI;
-- independent read-only review is sufficient for this documentation-only
-  Controlled change before merge.
+- independent read-only review and independent reproducible verification are
+  required for the final corrective frozen subject before closeout.
 
-## Current State
+## Corrective Cycle
 
-- Stage: Execute — documentation/procedure
-- Write Gate: READY for the three paths above
-- Critic: SKIPPED proportionally; no architecture/authority change
-- Merge: not authorized
+- R1: core execution workflow, decision rules, and hard stops are normalized
+  into `SKILL.md`; the reference is limited to supporting material under
+  `skills/SKILL-CONVENTION.md`.
+- R2: this authoritative Work Block records its required provenance
+  classification.
+- C1: a future terminal closeout projection must set the local source
+  `write_gate` to `BLOCKED`; `CLOSED` is descriptive only and not a valid gate
+  value.
+
+## Final State
+
+- **Stage State:** completed
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Evaluation Verdict:** SKIPPED — deterministic documentation/procedure
+  acceptance requires no non-deterministic evaluation
+- **Task Status:** completed
+- **Closeout Mode:** success-closeout
+- **Write Gate:** BLOCKED
+- **External VCS State:** non-normative; hosting-platform lifecycle remains
+  Owner/repository-controlled.
+
+## Closeout Evidence
+
+- Review: `docs/reports/reviews/wb-git-001-stacked-pr-synchronization.md`
+- Verification:
+  `docs/reports/verification/wb-git-001-stacked-pr-synchronization.md`
+- Drift: `docs/reports/drift/wb-git-001-stacked-pr-synchronization.md`
+- Terminal record:
+  `docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md`

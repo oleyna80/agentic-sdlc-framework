@@ -31,6 +31,7 @@ completed_work_blocks:
   - docs/plans/wb-repository-graph-001-optional-local-provider.md
   - docs/plans/wb-core-003f-github-native-authority-model.md
   - docs/plans/wb-define-001-requirements-quality-traceability.md
+  - docs/plans/wb-git-001-stacked-pr-synchronization.md
 active_work_block: null
 -->
 
@@ -290,6 +291,8 @@ Missing network, revision, or license evidence fails closed.
 | `docs/design/design-md-artifact-contract.md` | approved design-domain contract | Optional provider-neutral DESIGN.md authority, lifecycle, reconciliation, and interoperability contract |
 | `docs/templates/design-md-template.md` | reference template | Reusable DESIGN.md starter; never auto-installed by presence alone |
 | `docs/plans/wb-define-001-requirements-quality-traceability.md` | completed Work Block | Completed Define-stage requirements quality/traceability implementation |
+| `docs/plans/wb-git-001-stacked-pr-synchronization.md` | completed Work Block | Corrected stacked PR synchronization procedure and terminal lifecycle projection |
+| `docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md` | completed closeout | Repository success-closeout for WB-GIT-001 |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
@@ -415,6 +418,10 @@ Completed:
     and read-only pre-execution consistency analysis. It does not install Spec Kit
     or alter the Portable Kit product Work Block sequence.
 
+25. WB-GIT-001 — completed the corrected stacked pull-request synchronization
+    procedure and its terminal lifecycle projection; it adds no GitHub authority,
+    runtime, hook, CI, credential, or source implementation behavior.
+
 Active:
 
 No active implementation Work Block.
@@ -427,10 +434,10 @@ Planned:
 - WB-CORE-007 — promotion and legacy archive.
 
 WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A through
-WB-CORE-003F and WB-DEFINE-001 are inserted governance/control-plane follow-ups,
-not replacements for that product sequence. Planned status grants no execution
-authority. Each future Work Block requires separate Owner authority, exact scope,
-write-set, assurance, and closeout.
+WB-CORE-003F, WB-DEFINE-001, and WB-GIT-001 are inserted governance/control-plane
+follow-ups, not replacements for that product sequence. Planned status grants no
+execution authority. Each future Work Block requires separate Owner authority,
+exact scope, write-set, assurance, and closeout.
 
 ## Boundaries
 

@@ -135,37 +135,140 @@ GIT_EDITOR=true git rebase --continue
 
 ## 5. Stacked PR Synchronization & Frozen Assurance
 
+Use this workflow when a child PR was built on another feature branch and its
+parent/base has moved or merged. When terminology, illustrative cases,
+evidence-record formats, or Git-tree mode background needs clarification, read
+`reference/stacked-pr-synchronization.md`. The workflow, decision rules, and
+stops are defined here.
+
 ### Rule
-When a child PR was built on another feature branch and its parent moves or lands,
-synchronize the stack **bottom-up** and preserve the child's still-valid semantic
-delta on top of the new accepted parent.
 
-Default to a non-destructive two-parent merge plus a non-force branch update when
-review/history preservation matters. After every layer, verify the exact
-`new_parent → new_child` diff before continuing upward.
+Synchronize bottom-up and produce a new child tree that means:
 
-Do not restore an old whole-file child version over newly accepted parent
-architecture merely to avoid conflict resolution. Accepted parent semantics win;
-reapply only the child behavior that remains in scope.
+```text
+accepted new parent + only the still-intended child delta
+```
 
-Frozen assurance is SHA-bound. If the PR head moves, report `SUBJECT MOVED` and
-renew applicable assurance. Do not treat old CI/review as evidence for a new head
-without explicitly labeling it historical.
+Preserve review/history with a two-parent merge and a normal non-force update
+when that preservation is material. Do not use rebase or force-push as the
+default in that situation. The authoritative local check is always
+`new_parent -> new_child`, before any remote ref movement.
 
-Detailed algorithm, Git-object-database variant, CI evidence boundaries, file-mode
-rules, and observed GitHub API failure modes:
+Accepted parent semantics are the baseline. Do not restore an old whole-file
+child version merely to avoid conflict resolution; reapply only child behavior
+that remains in scope.
 
-`reference/stacked-pr-synchronization.md`
+### Inputs and invariant
 
-### Minimum post-sync checklist
+For each child, record:
 
-- record old child and exact new parent heads;
-- preserve two-parent ancestry;
-- advance branch ref with force disabled;
-- inspect `new_parent → new_child` changed files and semantics;
-- verify accepted parent/root surfaces did not leak back into the child;
-- distinguish PR merge-ref CI from detached-head execution evidence;
-- avoid normative self-reference to the file's own current head SHA;
-- use PR metadata operations for PR body/title/base changes instead of no-op file writes;
-- renew required frozen-subject assurance after head movement;
-- never merge/default-branch mutate without the applicable Owner/repository authority.
+```text
+P0 = old parent head/base
+C0 = old child head
+P1 = new accepted or synchronized parent head
+C1 = synchronized child head
+```
+
+The intended outcome is:
+
+```text
+intent_delta = semantic delta of P0 -> C0
+C1 tree      = P1 tree + still-valid intent_delta
+C1 parents   = [C0, P1]
+```
+
+For a stack `main -> A -> B -> C`, process `main -> A`, then `new A -> B`,
+then `new B -> C`. Never update an upper child before the exact lower parent is
+settled.
+
+### Procedure
+
+1. **Freeze the old child intent.** Record the repository/PR, draft state, P0,
+   C0, P1, the old `P0 -> C0` changed paths, new-parent overlap, and the exact
+   CI/review/frozen-head subjects currently available. Classify each overlap as
+   child-only, additive, parent-superseded, or uncertain/material conflict.
+2. **Start from P1.** Switch to the child only after confirming a clean worktree.
+   Use a normal merge without committing first when a checkout is available:
+
+   ```bash
+   git switch <child-branch>
+   git status --short
+   git merge --no-ff --no-commit <new-parent-ref>
+   ```
+
+   Resolve only the intended surviving child delta. Where direct Git-object
+   construction is required, construct `T1` from `P1.tree` plus resolved child
+   overlays, create `C1` with parents `[C0, P1]`, and do not move a branch ref
+   while doing so.
+3. **Resolve with parent-first semantics.** Read the accepted parent version,
+   identify the exact still-required child behavior, apply only that behavior to
+   the parent version, and preserve accepted architecture, authority,
+   documentation placement, tests, and contracts. Blanket `ours`/`theirs`
+   strategies are not appropriate for normative files.
+4. **Verify C1 locally before remote movement.** Inspect `P1 -> C1`, not merely
+   `C0 -> C1`. Confirm the expected changed-file set, surviving child intent,
+   absence of stale inherited parent/root surfaces and unrelated paths,
+   parent-first conflict resolution, relevant file modes, and ancestry
+   `[C0, P1]`. A failed check is a hard stop: do not push or update a remote ref.
+5. **Advance non-destructively only after Step 4 passes.** Confirm the remote
+   child still equals recorded C0, then use a normal non-force push or an
+   `update_ref(force=false)` equivalent:
+
+   ```bash
+   git push <remote> <child-branch>
+   ```
+
+   A rejected normal update is a hard stop; inspect unexpected movement and do
+   not fall back to force-push. Re-read PR base/head and Draft/Ready metadata
+   after the update. Mergeability is not proof of semantic correctness.
+
+### Retargeting and synchronization
+
+Retargeting changes the GitHub comparison base; it does not reconcile a child
+tree with new parent semantics. Retarget only when the child already includes
+the required parent semantics. Otherwise synchronize first, verify
+`new_parent -> child`, then retarget if the stack structure requires it. A clean
+GitHub diff after retargeting is not sufficient semantic proof.
+
+### Frozen-subject assurance
+
+Independent assurance is bound to exactly:
+
+```text
+frozen_base_sha -> frozen_head_sha
+```
+
+Before review or verification, read live PR base and head values, confirm both
+match the frozen pair, and capture the pair's changed-file set/diff. Immediately
+before verdict, re-read both values. If either differs, report `SUBJECT MOVED`;
+do not issue a verdict for the old pair or reuse its CI/review as current
+assurance. A base retarget or advance changes the assurance subject even if the
+head SHA does not move. Older evidence remains historical only.
+
+### Evidence and mutation boundaries
+
+- Identify PR merge-ref/integration CI separately from detached-head execution;
+  do not claim the latter unless that is what actually ran.
+- Do not write a current validated HEAD into a normative file on that same
+  branch: the write creates a new head and invalidates the claim. Use immutable
+  inputs or external/provider evidence, and renew assurance if a closeout report
+  intentionally joins the frozen subject.
+- Treat GitHub Contents API updates as repository mutations, including apparent
+  no-op updates that can create a commit. Compare intended bytes first and skip
+  a no-op write.
+- Use PR metadata operations for title, body, base, Draft/Ready, reviewers, and
+  labels when repository content does not need to change.
+- When constructing a tree directly, preserve the original modes (for example
+  `100644`, `100755`, and `040000`); blob identity alone does not preserve an
+  executable bit.
+- Never merge into a default branch, release, or otherwise change protected
+  remote state without the applicable Owner/repository authority.
+
+### Hard stops
+
+Return to Define/Owner decision instead of resolving automatically when parent
+and child contain material product/governance conflict; retaining the child would
+undo accepted authority or security semantics; scope must expand; the remote
+head moved; history rewrite appears necessary; the intended child delta cannot
+be separated from stale inheritance; or external merge/protected-branch
+authority is absent.
