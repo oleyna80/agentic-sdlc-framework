@@ -31,6 +31,7 @@ completed_work_blocks:
   - docs/plans/wb-repository-graph-001-optional-local-provider.md
   - docs/plans/wb-core-003f-github-native-authority-model.md
   - docs/plans/wb-define-001-requirements-quality-traceability.md
+  - docs/plans/wb-git-001-stacked-pr-synchronization.md
 active_work_block: null
 -->
 
@@ -415,6 +416,11 @@ Completed:
     and read-only pre-execution consistency analysis. It does not install Spec Kit
     or alter the Portable Kit product Work Block sequence.
 
+25. WB-GIT-001 — completed Controlled extension of the existing Git orchestration
+    procedure for stacked pull-request synchronization and frozen-subject
+    assurance. It adds no GitHub authority, automation, runtime, hook, CI, or
+    default-branch behavior.
+
 Active:
 
 No active implementation Work Block.
@@ -427,7 +433,7 @@ Planned:
 - WB-CORE-007 — promotion and legacy archive.
 
 WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A through
-WB-CORE-003F and WB-DEFINE-001 are inserted governance/control-plane follow-ups,
+WB-CORE-003F, WB-DEFINE-001, and WB-GIT-001 are inserted governance/control-plane follow-ups,
 not replacements for that product sequence. Planned status grants no execution
 authority. Each future Work Block requires separate Owner authority, exact scope,
 write-set, assurance, and closeout.

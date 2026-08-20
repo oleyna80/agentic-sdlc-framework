@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 24
+version: 25
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -220,6 +220,7 @@ migration_state:
     - docs/plans/wb-repository-graph-001-optional-local-provider.md
     - docs/plans/wb-core-003f-github-native-authority-model.md
     - docs/plans/wb-define-001-requirements-quality-traceability.md
+    - docs/plans/wb-git-001-stacked-pr-synchronization.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -233,8 +234,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-define-001-requirements-quality-traceability.md
-  closeout_report: docs/reports/closeout/wb-define-001-requirements-quality-traceability.md
+  latest_completed_work_block: docs/plans/wb-git-001-stacked-pr-synchronization.md
+  closeout_report: docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md
   external_vcs_state: non_normative
   authority: assurance_only
 

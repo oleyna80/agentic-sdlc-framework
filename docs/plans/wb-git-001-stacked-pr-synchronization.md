@@ -3,14 +3,14 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-git-001-stacked-pr-synchronization
 work_block_id: WB-GIT-001
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-16
-last_updated: 2026-08-16
+last_updated: 2026-08-20
 process_level: Standard
 governance_profile: Controlled
 branch: agent/git-orchestration-stacked-sync
-owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16
+owner_approval: Owner requested preserving GitHub operating experience for future sessions on 2026-08-16 and directed terminal closeout on 2026-08-20
 critic_gate: SKIPPED
 write_gate: READY
 writer: one bounded Coder-equivalent documentation stream
@@ -59,7 +59,7 @@ The procedure is derived from observed repository operations, including:
 
 These are operating lessons, not new Git semantics or GitHub authority rules.
 
-## In Scope
+## Executed Procedure Write-Set
 
 ```text
 skills/git-orchestration-flow/SKILL.md
@@ -122,9 +122,48 @@ The reference must explain:
 - independent read-only review is sufficient for this documentation-only
   Controlled change before merge.
 
-## Current State
+## Terminal Closeout Projection
 
-- Stage: Execute — documentation/procedure
-- Write Gate: READY for the three paths above
-- Critic: SKIPPED proportionally; no architecture/authority change
-- Merge: not authorized
+The 2026-08-20 Owner-directed terminal closeout adds only factual lifecycle and
+assurance records for the already frozen procedure subject, plus the required
+human and machine lifecycle projections:
+
+```text
+docs/plans/wb-git-001-stacked-pr-synchronization.md
+docs/reports/reviews/wb-git-001-stacked-pr-synchronization.md
+docs/reports/verification/wb-git-001-stacked-pr-synchronization.md
+docs/reports/drift/wb-git-001-stacked-pr-synchronization.md
+docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md
+PROJECT_MAP.md
+FILE_REGISTRY.yml
+memory_bank/context.md
+memory_bank/progress.md
+```
+
+It does not reopen or modify the three executed procedure paths.
+
+## Final State
+
+- **Stage State:** completed
+- **Write Gate:** CLOSED — the procedure subject is frozen; no source edit is
+  authorized by this completed Work Block
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic documentation/procedure
+  acceptance and contract validation require no non-deterministic evaluation
+- **Drift Gate:** ALIGNED
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
+- **Review Evidence:**
+  `docs/reports/reviews/wb-git-001-stacked-pr-synchronization.md`
+- **Verification Evidence:**
+  `docs/reports/verification/wb-git-001-stacked-pr-synchronization.md`
+- **Drift Evidence:**
+  `docs/reports/drift/wb-git-001-stacked-pr-synchronization.md`
+- **Closeout Record:**
+  `docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md`
+
+The historical independent assurance remains bound to the exact implementation
+subject `9eaffcb1848f29d0e24a8f89c6b9ce1afdca51fe` →
+`63a01124306c83689456968d792b354f425b8844`. The terminal closeout does not
+extend that assurance to later source changes.
