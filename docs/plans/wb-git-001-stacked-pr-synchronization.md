@@ -150,21 +150,19 @@ docs/plans/wb-git-001-stacked-pr-synchronization.md
   `write_gate` to `BLOCKED`; `CLOSED` is descriptive only and not a valid gate
   value.
 
-## Current State
+## Final State
 
-- Stage: Close — success closeout
-- Review Gate: READY for the exact corrective source subject recorded in the
-  review evidence
-- Verification Verdict: READY for the exact corrective source subject recorded
-  in the verification evidence
-- Drift Gate: ALIGNED for the exact corrective source subject recorded in the
-  drift evidence
-- Evaluation Verdict: NOT_REQUIRED; acceptance is deterministic
-  documentation/procedure and contract behavior
-- Closeout Mode: success-closeout
-- Write Gate: BLOCKED; no further source writes are authorized under this Work
-  Block. `CLOSED` is descriptive only and not a gate value.
-- Merge: not authorized or performed
+- **Stage State:** completed
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Evaluation Verdict:** SKIPPED — deterministic documentation/procedure
+  acceptance requires no non-deterministic evaluation
+- **Task Status:** completed
+- **Closeout Mode:** success-closeout
+- **Write Gate:** BLOCKED
+- **External VCS State:** non-normative; hosting-platform lifecycle remains
+  Owner/repository-controlled.
 
 ## Closeout Evidence
 
