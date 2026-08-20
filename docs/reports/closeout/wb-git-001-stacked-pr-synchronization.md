@@ -8,8 +8,8 @@ owner_role: orchestrator
 created_at: 2026-08-20
 last_verified: 2026-08-20
 closeout_mode: success-closeout
-assured_source_base_revision: 8e4e7657ad269fc6e58ddc649a619aa9e3a8b99b
-assured_source_head_revision: e1be3985c9dce1b9c39f070cf49f4c595668f7d2
+assured_terminal_base_revision: 302c8adfc0277d4d7b93a23cd196bdc04da10b38
+assured_terminal_head_revision: e252a02ed65efcf7dab062733a3df79cd5e7b861
 ---
 
 # WB-GIT-001 — Stacked PR Synchronization Procedure Closeout
@@ -19,31 +19,28 @@ assured_source_head_revision: e1be3985c9dce1b9c39f070cf49f4c595668f7d2
 - **Stage execution state:** completed
 - **Review verdict:** READY
 - **Verification verdict:** READY
-- **Evaluation verdict:** NOT_REQUIRED — deterministic documentation/procedure
+- **Evaluation verdict:** SKIPPED — deterministic documentation/procedure
   acceptance and contract validation require no non-deterministic evaluation
 - **Drift verdict:** ALIGNED
 - **Local source write gate:** BLOCKED
 - **Closeout classification:** SUCCESS
-- **External VCS state:** no PR creation, merge, or default-branch mutation was
-  performed; those remain separately Owner/repository-controlled
+- **Task Status:** completed
+- **External VCS state:** non-normative; hosting-platform lifecycle remains
+  Owner/repository-controlled
 
 ## Result
 
-The final corrective source subject preserves the existing single Git skill
-owner while normalizing the procedure architecture: executable workflow,
-decisions, safeguards, and hard stops are in `SKILL.md`; the reference is
-conditional supporting material. It also records the required
-`original_experience_derived` provenance and valid terminal gate semantics.
-
-The procedure retains bottom-up intent-preserving synchronization,
-accepted-parent-first conflict handling, verification before non-force remote
-movement, and exact base-and-head frozen-subject assurance boundaries.
+The terminal normative subject synchronizes the authoritative Work Block,
+machine-readable registry, and human-readable Project Map. The preceding source
+correction remains unchanged: the existing single Git skill retains its core
+workflow in `SKILL.md`, a conditional supporting reference, complete
+`original_experience_derived` provenance, and valid terminal gate semantics.
 
 ## Evidence
 
-- **Assured corrective source subject:**
-  `8e4e7657ad269fc6e58ddc649a619aa9e3a8b99b` →
-  `e1be3985c9dce1b9c39f070cf49f4c595668f7d2`
+- **Assured terminal normative subject:**
+  `302c8adfc0277d4d7b93a23cd196bdc04da10b38` →
+  `e252a02ed65efcf7dab062733a3df79cd5e7b861`
 - **Review:** `docs/reports/reviews/wb-git-001-stacked-pr-synchronization.md`
 - **Verification:**
   `docs/reports/verification/wb-git-001-stacked-pr-synchronization.md`
@@ -53,16 +50,15 @@ movement, and exact base-and-head frozen-subject assurance boundaries.
   credential-marker scan.
 
 The earlier historical final-head independent-review gap is not used as
-assurance for this corrective source subject. Fresh exact-subject Reviewer,
-Verifier, and drift-audit results are recorded above.
+assurance for this terminal subject. Fresh exact-subject Reviewer, Verifier,
+and drift-audit results are recorded above.
 
 ## Residual Risks and Limitations
 
 - The procedure is guidance, not a replacement for Owner/repository authority
   or hosting-provider protections.
-- A frozen assurance verdict cannot be reused after source base or head
-  movement.
-- Future automation, GitHub policy, runtime, hook, CI, credential, or source
+- A frozen assurance verdict cannot be reused after normative subject movement.
+- Future automation, hosting policy, runtime, hook, CI, credential, or source
   changes require a separately approved Work Block and assurance.
 
 ## Follow-Up Work
