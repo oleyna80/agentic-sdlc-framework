@@ -36,44 +36,52 @@ mandatory_provider_semantics_present() {
   fi
 
   awk '
-    function inspect(unit,    line, modal, provider, assurance, prerequisite, temporal_link, provider_mandate, prerequisite_mandate) {
-      line = tolower(unit)
+    # Inspect one normalized prose statement. The predicate deliberately uses
+    # independent concepts instead of word-order regexes: provider review,
+    # provider prerequisite, and verification prerequisite mandates are all
+    # forbidden whichever order ordinary prose uses.
+    function forbidden_statement(statement,    line, modal, provider, assurance, prerequisite, negated, provider_mandate, prerequisite_mandate) {
+      line = tolower(statement)
       gsub(/[[:space:]]+/, " ", line)
-      if (line ~ /(does not|do not|cannot|can not|never|no[[:space:]].*(prerequisite|installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport))/) {
+
+      # A negative statement must not be mistaken for a mandate. Statements
+      # are inspected separately so one negative sentence cannot exempt a
+      # later positive mandate in the same prose unit.
+      negated = (line ~ /(does not|do not|cannot|can not|never)[[:space:]]+(require|requires|need|needs|install|installation|authenticate|authentication|configure|configuration|issue|replace|grant|create|treat|claim|substitute)/ ||
+        line ~ /(is|are|be)[[:space:]]+not[[:space:]]+(mandatory|required|needed)/ ||
+        line ~ /not[[:space:]]+(mandatory|required|needed)/ ||
+        line ~ /no[[:space:]]+(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*(review|verification|execution|installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/)
+      if (negated) {
         return 0
       }
-      modal = line ~ /(must|mandatory|required)/
+
+      modal = (line ~ /(^|[^[:alpha:]])(must|mandatory|required|requires|require|needs|need)([^[:alpha:]]|$)/ ||
+        line ~ /depends[[:space:]]+on/)
       provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
       assurance = line ~ /(review|verification|execution)/
       prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
-      temporal_link = line ~ /(before|prior to|after|requires|require|needs|need|depends on|prerequisite)/
 
-      provider_mandate = (line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
-(review|verification|execution).*(must|mandatory|required)/ ||
-        line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
-(must|mandatory|required).*(review|verification|execution)/ ||
-        line ~ /(must|mandatory|required).*\
-(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
-(review|verification|execution)/ ||
-        line ~ /(must|mandatory|required).*\
-(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
-(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/ ||
-        line ~ /(must|mandatory|required).*\
-(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
-(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/ ||
-        line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
-(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
-(must|mandatory|required)/)
-      prerequisite_mandate = (prerequisite && assurance && temporal_link &&
-        (line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
-(must|mandatory|required|requires|require|needs|need|depends on).*\
-(review|verification|execution)/ ||
-         line ~ /(must|mandatory|required).*\
-(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
-(before|prior to|after).*\
-(review|verification|execution)/))
-
+      provider_mandate = provider && assurance && modal
+      prerequisite_mandate = prerequisite && modal && (assurance || provider)
       return provider_mandate || prerequisite_mandate
+    }
+
+    # Units are prose paragraphs or one complete list item. Split their
+    # normalized text into sentences so unrelated sentences do not combine
+    # concepts, while line wrapping inside a sentence remains visible.
+    function inspect(unit,    text, remainder, end, statement) {
+      text = unit
+      gsub(/[[:space:]]+/, " ", text)
+      remainder = text
+      while (match(remainder, /[.!?]+/)) {
+        end = RSTART + RLENGTH - 1
+        statement = substr(remainder, 1, end)
+        if (forbidden_statement(statement)) {
+          return 1
+        }
+        remainder = substr(remainder, end + 1)
+      }
+      return forbidden_statement(remainder)
     }
 
     function flush_unit() {
@@ -113,9 +121,6 @@ mandatory_provider_semantics_present() {
         unit = line
         in_list_item = 1
         next
-      }
-      if (in_list_item && line !~ /^[[:space:]]+/) {
-        flush_unit()
       }
       if (unit == "") {
         unit = line
@@ -187,12 +192,21 @@ done
 # to the target skill below; these fixtures only prove the predicate itself.
 assert_provider_semantics_fixture forbidden "Provider review is mandatory."
 assert_provider_semantics_fixture forbidden "Mandatory provider verification."
+assert_provider_semantics_fixture forbidden "Mandatory review by a provider."
+assert_provider_semantics_fixture forbidden "Verification is required by Codex."
 assert_provider_semantics_fixture forbidden "Provider review is" "mandatory."
 assert_provider_semantics_fixture forbidden "Provider" "review is mandatory."
 assert_provider_semantics_fixture forbidden "Installation is required" "before verification."
 assert_provider_semantics_fixture forbidden "Must install" "Codex."
 assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
+assert_provider_semantics_fixture forbidden "- Provider review is" "mandatory."
+assert_provider_semantics_fixture forbidden "- Provider" "review is mandatory."
+assert_provider_semantics_fixture forbidden "- Installation is required" "before verification."
 assert_provider_semantics_fixture allowed "Provider execution is optional." "This skill does not grant provider authority."
+assert_provider_semantics_fixture allowed "Provider review is not mandatory."
+assert_provider_semantics_fixture allowed "Installation is not required before verification."
+assert_provider_semantics_fixture allowed "Do not install Codex."
+assert_provider_semantics_fixture allowed "A provider does not replace required Reviewer assurance."
 assert_provider_semantics_fixture allowed "Provider review is" "" "mandatory."
 assert_provider_semantics_fixture allowed "- Provider review is" "- mandatory."
 assert_provider_semantics_fixture allowed "# Provider review is mandatory."
