@@ -28,6 +28,29 @@ require_absent_pattern() {
   fi
 }
 
+require_absent_mandatory_provider_semantics() {
+  local path="$1"
+  if awk '
+    {
+      line = tolower($0)
+      modal = line ~ /(must|mandatory|required)/
+      provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
+      assurance = line ~ /(review|verification|execution)/
+      prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
+      temporal_link = line ~ /(before|prior to|after|requires|require|needs|need|depends on|prerequisite)/
+
+      if ((modal && provider && (assurance || prerequisite)) ||
+          (prerequisite && assurance && temporal_link)) {
+        found = 1
+        exit
+      }
+    }
+    END { exit(found ? 0 : 1) }
+  ' "$ROOT/$path"; then
+    fail "$path contains mandatory provider-review or provider-prerequisite semantics"
+  fi
+}
+
 assert_before() {
   local path="$1"
   local first_pattern="$2"
@@ -309,6 +332,22 @@ require_contains "skills/reviewer/SKILL.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*U
 require_contains "template/.claude/agents/reviewer.md" 'READY.*CHANGES_REQUIRED.*BLOCKED.*UNVERIFIED'
 require_contains "skills/verifier/SKILL.md" 'reproducible'
 require_contains "template/.codex/AGENTS.md" 'governance/lifecycle.md'
+
+# WB-SKILL-002: codex-verification is an optional runtime-adapter advisory
+# procedure. These checks intentionally inspect only the current target skill;
+# historical provider-specific evidence and unrelated legacy surfaces remain
+# outside this contract boundary.
+require_file "skills/codex-verification/SKILL.md"
+require_contains "skills/codex-verification/SKILL.md" 'Authority, lifecycle, scope, and assurance selection remain with governing'
+require_contains "skills/codex-verification/SKILL.md" 'contracts and the active Work Block'
+require_contains "skills/codex-verification/SKILL.md" 'Additional provider execution is optional scoped evidence'
+require_contains "skills/codex-verification/SKILL.md" 'If optional execution is unavailable, record an inspection gap'
+require_contains "skills/codex-verification/SKILL.md" 'does not issue a project verdict'
+require_absent_pattern "skills/codex-verification/SKILL.md" 'Control Tower|Stage 0[.]5|gpt-critic|gpt-verifier'
+require_absent_pattern "skills/codex-verification/SKILL.md" 'Prerequisites|npm install|codex login|mcp-server'
+# This case-insensitive guard scans only the target skill. It detects mandatory
+# provider-review and provider-prerequisite concepts regardless of word order.
+require_absent_mandatory_provider_semantics "skills/codex-verification/SKILL.md"
 
 # WB41-R1: direct runtime adapters must retain the critical semantics they restate.
 require_contains "template/.codex/AGENTS.md" 'Define.*Execute.*Assure.*Close'
