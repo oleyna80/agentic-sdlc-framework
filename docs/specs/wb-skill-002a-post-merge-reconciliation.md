@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-skill-002a-post-merge-reconciliation
 work_block_id: WB-SKILL-002A
-status: draft
+status: approved
 created_at: 2026-08-21
-revision: define-r1-2026-08-21
-owner_approval: Owner approved Define-only investigation and artifact creation on 2026-08-21; this specification grants no source-write, GitHub, or merge authority.
+revision: execute-r1-2026-08-21
+owner_approval: Owner prospectively approved this exact specification revision and the exact five-path source write-set on 2026-08-21. This approval establishes WB-SKILL-002A Execute authority only; it does not prove or retroactively cure historical WB-SKILL-002 approval.
 ---
 
 # WB-SKILL-002A — Post-Merge Specification and Regression-Guard Reconciliation
@@ -15,8 +15,10 @@ owner_approval: Owner approved Define-only investigation and artifact creation o
 
 This corrective specification addresses two confirmed post-merge defects in
 WB-SKILL-002 while preserving its accepted provider-neutral source outcome.
-It is a proposed Define artifact, not authority to modify source, historical
-evidence, GitHub state, or the prior specification.
+It is the approved behavioral authority for the bounded WB-SKILL-002A Execute
+write-set. It does not authorize source outside that exact write-set, historical
+evidence fabrication, GitHub state changes, or retroactive treatment of the
+prior specification.
 
 The historical record establishes that the prior separate specification was
 created as `draft` and remained so through Execute and closeout. It does not
@@ -131,12 +133,12 @@ remain distinct.
 ## Verification Boundary
 
 Requirements-quality review, deterministic traceability, consistency analysis,
-and Critic review complete this Define investigation. They do not authorize
-source Execute: the P1 A/B/C Owner decision and separate prospective Owner
-approval of this specification plus the exact source write-set remain required.
-Any approved implementation then requires independent Reviewer, Verifier, and
-Specification Drift assurance on its exact frozen subject. Evaluation is not
-required for this deterministic governance/tooling reconciliation.
+and Critic review completed this Define investigation. The Owner subsequently
+selected P1 branch B and prospectively approved this exact specification
+revision plus its exact bounded source write-set. Any implementation still
+requires independent Reviewer, Verifier, and Specification Drift assurance on
+its exact frozen subject. Evaluation is not required for this deterministic
+governance/tooling reconciliation.
 
 ## Non-Goals
 
@@ -144,6 +146,7 @@ required for this deterministic governance/tooling reconciliation.
 - Deciding an untracked historical Owner fact.
 - Treating a current approval as evidence that it happened before Execute.
 - Selecting the required future A/B/C Owner decision in this Define artifact.
-- Approving this Work Block's specification or source write-set for Execute.
+- Extending this Work Block's prospective Execute approval beyond its exact
+  approved source write-set.
 - Applying a global historical specification-status migration without an
   explicit, evidence-supported follow-up decision.

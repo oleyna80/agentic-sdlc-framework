@@ -28,27 +28,129 @@ require_absent_pattern() {
   fi
 }
 
-require_absent_mandatory_provider_semantics() {
+mandatory_provider_semantics_present() {
   local path="$1"
-  if awk '
-    {
-      line = tolower($0)
+  local target="$path"
+  if [[ "$target" != /* ]]; then
+    target="$ROOT/$target"
+  fi
+
+  awk '
+    function inspect(unit,    line, modal, provider, assurance, prerequisite, temporal_link, provider_mandate, prerequisite_mandate) {
+      line = tolower(unit)
+      gsub(/[[:space:]]+/, " ", line)
+      if (line ~ /(does not|do not|cannot|can not|never|no[[:space:]].*(prerequisite|installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport))/) {
+        return 0
+      }
       modal = line ~ /(must|mandatory|required)/
       provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
       assurance = line ~ /(review|verification|execution)/
       prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
       temporal_link = line ~ /(before|prior to|after|requires|require|needs|need|depends on|prerequisite)/
 
-      if ((modal && provider && (assurance || prerequisite)) ||
-          (prerequisite && assurance && temporal_link)) {
+      provider_mandate = (line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
+(review|verification|execution).*(must|mandatory|required)/ ||
+        line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
+(must|mandatory|required).*(review|verification|execution)/ ||
+        line ~ /(must|mandatory|required).*\
+(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
+(review|verification|execution)/ ||
+        line ~ /(must|mandatory|required).*\
+(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
+(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/ ||
+        line ~ /(must|mandatory|required).*\
+(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
+(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/ ||
+        line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*\
+(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
+(must|mandatory|required)/)
+      prerequisite_mandate = (prerequisite && assurance && temporal_link &&
+        (line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
+(must|mandatory|required|requires|require|needs|need|depends on).*\
+(review|verification|execution)/ ||
+         line ~ /(must|mandatory|required).*\
+(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite).*\
+(before|prior to|after).*\
+(review|verification|execution)/))
+
+      return provider_mandate || prerequisite_mandate
+    }
+
+    function flush_unit() {
+      if (unit != "" && inspect(unit)) {
         found = 1
-        exit
+      }
+      unit = ""
+      in_list_item = 0
+    }
+
+    function is_list_item(line) {
+      return line ~ /^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)/
+    }
+
+    {
+      line = $0
+
+      if (line ~ /^[[:space:]]*(```|~~~)/) {
+        flush_unit()
+        in_fence = !in_fence
+        next
+      }
+      if (in_fence) {
+        next
+      }
+      if (line ~ /^[[:space:]]*$/) {
+        flush_unit()
+        next
+      }
+      if (line ~ /^[[:space:]]{0,3}#{1,6}([[:space:]]|$)/) {
+        flush_unit()
+        next
+      }
+      if (is_list_item(line)) {
+        flush_unit()
+        sub(/^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)/, "", line)
+        unit = line
+        in_list_item = 1
+        next
+      }
+      if (in_list_item && line !~ /^[[:space:]]+/) {
+        flush_unit()
+      }
+      if (unit == "") {
+        unit = line
+      } else {
+        unit = unit " " line
       }
     }
-    END { exit(found ? 0 : 1) }
-  ' "$ROOT/$path"; then
+    END {
+      flush_unit()
+      exit(found ? 0 : 1)
+    }
+  ' "$target"
+}
+
+require_absent_mandatory_provider_semantics() {
+  local path="$1"
+  if mandatory_provider_semantics_present "$path"; then
     fail "$path contains mandatory provider-review or provider-prerequisite semantics"
   fi
+}
+
+assert_provider_semantics_fixture() {
+  local expected="$1"
+  shift
+  local fixture
+  fixture="$(mktemp)"
+  printf '%s\n' "$@" > "$fixture"
+
+  if mandatory_provider_semantics_present "$fixture"; then
+    actual="forbidden"
+  else
+    actual="allowed"
+  fi
+  rm -f "$fixture"
+  [ "$actual" = "$expected" ] || fail "provider-semantics fixture expected $expected, got $actual"
 }
 
 assert_before() {
@@ -79,6 +181,22 @@ assert_quick_fix no 3 none
 for impact in logic route schema api security runtime integration architecture evaluation governance; do
   assert_quick_fix no 1 "$impact"
 done
+
+# WB-SKILL-002A: exercise the exact bounded-prose predicate against ordinary
+# Markdown wrapping and hard statement boundaries. The contract remains scoped
+# to the target skill below; these fixtures only prove the predicate itself.
+assert_provider_semantics_fixture forbidden "Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "Mandatory provider verification."
+assert_provider_semantics_fixture forbidden "Provider review is" "mandatory."
+assert_provider_semantics_fixture forbidden "Provider" "review is mandatory."
+assert_provider_semantics_fixture forbidden "Installation is required" "before verification."
+assert_provider_semantics_fixture forbidden "Must install" "Codex."
+assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
+assert_provider_semantics_fixture allowed "Provider execution is optional." "This skill does not grant provider authority."
+assert_provider_semantics_fixture allowed "Provider review is" "" "mandatory."
+assert_provider_semantics_fixture allowed "- Provider review is" "- mandatory."
+assert_provider_semantics_fixture allowed "# Provider review is mandatory."
+assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '```'
 
 for path in \
   "governance/authority.md" \

@@ -66,6 +66,24 @@ Legacy `Drift Gate: READY` remains accepted for historical Work Blocks created
 before `ALIGNED` became the canonical terminal drift token. New Work Blocks use
 `ALIGNED`.
 
+### Latest Formal Work Block Specification Authority
+
+For the latest completed Work Block only, a Managed, Assured, or Distributed
+Work Block with a separate normative specification must not successfully close
+while that specification is non-authoritative. The deterministic sibling
+tasklist at `docs/tasklist/<work-block-basename>.md` supplies the binding path
+only; the resolved specification remains the authority and must have
+`artifact_type: specification`, the same `work_block_id`, and exact
+`status: approved`.
+
+A missing `specification` field means no separate specification is declared and
+the invariant is skipped. When the latest eligible Work Block has a present
+field, validation fails closed for a missing sibling tasklist, duplicate,
+empty, malformed, or non-repository-relative field, missing target, or a target
+with the wrong artifact type, Work Block ID, or non-approved status. This rule
+does not infer bindings or profiles for historical Work Blocks and does not
+perform a legacy global migration.
+
 ### Active Work Block
 
 A non-null `active_work_block` must:
@@ -156,6 +174,9 @@ validator must reject at least:
   semantic state matching;
 - adverse or contradictory lifecycle evidence in any existing closeout report bound
   to a completed Work Block ID.
+- a latest completed Managed, Assured, or Distributed Work Block with a declared
+  separate specification whose deterministic binding is invalid or whose
+  resolved specification is not `approved`.
 
 ## Enforcement
 

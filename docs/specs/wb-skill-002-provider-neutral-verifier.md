@@ -2,16 +2,27 @@
 schema_version: 1
 artifact_type: specification
 artifact_id: wb-skill-002-provider-neutral-verifier
-status: draft
+work_block_id: WB-SKILL-002
+status: approved
 created_at: 2026-08-21
 revised_at: 2026-08-21
-revision: define-r2-2026-08-21
-owner_approval: Owner approved Define-only creation on 2026-08-21; this specification grants no source-write, GitHub, or merge authority.
+revision: reconciliation-r1-2026-08-21
+owner_approval: Owner prospectively approved this current specification on 2026-08-21. This approval takes effect only on that date; it does not establish pre-Execute approval, cure, or rewrite the historical WB-SKILL-002 process deviation. This specification grants no source-write, GitHub, or merge authority.
 ---
 
 # WB-SKILL-002 — Provider-Neutral Verifier Legacy Skill Correction
 
 ## Purpose and Authority
+
+## Lifecycle Reconciliation Record
+
+WB-SKILL-002 Execute and closeout were historically recorded while this
+specification had `status: draft`. Repository evidence does not establish an
+Owner approval of revision `define-r2-2026-08-21` before that Execute; the
+historical external approval fact remains `UNVERIFIED`. The Owner's current
+approval on 2026-08-21 is prospective only. It makes this current revision
+authoritative from that date and does not retroactively represent the historical
+process as compliant.
 
 This specification corrects one dogfooding-discovered legacy skill:
 `skills/codex-verification/SKILL.md`. The current skill is installed in the

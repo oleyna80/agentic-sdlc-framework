@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: tasklist
 work_block_id: WB-SKILL-002A
 specification: docs/specs/wb-skill-002a-post-merge-reconciliation.md
-specification_revision: define-r1-2026-08-21
+specification_revision: execute-r1-2026-08-21
 status: draft
 ---
 

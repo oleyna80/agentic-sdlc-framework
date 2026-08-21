@@ -10,13 +10,13 @@ last_updated: 2026-08-21
 governance_profile: Managed
 branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: f206e6bd845bfaa8d78082610a7d784b6669cf2c
-write_gate: BLOCKED
+write_gate: READY
 critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
-owner_approval: Owner approved Define-only investigation and creation of exactly this Work Block's plan, specification, and tasklist on 2026-08-21; no source implementation, GitHub action, or merge authority is granted.
+owner_approval: Owner prospectively approved WB-SKILL-002A specification revision execute-r1-2026-08-21 and exactly the recorded five-path source write-set on 2026-08-21. The approval is limited to bounded source Execute; it does not prove or retroactively cure historical WB-SKILL-002 approval, and grants no GitHub or merge authority.
 ---
 
 # WB-SKILL-002A — Post-Merge Specification and Regression-Guard Reconciliation
@@ -39,14 +39,14 @@ the WB-SKILL-002 specification, detect wrapped mandatory-provider semantics in
 the existing target-only guard, and reject the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
 
-## Current Define State
+## Current Execute Authorization State
 
-- **Current Stage:** Define
-- **Stage State:** completed — Define investigation, requirements quality,
-  consistency analysis, and Critic review are complete; the Work Block itself
-  remains in progress and has not entered Execute.
-- **Write Gate:** BLOCKED — neither required Owner precondition for source
-  Execute has been recorded.
+- **Current Stage:** Execute
+- **Stage State:** in_progress — Define investigation, requirements quality,
+  consistency analysis, Critic review, the P1 decision, and prospective source
+  authorization are complete; source implementation has not yet begun.
+- **Write Gate:** READY — Owner approval is limited to the exact five-path
+  source write-set recorded below.
 - **Critic Gate:** READY
 - **Review Gate:** PENDING
 - **Verification:** PENDING
@@ -118,16 +118,52 @@ the decision's historical or prospective temporal scope. Until it exists,
 does not permit a C record to silently select a historical answer, and this
 Define-only artifact intentionally records no selection.
 
-### Required Owner Approval Before WB-SKILL-002A Execute
+#### Recorded Owner Decision — 2026-08-21
 
-After the P1 historical decision is recorded but before any source Execute, the
-Owner must separately approve both this Work Block's then-current specification
-in `approved` status and the exact frozen source write-set. The approval record
-must identify the specification revision, every authorized source path, and the
-prospective execution scope. It must expressly state that it neither proves
+**Selected branch: B — historical process deviation.** The Owner's explicit
+instruction in this coordination record, “выбираю B — historical process
+deviation,” is the authority evidence for selecting this corrective historical
+classification on 2026-08-21. It is not evidence of an external historical
+approval before WB-SKILL-002 Execute.
+
+The repository-proven fact remains classification **B**: no verifiable
+pre-Execute Owner approval is asserted in tracked repository evidence.
+Historical external Owner approval remains **UNVERIFIED**. This decision records
+historical classification only; it does not authorize P1 source Execute, alter
+the prior specification metadata, or grant prospective approval for
+WB-SKILL-002A.
+
+### Recorded Prospective Owner Approval — WB-SKILL-002 Specification
+
+The Owner's explicit instruction, “одобряю prospective approval старой
+WB-SKILL-002 specification,” prospectively approves the current reconciled
+`docs/specs/wb-skill-002-provider-neutral-verifier.md` revision on 2026-08-21.
+Accordingly, its status is now `approved` and its reconciliation record states
+that the status takes effect only from this date. This is a separate current
+authority decision for the prior Work Block's specification. It does not prove
+pre-Execute approval, retroactively cure, or rewrite the recorded historical
+process deviation, and grants no source-write, GitHub, or merge authority.
+
+### Recorded Prospective Owner Approval for WB-SKILL-002A Execute
+
+The Owner's explicit instruction, “одобряю,” given after the required approval
+was requested, prospectively approves specification revision
+`execute-r1-2026-08-21` in `approved` status and exactly this frozen source
+write-set:
+
+```text
+docs/specs/wb-skill-002-provider-neutral-verifier.md
+scripts/test-sdd-contract.sh
+governance/release-state.md
+scripts/validate-release-state.py
+scripts/test-release-state-contracts.py
+```
+
+This is bounded WB-SKILL-002A source Execute authority only. It neither proves
 pre-Execute approval for WB-SKILL-002 nor retroactively cures that historical
-process record. Until that approval is recorded, **all WB-SKILL-002A source
-Execute remains BLOCKED**.
+process record. It grants no GitHub, push, pull-request, merge, rebase, or
+default-branch authority. Any source path outside the five-path list remains
+out of scope.
 
 ## Historical Impact Inventory — P1 Recurrence Candidate
 
@@ -221,7 +257,7 @@ allowed cross-list-item case; ATX-heading-boundary; and fenced-code cases. This
 corrects the prior AC-006 overclaim without changing
 `skills/codex-verification/SKILL.md`.
 
-## Proposed Future Implementation Write-Set — NOT AUTHORIZED
+## Approved Source Write-Set — Bounded Execute Only
 
 | Path | Defect / invariant owner | Governing contract | Smallest sufficient change | Why no smaller owner exists |
 | --- | --- | --- | --- | --- |
@@ -231,8 +267,8 @@ corrects the prior AC-006 overclaim without changing
 | `scripts/validate-release-state.py` | Deterministic enforcement at the release-state boundary | `governance/release-state.md` | Resolve the deterministic sibling tasklist; skip a missing field; fail every present malformed binding; validate the resolved approved specification only for the latest eligible completed Work Block. | It already owns `latest_completed_work_block`, closeout, and terminal projection validation. |
 | `scripts/test-release-state-contracts.py` | Regression fixtures for the release-state invariant | `scripts/validate-release-state.py` contract suite | Add missing sibling tasklist, malformed present field, wrong type/ID, eligible-draft failure, eligible-approved pass, and no-declared-binding skip fixtures. | This is the existing executable fixture owner for that validator. |
 
-No source path is authorized by this Define artifact. In particular,
-`skills/codex-verification/SKILL.md` is expressly excluded.
+Only the five paths above are authorized for bounded source Execute. In
+particular, `skills/codex-verification/SKILL.md` is expressly excluded.
 
 ## Define Quality Prerequisite
 
@@ -248,10 +284,9 @@ No source path is authorized by this Define artifact. In particular,
 
 Define quality is READY: independent requirements-quality review, deterministic
 traceability, and independent consistency analysis are complete. Critic is also
-READY. These results complete Define investigation only; they do not open the
-Write Gate or grant source authority. Source Execute remains BLOCKED until both
-the P1 A/B/C Owner decision and the separate prospective approval of this Work
-Block's approved specification plus exact source write-set are recorded.
+READY. The Owner has selected P1 branch B and separately prospectively approved
+this specification revision plus the exact five-path source write-set. The
+Write Gate is therefore READY for bounded source Execute only.
 
 ## Scope and Hard Stops
 
@@ -265,7 +300,8 @@ docs/tasklist/wb-skill-002a-post-merge-reconciliation.md
 
 ### Explicitly out of scope
 
-- any current change to the WB-SKILL-002 specification or its `draft` status;
+- any WB-SKILL-002 specification change beyond the approved prospective
+  authority reconciliation recorded above;
 - source/test/fixture/validator/governance changes;
 - `skills/codex-verification/SKILL.md` or its accepted semantics;
 - GitHub thread resolution, push, PR creation, merge, rebase, or default-branch
@@ -274,6 +310,6 @@ docs/tasklist/wb-skill-002a-post-merge-reconciliation.md
   loops, context pruning, verifier manifests, and broad legacy-skill cleanup;
 - the unrelated untracked `Repository Graph Evaluation Brief.md`.
 
-Source implementation is prohibited until Define-quality readiness, independent
-consistency analysis, Critic review, and a separately approved future write-set
-produce a READY Write Gate.
+Source implementation is authorized only for the exact five-path approved
+write-set. Any expansion, GitHub action, or merge remains prohibited without
+separate Owner authority.

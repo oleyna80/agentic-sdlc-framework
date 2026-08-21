@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 
 ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
+FORMAL_GOVERNANCE_PROFILES = {"Managed", "Assured", "Distributed"}
 MAP_BLOCK_RE = re.compile(r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL)
 MIGRATION_SECTION_RE = re.compile(
     r"^## Migration Work\s*\n(?P<body>.*?)(?=^##\s|\Z)", re.MULTILINE | re.DOTALL
@@ -545,6 +546,101 @@ def validate_closeout(
     reject_mutable_vcs_claims(full_text, "closeout", frontmatter)
 
 
+def top_level_frontmatter_field_count(text: str, field: str) -> int:
+    """Return the number of exact top-level field declarations in YAML frontmatter."""
+    try:
+        raw_frontmatter, _ = text[4:].split("\n---\n", 1)
+    except ValueError as exc:
+        raise ReleaseStateError("tasklist has unterminated YAML frontmatter") from exc
+    return len(
+        re.findall(rf"^{re.escape(field)}[ \t]*:", raw_frontmatter, re.MULTILINE)
+    )
+
+
+def validate_latest_formal_specification(
+    root: Path,
+    latest_relative: str,
+    latest_record: dict[str, Any],
+) -> None:
+    """Validate an explicit separate-specification binding for the latest formal Work Block."""
+    frontmatter = latest_record["frontmatter"]
+    if frontmatter.get("governance_profile") not in FORMAL_GOVERNANCE_PROFILES:
+        return
+
+    latest_normalized, _ = safe_repo_path(
+        root, latest_relative, "latest_completed_work_block"
+    )
+    if not latest_normalized.startswith("docs/plans/") or not latest_normalized.endswith(".md"):
+        raise ReleaseStateError(
+            "latest completed formal Work Block must be under docs/plans"
+        )
+    tasklist_relative = "docs/tasklist/" + latest_normalized.removeprefix("docs/plans/")
+    _, tasklist_path = safe_repo_path(
+        root, tasklist_relative, "latest completed formal Work Block sibling tasklist"
+    )
+    if not tasklist_path.is_file():
+        raise ReleaseStateError(
+            "latest completed formal Work Block requires sibling tasklist: "
+            f"{tasklist_relative}"
+        )
+
+    tasklist, _, tasklist_text = parse_frontmatter(
+        tasklist_path, f"latest completed formal Work Block tasklist {tasklist_relative}"
+    )
+    if tasklist.get("artifact_type") != "tasklist":
+        raise ReleaseStateError(
+            "latest completed formal Work Block sibling is not a tasklist: "
+            f"{tasklist_relative}"
+        )
+    if tasklist.get("work_block_id") != frontmatter.get("work_block_id"):
+        raise ReleaseStateError(
+            "latest completed formal Work Block tasklist work_block_id does not match"
+        )
+
+    specification_count = top_level_frontmatter_field_count(tasklist_text, "specification")
+    if specification_count > 1:
+        raise ReleaseStateError(
+            "latest completed formal Work Block tasklist contains duplicate specification fields"
+        )
+    if specification_count == 0:
+        return
+
+    specification_value = tasklist.get("specification")
+    specification_relative, specification_path = safe_repo_path(
+        root,
+        specification_value,
+        "latest completed formal Work Block tasklist specification",
+    )
+    if not specification_relative.startswith("docs/specs/") or not specification_relative.endswith(
+        ".md"
+    ):
+        raise ReleaseStateError(
+            "latest completed formal Work Block tasklist specification must be under docs/specs"
+        )
+    if not specification_path.is_file():
+        raise ReleaseStateError(
+            "latest completed formal Work Block specification is missing: "
+            f"{specification_relative}"
+        )
+    specification, _, _ = parse_frontmatter(
+        specification_path,
+        f"latest completed formal Work Block specification {specification_relative}",
+    )
+    if specification.get("artifact_type") != "specification":
+        raise ReleaseStateError(
+            "latest completed formal Work Block target is not a specification: "
+            f"{specification_relative}"
+        )
+    if specification.get("work_block_id") != frontmatter.get("work_block_id"):
+        raise ReleaseStateError(
+            "latest completed formal Work Block specification work_block_id does not match"
+        )
+    if specification.get("status") != "approved":
+        raise ReleaseStateError(
+            "latest completed formal Work Block specification must be status approved"
+        )
+
+
 def migration_section(text: str) -> str:
     matches = list(MIGRATION_SECTION_RE.finditer(text))
     if not matches:
@@ -626,6 +722,8 @@ def validate_repository(root: Path) -> dict[str, Any]:
         root, completed_records, str(release_state.get("closeout_report", ""))
     )
     validate_closeout(root, release_state, completed, completed_records)
+    latest = str(release_state["latest_completed_work_block"])
+    validate_latest_formal_specification(root, latest, completed_records[latest])
 
     return {
         "completed_work_blocks": completed,

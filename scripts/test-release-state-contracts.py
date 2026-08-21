@@ -20,6 +20,8 @@ ReleaseStateError = validator.ReleaseStateError
 COMPLETED = "docs/plans/wb-007-agent-evaluation-trajectory-assurance.md"
 OLDER = "docs/plans/wb-006-bootstrap-restore-hardening.md"
 ACTIVE = "docs/plans/wb-008-post-merge-ssot-release-gate.md"
+TASKLIST = "docs/tasklist/wb-007-agent-evaluation-trajectory-assurance.md"
+SPECIFICATION = "docs/specs/wb-007-agent-evaluation-trajectory-assurance.md"
 CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"
 OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"
 
@@ -40,6 +42,7 @@ def work_block(
     drift: str = "ALIGNED",
     closeout_mode: str = "success-closeout",
     task_status: str = "completed",
+    governance_profile: str | None = "Managed",
     include_terminal_section: bool = True,
 ) -> str:
     if status == "completed" and include_terminal_section:
@@ -65,6 +68,9 @@ def work_block(
             "- **Review Gate:** PENDING\n"
             "- **Closeout Mode:** pending\n"
         )
+    profile_line = (
+        f"governance_profile: {governance_profile}\n" if governance_profile is not None else ""
+    )
     return f"""---
 schema_version: 1
 artifact_type: work_block
@@ -72,10 +78,45 @@ artifact_id: {work_block_id}-fixture
 status: {status}
 owner_role: orchestrator
 work_block_id: {work_block_id}
----
+{profile_line}---
 
 # {work_block_id}
 {state}"""
+
+
+def tasklist(
+    work_block_id: str = "wb-007",
+    specification: str | None = None,
+    *,
+    artifact_type: str = "tasklist",
+    recorded_work_block_id: str | None = None,
+    extra_frontmatter: str = "",
+) -> str:
+    specification_line = (
+        f"specification: {specification}\n" if specification is not None else ""
+    )
+    return f"""---
+schema_version: 1
+artifact_type: {artifact_type}
+work_block_id: {recorded_work_block_id or work_block_id}
+{specification_line}{extra_frontmatter}---
+
+# {work_block_id} tasklist
+"""
+
+
+def specification(
+    work_block_id: str = "wb-007", *, status: str = "approved", artifact_type: str = "specification"
+) -> str:
+    return f"""---
+schema_version: 1
+artifact_type: {artifact_type}
+work_block_id: {work_block_id}
+status: {status}
+---
+
+# {work_block_id} specification
+"""
 
 
 def closeout(
@@ -183,6 +224,7 @@ def populate(root: Path, reg: dict | None = None, map_text: str | None = None) -
     write(root / "scripts/test-release-state-contracts.py", "# fixtures\n")
     write(root / ".github/workflows/release-state-contract.yml", "name: fixture\n")
     write(root / COMPLETED, work_block("wb-007", "completed"))
+    write(root / TASKLIST, tasklist())
     write(root / CLOSEOUT, closeout())
 
 
@@ -200,6 +242,78 @@ def main() -> int:
         root = Path(temp)
         populate(root)
         assert validator.validate_repository(root)["verdict"] == "READY"
+
+    with tempfile.TemporaryDirectory(prefix="release-state-formal-spec-approved-") as temp:
+        root = Path(temp)
+        populate(root)
+        write(root / TASKLIST, tasklist(specification=SPECIFICATION))
+        write(root / SPECIFICATION, specification())
+        assert validator.validate_repository(root)["verdict"] == "READY"
+
+    with tempfile.TemporaryDirectory(prefix="release-state-formal-spec-fixtures-") as temp:
+        root = Path(temp)
+
+        populate(root)
+        (root / TASKLIST).unlink()
+        expect_failure("formal-spec-missing-tasklist", root, "requires sibling tasklist")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification=SPECIFICATION))
+        write(root / SPECIFICATION, specification(status="draft"))
+        expect_failure("formal-spec-draft", root, "must be status approved")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification="../outside.md"))
+        expect_failure("formal-spec-path-traversal", root, "escapes repository")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification=""))
+        expect_failure("formal-spec-empty", root, "must be a non-empty")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            tasklist(extra_frontmatter="specification:\n  - docs/specs/example.md\n"),
+        )
+        expect_failure("formal-spec-malformed", root, "must be a non-empty")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            tasklist(specification=SPECIFICATION, artifact_type="specification"),
+        )
+        expect_failure("formal-spec-tasklist-type", root, "sibling is not a tasklist")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            tasklist(specification=SPECIFICATION, recorded_work_block_id="wb-else"),
+        )
+        expect_failure("formal-spec-tasklist-id", root, "tasklist work_block_id does not match")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification="docs/specs/missing.md"))
+        expect_failure("formal-spec-missing-target", root, "specification is missing")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification=SPECIFICATION))
+        write(root / SPECIFICATION, specification(artifact_type="work_block"))
+        expect_failure("formal-spec-wrong-type", root, "target is not a specification")
+
+        populate(root)
+        write(root / TASKLIST, tasklist(specification=SPECIFICATION))
+        write(root / SPECIFICATION, specification(work_block_id="wb-else"))
+        expect_failure("formal-spec-wrong-id", root, "work_block_id does not match")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            tasklist(
+                specification=SPECIFICATION,
+                extra_frontmatter=f"specification: {SPECIFICATION}\n",
+            ),
+        )
+        expect_failure("formal-spec-duplicate-field", root, "duplicate specification fields")
 
     with tempfile.TemporaryDirectory(prefix="release-state-clean-boundary-") as temp:
         root = Path(temp)
