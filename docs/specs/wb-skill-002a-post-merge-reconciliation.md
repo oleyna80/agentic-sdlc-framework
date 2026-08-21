@@ -34,15 +34,24 @@ remain distinct.
   distinguish historical tracked state, any verified historical approval, a
   historical process deviation when applicable, and any new prospective Owner
   approval. No current approval may be represented as pre-Execute approval
-  without independently supported timing.
+  without independently supported timing. P1 Execute and any change to the
+  prior specification metadata must remain blocked until the Owner records one
+  explicit A/B/C remediation decision at the plan location defined by this
+  Work Block; a C decision must retain the unresolved fact rather than select a
+  historical answer.
 - REQ-003: The mandatory-provider regression guard must detect prohibited
   semantics across ordinary Markdown line wrapping, while remaining scoped to
   `skills/codex-verification/SKILL.md` and never becoming a repository-wide
-  vocabulary scanner.
+  vocabulary scanner. Its text unit must be a normal-prose paragraph only:
+  internal ordinary-prose line breaks and continuation lines within one Markdown
+  list item are normalized, while blank lines, ATX headings, separate list
+  items, and fenced-code boundaries prevent joining; fenced code is excluded
+  from semantic matching.
 - REQ-004: Regression coverage must exercise the actual guard predicate with
   single-line forbidden samples, reordered forbidden samples, multiline/wrapped
-  forbidden samples, allowed advisory positive controls, and paragraph-separated
-  non-matches.
+  forbidden samples, allowed advisory positive controls, paragraph-separated
+  non-matches, a forbidden wrapped sample within one list item, an allowed
+  cross-list-item non-match, and boundary controls for headings and fenced code.
 - REQ-005: The framework should prevent successful closeout of a formal
   Managed, Assured, or Distributed Work Block that explicitly uses a separate
   normative specification when that specification remains non-authoritative.
@@ -57,6 +66,11 @@ remain distinct.
   adaptation, converge loops, context pruning, verifier JSON manifests,
   extension/preset/workflow/bundle work, broad legacy-skill cleanup, and
   unrelated governance redesign are out of scope.
+- REQ-008: Before WB-SKILL-002A Execute, the Owner must approve this Work
+  Block's then-current separate specification as authoritative and approve the
+  exact frozen source write-set. That prospective approval must be recorded
+  separately from the P1 historical decision and must not be represented as
+  retroactive approval or cure of WB-SKILL-002.
 
 ## Acceptance Criteria
 
@@ -69,6 +83,11 @@ remain distinct.
 - AC-003 [req=REQ-002]: The selected P1 remediation branch records the prior
   tracked `draft` state, cites its supporting repository evidence, and retains a
   truthful historical-process-deviation or unresolved-fact record where needed.
+- AC-010 [req=REQ-002]: Before TASK-001 can change the prior WB-SKILL-002
+  specification metadata, the `Required Owner Decision Before P1 Execute`
+  section of this Work Block records exactly one A/B/C decision, its dated
+  authority evidence, and its prospective or historical temporal scope. Until
+  then, P1 Execute remains blocked.
 - AC-004 [req=REQ-003]: The target-only guard rejects each prohibited semantic
   when its ordinary words are wrapped within one Markdown paragraph, including
   `Provider review is` / `mandatory.`, `Provider` / `review is mandatory.`,
@@ -77,28 +96,44 @@ remain distinct.
 - AC-005 [req=REQ-003,REQ-004]: The guard continues to accept advisory controls
   such as `Provider execution is optional.` and `This skill does not grant
   provider authority.`, and it does not create a match from unrelated words in
-  separate paragraphs.
+  separate paragraphs, separate list items, across ATX headings, or through
+  fenced code.
 - AC-006 [req=REQ-004]: Contract-suite fixtures prove the same parser/predicate
   that evaluates the target skill for single-line, reordered, multiline, allowed,
-  and paragraph-separation cases.
+  paragraph-separation, one-list-item wrapped forbidden, cross-list-item
+  non-match, ATX-heading-boundary, and fenced-code cases.
 - AC-007 [req=REQ-005]: The future validator design applies only at the
   latest-completed closeout boundary and only when that formal Work Block
-  explicitly declares a repository-resolvable separate specification; it does
-  not infer profiles or bindings for historical records that omit them.
+  explicitly declares a repository-resolvable separate specification. It
+  resolves the deterministic sibling tasklist at
+  `docs/tasklist/<latest-work-block-basename>` and requires its `work_block_id`
+  to equal the latest Work Block's ID. A missing `specification` field means no
+  declared separate specification and skips this invariant. A present field is
+  binding evidence for path resolution only, never authority: it must occur
+  exactly once, be non-empty and root-relative, and resolve to an existing
+  specification artifact with the same `work_block_id`; an absent sibling
+  tasklist, duplicate fields, malformed paths, nonexistent files, wrong artifact
+  types, or ID mismatches fail deterministically. It does not infer bindings for
+  historical records that omit the field.
 - AC-008 [req=REQ-005]: The future release-state contract rejects a
   latest-completed eligible Work Block whose declared separate specification has
   `draft`, `review`, `superseded`, `retired`, or another non-authoritative status,
-  while accepting `approved` (and existing accepted authority where the artifact
-  contract permits it).
+  while accepting only `approved`.
 - AC-009 [req=REQ-006,REQ-007]: The frozen future implementation subject does
   not modify `skills/codex-verification/SKILL.md` and does not introduce any
   out-of-scope extension, preset, workflow, bundle, converge loop, or broad
   legacy-skill change.
+- AC-011 [req=REQ-008]: Before any WB-SKILL-002A source Execute, the Work Block
+  records Owner approval of this specification in `approved` status and of the
+  exact source write-set; the record explicitly states that this prospective
+  approval does not establish or repair historical WB-SKILL-002 approval.
 
 ## Verification Boundary
 
-Before source Execute, this Managed Work Block requires a requirements-quality
-review, deterministic traceability, consistency analysis, and Critic review.
+Requirements-quality review, deterministic traceability, consistency analysis,
+and Critic review complete this Define investigation. They do not authorize
+source Execute: the P1 A/B/C Owner decision and separate prospective Owner
+approval of this specification plus the exact source write-set remain required.
 Any approved implementation then requires independent Reviewer, Verifier, and
 Specification Drift assurance on its exact frozen subject. Evaluation is not
 required for this deterministic governance/tooling reconciliation.
@@ -108,5 +143,7 @@ required for this deterministic governance/tooling reconciliation.
 - Reverting or redesigning the provider-neutral WB-SKILL-002 skill correction.
 - Deciding an untracked historical Owner fact.
 - Treating a current approval as evidence that it happened before Execute.
+- Selecting the required future A/B/C Owner decision in this Define artifact.
+- Approving this Work Block's specification or source write-set for Execute.
 - Applying a global historical specification-status migration without an
   explicit, evidence-supported follow-up decision.
