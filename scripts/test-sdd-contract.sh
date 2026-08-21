@@ -28,11 +28,26 @@ require_absent_pattern() {
   fi
 }
 
-require_absent_pattern_ci() {
+require_absent_mandatory_provider_semantics() {
   local path="$1"
-  local pattern="$2"
-  if grep -Eqi -- "$pattern" "$ROOT/$path"; then
-    fail "$path contains forbidden/stale core pattern: $pattern"
+  if awk '
+    {
+      line = tolower($0)
+      modal = line ~ /(must|mandatory|required)/
+      provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
+      assurance = line ~ /(review|verification|execution)/
+      prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
+      temporal_link = line ~ /(before|prior to|after|requires|require|needs|need|depends on|prerequisite)/
+
+      if ((modal && provider && (assurance || prerequisite)) ||
+          (prerequisite && assurance && temporal_link)) {
+        found = 1
+        exit
+      }
+    }
+    END { exit(found ? 0 : 1) }
+  ' "$ROOT/$path"; then
+    fail "$path contains mandatory provider-review or provider-prerequisite semantics"
   fi
 }
 
@@ -330,14 +345,9 @@ require_contains "skills/codex-verification/SKILL.md" 'If optional execution is 
 require_contains "skills/codex-verification/SKILL.md" 'does not issue a project verdict'
 require_absent_pattern "skills/codex-verification/SKILL.md" 'Control Tower|Stage 0[.]5|gpt-critic|gpt-verifier'
 require_absent_pattern "skills/codex-verification/SKILL.md" 'Prerequisites|npm install|codex login|mcp-server'
-# Each negative check scans only the target skill. The paired expressions make
-# provider-review and provider-prerequisite wording order-independent.
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(provider|codex|second[[:space:]-]model).*(review|verification|execution).*(must|mandatory|required)'
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(must|mandatory|required).*(provider|codex|second[[:space:]-]model).*(review|verification|execution)'
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(provider|codex|second[[:space:]-]model).*(installation|install|authentication|auth|mcp|transport).*(must|mandatory|required|prerequisite)'
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(installation|install|authentication|auth|mcp|transport).*(provider|codex|second[[:space:]-]model).*(must|mandatory|required|prerequisite)'
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(installation|install|authentication|auth|mcp|transport).*(before|prior to).*(review|verification|execution)'
-require_absent_pattern_ci "skills/codex-verification/SKILL.md" '(review|verification|execution).*(requires?|needs?|depends on).*(installation|install|authentication|auth|mcp|transport)'
+# This case-insensitive guard scans only the target skill. It detects mandatory
+# provider-review and provider-prerequisite concepts regardless of word order.
+require_absent_mandatory_provider_semantics "skills/codex-verification/SKILL.md"
 
 # WB41-R1: direct runtime adapters must retain the critical semantics they restate.
 require_contains "template/.codex/AGENTS.md" 'Define.*Execute.*Assure.*Close'
