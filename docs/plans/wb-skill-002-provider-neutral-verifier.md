@@ -12,9 +12,9 @@ branch: agent/wb-skill-002-provider-neutral-verifier
 base_revision: 0029baff70e11ca911a3c4c165c21b5a228e7358
 write_gate: READY
 critic_gate: READY
-review_gate: PENDING
-verification_verdict: PENDING
-drift_gate: PENDING
+review_gate: READY
+verification_verdict: READY
+drift_gate: ALIGNED
 ---
 
 # WB-SKILL-002 — Provider-Neutral Verifier Legacy Skill Correction
@@ -42,17 +42,27 @@ historical legacy surfaces or implement an extension/preset/workflow/bundle.
 
 ## Lifecycle State
 
-- **Current Stage:** Execute
+- **Current Stage:** Assure
 - **Stage State:** in_progress
 - **Write Gate:** READY — Owner approved the exact two-path Execute write-set
   on 2026-08-21 after Define-quality readiness and fresh Critic `APPROVE`.
 - **Critic Gate:** READY — fresh independent Critic re-review `APPROVE` for
   `define-r2-2026-08-21`; it grants no source authority.
-- **Review Gate:** PENDING
-- **Verification Verdict:** PENDING
+- **Review Gate:** READY — fresh independent Reviewer re-review is `READY` for
+  exact frozen source subject
+  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
+  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`; historical
+  `CHANGES_REQUIRED` reports remain retained.
+- **Verification Verdict:** READY — fresh independent Technical Verification
+  in a detached local temporary clone passed for exact frozen source subject
+  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
+  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`.
 - **Evaluation Verdict:** NOT_REQUIRED — deterministic procedure and contract
   consistency only; reconsider if Execute expands the behavior.
-- **Drift Gate:** PENDING
+- **Drift Gate:** ALIGNED — independent Specification Drift Audit found the
+  exact frozen source subject aligned; its verdict is limited to
+  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
+  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`.
 - **Closeout Mode:** pending
 
 ## Approved Define Scope
@@ -83,6 +93,9 @@ docs/reports/requirements/wb-skill-002-provider-neutral-verifier-consistency.md
 docs/reports/requirements/wb-skill-002-provider-neutral-verifier-consistency-rereview.md
 docs/reports/reviews/wb-skill-002-provider-neutral-verifier-critic.md
 docs/reports/reviews/wb-skill-002-provider-neutral-verifier-critic-rereview.md
+docs/reports/reviews/wb-skill-002-provider-neutral-verifier.md
+docs/reports/reviews/wb-skill-002-provider-neutral-verifier-rereview.md
+docs/reports/reviews/wb-skill-002-provider-neutral-verifier-rereview-2.md
 ```
 
 ## Requirements and Task Binding
