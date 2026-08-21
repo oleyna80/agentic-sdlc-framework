@@ -3,18 +3,19 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-skill-002-provider-neutral-verifier
 work_block_id: WB-SKILL-002
-status: in_progress
+status: completed
 owner_role: Owner
 created_at: 2026-08-21
 last_updated: 2026-08-21
 governance_profile: Managed
 branch: agent/wb-skill-002-provider-neutral-verifier
 base_revision: 0029baff70e11ca911a3c4c165c21b5a228e7358
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: READY
 review_gate: READY
 verification_verdict: READY
 drift_gate: ALIGNED
+owner_approval: Owner approved the expanded terminal closeout write-set and final assurance on 2026-08-21.
 ---
 
 # WB-SKILL-002 — Provider-Neutral Verifier Legacy Skill Correction
@@ -40,30 +41,24 @@ metadata.
 This is a current operational contradiction, not an instruction to converge all
 historical legacy surfaces or implement an extension/preset/workflow/bundle.
 
-## Lifecycle State
+## Final State
 
-- **Current Stage:** Assure
-- **Stage State:** in_progress
-- **Write Gate:** READY — Owner approved the exact two-path Execute write-set
-  on 2026-08-21 after Define-quality readiness and fresh Critic `APPROVE`.
-- **Critic Gate:** READY — fresh independent Critic re-review `APPROVE` for
-  `define-r2-2026-08-21`; it grants no source authority.
-- **Review Gate:** READY — fresh independent Reviewer re-review is `READY` for
-  exact frozen source subject
-  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
-  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`; historical
-  `CHANGES_REQUIRED` reports remain retained.
-- **Verification Verdict:** READY — fresh independent Technical Verification
-  in a detached local temporary clone passed for exact frozen source subject
-  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
-  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`.
-- **Evaluation Verdict:** NOT_REQUIRED — deterministic procedure and contract
-  consistency only; reconsider if Execute expands the behavior.
-- **Drift Gate:** ALIGNED — independent Specification Drift Audit found the
-  exact frozen source subject aligned; its verdict is limited to
-  `af0c1615f7186b42939cd35435b630a91a6c14fc` →
-  `b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`.
-- **Closeout Mode:** pending
+- **Stage State:** completed
+- **Write Gate:** BLOCKED
+- **Critic Gate:** READY
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Evaluation Verdict:** SKIPPED — deterministic documentation/procedure acceptance and contract validation require no non-deterministic evaluation
+- **Drift Gate:** ALIGNED
+- **Task Status:** completed
+- **Closeout Mode:** success-closeout
+- **External VCS State:** non-normative; hosting-platform lifecycle remains Owner/repository-controlled
+
+The source assurance that produced the READY/READY/ALIGNED outcomes remains
+bound only to the frozen source subject
+`af0c1615f7186b42939cd35435b630a91a6c14fc` →
+`b3148bc559d2d32f4a5d56bfc1fbe0250b948bc1`. Historical
+`CHANGES_REQUIRED` reports remain retained.
 
 ## Approved Define Scope
 
@@ -79,7 +74,7 @@ recorded pre-Execute base through its post-Execute commit. Later approved
 Define, Assure, and Close evidence synchronization is outside that source
 manifest and must preserve both assured source blobs.
 
-### Current Define write-set
+### Define and Assure documentation write-set
 
 ```text
 docs/specs/wb-skill-002-provider-neutral-verifier.md
@@ -97,6 +92,25 @@ docs/reports/reviews/wb-skill-002-provider-neutral-verifier.md
 docs/reports/reviews/wb-skill-002-provider-neutral-verifier-rereview.md
 docs/reports/reviews/wb-skill-002-provider-neutral-verifier-rereview-2.md
 ```
+
+### Terminal closeout write-set
+
+```text
+docs/plans/wb-skill-002-provider-neutral-verifier.md
+docs/tasklist/wb-skill-002-provider-neutral-verifier.md
+FILE_REGISTRY.yml
+PROJECT_MAP.md
+docs/reports/closeout/wb-skill-002-provider-neutral-verifier.md
+```
+
+## Terminal Assurance Boundary
+
+The terminal normative subject consists of the five-path terminal closeout
+write-set above. It requires fresh independent read-only Reviewer, Verifier,
+and Specification Drift assurance after that subject is frozen. The earlier
+source assurance does not automatically cover terminal lifecycle, registry,
+navigation, task-status, or closeout-record changes. Terminal assurance evidence
+must not modify either frozen source blob.
 
 ## Requirements and Task Binding
 

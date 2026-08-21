@@ -4,7 +4,7 @@ artifact_type: tasklist
 work_block_id: WB-SKILL-002
 specification: docs/specs/wb-skill-002-provider-neutral-verifier.md
 specification_revision: define-r2-2026-08-21
-status: in_progress
+status: completed
 ---
 
 # WB-SKILL-002 Tasklist — Provider-Neutral Verifier Legacy Skill Correction
@@ -38,3 +38,10 @@ python3 scripts/validate-define-traceability.py \
   --spec docs/specs/wb-skill-002-provider-neutral-verifier.md \
   --tasks docs/tasklist/wb-skill-002-provider-neutral-verifier.md
 ```
+
+## Closeout Record
+
+All eight tasks are complete. Terminal closeout synchronizes the Work Block,
+tasklist, registry, Project Map, and closeout record without changing either
+frozen source path; terminal assurance is separately bound to that normative
+subject.
