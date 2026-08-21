@@ -1,87 +1,58 @@
 ---
 name: codex-verification
-description: "External adversarial review using OpenAI Codex (GPT) through the project Codex MCP server. Use for Full verification tier, security-sensitive Work Blocks, first work in a new domain, or when a second opinion from a different model family is needed. Codex output is evidence, not acceptance — Control Tower validates before acting."
+description: "Optional read-only advisory evidence from an available Codex runtime. Use only when the active Work Block authorizes additional provider evidence."
 user-invocable: true
-argument-hint: "[read-only focus text for adversarial review] [base/ref]"
-allowed-tools:
-  - mcp__codex__codex
+argument-hint: "[read-only focus text and frozen subject]"
 ---
 
-# Codex Verification
+# Codex Verification Advisory
 
-## Purpose
+## Purpose and Authority
 
-Run an adversarial review using OpenAI Codex as a second pair of eyes from a
-different model family. Complements Claude Verifier — catches blind spots that
-one model family misses.
+This runtime-adapter procedure can collect optional read-only advisory evidence
+from an available Codex runtime. It is not a Reviewer or Verifier role, a
+lifecycle gate, or a source of project authority.
 
-Codex runs locally via the Codex MCP server configured in `.mcp.json`. It shares
-the same filesystem and git repository, but the template starts it with
-`--sandbox read-only --ask-for-approval never` and this skill uses it as a
-read-only advisory reviewer/verifier by default.
+Authority, lifecycle, scope, and assurance selection remain with governing
+contracts and the active Work Block. Use the accepted Define → Execute → Assure
+→ Close vocabulary when locating this optional activity in a Work Block.
 
-## Prerequisites
+## When It May Be Used
 
-1. Codex CLI installed: `npm install -g @openai/codex`
-2. Codex authenticated: `codex login`
-3. MCP server configured in `.mcp.json`: `codex --sandbox read-only --ask-for-approval never mcp-server`
-4. Claude settings allow the MCP tool, not direct `Bash(codex *)`
+An approved assurance plan may request this procedure when additional
+independent-looking inspection is useful and the available runtime capability
+supports it. Additional provider execution is optional scoped evidence.
 
-## When to Use (Triggers)
+Before execution, the active Work Block must define the read-only focus and,
+when applicable, the exact frozen subject. Discover the actual runtime
+capability at execution time. No installation, authentication, MCP setup, or
+transport command is a universal repository prerequisite.
 
-Control Tower MUST invoke this skill when:
+## Read-Only Advisory Procedure
 
-- Verification tier is **Full** (security/auth/deploy/DB Work Blocks)
-- Changes touch **auth, payments, DB schema, or middleware**
-- First Work Block in a new domain (no-skip, critic mandatory)
-- Claude verifier verdict is **BLOCKED** or **UNVERIFIED**
+1. Confirm that the active Work Block authorizes optional additional evidence
+   and defines the intended scope.
+2. Discover whether a suitable read-only runtime capability is available
+   without changing repository, credential, or provider configuration.
+3. If available, request focused inspection limited to the approved scope and
+   record observable findings, limitations, and the subject inspected.
+4. Keep the output as scoped advisory evidence. It cannot claim independence
+   merely from a provider or model label, does not issue a project verdict, and
+   does not replace required Reviewer or Verifier assurance.
+5. If optional execution is unavailable, record an inspection gap. Do not
+   weaken, skip, or alter the required Reviewer or Verifier assurance verdicts.
 
-Control Tower MAY also invoke it after major refactoring or when another
-advisory opinion is useful.
+## Output Boundary
 
-Skip when:
-- Codex is not installed or authenticated (log gap, proceed without)
-- Verification tier is Lite or Standard only when no other mandatory trigger
-  matches
-- Work Block is trivial and no mandatory trigger matches
-
-## Workflow
-
-1. Control Tower spawns `gpt-critic` for Stage 0.5 decision review or
-   `gpt-verifier` for Stage 2 implementation verification
-2. Agent prepares a focused read-only prompt with objective, scope, base/ref,
-   changed files or preflight decisions, and project rules
-3. Agent calls Codex through `mcp__codex__codex`
-4. Agent structures Codex output with session id, mode, scope, findings,
-   inspection gaps, and merge recommendation
-5. Control Tower merges Codex findings with Claude critic/verifier findings
-6. Consolidated results go into the closeout or review report
-
-## Relationship with Other Skills
-
-| Skill | Relationship |
-|---|---|
-| `verifier` | Codex review runs alongside Claude Verifier — complementary |
-| `merge-protocol` | Merge protocol consolidates both Claude + Codex findings |
-| `critic-review` | Critic may recommend Codex review for high-risk changes |
-| `reviewer` | Codex is an external reviewer, not a replacement for Claude Reviewer |
+Record only reproducible, decision-relevant evidence: the authorized scope,
+subject, observed findings, and any inspection gap. Route findings through the
+active Work Block's approved assurance process; governing contracts determine
+all lifecycle and readiness decisions.
 
 ## Constraints
 
-- Codex output is **evidence, not acceptance** — Control Tower validates
-- Codex cannot issue the authoritative verdict — it is an advisory reviewer
-- If Codex is unavailable → log gap, proceed with Claude-only verification
-- Codex review adds time — use only for Full tier, not every WB
-- Codex findings may overlap with Claude findings → merge protocol deduplicates
-- Codex must stay read-only/advisory. Prompt it as read-only even though the
-  template MCP server also starts it with a read-only sandbox and never-ask
-  approval policy.
-- Do not call `codex` through Bash; use the MCP tool only
-- Degraded Codex/GPT availability never upgrades a non-READY Claude verdict
-
-## Handoff
-
-- **Success condition:** Codex review completed, findings structured, report returned to Control Tower
-- **Next:** Merge protocol (consolidate with Verifier findings)
-- **Auto-proceed:** YES — Codex is advisory, not a gate
-- **Hard stop:** NO
+- Keep this procedure read-only and within the active Work Block's scope.
+- Do not treat runtime availability, a provider label, or advisory output as
+  authority, acceptance, or a substitute for required assurance.
+- Do not create a universal installation, authentication, configuration, or
+  transport prerequisite from this optional procedure.

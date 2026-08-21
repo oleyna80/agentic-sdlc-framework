@@ -310,6 +310,20 @@ require_contains "template/.claude/agents/reviewer.md" 'READY.*CHANGES_REQUIRED.
 require_contains "skills/verifier/SKILL.md" 'reproducible'
 require_contains "template/.codex/AGENTS.md" 'governance/lifecycle.md'
 
+# WB-SKILL-002: codex-verification is an optional runtime-adapter advisory
+# procedure. These checks intentionally inspect only the current target skill;
+# historical provider-specific evidence and unrelated legacy surfaces remain
+# outside this contract boundary.
+require_file "skills/codex-verification/SKILL.md"
+require_contains "skills/codex-verification/SKILL.md" 'Authority, lifecycle, scope, and assurance selection remain with governing'
+require_contains "skills/codex-verification/SKILL.md" 'contracts and the active Work Block'
+require_contains "skills/codex-verification/SKILL.md" 'Additional provider execution is optional scoped evidence'
+require_contains "skills/codex-verification/SKILL.md" 'If optional execution is unavailable, record an inspection gap'
+require_contains "skills/codex-verification/SKILL.md" 'does not issue a project verdict'
+require_absent_pattern "skills/codex-verification/SKILL.md" 'Control Tower|Stage 0[.]5|gpt-critic|gpt-verifier'
+require_absent_pattern "skills/codex-verification/SKILL.md" '(MUST|must|Mandatory|mandatory|required).*(provider|Codex|second model).*(review|verification|execution|install|auth|authentication|MCP|transport)'
+require_absent_pattern "skills/codex-verification/SKILL.md" 'Prerequisites|npm install|codex login|mcp-server'
+
 # WB41-R1: direct runtime adapters must retain the critical semantics they restate.
 require_contains "template/.codex/AGENTS.md" 'Define.*Execute.*Assure.*Close'
 require_contains "template/.codex/AGENTS.md" 'APPROVE.*SUPPLEMENT.*RECONSIDER'
