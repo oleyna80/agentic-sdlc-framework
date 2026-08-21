@@ -32,7 +32,7 @@ completed_work_blocks:
   - docs/plans/wb-core-003f-github-native-authority-model.md
   - docs/plans/wb-define-001-requirements-quality-traceability.md
   - docs/plans/wb-git-001-stacked-pr-synchronization.md
-active_work_block: null
+active_work_block: docs/plans/wb-skill-002-provider-neutral-verifier.md
 -->
 
 ## Current Operational Architecture
@@ -424,7 +424,12 @@ Completed:
 
 Active:
 
-No active implementation Work Block.
+`docs/plans/wb-skill-002-provider-neutral-verifier.md` — WB-SKILL-002 is a
+Define-only correction of the current `codex-verification` legacy role/lifecycle
+contradiction. Its source Write Gate is BLOCKED. The frozen Execute source
+subject is limited to `skills/codex-verification/SKILL.md` and
+`scripts/test-sdd-contract.sh`; profiles/presets, extensions, workflows,
+bundles, candidate content, and the Portable Kit promotion sequence are excluded.
 
 Planned:
 
