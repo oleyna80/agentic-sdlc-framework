@@ -63,7 +63,7 @@ mandatory_provider_semantics_present() {
       # Direct imperative prerequisites are mandates even without a separate
       # modal word. Common polite and purpose-clause introductions do not
       # change that imperative meaning.
-      imperative_prerequisite = (line ~ /^[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*to[[:space:]]+(verify|review|execute|perform[[:space:]]+verification)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/)
+      imperative_prerequisite = (line ~ /^[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*to[[:space:]]+(verify|review|execute|perform[[:space:]]+verification)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*before[[:space:]]+(verification|review|execution)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/)
 
       provider_mandate = provider && assurance && modal
       prerequisite_mandate = prerequisite && (modal || imperative_prerequisite) && (assurance || provider)
@@ -224,6 +224,9 @@ assert_provider_semantics_fixture forbidden "Authenticate with Codex before veri
 assert_provider_semantics_fixture forbidden "Authenticate with Codex before" "verification."
 assert_provider_semantics_fixture forbidden "Please install Codex before verification."
 assert_provider_semantics_fixture forbidden "To verify, install Codex."
+assert_provider_semantics_fixture forbidden "Before verification, install Codex."
+assert_provider_semantics_fixture forbidden "Before review, authenticate with Codex."
+assert_provider_semantics_fixture forbidden "Before execution, configure Codex."
 assert_provider_semantics_fixture forbidden "Provider review is not mandatory; however, Provider review is mandatory."
 assert_provider_semantics_fixture forbidden "Provider review is not mandatory, but Codex review is mandatory."
 assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
