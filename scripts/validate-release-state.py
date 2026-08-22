@@ -9,6 +9,7 @@ import sys
 from typing import Any
 
 import yaml
+from yaml.nodes import MappingNode, ScalarNode
 
 ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
 FORMAL_GOVERNANCE_PROFILES = {"Managed", "Assured", "Distributed"}
@@ -547,13 +548,27 @@ def validate_closeout(
 
 
 def top_level_frontmatter_field_count(text: str, field: str) -> int:
-    """Return the number of exact top-level field declarations in YAML frontmatter."""
+    """Return structural top-level occurrences of a YAML frontmatter field.
+
+    ``safe_load`` intentionally accepts duplicate mapping keys by retaining the
+    final value.  The release-state binding must instead fail closed when a
+    tasklist declares ``specification`` more than once, including YAML flow-map
+    and explicit-key forms.  Compose retains the mapping-node pairs needed for
+    that distinction without making physical-line syntax authoritative.
+    """
     try:
         raw_frontmatter, _ = text[4:].split("\n---\n", 1)
     except ValueError as exc:
         raise ReleaseStateError("tasklist has unterminated YAML frontmatter") from exc
-    return len(
-        re.findall(rf"^{re.escape(field)}[ \t]*:", raw_frontmatter, re.MULTILINE)
+    try:
+        document = yaml.compose(raw_frontmatter)
+    except yaml.YAMLError as exc:
+        raise ReleaseStateError(f"invalid tasklist frontmatter: {exc}") from exc
+    if not isinstance(document, MappingNode):
+        raise ReleaseStateError("tasklist frontmatter must be an object")
+    return sum(
+        isinstance(key, ScalarNode) and key.value == field
+        for key, _ in document.value
     )
 
 

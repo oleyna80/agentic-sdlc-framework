@@ -263,6 +263,36 @@ def main() -> int:
         expect_failure("formal-spec-draft", root, "must be status approved")
 
         populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+{{schema_version: 1, artifact_type: tasklist, work_block_id: wb-007, specification: {SPECIFICATION}}}
+---
+
+# wb-007 tasklist
+""",
+        )
+        write(root / SPECIFICATION, specification(status="draft"))
+        expect_failure("formal-spec-flow-map-binding", root, "must be status approved")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+schema_version: 1
+artifact_type: tasklist
+work_block_id: wb-007
+? specification
+: {SPECIFICATION}
+---
+
+# wb-007 tasklist
+""",
+        )
+        write(root / SPECIFICATION, specification(status="draft"))
+        expect_failure("formal-spec-explicit-key-binding", root, "must be status approved")
+
+        populate(root)
         write(root / TASKLIST, tasklist(specification="../outside.md"))
         expect_failure("formal-spec-path-traversal", root, "escapes repository")
 
@@ -314,6 +344,44 @@ def main() -> int:
             ),
         )
         expect_failure("formal-spec-duplicate-field", root, "duplicate specification fields")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+{{schema_version: 1, artifact_type: tasklist, work_block_id: wb-007, specification: {SPECIFICATION}, specification: {SPECIFICATION}}}
+---
+
+# wb-007 tasklist
+""",
+        )
+        expect_failure(
+            "formal-spec-flow-map-duplicate-field",
+            root,
+            "duplicate specification fields",
+        )
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+schema_version: 1
+artifact_type: tasklist
+work_block_id: wb-007
+? specification
+: {SPECIFICATION}
+? specification
+: {SPECIFICATION}
+---
+
+# wb-007 tasklist
+""",
+        )
+        expect_failure(
+            "formal-spec-explicit-key-duplicate-field",
+            root,
+            "duplicate specification fields",
+        )
 
     with tempfile.TemporaryDirectory(prefix="release-state-clean-boundary-") as temp:
         root = Path(temp)
