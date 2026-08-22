@@ -61,19 +61,35 @@ mandatory_provider_semantics_present() {
       assurance = line ~ /(review|verification|execution)/
       prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
       # Direct imperative prerequisites are mandates even without a separate
-      # modal word. Sentence splitting keeps a preceding negation from
-      # suppressing a later imperative in the same prose unit.
-      imperative_prerequisite = line ~ /^[[:space:]]*(install|authenticate|configure)([^[:alpha:]]|$)/
+      # modal word. Common polite and purpose-clause introductions do not
+      # change that imperative meaning.
+      imperative_prerequisite = (line ~ /^[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*to[[:space:]]+(verify|review|execute|perform[[:space:]]+verification)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/)
 
       provider_mandate = provider && assurance && modal
       prerequisite_mandate = prerequisite && (modal || imperative_prerequisite) && (assurance || provider)
       return provider_mandate || prerequisite_mandate
     }
 
+    # Inspect contrast clauses independently: a negated first clause must not
+    # suppress a positive mandate following ordinary ", but" or ", however"
+    # prose. This deliberately does not turn the guard into a general parser.
+    function inspect_contrast_clauses(statement,    remainder, clause) {
+      remainder = statement
+      while (match(remainder, /,[[:space:]]*(but|however)([[:space:],]|$)/)) {
+        clause = substr(remainder, 1, RSTART - 1)
+        if (forbidden_statement(clause)) {
+          return 1
+        }
+        remainder = substr(remainder, RSTART + RLENGTH)
+      }
+      return forbidden_statement(remainder)
+    }
+
     # Units are prose paragraphs or one complete list item. Split their
-    # normalized text into sentences and semicolon-delimited clauses so
-    # unrelated claims do not combine and a negative clause cannot exempt a
-    # later positive mandate, while line wrapping remains visible.
+    # normalized text into sentences and semicolon-delimited clauses, then
+    # ordinary contrast clauses, so unrelated claims do not combine and a
+    # negative clause cannot exempt a later positive mandate while line
+    # wrapping remains visible.
     function inspect(unit,    text, remainder, end, statement) {
       text = unit
       gsub(/[[:space:]]+/, " ", text)
@@ -81,12 +97,12 @@ mandatory_provider_semantics_present() {
       while (match(remainder, /[.!?]+|;/)) {
         end = RSTART + RLENGTH - 1
         statement = substr(remainder, 1, end)
-        if (forbidden_statement(statement)) {
+        if (inspect_contrast_clauses(statement)) {
           return 1
         }
         remainder = substr(remainder, end + 1)
       }
-      return forbidden_statement(remainder)
+      return inspect_contrast_clauses(remainder)
     }
 
     function flush_unit() {
@@ -206,12 +222,16 @@ assert_provider_semantics_fixture forbidden "Must install" "Codex."
 assert_provider_semantics_fixture forbidden "Install Codex."
 assert_provider_semantics_fixture forbidden "Authenticate with Codex before verification."
 assert_provider_semantics_fixture forbidden "Authenticate with Codex before" "verification."
+assert_provider_semantics_fixture forbidden "Please install Codex before verification."
+assert_provider_semantics_fixture forbidden "To verify, install Codex."
 assert_provider_semantics_fixture forbidden "Provider review is not mandatory; however, Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "Provider review is not mandatory, but Codex review is mandatory."
 assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
 assert_provider_semantics_fixture forbidden "- Provider review is" "mandatory."
 assert_provider_semantics_fixture forbidden "- Provider" "review is mandatory."
 assert_provider_semantics_fixture forbidden "- Installation is required" "before verification."
 assert_provider_semantics_fixture forbidden "- Provider review is not mandatory; however, Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "- Provider review is not mandatory, but Codex review is mandatory."
 assert_provider_semantics_fixture allowed "Provider execution is optional." "This skill does not grant provider authority."
 assert_provider_semantics_fixture allowed "Provider review is not mandatory."
 assert_provider_semantics_fixture allowed "Installation is not required before verification."

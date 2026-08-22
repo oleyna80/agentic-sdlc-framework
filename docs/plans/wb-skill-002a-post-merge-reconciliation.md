@@ -34,10 +34,11 @@ valid provider-neutral source correction:
    closeout with a non-authoritative separate specification, only after an
    evidence-based impact inventory.
 
-**Expected Final Result:** a future frozen correction can truthfully reconcile
-the WB-SKILL-002 specification, detect wrapped mandatory-provider semantics in
-the existing target-only guard, and reject the same eligible condition at the
+**Expected Final Result:** the implemented correction truthfully reconciles the
+WB-SKILL-002 specification, detects wrapped mandatory-provider semantics in the
+existing target-only guard, and rejects the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
+Frozen independent assurance remains required before any terminal claim.
 
 ## Current Execute Authorization State
 
@@ -82,9 +83,9 @@ revision for Execute.
 such approval did not happen outside tracked repository artifacts. It is only a
 repository-evidence boundary.
 
-### Future Owner Decision Boundary
+### Historical Owner Decision Boundary
 
-No branch is selected in this Define-only run:
+At Define, the remediation required one of these distinct branches:
 
 - **A — verified historical pre-Execute approval:** classify the issue as a
   recording/projection defect and cite independent dated evidence.
@@ -97,12 +98,13 @@ No branch is selected in this Define-only run:
 
 The later Owner may confirm verifiable historical evidence, acknowledge a
 historical process deviation, or approve current authority prospectively. These
-are distinct decisions. This Define run does not change the old specification
-from `draft` to `approved`.
+are distinct decisions. The subsequent bounded Execute selected B and recorded
+a prospective-only approval of the old specification; it did not rewrite the
+historical `draft` state or claim retroactive compliance.
 
 ### Required Owner Decision Before P1 Execute
 
-Before TASK-001 may alter
+Before TASK-001 could alter
 `docs/specs/wb-skill-002-provider-neutral-verifier.md`, the Owner must record
 at this exact plan location one and only one remediation decision:
 
@@ -115,10 +117,9 @@ at this exact plan location one and only one remediation decision:
   stating the current prospective-authority decision without resolving history.
 
 The record must name the selected letter, date, Owner authority evidence, and
-the decision's historical or prospective temporal scope. Until it exists,
-**P1 Execute and prior-specification metadata changes are BLOCKED**. This gate
-does not permit a C record to silently select a historical answer, and this
-Define-only artifact intentionally records no selection.
+the decision's historical or prospective temporal scope. Before the recorded
+selection, **P1 Execute and prior-specification metadata changes were BLOCKED**.
+The gate did not permit a C record to silently select a historical answer.
 
 #### Recorded Owner Decision — 2026-08-21
 
@@ -182,23 +183,25 @@ a path merely appearing in a write-set is not treated as that declaration.
 | WB-OPENCODE-002 | Managed | none explicitly declared | n/a | yes | no | no separate-spec obligation |
 | WB-REPO-GRAPH-001 | Managed | UNVERIFIED — `docs/specs/repository-graph-provider-contract.md` appears in the write-set but no normative binding is declared | approved | yes | no; outside explicit-binding selector | do not infer a binding retroactively |
 | WB-SKILL-001 | Managed | `docs/specs/wb-skill-001-role-skill-convergence.md` explicitly marked Approved Specification | approved | yes | no | conforms |
-| WB-SKILL-002 | Managed | `docs/specs/wb-skill-002-provider-neutral-verifier.md` explicitly marked Specification | draft | yes | yes | corrective target |
+| WB-SKILL-002 | Managed | `docs/specs/wb-skill-002-provider-neutral-verifier.md` explicitly marked Specification | `draft` at historical closeout; prospectively `approved` on 2026-08-21 | yes | historically yes; currently no | corrective target reconciled without retroactive cure |
 
 Nineteen earlier completed Work Blocks omit `governance_profile`; their profile
 and separate-spec applicability are **UNVERIFIED**, not inferred from old
 `process_level` labels or prose references.
 
 **Historical impact classification: BOUNDED COLLATERAL IMPACT.** The candidate
-would identify WB-SKILL-002, the current latest completed Work Block, and no
-other completed Work Block with both an explicit formal profile and explicit
-separate normative-specification binding.
+identified WB-SKILL-002, the current latest completed Work Block, and no other
+completed Work Block with both an explicit formal profile and explicit separate
+normative-specification binding. The bounded correction reconciled its current
+authority prospectively while retaining the historical deviation record.
 
 ## Proposed Completion-Invariant Scope
 
-The smallest justified scope is **(a) latest completed Work Block only**, with
-prospective effect at every successful closeout. `validate-release-state.py`
+The implemented smallest scope is **(a) latest completed Work Block only**,
+with prospective effect at every successful closeout.
+`validate-release-state.py`
 already owns the canonical `release_state.latest_completed_work_block` boundary
-and validates its plan and closeout projection. The future rule should inspect
+and validates its plan and closeout projection. The implemented rule inspects
 that Work Block only when all of the following are explicit and resolvable:
 
 1. its `governance_profile` is Managed, Assured, or Distributed;
@@ -212,28 +215,30 @@ that Work Block only when all of the following are explicit and resolvable:
 The tasklist `specification` field is binding evidence for path resolution only;
 the resolved approved specification remains the authority. A missing field
 means no separate specification is declared and the invariant is skipped. The
-future validator must fail closed when the deterministic sibling tasklist is
+validator fails closed when the deterministic sibling tasklist is
 absent; a present field is empty, duplicated, malformed, or non-repository; the
 target file does not exist or has the wrong artifact type; or the Work Block IDs
 mismatch. It must not infer bindings for historical records that omit the field.
 
-This gives every future successful closeout the protection when it becomes the
+This gives every successful closeout the protection when it becomes the
 latest completed record, avoids a speculative global migration of legacy plans,
 and does not infer profile or specification authority for incomplete historical
-metadata. WB-SKILL-002 remains a genuine current corrective target because it
-is presently latest and explicitly binds a separate `draft` specification.
+metadata. WB-SKILL-002 was the genuine corrective target because it was latest
+and explicitly bound a separate `draft` specification; its current
+specification status is now prospectively `approved` without a retroactive cure.
 
 The existing release-state validator owns the appropriate cross-artifact
-enforcement point, but `governance/release-state.md` does not yet define this
-requirement. The future correction therefore needs a narrowly stated normative
-contract before adding validator behavior.
+enforcement point. The bounded correction added the corresponding narrowly
+stated normative contract in `governance/release-state.md` before adding
+validator behavior.
 
 ## Multiline Regression-Guard Investigation — P2
 
 `require_absent_mandatory_provider_semantics` in
-`scripts/test-sdd-contract.sh` lowers and evaluates one physical line at a time.
-Its predicate requires relevant modal/provider/assurance or prerequisite terms
-to coexist in that line. Ordinary Markdown wrapping therefore bypasses it:
+Before this correction, `scripts/test-sdd-contract.sh` lowered and evaluated
+one physical line at a time. Its predicate required relevant
+modal/provider/assurance or prerequisite terms to coexist in that line.
+Ordinary Markdown wrapping therefore bypassed it:
 
 ```text
 Provider review is
@@ -243,16 +248,19 @@ Installation is required
 before verification.
 ```
 
-The future smallest design is paragraph-scoped normalization: the existing
-target file remains the only scanned path; the predicate receives one normal
-prose paragraph at a time after internal ordinary-prose line breaks and repeated
+The implemented guard uses paragraph-scoped normalization: the existing target
+file remains the only scanned path; the predicate receives one normal-prose
+paragraph at a time after internal ordinary-prose line breaks and repeated
 whitespace are joined. Continuation lines within one list item are also joined.
 Blank lines, ATX headings, separate list items, and fenced-code boundaries are
 hard statement boundaries; fenced code is excluded from semantic matching. It
-must not join the whole file, so terms in unrelated paragraphs, headings,
-separate list items, or code cannot create a false match.
+does not join the whole file, so terms in unrelated paragraphs, headings,
+separate list items, or code cannot create a false match. A later bounded
+corrective iteration also splits ordinary `, but` and `, however` contrasts
+before applying negation and recognizes direct prerequisite imperatives after
+common polite or purpose-clause introductions.
 
-The future contract tests must exercise the actual predicate against
+The contract tests exercise the actual predicate against
 single-line, reordered, and wrapped prohibited prose; allowed advisory prose;
 negative paragraph-separation; a prohibited same-list-item wrapping case; an
 allowed cross-list-item case; ATX-heading-boundary; and fenced-code cases. This
