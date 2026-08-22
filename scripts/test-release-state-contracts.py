@@ -383,6 +383,63 @@ work_block_id: wb-007
             "duplicate specification fields",
         )
 
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+schema_version: 1
+artifact_type: tasklist
+work_block_id: wb-007
+<<: {{specification: {SPECIFICATION}}}
+---
+
+# wb-007 tasklist
+""",
+        )
+        write(root / SPECIFICATION, specification(status="draft"))
+        expect_failure("formal-spec-merge-key-binding", root, "must be status approved")
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+schema_version: 1
+artifact_type: tasklist
+work_block_id: wb-007
+<<: {{specification: {SPECIFICATION}}}
+specification: {SPECIFICATION}
+---
+
+# wb-007 tasklist
+""",
+        )
+        expect_failure(
+            "formal-spec-direct-and-merge-duplicate-field",
+            root,
+            "duplicate specification fields",
+        )
+
+        populate(root)
+        write(
+            root / TASKLIST,
+            f"""---
+schema_version: 1
+artifact_type: tasklist
+work_block_id: wb-007
+<<:
+  - {{specification: {SPECIFICATION}}}
+  - {{specification: {SPECIFICATION}}}
+---
+
+# wb-007 tasklist
+""",
+        )
+        expect_failure(
+            "formal-spec-multiple-merge-duplicate-field",
+            root,
+            "duplicate specification fields",
+        )
+
     with tempfile.TemporaryDirectory(prefix="release-state-clean-boundary-") as temp:
         root = Path(temp)
         populate(root)

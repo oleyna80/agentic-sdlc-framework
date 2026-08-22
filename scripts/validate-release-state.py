@@ -9,7 +9,7 @@ import sys
 from typing import Any
 
 import yaml
-from yaml.nodes import MappingNode, ScalarNode
+from yaml.nodes import MappingNode, ScalarNode, SequenceNode
 
 ACTIVE_STATUSES = {"draft", "planned", "in_progress", "blocked"}
 FORMAL_GOVERNANCE_PROFILES = {"Managed", "Assured", "Distributed"}
@@ -551,10 +551,11 @@ def top_level_frontmatter_field_count(text: str, field: str) -> int:
     """Return structural top-level occurrences of a YAML frontmatter field.
 
     ``safe_load`` intentionally accepts duplicate mapping keys by retaining the
-    final value.  The release-state binding must instead fail closed when a
-    tasklist declares ``specification`` more than once, including YAML flow-map
-    and explicit-key forms.  Compose retains the mapping-node pairs needed for
-    that distinction without making physical-line syntax authoritative.
+    final value and resolves YAML merge keys.  The release-state binding must
+    instead fail closed when a tasklist provides ``specification`` more than
+    once, whether directly or through a merge key.  Compose retains both the
+    mapping-node pairs and merge relationships without making physical-line
+    syntax authoritative.
     """
     try:
         raw_frontmatter, _ = text[4:].split("\n---\n", 1)
@@ -566,10 +567,32 @@ def top_level_frontmatter_field_count(text: str, field: str) -> int:
         raise ReleaseStateError(f"invalid tasklist frontmatter: {exc}") from exc
     if not isinstance(document, MappingNode):
         raise ReleaseStateError("tasklist frontmatter must be an object")
-    return sum(
-        isinstance(key, ScalarNode) and key.value == field
-        for key, _ in document.value
-    )
+    def merged_field_count(node: object, ancestry: set[int]) -> int:
+        """Count ``field`` declarations contributing to one mapping.
+
+        YAML aliases share composed nodes.  Count every occurrence in the
+        current merge expression, while rejecting a recursive merge graph
+        rather than silently treating it as an absent binding.
+        """
+        if isinstance(node, MappingNode):
+            node_id = id(node)
+            if node_id in ancestry:
+                raise ReleaseStateError("tasklist frontmatter contains recursive YAML merge")
+            next_ancestry = ancestry | {node_id}
+            count = 0
+            for key, value in node.value:
+                if not isinstance(key, ScalarNode):
+                    continue
+                if key.value == field:
+                    count += 1
+                elif key.value == "<<":
+                    count += merged_field_count(value, next_ancestry)
+            return count
+        if isinstance(node, SequenceNode):
+            return sum(merged_field_count(item, ancestry) for item in node.value)
+        raise ReleaseStateError("tasklist frontmatter contains invalid YAML merge value")
+
+    return merged_field_count(document, set())
 
 
 def validate_latest_formal_specification(
