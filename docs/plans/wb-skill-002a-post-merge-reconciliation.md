@@ -44,7 +44,9 @@ latest-completed release-state boundary without changing the accepted skill.
 - **Current Stage:** Execute
 - **Stage State:** in_progress — Define investigation, requirements quality,
   consistency analysis, Critic review, the P1 decision, and prospective source
-  authorization are complete; source implementation has not yet begun.
+  authorization are complete. The approved source corrections and the bounded
+  follow-up correction from independent review have been implemented; frozen
+  independent assurance remains pending.
 - **Write Gate:** READY — Owner approval is limited to the exact five-path
   source write-set recorded below.
 - **Critic Gate:** READY
@@ -257,7 +259,7 @@ allowed cross-list-item case; ATX-heading-boundary; and fenced-code cases. This
 corrects the prior AC-006 overclaim without changing
 `skills/codex-verification/SKILL.md`.
 
-## Approved Source Write-Set — Bounded Execute Only
+## Approved Source Write-Set — Bounded Execute
 
 | Path | Defect / invariant owner | Governing contract | Smallest sufficient change | Why no smaller owner exists |
 | --- | --- | --- | --- | --- |
@@ -267,8 +269,14 @@ corrects the prior AC-006 overclaim without changing
 | `scripts/validate-release-state.py` | Deterministic enforcement at the release-state boundary | `governance/release-state.md` | Resolve the deterministic sibling tasklist; skip a missing field; fail every present malformed binding; validate the resolved approved specification only for the latest eligible completed Work Block. | It already owns `latest_completed_work_block`, closeout, and terminal projection validation. |
 | `scripts/test-release-state-contracts.py` | Regression fixtures for the release-state invariant | `scripts/validate-release-state.py` contract suite | Add missing sibling tasklist, malformed present field, wrong type/ID, eligible-draft failure, eligible-approved pass, and no-declared-binding skip fixtures. | This is the existing executable fixture owner for that validator. |
 
-Only the five paths above are authorized for bounded source Execute. In
-particular, `skills/codex-verification/SKILL.md` is expressly excluded.
+The five paths above have been used for the bounded source Execute. In
+particular, `skills/codex-verification/SKILL.md` remains expressly excluded.
+
+Following independent-review findings, the bounded corrective iteration is
+also authorized only for `scripts/test-sdd-contract.sh` and these two
+coordination artifacts: this plan and its deterministic sibling tasklist. It
+must not alter the accepted provider-neutral skill, historical authority facts,
+or any pending Reviewer, Verifier, or Drift gate.
 
 ## Define Quality Prerequisite
 
@@ -290,7 +298,7 @@ Write Gate is therefore READY for bounded source Execute only.
 
 ## Scope and Hard Stops
 
-### Define-only authorized write-set
+### Original Define-only authorized write-set
 
 ```text
 docs/plans/wb-skill-002a-post-merge-reconciliation.md
@@ -302,7 +310,8 @@ docs/tasklist/wb-skill-002a-post-merge-reconciliation.md
 
 - any WB-SKILL-002 specification change beyond the approved prospective
   authority reconciliation recorded above;
-- source/test/fixture/validator/governance changes;
+- source/test/fixture/validator/governance changes outside the exact bounded
+  Execute write-set and its later three-file corrective iteration;
 - `skills/codex-verification/SKILL.md` or its accepted semantics;
 - GitHub thread resolution, push, PR creation, merge, rebase, or default-branch
   mutation;
@@ -310,6 +319,7 @@ docs/tasklist/wb-skill-002a-post-merge-reconciliation.md
   loops, context pruning, verifier manifests, and broad legacy-skill cleanup;
 - the unrelated untracked `Repository Graph Evaluation Brief.md`.
 
-Source implementation is authorized only for the exact five-path approved
-write-set. Any expansion, GitHub action, or merge remains prohibited without
-separate Owner authority.
+The approved source Execute and its narrow post-review correction are complete.
+Frozen independent Reviewer, Verifier, and Drift assurance remain required
+before terminal closeout. Any further expansion, GitHub action, or merge
+remains prohibited without separate Owner authority.

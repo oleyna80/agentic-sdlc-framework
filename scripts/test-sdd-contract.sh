@@ -40,7 +40,7 @@ mandatory_provider_semantics_present() {
     # independent concepts instead of word-order regexes: provider review,
     # provider prerequisite, and verification prerequisite mandates are all
     # forbidden whichever order ordinary prose uses.
-    function forbidden_statement(statement,    line, modal, provider, assurance, prerequisite, negated, provider_mandate, prerequisite_mandate) {
+    function forbidden_statement(statement,    line, modal, provider, assurance, prerequisite, imperative_prerequisite, negated, provider_mandate, prerequisite_mandate) {
       line = tolower(statement)
       gsub(/[[:space:]]+/, " ", line)
 
@@ -60,20 +60,25 @@ mandatory_provider_semantics_present() {
       provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
       assurance = line ~ /(review|verification|execution)/
       prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
+      # Direct imperative prerequisites are mandates even without a separate
+      # modal word. Sentence splitting keeps a preceding negation from
+      # suppressing a later imperative in the same prose unit.
+      imperative_prerequisite = line ~ /^[[:space:]]*(install|authenticate|configure)([^[:alpha:]]|$)/
 
       provider_mandate = provider && assurance && modal
-      prerequisite_mandate = prerequisite && modal && (assurance || provider)
+      prerequisite_mandate = prerequisite && (modal || imperative_prerequisite) && (assurance || provider)
       return provider_mandate || prerequisite_mandate
     }
 
     # Units are prose paragraphs or one complete list item. Split their
-    # normalized text into sentences so unrelated sentences do not combine
-    # concepts, while line wrapping inside a sentence remains visible.
+    # normalized text into sentences and semicolon-delimited clauses so
+    # unrelated claims do not combine and a negative clause cannot exempt a
+    # later positive mandate, while line wrapping remains visible.
     function inspect(unit,    text, remainder, end, statement) {
       text = unit
       gsub(/[[:space:]]+/, " ", text)
       remainder = text
-      while (match(remainder, /[.!?]+/)) {
+      while (match(remainder, /[.!?]+|;/)) {
         end = RSTART + RLENGTH - 1
         statement = substr(remainder, 1, end)
         if (forbidden_statement(statement)) {
@@ -198,10 +203,15 @@ assert_provider_semantics_fixture forbidden "Provider review is" "mandatory."
 assert_provider_semantics_fixture forbidden "Provider" "review is mandatory."
 assert_provider_semantics_fixture forbidden "Installation is required" "before verification."
 assert_provider_semantics_fixture forbidden "Must install" "Codex."
+assert_provider_semantics_fixture forbidden "Install Codex."
+assert_provider_semantics_fixture forbidden "Authenticate with Codex before verification."
+assert_provider_semantics_fixture forbidden "Authenticate with Codex before" "verification."
+assert_provider_semantics_fixture forbidden "Provider review is not mandatory; however, Provider review is mandatory."
 assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
 assert_provider_semantics_fixture forbidden "- Provider review is" "mandatory."
 assert_provider_semantics_fixture forbidden "- Provider" "review is mandatory."
 assert_provider_semantics_fixture forbidden "- Installation is required" "before verification."
+assert_provider_semantics_fixture forbidden "- Provider review is not mandatory; however, Provider review is mandatory."
 assert_provider_semantics_fixture allowed "Provider execution is optional." "This skill does not grant provider authority."
 assert_provider_semantics_fixture allowed "Provider review is not mandatory."
 assert_provider_semantics_fixture allowed "Installation is not required before verification."
