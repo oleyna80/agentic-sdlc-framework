@@ -40,14 +40,12 @@ existing target-only guard, and rejects the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
 Frozen independent assurance remains required before any terminal claim.
 
-## Current Execute Authorization State
+## Current Assure State
 
-- **Current Stage:** Execute
-- **Stage State:** in_progress — Define investigation, requirements quality,
-  consistency analysis, Critic review, the P1 decision, and prospective source
-  authorization are complete. The approved source corrections and the bounded
-  follow-up correction from independent review have been implemented; frozen
-  independent assurance remains pending.
+- **Current Stage:** Assure
+- **Stage State:** in_progress — the approved source corrections and bounded
+  follow-up corrections are frozen and are undergoing independent Reviewer,
+  Verifier, and Drift assurance. No assurance gate is yet claimed as complete.
 - **Write Gate:** READY — Owner approval is limited to the exact five-path
   source write-set recorded below.
 - **Critic Gate:** READY
