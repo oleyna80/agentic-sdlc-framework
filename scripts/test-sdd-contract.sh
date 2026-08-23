@@ -287,6 +287,12 @@ assert_provider_semantics_fixture allowed '```text' "Provider review is mandator
 assert_provider_semantics_fixture allowed '````text' "Provider review is mandatory." '```' '````'
 assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '~~~' '```'
 assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '``` not-a-close' '```'
+# Each prohibited imperative follows an invalid closer but precedes the valid
+# compatible closer. A toggle-only parser would expose it as prose and fail;
+# the compatible-fence parser must continue treating it as fenced content.
+assert_provider_semantics_fixture allowed '````text' "allowed code" '```' "Ask Codex to review the implementation." '````'
+assert_provider_semantics_fixture allowed '```text' "allowed code" '~~~' "Ask Codex to review the implementation." '```'
+assert_provider_semantics_fixture allowed '```text' "allowed code" '``` not-a-close' "Ask Codex to review the implementation." '```'
 assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory."
 assert_provider_semantics_fixture forbidden '````text' "allowed code" '````' "Ask Codex to review the implementation."
 assert_provider_semantics_fixture forbidden '```text' "allowed code" '````' "Ask Codex to review the implementation."
