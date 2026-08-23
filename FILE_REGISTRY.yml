@@ -223,6 +223,7 @@ migration_state:
     - docs/plans/wb-git-001-stacked-pr-synchronization.md
     - docs/plans/wb-skill-002-provider-neutral-verifier.md
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
+    - docs/plans/wb-skill-002b-provider-guard-boundaries.md
   active_work_block: null
   next_planned_work_block: WB-CORE-004
   planned:
@@ -236,8 +237,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-skill-002a-post-merge-reconciliation.md
-  closeout_report: docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md
+  latest_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
+  closeout_report: docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md
   external_vcs_state: non_normative
   authority: assurance_only
 

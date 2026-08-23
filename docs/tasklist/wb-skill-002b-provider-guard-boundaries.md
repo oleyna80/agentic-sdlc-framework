@@ -4,7 +4,7 @@ artifact_type: tasklist
 work_block_id: WB-SKILL-002B
 specification: docs/specs/wb-skill-002b-provider-guard-boundaries.md
 specification_revision: execute-r1-2026-08-23
-status: in_progress
+status: completed
 ---
 
 # WB-SKILL-002B Tasklist — Provider Guard Imperative and Fence Boundary Correction
@@ -22,7 +22,7 @@ status: in_progress
 - [x] TASK-006 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-skill-002b-provider-guard-boundaries.md,docs/reports/requirements/wb-skill-002b-provider-guard-boundaries-consistency.md,docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md] Obtain requirements-quality review, consistency analysis, and Critic evidence before any Write Gate decision. Evidence: requirements READY, consistency READY, and Critic READY for exact Define subject `848be54d8d501e824e58ee8112f04b9111f72b7b`.
 - [x] TASK-007 [type=requirement] [req=REQ-005] [ac=AC-008] [paths=docs/plans/wb-skill-002b-provider-guard-boundaries.md,docs/specs/wb-skill-002b-provider-guard-boundaries.md,docs/tasklist/wb-skill-002b-provider-guard-boundaries.md] Record the Owner's prospective 2026-08-23 approval of specification revision `execute-r1-2026-08-23` and exactly the one-path source write-set `scripts/test-sdd-contract.sh` before source Execute. This approval establishes WB-SKILL-002B Execute authority only; it is not retrospective and grants no commit, push, pull-request, merge, or GitHub-thread authority.
 - [x] TASK-008 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-002b-provider-guard-boundaries.md,docs/reports/verification/wb-skill-002b-provider-guard-boundaries.md,docs/reports/drift/wb-skill-002b-provider-guard-boundaries.md] Freeze the source subject and obtain independent Reviewer, fresh-clone Verifier, and Drift evidence. Final subject `39c07db01ce0b08290dbf6721ecb4a53e457b606` → `8669bfa2522e3a38c27adc913f60213d7d3aea38`: Reviewer READY, Verifier READY, Drift ALIGNED. Reviewer and Verifier confirmed exact one-path manifest and clean diff. The intermediate verifier BLOCKED result for `21747506fdaab57778944714a53f6a5aec79ebfd` is preserved in the verification report as historical corrective evidence, not relabeled as a pass.
-- [ ] TASK-009 [type=requirement] [req=REQ-006] [ac=AC-009] [paths=docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md] Complete terminal closeout only after required assurance; preserve the unresolved GitHub review threads until authorized separately.
+- [x] TASK-009 [type=requirement] [req=REQ-006] [ac=AC-009] [paths=FILE_REGISTRY.yml,PROJECT_MAP.md,docs/plans/wb-skill-002b-provider-guard-boundaries.md,docs/tasklist/wb-skill-002b-provider-guard-boundaries.md,docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md] Complete the approved terminal normative projection and preserve the unresolved GitHub review threads until authorized separately. Fresh terminal Reviewer, Verifier, and Drift assurance is required for this later subject and is not claimed here.
 
 ## Dependencies and Stops
 
@@ -31,11 +31,11 @@ prospective approval of exactly `scripts/test-sdd-contract.sh` are recorded;
 the bounded source Execute completed on final frozen subject
 `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
 `8669bfa2522e3a38c27adc913f60213d7d3aea38`. The four source-delivery items
-and source-assurance item are complete; only the terminal-closeout item remains
-open. No task authorizes source changes outside `scripts/test-sdd-contract.sh`,
-a change to the provider-neutral skill, governance/release-state/registry/map
-changes, external GitHub mutation, commit, push, PR creation, merge, rebase,
-or thread resolution.
+and source-assurance item are complete, and the separately approved terminal
+normative projection is complete. No task authorizes source changes outside `scripts/test-sdd-contract.sh`,
+a change to the provider-neutral skill, governance/release-state changes,
+registry/map changes outside the exact terminal write-set, external
+GitHub mutation, commit, push, PR creation, merge, rebase, or thread resolution.
 
 ## Pre-Execution Validation
 

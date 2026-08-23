@@ -3,21 +3,21 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-skill-002b-provider-guard-boundaries
 work_block_id: WB-SKILL-002B
-status: in_progress
+status: completed
 owner_role: Owner
 created_at: 2026-08-23
 last_updated: 2026-08-23
 governance_profile: Managed
 branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: 4e10b8a4a2b6d390a3b6f3f0e6b6864d0df88dde
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: READY
 review_gate: READY
 verification_verdict: READY
 drift_gate: ALIGNED
-evaluation_verdict: NOT_REQUIRED
-closeout_mode: pending
-owner_approval: Owner prospectively approved WB-SKILL-002B specification revision execute-r1-2026-08-23 and exactly the one-path source write-set scripts/test-sdd-contract.sh on 2026-08-23. This approval is limited to bounded source Execute and grants no commit, push, pull-request, merge, or GitHub-thread authority.
+evaluation_verdict: SKIPPED — deterministic contract correction has no non-deterministic product behavior requiring a separate evaluation
+closeout_mode: success-closeout
+owner_approval: Owner prospectively approved WB-SKILL-002B specification revision execute-r1-2026-08-23 and exactly the one-path source write-set scripts/test-sdd-contract.sh on 2026-08-23. The Owner separately approved the terminal coordination/evidence write-set on 2026-08-23. Neither approval grants push, pull-request, merge, or GitHub-thread authority.
 ---
 
 # WB-SKILL-002B — Provider Guard Imperative and Fence Boundary Correction
@@ -33,35 +33,31 @@ skill correction or reopening WB-SKILL-002A's completed lifecycle reconciliation
 2. make fenced-code exclusion respect compatible delimiter character, run
    length, and closing-tail boundaries.
 
-**Current Result:** the one approved source path rejects the two defect classes
-through its own predicate fixtures, remains restricted to the existing target
-skill, and has independent Reviewer, fresh-clone Verifier, and Drift assurance.
-Only terminal closeout remains pending.
+**Result:** the one approved source path rejects the two defect classes through
+its own predicate fixtures and remains restricted to the existing target skill.
+The terminal normative projection records repository closeout, while later
+terminal Reviewer, Verifier, and Drift assurance remains required for its own
+later subject.
 
-## Current State
+## Final State
 
-- **Current Stage:** Assure
+- **Current Stage:** Close
 - **Stage State:** completed
-- **Write Gate:** READY — Owner prospectively approved specification revision
-  `execute-r1-2026-08-23` and exactly `scripts/test-sdd-contract.sh` for
-  bounded source Execute, which completed on final frozen subject
-  `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
-  `8669bfa2522e3a38c27adc913f60213d7d3aea38`.
-- **Critic Gate:** READY — `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md`
-- **Review Gate:** READY — independent read-only review of frozen source subject
-  `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
-  `8669bfa2522e3a38c27adc913f60213d7d3aea38`; see
-  `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries.md`.
-- **Verification Verdict:** READY — fresh detached local temporary-clone
-  verification of the same final source subject; see
-  `docs/reports/verification/wb-skill-002b-provider-guard-boundaries.md`.
-- **Drift Gate:** ALIGNED — independent read-only source-to-specification audit
-  of the same final source subject; see
-  `docs/reports/drift/wb-skill-002b-provider-guard-boundaries.md`.
-- **Evaluation Verdict:** NOT_REQUIRED — deterministic tooling reconciliation;
-  no non-deterministic product behavior is introduced.
-- **Closeout Mode:** pending
-- **Task Status:** in_progress — terminal closeout (TASK-009) remains open.
+- **Write Gate:** BLOCKED
+- **Critic Gate:** READY
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Evaluation Verdict:** SKIPPED — deterministic contract correction has no
+  non-deterministic product behavior requiring a separate evaluation.
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
+
+The Review, Verification, and Drift terminal markers classify the completed
+repository lifecycle. The recorded source assurance remains limited to the
+frozen subject below; fresh terminal Reviewer, Verifier, and Drift assurance is
+still required before any later revision can claim assurance of this terminal
+normative projection.
 
 ## Confirmed Findings
 
@@ -178,17 +174,26 @@ These records bind only the final frozen source subject
 `8669bfa2522e3a38c27adc913f60213d7d3aea38`. They do not cover a later
 coordination/evidence or terminal-closeout revision.
 
-### Proposed Future Closeout Evidence Path — Not Authorized
+### Authorized Terminal Coordination/Evidence Paths
 
 ```text
+FILE_REGISTRY.yml
+PROJECT_MAP.md
+docs/plans/wb-skill-002b-provider-guard-boundaries.md
+docs/tasklist/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md
 ```
+
+This approved terminal write-set creates the normative repository projection
+only. It does not create later source authority and does not replace the fresh
+terminal Reviewer, Verifier, and Drift assurance required for its later subject.
 
 ### Out of Scope
 
 - WB-SKILL-002A terminal evidence, P1 lifecycle correction, and closeout.
-- `skills/codex-verification/SKILL.md`, governance, release-state validators,
-  `FILE_REGISTRY.yml`, and `PROJECT_MAP.md`.
+- `skills/codex-verification/SKILL.md`, governance, and release-state validators.
+- Any `FILE_REGISTRY.yml` or `PROJECT_MAP.md` change outside the authorized
+  terminal coordination/evidence projection above.
 - Broad Markdown parsing, dependencies, or repository-wide scanning.
 - GitHub thread resolution, push, PR creation, merge, rebase, or other external
   mutation.
@@ -231,8 +236,10 @@ duplicate test-only approximation.
 - [x] Commit or push — requires separate Owner authorization.
 - [x] Pull-request creation, merge, rebase, or GitHub-thread resolution — not
   authorized by this Work Block.
-- [x] Scope expansion, dependency, governance/release-state, registry/map, or
-  target-skill change — return to Define and Owner approval.
+- [x] Source execution — no later source authorization follows terminal closeout;
+  the Write Gate is BLOCKED.
+- [x] Scope expansion, dependency, governance/release-state, or target-skill
+  change — return to Define and Owner approval.
 
 ## Execution and Assurance Sequence
 
@@ -255,11 +262,13 @@ duplicate test-only approximation.
    the separate correction commit `8669bfa2522e3a38c27adc913f60213d7d3aea38`
    added those discriminating fixtures, and the final assurance was re-run on
    the new frozen subject.
-4. Perform terminal closeout only with a separately approved coordination/
-   evidence write set and fresh assurance applicable to its later normative
-   subject.
+4. The separately approved terminal coordination/evidence write-set completed
+   the repository normative projection: this Work Block, its tasklist, the
+   registry, Project Map, and closeout report. Fresh terminal Reviewer,
+   Verifier, and Drift assurance remains required for that later normative
+   subject and is not claimed by the source assurance.
 
 No parallel writers were permitted: one Coder owned the approved source
 write-set. A live PR #44 base/head reread was an execution-time observation;
-it did not create approval or execution authority. Terminal closeout has not
-been authorized and TASK-009 remains open.
+it did not create approval or execution authority. The terminal projection does
+not grant source, commit, push, pull-request, merge, or GitHub-thread authority.
