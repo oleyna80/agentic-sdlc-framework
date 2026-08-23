@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-skill-002a-post-merge-reconciliation
 work_block_id: WB-SKILL-002A
-status: in_progress
+status: completed
 owner_role: Owner
 created_at: 2026-08-21
 last_updated: 2026-08-23
@@ -15,7 +15,8 @@ critic_gate: READY
 review_gate: READY
 verification_verdict: READY
 drift_gate: ALIGNED
-evaluation_verdict: NOT_REQUIRED
+evaluation_verdict: SKIPPED — deterministic governance/tooling reconciliation is fully covered by contract validation; no non-deterministic product evaluation is required
+closeout_mode: success-closeout
 owner_approval: Owner prospectively approved WB-SKILL-002A specification revision execute-r1-2026-08-21 and exactly the recorded five-path source write-set on 2026-08-21. The approval is limited to bounded source Execute; it does not prove or retroactively cure historical WB-SKILL-002 approval, and grants no GitHub or merge authority.
 ---
 
@@ -38,23 +39,25 @@ valid provider-neutral source correction:
 WB-SKILL-002 specification, detects wrapped mandatory-provider semantics in the
 existing target-only guard, and rejects the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
-Frozen independent assurance remains required before any terminal claim.
+Frozen independent source assurance is complete. Fresh applicable assurance of
+the resulting terminal normative subject remains required before any external
+handoff.
 
-## Current Close State
+## Final State
 
 - **Current Stage:** Close
-- **Stage State:** in_progress — frozen source assurance is complete; terminal
-  projection and closeout remain pending and require their own bounded
-  lifecycle work.
+- **Stage State:** completed
 - **Write Gate:** BLOCKED — the approved bounded source Execute is complete;
   no further source mutation is authorized by this Work Block.
 - **Critic Gate:** READY
 - **Review Gate:** READY
-- **Verification:** READY
-- **Drift:** ALIGNED
-- **Evaluation:** NOT_REQUIRED — the target behavior is deterministic
-  governance/tooling reconciliation; no non-deterministic product behavior is
-  introduced.
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Evaluation Verdict:** SKIPPED — deterministic governance/tooling
+  reconciliation is fully covered by contract validation; no non-deterministic
+  product evaluation is required.
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
 
 ## Historical Fact Investigation — P1
 
@@ -331,6 +334,7 @@ as READY, READY, and ALIGNED respectively for exact source subject
 `80d4181be2647832c9f970f9d5446dda0f58e2f9` →
 `7fb60639f8f0b39fd19d75f8fbfa292acbd1f0f0`. Their evidence is in
 `docs/reports/{reviews,verification,drift}/wb-skill-002a-post-merge-reconciliation.md`.
-This evidence does not close the Work Block or authorize terminal projection,
-GitHub action, or merge; any such later normative subject requires separate
-authority and assurance.
+This source assurance was the prerequisite for the terminal projection recorded
+in this Work Block. It does not automatically assure the resulting terminal
+normative subject, authorize GitHub action, or authorize merge. That subject
+requires separate fresh applicable assurance before any external handoff.
