@@ -164,8 +164,8 @@ WB-SKILL-002A and make only two bounded changes:
 
 | Area | Required design | Adversarial controls |
 | --- | --- | --- |
-| Imperative mandate | Recognize direct provider + assurance imperatives, with limited polite/purpose introductions and ordinary wrapping. | `Ask Codex to review the implementation.`, polite/wrapped forms, allowed optional advisory prose, paragraph-separated words. |
-| Fenced code | Record opener delimiter character/run length; accept only matching equal-or-longer closer with whitespace-only tail. | mismatched char, too-short run, suffix text, unclosed fence, valid closure then prohibited prose. |
+| Imperative mandate | Recognize only: optional `To verify,`; optional `please`/`kindly`; `ask`/`request`; recognized alias (`provider`, `Codex`, `additional model`, `second model`); `to`; `review`/`verify`/`perform verification`, with ordinary wrapping. | one-line and wrapped variants; `Do not ask Codex to review the implementation.`; optional advisory prose; paragraph-separated terms. |
+| Fenced code | Accept a regular opener of at most three leading spaces, matching backtick/tilde run of at least three, and optional info tail; close only with at most three leading spaces, the same character, equal-or-longer run, and whitespace-only tail. | four-backtick opener plus three-backtick non-closer; mismatched character; invalid suffix; unclosed fence; valid equal-or-longer closure then prohibited prose. |
 
 The eventual fixtures must call the same predicate used for the target skill,
 not a duplicate test-only approximation.
@@ -202,7 +202,12 @@ not a duplicate test-only approximation.
 2. If approved, record prospective specification and exact one-path source
    write-set authority; then open the Write Gate.
 3. One Coder changes only `scripts/test-sdd-contract.sh` and runs targeted plus
-   standard deterministic validation.
+   standard deterministic validation: `bash -n scripts/test-sdd-contract.sh`,
+   `bash scripts/test-sdd-contract.sh`, `bash scripts/validate-governance.sh`,
+   `python3 scripts/validate-release-state.py`,
+   `python3 scripts/test-release-state-contracts.py`, `git diff --check`, and
+   an exact one-path `git diff --name-status <frozen-base>..<frozen-head>`
+   manifest.
 4. Freeze the exact source subject; an independent Reviewer examines the diff,
    a Verifier runs the suite in a fresh clone, then a Drift audit compares
    source behavior to this specification.
@@ -210,3 +215,6 @@ not a duplicate test-only approximation.
    coordination/evidence write sets.
 
 No parallel writers are permitted: one Coder owns each approved write-set.
+Immediately before Execute and source-subject freeze, re-read live PR #44 base
+and head. Record the values dynamically in the implementation/assurance
+evidence; the observation creates no approval or execution authority.

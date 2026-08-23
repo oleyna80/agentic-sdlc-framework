@@ -29,10 +29,14 @@ external GitHub action.
 
 ## Requirements
 
-- REQ-001: The target-only provider guard must reject direct imperative
-  provider-assurance mandates, including polite and normally wrapped forms such
-  as `Ask Codex to review the implementation.`, without becoming a general NLP
-  system or scanning repository paths other than
+- REQ-001: The target-only provider guard must reject only these normalized
+  direct imperative provider-assurance statement forms: an optional purpose
+  introduction `To verify,`; optional `please` or `kindly`; `ask` or `request`;
+  a recognized provider alias (`provider`, `Codex`, `additional model`, or
+  `second model`); `to`; and an assurance action (`review`, `verify`, or
+  `perform verification`). The forms must be recognized on one line and when
+  ordinarily wrapped within one Markdown statement, without becoming a general
+  NLP system or scanning repository paths other than
   `skills/codex-verification/SKILL.md`.
 - REQ-002: Fenced-code handling must record the opening fence delimiter
   character and run length, and must leave fenced content excluded until a
@@ -54,23 +58,31 @@ external GitHub action.
 
 ## Acceptance Criteria
 
-- AC-001 [req=REQ-001]: The target-only predicate rejects direct imperative
-  provider-assurance prose, including `Ask Codex to review the implementation.`
-  and a polite or purpose-introduced equivalent, whether expressed on one line
-  or wrapped within one ordinary Markdown statement.
+- AC-001 [req=REQ-001]: The target-only predicate rejects only direct
+  imperative provider-assurance prose in the required normalized forms:
+  optional `To verify,`, optional `please` or `kindly`, `ask` or `request`, a
+  recognized provider alias, `to`, then `review`, `verify`, or `perform
+  verification`. It rejects each form on one line and ordinarily wrapped within
+  one Markdown statement.
 - AC-002 [req=REQ-001]: The correction remains bounded to recognizable
   provider-assurance imperative patterns required by this Work Block; it adds
   neither repository-wide scanning nor general natural-language inference.
-- AC-003 [req=REQ-002]: An opening backtick or tilde fence records its delimiter
-  character and run length; a closer ends exclusion only when it uses the same
-  character, has an equal-or-longer run, and has a whitespace-only tail.
+- AC-003 [req=REQ-002]: A regular Markdown fence opener has at most three
+  leading spaces, a backtick or tilde run of at least three characters, and an
+  optional information-string tail. It records its delimiter character and run
+  length; a closer ends exclusion only when it has at most three leading
+  spaces, uses the same character, has an equal-or-longer run, and has a
+  whitespace-only tail.
 - AC-004 [req=REQ-002]: Mismatched delimiter characters, too-short delimiter
   runs, invalid closer suffixes, and unclosed fences remain excluded; valid
   closing fences permit later ordinary prose to be scanned.
 - AC-005 [req=REQ-003]: Fixtures invoke the production predicate and cover
-  single-line, polite/reordered, and wrapped forbidden imperative samples;
-  allowed advisory controls; valid fence closure followed by prohibited prose;
-  and each non-closing fence boundary case.
+  one-line and ordinarily wrapped forbidden imperative samples, including
+  `please`/`kindly` and `To verify,` introductions; allowed negatives such as
+  `Do not ask Codex to review the implementation.` and advisory controls;
+  paragraph-separated terms; a four-backtick opener with a three-backtick
+  non-closer; mismatched delimiter, invalid closer suffix, and unclosed fence
+  cases; and valid equal-or-longer closure followed by prohibited prose.
 - AC-006 [req=REQ-003]: Fixtures prove that unrelated text separated by a
   Markdown statement boundary does not create a provider-assurance match.
 - AC-007 [req=REQ-004]: The frozen implementation diff changes only
