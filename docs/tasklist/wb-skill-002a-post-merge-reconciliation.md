@@ -21,7 +21,7 @@ status: completed
 - [x] TASK-005 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-skill-002a-post-merge-reconciliation.md,docs/specs/wb-skill-002a-post-merge-reconciliation.md,docs/tasklist/wb-skill-002a-post-merge-reconciliation.md] Maintain truthful Define artifacts, the historical evidence classification, impact inventory, and the proposed-only implementation boundary.
 - [x] TASK-006 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-skill-002a-post-merge-reconciliation.md,docs/reports/requirements/wb-skill-002a-post-merge-reconciliation-consistency.md,docs/reports/reviews/wb-skill-002a-post-merge-reconciliation-critic.md] Obtain independent requirements-quality review, consistency analysis, and Critic review before any source Write Gate decision.
 - [x] TASK-007 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-skill-002a-post-merge-reconciliation.md,docs/reports/verification/wb-skill-002a-post-merge-reconciliation.md,docs/reports/drift/wb-skill-002a-post-merge-reconciliation.md] Freeze the approved implementation subject and obtain independent Reviewer, Verifier, and Drift evidence before terminal closeout.
-- [x] TASK-008 [type=documentation] [req=-] [ac=-] [paths=docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md,FILE_REGISTRY.yml,PROJECT_MAP.md] Perform terminal projection and closeout only after final assurance; preserve historical reports and state mutable hosting facts as non-normative.
+- [x] TASK-008 [type=documentation] [req=-] [ac=-] [paths=docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md,docs/reports/reviews/wb-skill-002a-terminal-review.md,docs/reports/verification/wb-skill-002a-terminal-verification.md,docs/reports/drift/wb-skill-002a-terminal-drift.md,FILE_REGISTRY.yml,PROJECT_MAP.md] Perform terminal projection and closeout only after final assurance; preserve historical reports and state mutable hosting facts as non-normative.
 - [x] TASK-009 [type=requirement] [req=REQ-008] [ac=AC-011] [paths=docs/specs/wb-skill-002a-post-merge-reconciliation.md,docs/plans/wb-skill-002a-post-merge-reconciliation.md,docs/tasklist/wb-skill-002a-post-merge-reconciliation.md] Before source Execute, record Owner approval of this Work Block's approved specification revision and exact source write-set, expressly prospective and not a retroactive cure for WB-SKILL-002.
 
 ## Dependencies and Stops
@@ -31,9 +31,10 @@ B and prospectively approved this Work Block's approved specification and exact
 source write-set; the bounded Execute tasks are complete. The frozen exact
 source subject `80d4181be2647832c9f970f9d5446dda0f58e2f9` →
 `7fb60639f8f0b39fd19d75f8fbfa292acbd1f0f0` has Reviewer `READY`, Verifier
-`READY`, and Drift `ALIGNED` evidence. Terminal projection is complete, while
-the resulting terminal normative subject still requires its own fresh
-applicable assurance before any external handoff.
+`READY`, and Drift `ALIGNED` evidence. The terminal subject
+`33d477b9456a22715960ed3315e85978b0091067` →
+`5ab9acb9e610bff37feb994622a4efe8612599ec` separately has terminal Reviewer
+`READY`, terminal Verifier `READY`, and terminal Drift `ALIGNED` evidence.
 
 No task authorizes another source expansion, a change to
 `skills/codex-verification/SKILL.md`, GitHub review-thread resolution, push,

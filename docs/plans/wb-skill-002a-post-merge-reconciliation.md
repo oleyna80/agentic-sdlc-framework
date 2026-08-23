@@ -39,9 +39,9 @@ valid provider-neutral source correction:
 WB-SKILL-002 specification, detects wrapped mandatory-provider semantics in the
 existing target-only guard, and rejects the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
-Frozen independent source assurance is complete. Fresh applicable assurance of
-the resulting terminal normative subject remains required before any external
-handoff.
+Frozen independent source assurance and fresh terminal assurance are complete.
+The terminal assurance is bound to the exact terminal normative subject below;
+neither assurance record grants external VCS or hosting authority.
 
 ## Final State
 
@@ -335,6 +335,14 @@ as READY, READY, and ALIGNED respectively for exact source subject
 `7fb60639f8f0b39fd19d75f8fbfa292acbd1f0f0`. Their evidence is in
 `docs/reports/{reviews,verification,drift}/wb-skill-002a-post-merge-reconciliation.md`.
 This source assurance was the prerequisite for the terminal projection recorded
-in this Work Block. It does not automatically assure the resulting terminal
-normative subject, authorize GitHub action, or authorize merge. That subject
-requires separate fresh applicable assurance before any external handoff.
+in this Work Block. It does not automatically assure that resulting terminal
+normative subject.
+
+The independent terminal Reviewer, fresh-clone terminal Verifier, and terminal
+Drift audit then recorded READY, READY, and ALIGNED respectively for exact
+terminal subject `33d477b9456a22715960ed3315e85978b0091067` →
+`5ab9acb9e610bff37feb994622a4efe8612599ec`. Their evidence is in
+`docs/reports/reviews/wb-skill-002a-terminal-review.md`,
+`docs/reports/verification/wb-skill-002a-terminal-verification.md`, and
+`docs/reports/drift/wb-skill-002a-terminal-drift.md`. These terminal records
+are bounded to that exact subject and grant no GitHub action or merge authority.

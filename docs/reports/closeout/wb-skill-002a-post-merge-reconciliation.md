@@ -52,10 +52,21 @@ this closeout record.
 - **Deterministic source checks:** syntax, SDD contract execution, governance
   validation, release-state validation and fixtures, and Define traceability.
 
-These records assure the frozen source subject only. The terminal normative
-subject introduced by this closeout requires its own fresh independent
-read-only Reviewer, Verifier, and Specification Drift assurance before any
-external handoff. This closeout does not assert that later assurance.
+These records assure the frozen source subject only. The separately assured
+terminal normative subject is
+`33d477b9456a22715960ed3315e85978b0091067` →
+`5ab9acb9e610bff37feb994622a4efe8612599ec`:
+
+- **Terminal review:**
+  `docs/reports/reviews/wb-skill-002a-terminal-review.md` — READY
+- **Terminal verification:**
+  `docs/reports/verification/wb-skill-002a-terminal-verification.md` — READY
+- **Terminal drift audit:**
+  `docs/reports/drift/wb-skill-002a-terminal-drift.md` — ALIGNED
+
+Those terminal reports independently assess the normative terminal projection.
+They remain bounded to their exact subject and do not grant external VCS,
+hosting, push, pull-request, merge, or CI authority.
 
 ## Residual Risks and Limitations
 
@@ -64,11 +75,10 @@ external handoff. This closeout does not assert that later assurance.
 - The Markdown guard remains intentionally scoped to
   `skills/codex-verification/SKILL.md`; it is not a repository-wide vocabulary
   scanner.
-- Frozen source assurance cannot automatically cover later normative changes,
-  including this terminal projection.
+- Frozen source assurance could not automatically cover the terminal
+  projection; the separate terminal assurance above covers its exact subject.
 
 ## Follow-Up Work
 
-Obtain fresh independent Reviewer, Verifier, and Specification Drift assurance
-for the resulting terminal normative subject. No push, pull request, merge, or
-GitHub review-thread action is authorized by this closeout.
+No push, pull request, merge, or GitHub review-thread action is authorized by
+this closeout.
