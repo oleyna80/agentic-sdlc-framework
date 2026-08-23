@@ -12,9 +12,9 @@ branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: 4e10b8a4a2b6d390a3b6f3f0e6b6864d0df88dde
 write_gate: READY
 critic_gate: READY
-review_gate: PENDING
-verification_verdict: PENDING
-drift_gate: PENDING
+review_gate: READY
+verification_verdict: READY
+drift_gate: ALIGNED
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
 owner_approval: Owner prospectively approved WB-SKILL-002B specification revision execute-r1-2026-08-23 and exactly the one-path source write-set scripts/test-sdd-contract.sh on 2026-08-23. This approval is limited to bounded source Execute and grants no commit, push, pull-request, merge, or GitHub-thread authority.
@@ -33,42 +33,52 @@ skill correction or reopening WB-SKILL-002A's completed lifecycle reconciliation
 2. make fenced-code exclusion respect compatible delimiter character, run
    length, and closing-tail boundaries.
 
-**Expected Final Result:** the one allowed future source path rejects the two
-defect classes through its own predicate fixtures, remains restricted to the
-existing target skill, and receives independent Reviewer, fresh-clone Verifier,
-and Drift assurance before closeout.
+**Current Result:** the one approved source path rejects the two defect classes
+through its own predicate fixtures, remains restricted to the existing target
+skill, and has independent Reviewer, fresh-clone Verifier, and Drift assurance.
+Only terminal closeout remains pending.
 
 ## Current State
 
-- **Current Stage:** Execute
-- **Stage State:** in_progress
+- **Current Stage:** Assure
+- **Stage State:** completed
 - **Write Gate:** READY — Owner prospectively approved specification revision
   `execute-r1-2026-08-23` and exactly `scripts/test-sdd-contract.sh` for
-  bounded source Execute. No source task has started.
+  bounded source Execute, which completed on final frozen subject
+  `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
+  `8669bfa2522e3a38c27adc913f60213d7d3aea38`.
 - **Critic Gate:** READY — `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md`
-- **Review Gate:** PENDING
-- **Verification Verdict:** PENDING
-- **Drift Gate:** PENDING
+- **Review Gate:** READY — independent read-only review of frozen source subject
+  `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
+  `8669bfa2522e3a38c27adc913f60213d7d3aea38`; see
+  `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries.md`.
+- **Verification Verdict:** READY — fresh detached local temporary-clone
+  verification of the same final source subject; see
+  `docs/reports/verification/wb-skill-002b-provider-guard-boundaries.md`.
+- **Drift Gate:** ALIGNED — independent read-only source-to-specification audit
+  of the same final source subject; see
+  `docs/reports/drift/wb-skill-002b-provider-guard-boundaries.md`.
 - **Evaluation Verdict:** NOT_REQUIRED — deterministic tooling reconciliation;
   no non-deterministic product behavior is introduced.
 - **Closeout Mode:** pending
-- **Task Status:** in_progress
+- **Task Status:** in_progress — terminal closeout (TASK-009) remains open.
 
 ## Confirmed Findings
 
-### P2-001 — Direct imperative provider assurance is not detected
+### P2-001 — Direct imperative provider assurance was not detected
 
-The current `require_absent_mandatory_provider_semantics` implementation does
-not reliably classify direct imperatives such as `Ask Codex to review the
-implementation.` as a mandatory provider review. Its modal-based logic leaves
-a bypass despite the target-only guard's intended provider-neutral boundary.
+The pre-correction `require_absent_mandatory_provider_semantics`
+implementation did not reliably classify direct imperatives such as `Ask Codex
+to review the implementation.` as a mandatory provider review. Its modal-based
+logic left a bypass despite the target-only guard's intended provider-neutral
+boundary.
 
-### P2-002 — Fence closure boundary is not compatible-delimiter aware
+### P2-002 — Fence closure boundary was not compatible-delimiter aware
 
-The current fence handling toggles exclusion too broadly. A mismatched
-delimiter, shorter closing run, or closing suffix can terminate exclusion and
-cause code content to be scanned as prose. Conversely, valid closure must
-allow later ordinary prose to be scanned.
+The pre-correction fence handling toggled exclusion too broadly. A mismatched
+delimiter, shorter closing run, or closing suffix could terminate exclusion and
+cause code content to be scanned as prose. The final correction requires a
+compatible closer and permits later ordinary prose only after a valid closure.
 
 Both findings derive from the GitHub Codex review of PR #44. They are recorded
 as repository corrective inputs only; this Work Block does not resolve, alter,
@@ -100,10 +110,11 @@ or otherwise mutate GitHub review threads.
 }
 ```
 
-Managed Define quality is required and is READY only because the independent
+Managed Define quality is required and is READY because the independent
 requirements review, structural traceability result, and independent
-consistency analysis are all recorded above. This does not approve the draft
-specification or open the source Write Gate.
+consistency analysis are all recorded above. The separately recorded Owner
+approval made specification revision `execute-r1-2026-08-23` authoritative and
+opened the one-path Write Gate; it did not grant terminal-closeout authority.
 
 ## Repository Preflight
 
@@ -113,10 +124,12 @@ specification or open the source Write Gate.
 - **Untracked artifacts:** `Repository Graph Evaluation Brief.md` (Owner
   artifact; out of scope and must not be modified, staged, moved, deleted, or
   committed).
-- **Current diff:** Define artifacts and approved Define evidence are recorded;
-  no source implementation has started.
-- **Proceed rule:** source Execute may change only the exact approved one-path
-  write-set below; all unrelated working-tree state remains preserved.
+- **Current diff:** Define artifacts, source commits, and final source-assurance
+  evidence are recorded. The final source subject is
+  `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
+  `8669bfa2522e3a38c27adc913f60213d7d3aea38`.
+- **Proceed rule:** only a separately approved terminal coordination/evidence
+  write set may proceed. All unrelated working-tree state remains preserved.
 
 ## Scope
 
@@ -152,12 +165,22 @@ docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md
 These paths persist pre-Execute Define evidence only. They do not create
 source, commit, push, pull-request, merge, or GitHub-thread authority.
 
-### Proposed Future Assurance and Closeout Evidence Paths — Not Authorized
+### Recorded Source-Assurance Evidence Paths
 
 ```text
 docs/reports/reviews/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/verification/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/drift/wb-skill-002b-provider-guard-boundaries.md
+```
+
+These records bind only the final frozen source subject
+`39c07db01ce0b08290dbf6721ecb4a53e457b606` →
+`8669bfa2522e3a38c27adc913f60213d7d3aea38`. They do not cover a later
+coordination/evidence or terminal-closeout revision.
+
+### Proposed Future Closeout Evidence Path — Not Authorized
+
+```text
 docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md
 ```
 
@@ -172,38 +195,39 @@ docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md
 - Gemini backlog, legacy role-skill convergence, extensions, presets,
   workflows, and bundles.
 
-## Design Boundary and Future Test Matrix
+## Delivered Design and Test Matrix
 
-The future implementation should retain paragraph/list/heading boundaries from
-WB-SKILL-002A and make only two bounded changes:
+The delivered implementation retains paragraph/list/heading boundaries from
+WB-SKILL-002A and makes only these two bounded changes:
 
 | Area | Required design | Adversarial controls |
 | --- | --- | --- |
 | Imperative mandate | Recognize only: optional `To verify,`; optional `please`/`kindly`; `ask`/`request`; recognized alias (`provider`, `Codex`, `additional model`, `second model`); `to`; `review`/`verify`/`perform verification`, with ordinary wrapping. | one-line and wrapped variants; `Do not ask Codex to review the implementation.`; optional advisory prose; paragraph-separated terms. |
 | Fenced code | Accept a regular opener of at most three leading spaces, matching backtick/tilde run of at least three, and optional info tail; close only with at most three leading spaces, the same character, equal-or-longer run, and whitespace-only tail. | four-backtick opener plus three-backtick non-closer; mismatched character; invalid suffix; unclosed fence; valid equal-or-longer closure then prohibited prose. |
 
-The eventual fixtures must call the same predicate used for the target skill,
-not a duplicate test-only approximation.
+The delivered fixtures call the same predicate used for the target skill, not a
+duplicate test-only approximation.
 
 ## Risk and Authority
 
-- **Side-Effect Class:** local-docs in this Define stage; future local-test
-  source correction only.
+- **Side-Effect Class:** completed local-test source correction; terminal
+  evidence coordination remains pending.
 - **DB/Data Action Mode:** none.
 - **Sensitive Domains:** provider governance only; no credentials or external
   provider execution.
 - **Output Non-Determinism:** none.
-- **Autonomous Tool/Trajectory Risk:** none in Define; bounded in later source
-  correction because a false-positive guard can block contract validation.
+- **Autonomous Tool/Trajectory Risk:** bounded: a false-positive guard can
+  block contract validation; final adversarial fixtures mitigate the identified
+  false-closer regression gap.
 - **Threat Model Required:** no; this is deterministic repository governance,
   not a security boundary.
-- **Rollback / Recovery:** revert only the future one-path source commit if
-  independent assurance identifies an issue; no history rewrite.
+- **Rollback / Recovery:** revert the bounded one-path source commits only if
+  later applicable assurance identifies an issue; no history rewrite.
 
 ## Hard Stops
 
-- [ ] Source execution — authorized only for one Coder and exactly
-  `scripts/test-sdd-contract.sh`; no source task has started.
+- [x] Source execution — one Coder changed only
+  `scripts/test-sdd-contract.sh`; final frozen source assurance is recorded.
 - [x] Commit or push — requires separate Owner authorization.
 - [x] Pull-request creation, merge, rebase, or GitHub-thread resolution — not
   authorized by this Work Block.
@@ -212,24 +236,30 @@ not a duplicate test-only approximation.
 
 ## Execution and Assurance Sequence
 
-1. Define quality and Critic evidence are READY. The Owner prospectively
+1. Define quality and Critic evidence became READY. The Owner prospectively
    approved specification revision `execute-r1-2026-08-23` and exactly the
-   one-path source write-set `scripts/test-sdd-contract.sh`; the Write Gate is
-   READY for bounded source Execute only.
-2. One Coder changes only `scripts/test-sdd-contract.sh` and runs targeted plus
+   one-path source write-set `scripts/test-sdd-contract.sh`, opening the Write
+   Gate for bounded source Execute.
+2. One Coder changed only `scripts/test-sdd-contract.sh` and ran targeted plus
    standard deterministic validation: `bash -n scripts/test-sdd-contract.sh`,
    `bash scripts/test-sdd-contract.sh`, `bash scripts/validate-governance.sh`,
    `python3 scripts/validate-release-state.py`,
    `python3 scripts/test-release-state-contracts.py`, `git diff --check`, and
    an exact one-path `git diff --name-status <frozen-base>..<frozen-head>`
    manifest.
-3. Freeze the exact source subject; an independent Reviewer examines the diff,
-   a Verifier runs the suite in a fresh clone, then a Drift audit compares
-   source behavior to this specification.
-4. Persist evidence and perform terminal closeout only with separately approved
-   coordination/evidence write sets.
+3. The final frozen subject `39c07db01ce0b08290dbf6721ecb4a53e457b606` →
+   `8669bfa2522e3a38c27adc913f60213d7d3aea38` received independent Reviewer
+   `READY`, fresh-clone Verifier `READY`, and Drift `ALIGNED` evidence. A prior
+   verifier attempt at intermediate head `21747506fdaab57778944714a53f6a5aec79ebfd`
+   was `BLOCKED` because its fixtures did not distinguish false fence closers;
+   the separate correction commit `8669bfa2522e3a38c27adc913f60213d7d3aea38`
+   added those discriminating fixtures, and the final assurance was re-run on
+   the new frozen subject.
+4. Perform terminal closeout only with a separately approved coordination/
+   evidence write set and fresh assurance applicable to its later normative
+   subject.
 
-No parallel writers are permitted: one Coder owns each approved write-set.
-Immediately before Execute and source-subject freeze, re-read live PR #44 base
-and head. Record the values dynamically in the implementation/assurance
-evidence; the observation creates no approval or execution authority.
+No parallel writers were permitted: one Coder owned the approved source
+write-set. A live PR #44 base/head reread was an execution-time observation;
+it did not create approval or execution authority. Terminal closeout has not
+been authorized and TASK-009 remains open.
