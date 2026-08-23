@@ -11,13 +11,13 @@ governance_profile: Managed
 branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: 4e10b8a4a2b6d390a3b6f3f0e6b6864d0df88dde
 write_gate: BLOCKED
-critic_gate: PENDING
+critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner approved this exact three-file Define-only write-set on 2026-08-23. No source, commit, push, pull-request, merge, or GitHub-thread authority is granted.
+owner_approval: Owner approved the Define artifacts and the five named Define-evidence paths on 2026-08-23. No source, commit, push, pull-request, merge, or GitHub-thread authority is granted.
 ---
 
 # WB-SKILL-002B — Provider Guard Imperative and Fence Boundary Correction
@@ -43,7 +43,7 @@ and Drift assurance before closeout.
 - **Current Stage:** Define
 - **Stage State:** in_progress
 - **Write Gate:** BLOCKED
-- **Critic Gate:** PENDING
+- **Critic Gate:** READY — `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md`
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Drift Gate:** PENDING
@@ -90,16 +90,17 @@ or otherwise mutate GitHub review threads.
 ```json
 "define_quality": {
   "required": true,
-  "status": "PENDING",
-  "requirements_review": "PENDING",
-  "traceability": "PENDING — structural validation may record this evidence only",
-  "consistency_analysis": "PENDING"
+  "status": "READY",
+  "requirements_review": "READY — docs/reports/requirements/wb-skill-002b-provider-guard-boundaries.md",
+  "traceability": "READY — requirements=6 acceptance=9 tasks=9",
+  "consistency_analysis": "READY — docs/reports/requirements/wb-skill-002b-provider-guard-boundaries-consistency.md"
 }
 ```
 
-Managed Define quality is required. Structural traceability PASS cannot set the
-aggregate to READY; independent requirements review and consistency analysis
-remain required before Critic and any source Write Gate decision.
+Managed Define quality is required and is READY only because the independent
+requirements review, structural traceability result, and independent
+consistency analysis are all recorded above. This does not approve the draft
+specification or open the source Write Gate.
 
 ## Repository Preflight
 
@@ -134,12 +135,20 @@ No smaller source owner exists. It must normalize only the bounded imperative
 and fence behavior needed by these findings; it must not change the target
 skill, add a parser dependency, or scan other repository paths.
 
-### Proposed Future Evidence Paths — Not Authorized
+### Authorized Current Define-Evidence Paths
 
 ```text
 docs/reports/requirements/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/requirements/wb-skill-002b-provider-guard-boundaries-consistency.md
 docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md
+```
+
+These paths persist pre-Execute Define evidence only. They do not create
+source, commit, push, pull-request, merge, or GitHub-thread authority.
+
+### Proposed Future Assurance and Closeout Evidence Paths — Not Authorized
+
+```text
 docs/reports/reviews/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/verification/wb-skill-002b-provider-guard-boundaries.md
 docs/reports/drift/wb-skill-002b-provider-guard-boundaries.md
@@ -197,9 +206,10 @@ not a duplicate test-only approximation.
 
 ## Execution and Assurance Sequence
 
-1. Complete independent requirements-quality review, consistency analysis, and
-   Critic review for this draft.
-2. If approved, record prospective specification and exact one-path source
+1. Define quality and Critic evidence are READY for this draft; retain the
+   source Write Gate as BLOCKED until a prospective specification and exact
+   one-path source write-set approval are recorded.
+2. If separately approved, record prospective specification and exact one-path source
    write-set authority; then open the Write Gate.
 3. One Coder changes only `scripts/test-sdd-contract.sh` and runs targeted plus
    standard deterministic validation: `bash -n scripts/test-sdd-contract.sh`,
