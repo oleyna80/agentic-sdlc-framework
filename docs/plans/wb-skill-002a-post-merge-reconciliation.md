@@ -6,15 +6,15 @@ work_block_id: WB-SKILL-002A
 status: in_progress
 owner_role: Owner
 created_at: 2026-08-21
-last_updated: 2026-08-21
+last_updated: 2026-08-23
 governance_profile: Managed
 branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: f206e6bd845bfaa8d78082610a7d784b6669cf2c
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: READY
-review_gate: PENDING
-verification_verdict: PENDING
-drift_gate: PENDING
+review_gate: READY
+verification_verdict: READY
+drift_gate: ALIGNED
 evaluation_verdict: NOT_REQUIRED
 owner_approval: Owner prospectively approved WB-SKILL-002A specification revision execute-r1-2026-08-21 and exactly the recorded five-path source write-set on 2026-08-21. The approval is limited to bounded source Execute; it does not prove or retroactively cure historical WB-SKILL-002 approval, and grants no GitHub or merge authority.
 ---
@@ -40,18 +40,18 @@ existing target-only guard, and rejects the same eligible condition at the
 latest-completed release-state boundary without changing the accepted skill.
 Frozen independent assurance remains required before any terminal claim.
 
-## Current Assure State
+## Current Close State
 
-- **Current Stage:** Assure
-- **Stage State:** in_progress — the approved source corrections and bounded
-  follow-up corrections are frozen and are undergoing independent Reviewer,
-  Verifier, and Drift assurance. No assurance gate is yet claimed as complete.
-- **Write Gate:** READY — Owner approval is limited to the exact five-path
-  source write-set recorded below.
+- **Current Stage:** Close
+- **Stage State:** in_progress — frozen source assurance is complete; terminal
+  projection and closeout remain pending and require their own bounded
+  lifecycle work.
+- **Write Gate:** BLOCKED — the approved bounded source Execute is complete;
+  no further source mutation is authorized by this Work Block.
 - **Critic Gate:** READY
-- **Review Gate:** PENDING
-- **Verification:** PENDING
-- **Drift:** PENDING
+- **Review Gate:** READY
+- **Verification:** READY
+- **Drift:** ALIGNED
 - **Evaluation:** NOT_REQUIRED — the target behavior is deterministic
   governance/tooling reconciliation; no non-deterministic product behavior is
   introduced.
@@ -326,6 +326,11 @@ docs/tasklist/wb-skill-002a-post-merge-reconciliation.md
 - the unrelated untracked `Repository Graph Evaluation Brief.md`.
 
 The approved source Execute and its narrow post-review correction are complete.
-Frozen independent Reviewer, Verifier, and Drift assurance remain required
-before terminal closeout. Any further expansion, GitHub action, or merge
-remains prohibited without separate Owner authority.
+The independent Reviewer, fresh-clone Verifier, and Drift audit are recorded
+as READY, READY, and ALIGNED respectively for exact source subject
+`80d4181be2647832c9f970f9d5446dda0f58e2f9` →
+`7fb60639f8f0b39fd19d75f8fbfa292acbd1f0f0`. Their evidence is in
+`docs/reports/{reviews,verification,drift}/wb-skill-002a-post-merge-reconciliation.md`.
+This evidence does not close the Work Block or authorize terminal projection,
+GitHub action, or merge; any such later normative subject requires separate
+authority and assurance.
