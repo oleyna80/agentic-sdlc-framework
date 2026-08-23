@@ -33,6 +33,8 @@ completed_work_blocks:
   - docs/plans/wb-define-001-requirements-quality-traceability.md
   - docs/plans/wb-git-001-stacked-pr-synchronization.md
   - docs/plans/wb-skill-002-provider-neutral-verifier.md
+  - docs/plans/wb-skill-002a-post-merge-reconciliation.md
+  - docs/plans/wb-skill-002b-provider-guard-boundaries.md
 active_work_block: null
 -->
 
@@ -296,6 +298,10 @@ Missing network, revision, or license evidence fails closed.
 | `docs/reports/closeout/wb-git-001-stacked-pr-synchronization.md` | completed closeout | Repository success-closeout for WB-GIT-001 |
 | `docs/plans/wb-skill-002-provider-neutral-verifier.md` | completed Work Block | Provider-neutral correction of the legacy `codex-verification` procedure |
 | `docs/reports/closeout/wb-skill-002-provider-neutral-verifier.md` | completed closeout | Repository success-closeout for WB-SKILL-002 |
+| `docs/plans/wb-skill-002a-post-merge-reconciliation.md` | completed Work Block | Post-merge specification and regression-guard reconciliation |
+| `docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md` | completed closeout | Repository success-closeout for WB-SKILL-002A |
+| `docs/plans/wb-skill-002b-provider-guard-boundaries.md` | completed Work Block | Bounded imperative-provider and Markdown-fence guard correction |
+| `docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md` | completed closeout | Repository success-closeout for WB-SKILL-002B |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
@@ -430,6 +436,17 @@ Completed:
     authentication, profile/preset, extension, workflow, bundle, or Portable Kit
     promotion behavior.
 
+27. WB-SKILL-002A — completed post-merge reconciliation of WB-SKILL-002's
+    prospective specification authority record, bounded mandatory-provider
+    regression guard, and latest-formal-specification closeout invariant. The
+    historical WB-SKILL-002 pre-Execute approval remains an explicitly recorded
+    process deviation; no historical approval was fabricated.
+
+28. WB-SKILL-002B — completed the bounded correction for direct imperative
+    provider-assurance detection and compatible Markdown-fence closure. The
+    intermediate verifier BLOCKED result remains historical corrective evidence;
+    final source assurance applies only to its corrected frozen subject.
+
 Active:
 
 No active implementation Work Block.
@@ -442,7 +459,7 @@ Planned:
 - WB-CORE-007 — promotion and legacy archive.
 
 WB-CORE-004 remains the next planned product Work Block. WB-CORE-003A through
-WB-CORE-003F, WB-DEFINE-001, WB-GIT-001, and WB-SKILL-002 are inserted
+WB-CORE-003F, WB-DEFINE-001, WB-GIT-001, WB-SKILL-002, WB-SKILL-002A, and WB-SKILL-002B are inserted
 governance/control-plane follow-ups, not replacements for that product sequence.
 Planned status grants no execution authority. Each future Work Block requires
 separate Owner authority, exact scope, write-set, assurance, and closeout.

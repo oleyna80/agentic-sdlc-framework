@@ -28,27 +28,189 @@ require_absent_pattern() {
   fi
 }
 
-require_absent_mandatory_provider_semantics() {
+mandatory_provider_semantics_present() {
   local path="$1"
-  if awk '
-    {
-      line = tolower($0)
-      modal = line ~ /(must|mandatory|required)/
+  local target="$path"
+  if [[ "$target" != /* ]]; then
+    target="$ROOT/$target"
+  fi
+
+  awk '
+    # Inspect one normalized prose statement. The predicate deliberately uses
+    # independent concepts instead of word-order regexes: provider review,
+    # provider prerequisite, and verification prerequisite mandates are all
+    # forbidden whichever order ordinary prose uses.
+    function forbidden_statement(statement,    line, modal, provider, assurance, prerequisite, imperative_prerequisite, imperative_provider_assurance, negated, provider_mandate, prerequisite_mandate) {
+      line = tolower(statement)
+      gsub(/[[:space:]]+/, " ", line)
+
+      # A negative statement must not be mistaken for a mandate. Statements
+      # are inspected separately so one negative sentence cannot exempt a
+      # later positive mandate in the same prose unit.
+      negated = (line ~ /(does not|do not|cannot|can not|never)[[:space:]]+(require|requires|need|needs|install|installation|authenticate|authentication|configure|configuration|ask|request|issue|replace|grant|create|treat|claim|substitute)/ ||
+        line ~ /(is|are|be)[[:space:]]+not[[:space:]]+(mandatory|required|needed)/ ||
+        line ~ /not[[:space:]]+(mandatory|required|needed)/ ||
+        line ~ /no[[:space:]]+(provider|codex|additional[[:space:]-]model|second[[:space:]-]model).*(review|verification|execution|installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/)
+      if (negated) {
+        return 0
+      }
+
+      modal = (line ~ /(^|[^[:alpha:]])(must|mandatory|required|requires|require|needs|need)([^[:alpha:]]|$)/ ||
+        line ~ /depends[[:space:]]+on/)
       provider = line ~ /(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)/
       assurance = line ~ /(review|verification|execution)/
       prerequisite = line ~ /(installation|install|authentication|authenticate|auth|configuration|configure|mcp|transport|prerequisite)/
-      temporal_link = line ~ /(before|prior to|after|requires|require|needs|need|depends on|prerequisite)/
+      # Direct imperative prerequisites are mandates even without a separate
+      # modal word. Common polite and purpose-clause introductions do not
+      # change that imperative meaning.
+      imperative_prerequisite = (line ~ /^[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*to[[:space:]]+(verify|review|execute|perform[[:space:]]+verification)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/ || line ~ /^[[:space:]]*before[[:space:]]+(verification|review|execution)[^,]*,[[:space:]]*((please|kindly)[[:space:]]+)?(install|authenticate|configure)([^[:alpha:]]|$)/)
 
-      if ((modal && provider && (assurance || prerequisite)) ||
-          (prerequisite && assurance && temporal_link)) {
+      # Direct provider-assurance imperatives are mandates even without modal
+      # wording. This remains intentionally narrow: only the approved purpose,
+      # courtesy, verb, provider alias, and assurance-action forms match.
+      imperative_provider_assurance = (line ~ /^[[:space:]]*(to[[:space:]]+verify,[[:space:]]+)?((please|kindly)[[:space:]]+)?(ask|request)[[:space:]]+((a|an)[[:space:]]+)?(provider|codex|additional[[:space:]-]model|second[[:space:]-]model)[[:space:]]+to[[:space:]]+(review|verify|perform[[:space:]]+verification)([^[:alpha:]]|$)/)
+
+      provider_mandate = provider && assurance && modal
+      prerequisite_mandate = prerequisite && (modal || imperative_prerequisite) && (assurance || provider)
+      return provider_mandate || prerequisite_mandate || imperative_provider_assurance
+    }
+
+    # Inspect contrast clauses independently: a negated first clause must not
+    # suppress a positive mandate following ordinary ", but" or ", however"
+    # prose. This deliberately does not turn the guard into a general parser.
+    function inspect_contrast_clauses(statement,    remainder, clause) {
+      remainder = statement
+      while (match(remainder, /,[[:space:]]*(but|however)([[:space:],]|$)/)) {
+        clause = substr(remainder, 1, RSTART - 1)
+        if (forbidden_statement(clause)) {
+          return 1
+        }
+        remainder = substr(remainder, RSTART + RLENGTH)
+      }
+      return forbidden_statement(remainder)
+    }
+
+    # Units are prose paragraphs or one complete list item. Split their
+    # normalized text into sentences and semicolon-delimited clauses, then
+    # ordinary contrast clauses, so unrelated claims do not combine and a
+    # negative clause cannot exempt a later positive mandate while line
+    # wrapping remains visible.
+    function inspect(unit,    text, remainder, end, statement) {
+      text = unit
+      gsub(/[[:space:]]+/, " ", text)
+      remainder = text
+      while (match(remainder, /[.!?]+|;/)) {
+        end = RSTART + RLENGTH - 1
+        statement = substr(remainder, 1, end)
+        if (inspect_contrast_clauses(statement)) {
+          return 1
+        }
+        remainder = substr(remainder, end + 1)
+      }
+      return inspect_contrast_clauses(remainder)
+    }
+
+    function flush_unit() {
+      if (unit != "" && inspect(unit)) {
         found = 1
-        exit
+      }
+      unit = ""
+      in_list_item = 0
+    }
+
+    function is_list_item(line) {
+      return line ~ /^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)/
+    }
+
+    # Return the leading fence run after at most three literal spaces, while
+    # retaining its delimiter character and run length for a later compatible
+    # close check. An opener may have an information-string tail; a closer may
+    # have whitespace only after its run.
+    function fence_run(line,    trimmed, char, run_length) {
+      trimmed = line
+      sub(/^ {0,3}/, "", trimmed)
+      char = substr(trimmed, 1, 1)
+      if (char != "`" && char != "~") {
+        return 0
+      }
+      run_length = 0
+      while (substr(trimmed, run_length + 1, 1) == char) {
+        run_length++
+      }
+      if (run_length < 3) {
+        return 0
+      }
+      fence_character = char
+      fence_length = run_length
+      fence_tail = substr(trimmed, run_length + 1)
+      return 1
+    }
+
+    {
+      line = $0
+
+      if (!in_fence && fence_run(line)) {
+        flush_unit()
+        open_fence_character = fence_character
+        open_fence_length = fence_length
+        in_fence = 1
+        next
+      }
+      if (in_fence) {
+        if (fence_run(line) && fence_character == open_fence_character && fence_length >= open_fence_length && fence_tail ~ /^[[:space:]]*$/) {
+          in_fence = 0
+        }
+        next
+      }
+      if (line ~ /^[[:space:]]*$/) {
+        flush_unit()
+        next
+      }
+      if (line ~ /^[[:space:]]{0,3}#{1,6}([[:space:]]|$)/) {
+        flush_unit()
+        next
+      }
+      if (is_list_item(line)) {
+        flush_unit()
+        sub(/^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)/, "", line)
+        unit = line
+        in_list_item = 1
+        next
+      }
+      if (unit == "") {
+        unit = line
+      } else {
+        unit = unit " " line
       }
     }
-    END { exit(found ? 0 : 1) }
-  ' "$ROOT/$path"; then
+    END {
+      flush_unit()
+      exit(found ? 0 : 1)
+    }
+  ' "$target"
+}
+
+require_absent_mandatory_provider_semantics() {
+  local path="$1"
+  if mandatory_provider_semantics_present "$path"; then
     fail "$path contains mandatory provider-review or provider-prerequisite semantics"
   fi
+}
+
+assert_provider_semantics_fixture() {
+  local expected="$1"
+  shift
+  local fixture
+  fixture="$(mktemp)"
+  printf '%s\n' "$@" > "$fixture"
+
+  if mandatory_provider_semantics_present "$fixture"; then
+    actual="forbidden"
+  else
+    actual="allowed"
+  fi
+  rm -f "$fixture"
+  [ "$actual" = "$expected" ] || fail "provider-semantics fixture expected $expected, got $actual"
 }
 
 assert_before() {
@@ -79,6 +241,61 @@ assert_quick_fix no 3 none
 for impact in logic route schema api security runtime integration architecture evaluation governance; do
   assert_quick_fix no 1 "$impact"
 done
+
+# WB-SKILL-002A: exercise the exact bounded-prose predicate against ordinary
+# Markdown wrapping and hard statement boundaries. The contract remains scoped
+# to the target skill below; these fixtures only prove the predicate itself.
+assert_provider_semantics_fixture forbidden "Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "Mandatory provider verification."
+assert_provider_semantics_fixture forbidden "Mandatory review by a provider."
+assert_provider_semantics_fixture forbidden "Verification is required by Codex."
+assert_provider_semantics_fixture forbidden "Provider review is" "mandatory."
+assert_provider_semantics_fixture forbidden "Provider" "review is mandatory."
+assert_provider_semantics_fixture forbidden "Installation is required" "before verification."
+assert_provider_semantics_fixture forbidden "Must install" "Codex."
+assert_provider_semantics_fixture forbidden "Install Codex."
+assert_provider_semantics_fixture forbidden "Authenticate with Codex before verification."
+assert_provider_semantics_fixture forbidden "Authenticate with Codex before" "verification."
+assert_provider_semantics_fixture forbidden "Please install Codex before verification."
+assert_provider_semantics_fixture forbidden "To verify, install Codex."
+assert_provider_semantics_fixture forbidden "Before verification, install Codex."
+assert_provider_semantics_fixture forbidden "Before review, authenticate with Codex."
+assert_provider_semantics_fixture forbidden "Before execution, configure Codex."
+assert_provider_semantics_fixture forbidden "Ask Codex to review the implementation."
+assert_provider_semantics_fixture forbidden "To verify, please request an additional model to perform verification."
+assert_provider_semantics_fixture forbidden "Kindly ask a provider to verify the implementation."
+assert_provider_semantics_fixture forbidden "To verify," "request second model to" "review the implementation."
+assert_provider_semantics_fixture forbidden "Provider review is not mandatory; however, Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "Provider review is not mandatory, but Codex review is mandatory."
+assert_provider_semantics_fixture forbidden "- Provider review is" "  mandatory."
+assert_provider_semantics_fixture forbidden "- Provider review is" "mandatory."
+assert_provider_semantics_fixture forbidden "- Provider" "review is mandatory."
+assert_provider_semantics_fixture forbidden "- Installation is required" "before verification."
+assert_provider_semantics_fixture forbidden "- Provider review is not mandatory; however, Provider review is mandatory."
+assert_provider_semantics_fixture forbidden "- Provider review is not mandatory, but Codex review is mandatory."
+assert_provider_semantics_fixture allowed "Provider execution is optional." "This skill does not grant provider authority."
+assert_provider_semantics_fixture allowed "Provider review is not mandatory."
+assert_provider_semantics_fixture allowed "Installation is not required before verification."
+assert_provider_semantics_fixture allowed "Do not install Codex."
+assert_provider_semantics_fixture allowed "Do not ask Codex to review the implementation."
+assert_provider_semantics_fixture allowed "A provider does not replace required Reviewer assurance."
+assert_provider_semantics_fixture allowed "Provider review is" "" "mandatory."
+assert_provider_semantics_fixture allowed "Ask Codex to" "" "review the implementation."
+assert_provider_semantics_fixture allowed "- Provider review is" "- mandatory."
+assert_provider_semantics_fixture allowed "# Provider review is mandatory."
+assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '```'
+assert_provider_semantics_fixture allowed '````text' "Provider review is mandatory." '```' '````'
+assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '~~~' '```'
+assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory." '``` not-a-close' '```'
+# Each prohibited imperative follows an invalid closer but precedes the valid
+# compatible closer. A toggle-only parser would expose it as prose and fail;
+# the compatible-fence parser must continue treating it as fenced content.
+assert_provider_semantics_fixture allowed '````text' "allowed code" '```' "Ask Codex to review the implementation." '````'
+assert_provider_semantics_fixture allowed '```text' "allowed code" '~~~' "Ask Codex to review the implementation." '```'
+assert_provider_semantics_fixture allowed '```text' "allowed code" '``` not-a-close' "Ask Codex to review the implementation." '```'
+assert_provider_semantics_fixture allowed '```text' "Provider review is mandatory."
+assert_provider_semantics_fixture forbidden '````text' "allowed code" '````' "Ask Codex to review the implementation."
+assert_provider_semantics_fixture forbidden '```text' "allowed code" '````' "Ask Codex to review the implementation."
 
 for path in \
   "governance/authority.md" \
