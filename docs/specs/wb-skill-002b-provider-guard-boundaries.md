@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-skill-002b-provider-guard-boundaries
 work_block_id: WB-SKILL-002B
-status: draft
+status: approved
 created_at: 2026-08-23
-revision: define-r1-2026-08-23
-owner_approval: Owner approved Define-only creation of this draft specification on 2026-08-23. This approval grants no source-write, commit, push, pull-request, merge, or GitHub-thread authority.
+revision: execute-r1-2026-08-23
+owner_approval: Owner prospectively approved this exact specification revision and the exact one-path source write-set scripts/test-sdd-contract.sh on 2026-08-23. This approval establishes WB-SKILL-002B Execute authority only; it grants no commit, push, pull-request, merge, or GitHub-thread authority.
 ---
 
 # WB-SKILL-002B — Provider Guard Imperative and Fence Boundary Correction
@@ -23,9 +23,11 @@ such as `Ask Codex to review the implementation.`, are not necessarily
 recognized by the current predicate. The second is that fenced-code exclusion
 uses a delimiter toggle rather than a compatible opener/closer boundary.
 
-This draft is Define authority only. It does not authorize source mutation,
-change the closed WB-SKILL-002A historical or lifecycle record, or create an
-external GitHub action.
+This approved specification is the behavioral authority for the exact one-path
+WB-SKILL-002B Execute write-set, `scripts/test-sdd-contract.sh`. Its Owner
+approval is prospective as of 2026-08-23; it does not change the closed
+WB-SKILL-002A historical or lifecycle record, or create an external GitHub
+action.
 
 ## Requirements
 

@@ -10,14 +10,14 @@ last_updated: 2026-08-23
 governance_profile: Managed
 branch: agent/wb-skill-002a-post-merge-reconciliation
 base_revision: 4e10b8a4a2b6d390a3b6f3f0e6b6864d0df88dde
-write_gate: BLOCKED
+write_gate: READY
 critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner approved the Define artifacts and the five named Define-evidence paths on 2026-08-23. No source, commit, push, pull-request, merge, or GitHub-thread authority is granted.
+owner_approval: Owner prospectively approved WB-SKILL-002B specification revision execute-r1-2026-08-23 and exactly the one-path source write-set scripts/test-sdd-contract.sh on 2026-08-23. This approval is limited to bounded source Execute and grants no commit, push, pull-request, merge, or GitHub-thread authority.
 ---
 
 # WB-SKILL-002B — Provider Guard Imperative and Fence Boundary Correction
@@ -40,9 +40,11 @@ and Drift assurance before closeout.
 
 ## Current State
 
-- **Current Stage:** Define
+- **Current Stage:** Execute
 - **Stage State:** in_progress
-- **Write Gate:** BLOCKED
+- **Write Gate:** READY — Owner prospectively approved specification revision
+  `execute-r1-2026-08-23` and exactly `scripts/test-sdd-contract.sh` for
+  bounded source Execute. No source task has started.
 - **Critic Gate:** READY — `docs/reports/reviews/wb-skill-002b-provider-guard-boundaries-critic.md`
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
@@ -74,9 +76,10 @@ or otherwise mutate GitHub review threads.
 
 ## Normative Baseline
 
-- **Draft Specification:** `docs/specs/wb-skill-002b-provider-guard-boundaries.md`
-- **Specification Status:** draft — Define-only; not source authority.
-- **Specification Revision:** `define-r1-2026-08-23`
+- **Approved Specification:** `docs/specs/wb-skill-002b-provider-guard-boundaries.md`
+- **Specification Status:** approved — prospective source authority limited to
+  the exact one-path write-set below.
+- **Specification Revision:** `execute-r1-2026-08-23`
 - **Accepted Architecture Decisions:** not applicable; use the existing bounded
   contract-script pattern.
 - **External Contracts:** GitHub review findings are advisory external input;
@@ -110,9 +113,10 @@ specification or open the source Write Gate.
 - **Untracked artifacts:** `Repository Graph Evaluation Brief.md` (Owner
   artifact; out of scope and must not be modified, staged, moved, deleted, or
   committed).
-- **Current diff:** Define-only three new artifacts.
-- **Proceed rule:** only the approved Define paths may change; all unrelated
-  working-tree state remains preserved.
+- **Current diff:** Define artifacts and approved Define evidence are recorded;
+  no source implementation has started.
+- **Proceed rule:** source Execute may change only the exact approved one-path
+  write-set below; all unrelated working-tree state remains preserved.
 
 ## Scope
 
@@ -124,16 +128,18 @@ docs/specs/wb-skill-002b-provider-guard-boundaries.md
 docs/tasklist/wb-skill-002b-provider-guard-boundaries.md
 ```
 
-### Proposed Future Source Write-Set — Not Authorized
+### Approved Source Write-Set — Execute Only
 
 ```text
 scripts/test-sdd-contract.sh
 ```
 
-This single script owns the target-only predicate and its executable fixtures.
-No smaller source owner exists. It must normalize only the bounded imperative
-and fence behavior needed by these findings; it must not change the target
-skill, add a parser dependency, or scan other repository paths.
+The Owner prospectively approved this exact one-path source write-set on
+2026-08-23 for WB-SKILL-002B Execute only. This single script owns the
+target-only predicate and its executable fixtures. No smaller source owner
+exists. It must normalize only the bounded imperative and fence behavior needed
+by these findings; it must not change the target skill, add a parser dependency,
+or scan other repository paths.
 
 ### Authorized Current Define-Evidence Paths
 
@@ -196,8 +202,8 @@ not a duplicate test-only approximation.
 
 ## Hard Stops
 
-- [x] Source execution — BLOCKED pending Define quality, Critic, approved
-  specification, exact frozen source write-set, and Owner authorization.
+- [ ] Source execution — authorized only for one Coder and exactly
+  `scripts/test-sdd-contract.sh`; no source task has started.
 - [x] Commit or push — requires separate Owner authorization.
 - [x] Pull-request creation, merge, rebase, or GitHub-thread resolution — not
   authorized by this Work Block.
@@ -206,22 +212,21 @@ not a duplicate test-only approximation.
 
 ## Execution and Assurance Sequence
 
-1. Define quality and Critic evidence are READY for this draft; retain the
-   source Write Gate as BLOCKED until a prospective specification and exact
-   one-path source write-set approval are recorded.
-2. If separately approved, record prospective specification and exact one-path source
-   write-set authority; then open the Write Gate.
-3. One Coder changes only `scripts/test-sdd-contract.sh` and runs targeted plus
+1. Define quality and Critic evidence are READY. The Owner prospectively
+   approved specification revision `execute-r1-2026-08-23` and exactly the
+   one-path source write-set `scripts/test-sdd-contract.sh`; the Write Gate is
+   READY for bounded source Execute only.
+2. One Coder changes only `scripts/test-sdd-contract.sh` and runs targeted plus
    standard deterministic validation: `bash -n scripts/test-sdd-contract.sh`,
    `bash scripts/test-sdd-contract.sh`, `bash scripts/validate-governance.sh`,
    `python3 scripts/validate-release-state.py`,
    `python3 scripts/test-release-state-contracts.py`, `git diff --check`, and
    an exact one-path `git diff --name-status <frozen-base>..<frozen-head>`
    manifest.
-4. Freeze the exact source subject; an independent Reviewer examines the diff,
+3. Freeze the exact source subject; an independent Reviewer examines the diff,
    a Verifier runs the suite in a fresh clone, then a Drift audit compares
    source behavior to this specification.
-5. Persist evidence and perform terminal closeout only with separately approved
+4. Persist evidence and perform terminal closeout only with separately approved
    coordination/evidence write sets.
 
 No parallel writers are permitted: one Coder owns each approved write-set.
