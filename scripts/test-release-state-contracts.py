@@ -2,6 +2,7 @@
 """Positive and adversarial fixtures for repository release-state reconciliation."""
 from __future__ import annotations
 
+from copy import deepcopy
 import importlib.util
 from pathlib import Path
 import subprocess
@@ -327,7 +328,67 @@ def expect_failure(label: str, root: Path, contains: str) -> None:
     raise AssertionError(f"{label}: expected ReleaseStateError")
 
 
+def assert_release_state_checkout_history(workflow: object) -> None:
+    """Require full history on the checkout used by the release-state job."""
+    if not isinstance(workflow, dict):
+        raise AssertionError("release-state workflow must be a mapping")
+    jobs = workflow.get("jobs")
+    if not isinstance(jobs, dict):
+        raise AssertionError("release-state workflow must define jobs")
+    release_state = jobs.get("release-state")
+    if not isinstance(release_state, dict):
+        raise AssertionError("release-state workflow must define the release-state job")
+    steps = release_state.get("steps")
+    if not isinstance(steps, list):
+        raise AssertionError("release-state job must define steps")
+    checkout_steps = [
+        step
+        for step in steps
+        if isinstance(step, dict) and step.get("uses") == "actions/checkout@v4"
+    ]
+    if len(checkout_steps) != 1:
+        raise AssertionError("release-state job must have exactly one checkout step")
+    checkout_with = checkout_steps[0].get("with")
+    if not isinstance(checkout_with, dict) or checkout_with.get("fetch-depth") != 0:
+        raise AssertionError("release-state checkout must set fetch-depth: 0")
+
+
+def assert_canonical_release_state_workflow_history() -> None:
+    """Prove the canonical workflow rejects shallow or misplaced checkout depth."""
+    workflow_path = ROOT / ".github/workflows/release-state-contract.yml"
+    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+    assert_release_state_checkout_history(workflow)
+
+    def checkout_step(candidate: dict) -> dict:
+        steps = candidate["jobs"]["release-state"]["steps"]
+        return next(step for step in steps if step.get("uses") == "actions/checkout@v4")
+
+    absent = deepcopy(workflow)
+    checkout_step(absent)["with"].pop("fetch-depth")
+
+    shallow = deepcopy(workflow)
+    checkout_step(shallow)["with"]["fetch-depth"] = 1
+
+    misplaced = deepcopy(workflow)
+    checkout_step(misplaced)["with"].pop("fetch-depth")
+    setup = next(
+        step
+        for step in misplaced["jobs"]["release-state"]["steps"]
+        if step.get("uses") == "actions/setup-python@v5"
+    )
+    setup.setdefault("with", {})["fetch-depth"] = 0
+
+    for label, candidate in (("absent", absent), ("shallow", shallow), ("misplaced", misplaced)):
+        try:
+            assert_release_state_checkout_history(candidate)
+        except AssertionError:
+            continue
+        raise AssertionError(f"release-state workflow accepted {label} checkout depth")
+
+
 def main() -> int:
+    assert_canonical_release_state_workflow_history()
+
     with tempfile.TemporaryDirectory(prefix="release-state-valid-") as temp:
         root = Path(temp)
         populate(root)
