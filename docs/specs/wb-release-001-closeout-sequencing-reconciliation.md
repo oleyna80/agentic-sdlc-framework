@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: draft
+status: approved
 created_at: 2026-08-24
 revision: define-r4-2026-08-24
-owner_approval: Owner authorized the corrective PR-history rewrite/force-push and directed a minimal prevention for the shallow-checkout failure on 2026-08-24. This draft records the resulting proposed exact source write-set; it requires refreshed Define assurance before source execution.
+owner_approval: Owner authorized the corrective PR-history rewrite/force-push and directed the minimal prevention for the shallow-checkout failure on 2026-08-24. Refreshed Define evidence establishes the exact bounded source write-set for this approved revision; no candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation

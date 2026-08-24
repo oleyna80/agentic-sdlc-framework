@@ -10,14 +10,14 @@ last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: BLOCKED
-critic_gate: PENDING
+write_gate: READY
+critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed a minimal prevention for the shallow-checkout failure on 2026-08-24. The revision-r4 source extension remains Define-pending until refreshed assurance records it; no candidate, push, or merge authority is implied.
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed the minimal prevention for the shallow-checkout failure on 2026-08-24. Refreshed r4 Define assurance supports the exact approved Execute write-set only; no candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,10 +42,10 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Define
+- **Current Stage:** Execute
 - **Stage State:** in_progress
-- **Write Gate:** BLOCKED
-- **Critic Gate:** PENDING
+- **Write Gate:** READY
+- **Critic Gate:** READY
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
@@ -57,8 +57,8 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 
 ## Normative Baseline
 
-- **Draft Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
-  (revision r4; pending refreshed Define assurance and write-gate resolution).
+- **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
+  (revision r4; requirements, consistency, and Critic assurance recorded below).
 - **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
 - **Governing contracts:** `governance/release-state.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
@@ -159,19 +159,19 @@ contract change itself completes successfully.
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: PENDING — revision r4 adds the CI history requirement.
-Traceability: PENDING — rerun against define-r4-2026-08-24.
-Consistency Analysis: PENDING — revision r4 changes the source manifest.
-Aggregate: PENDING
+Requirements Review: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history.md`.
+Traceability: READY — `requirements=10 acceptance=11 tasks=16` on revision r4.
+Consistency Analysis: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-consistency.md`.
+Critic: READY — `docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-critic.md`.
+Aggregate: READY
 ```
 
 The prior independent requirements/consistency pass and Critic critique found
 that durable candidate semantics and cross-revision evidence proof must be
 specified before source approval. Revision r4 adds only the discovered CI
-history prerequisite and its narrow deterministic guard. It requires a fresh
-requirements review, consistency analysis, Critic assessment, traceability
-validation, and recorded write-gate resolution before execution. After
-execution, require
+history prerequisite and its narrow deterministic guard. Fresh requirements,
+consistency, Critic, and traceability evidence is recorded for this revision;
+the Write Gate is READY for the exact source write-set. After execution, require
 independent Reviewer, fresh-clone Verifier, and Drift assurance on the frozen
 implementation subject; no candidate mode may authorize a push, PR, merge, CI
 claim, or external action.
