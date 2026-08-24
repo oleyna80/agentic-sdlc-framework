@@ -942,6 +942,7 @@ work_block_id: wb-007
         git(root, "init", "-q")
         git(root, "config", "user.email", "fixtures@example.test")
         git(root, "config", "user.name", "Fixture")
+        primary_branch = git(root, "branch", "--show-current")
         git(root, "add", ".")
         git(root, "commit", "-qm", "candidate")
         candidate_sha = git(root, "rev-parse", "HEAD")
@@ -957,15 +958,31 @@ work_block_id: wb-007
         assert ordinary_result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
         assert ordinary_result["effective_latest_completed_work_block"] == CANDIDATE
 
+        git(root, "checkout", "-qb", "wrong-subject", candidate_sha)
+        wrong_subject = "f" * 40
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, wrong_subject))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "wrong subject evidence")
+        expect_failure(
+            "candidate-wrong-subject-evidence",
+            root,
+            "must bind candidate SHA",
+        )
+        git(root, "checkout", "-q", primary_branch)
+
         unrelated_tree = git(root, "rev-parse", f"{evidence_sha}^{{tree}}")
         unrelated_sha = git(root, "commit-tree", unrelated_tree, "-m", "unrelated evidence tree")
         try:
             validator.validate_evidence_persistence(root, candidate_sha, unrelated_sha)
         except ReleaseStateError as exc:
-            assert "must descend from candidate revision" in str(exc)
+            assert "must directly descend from candidate revision" in str(exc)
         else:
             raise AssertionError("candidate persistence accepted a non-descendant evidence revision")
 
+        git(root, "checkout", "-qb", "normative-mutation", candidate_sha)
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
         write(root / CANDIDATE, candidate_work_block() + "\nCandidate mutation.\n")
         git(root, "add", ".")
         git(root, "commit", "-qm", "forbidden normative change")

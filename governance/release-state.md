@@ -83,7 +83,9 @@ python3 scripts/validate-release-state.py \
 This command requires the persistent declaration to be byte-for-meaning unchanged,
 requires every declared evidence file to bind `<candidate-commit>`, and rejects
 every changed path other than the exact declared evidence manifest. The evidence
-revision must descend from the candidate revision. It therefore
+revision must use the candidate as its only direct parent, and that parent must
+not already contain terminal evidence. Ordinary mode applies the same proof before
+deriving an effective completed entry. It therefore
 binds candidate assurance to its later evidence persistence without treating a
 report as a direct lifecycle overwrite.
 

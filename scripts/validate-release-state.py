@@ -573,17 +573,11 @@ def validate_evidence_persistence(
     evidence_sha = git_output(root, "rev-parse", "--verify", f"{evidence_revision}^{{commit}}")
     if candidate_sha == evidence_sha:
         raise ReleaseStateError("candidate and evidence revisions must differ")
-    ancestry = subprocess.run(
-        ["git", "-C", str(root), "merge-base", "--is-ancestor", candidate_sha, evidence_sha],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if ancestry.returncode == 1:
-        raise ReleaseStateError("evidence revision must descend from candidate revision")
-    if ancestry.returncode != 0:
-        detail = ancestry.stderr.strip() or ancestry.stdout.strip()
-        raise ReleaseStateError(f"cannot determine evidence revision ancestry: {detail}")
+    parent_line = git_output(root, "rev-list", "--parents", "-n", "1", evidence_sha).split()
+    if len(parent_line) != 2 or parent_line[1] != candidate_sha:
+        raise ReleaseStateError(
+            "evidence revision must directly descend from candidate revision as its only parent"
+        )
     candidate = candidate_from_registry_text(
         git_output(root, "show", f"{candidate_sha}:FILE_REGISTRY.yml")
     )
@@ -602,6 +596,13 @@ def validate_evidence_persistence(
         if not isinstance(value, str):
             raise ReleaseStateError("candidate revision required evidence paths must be strings")
         allowed_paths.add(value)
+        evidence_at_candidate = git_output(
+            root, "ls-tree", "-r", "--name-only", candidate_sha, "--", value
+        )
+        if evidence_at_candidate:
+            raise ReleaseStateError(
+                "candidate revision must not already contain declared terminal evidence"
+            )
     changed = set(
         filter(None, git_output(root, "diff", "--name-only", f"{candidate_sha}..{evidence_sha}").splitlines())
     )
@@ -621,6 +622,21 @@ def validate_evidence_persistence(
                 f"evidence revision {relative} must bind candidate SHA {candidate_sha}"
             )
     return {"candidate_revision": candidate_sha, "evidence_revision": evidence_sha}
+
+
+def validate_current_candidate_persistence(root: Path, reported_subject: str) -> None:
+    """Bind ordinary candidate completion to the committed evidence-only transition."""
+    evidence_revision = git_output(root, "rev-parse", "--verify", "HEAD^{commit}")
+    parent_line = git_output(root, "rev-list", "--parents", "-n", "1", evidence_revision).split()
+    if len(parent_line) != 2:
+        raise ReleaseStateError(
+            "ordinary candidate completion requires an evidence revision with one candidate parent"
+        )
+    result = validate_evidence_persistence(root, parent_line[1], evidence_revision)
+    if reported_subject != result["candidate_revision"]:
+        raise ReleaseStateError(
+            "pre_closeout candidate evidence must bind the direct candidate revision"
+        )
 
 
 def validate_release_assets(root: Path, release_state: dict[str, Any]) -> None:
@@ -1131,7 +1147,8 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
     effective_latest = release_state["latest_completed_work_block"]
     if candidate is not None:
         effective_candidate = candidate["work_block"]
-        validate_candidate_evidence(root, candidate)
+        reported_subject = validate_candidate_evidence(root, candidate)
+        validate_current_candidate_persistence(root, reported_subject)
         effective_completed.append(effective_candidate)
         effective_latest = effective_candidate
 
