@@ -29,7 +29,7 @@ status: in_progress
 - [x] TASK-010 [type=requirement] [req=REQ-007] [ac=AC-008] [paths=scripts/test-release-state-contracts.py] Add positive and adversarial fixtures for ordinary and candidate modes, including candidate declaration lifecycle and exact cross-revision proof.
 - [x] TASK-011 [type=requirement] [req=REQ-008] [ac=AC-009] [paths=governance/release-state.md,.agent/workflows/sdd-protocol.md,FILE_REGISTRY.yml,scripts/validate-release-state.py,scripts/test-release-state-contracts.py] Preserve bounded scope and prove the frozen source manifest excludes historical Work Blocks and unrelated implementation.
 - [x] TASK-016 [type=requirement] [req=REQ-010] [ac=AC-011] [paths=.github/workflows/release-state-contract.yml,scripts/test-release-state-contracts.py] Configure full Git history for the ancestry-dependent release-state workflow and add canonical workflow regression assertions.
-- [ ] TASK-017 [type=requirement] [req=REQ-011] [ac=AC-012] [paths=.github/workflows/framework-contracts.yml,scripts/test-release-state-contracts.py] Configure full Git history for the separately checked-out `contracts` job that directly runs governance/release-state validation, and extend the canonical workflow regression assertions to both identified direct consumers.
+- [x] TASK-017 [type=requirement] [req=REQ-011] [ac=AC-012] [paths=.github/workflows/framework-contracts.yml,scripts/test-release-state-contracts.py] Configure full Git history for the separately checked-out `contracts` job that directly runs governance/release-state validation, and extend the canonical workflow regression assertions to both identified direct consumers.
 
 ## Assure and Close
 

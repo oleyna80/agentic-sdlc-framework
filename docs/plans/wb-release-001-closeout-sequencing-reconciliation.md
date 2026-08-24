@@ -114,7 +114,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Source Write-Set: r4 Executed; r5 Expansion Proposed
+### Executed Source Write-Set
 
 ```text
 governance/release-state.md
@@ -127,9 +127,9 @@ scripts/test-release-state-contracts.py
 ```
 
 The first six paths were executed and assured under revision r4. Revision r5
-proposes only `.github/workflows/framework-contracts.yml` and the corresponding
-extension of `scripts/test-release-state-contracts.py`; it remains unexecuted
-while the r5 Write Gate is `BLOCKED`.
+executes only `.github/workflows/framework-contracts.yml` and the corresponding
+extension of `scripts/test-release-state-contracts.py`; fresh assurance of the
+complete r5 source subject remains required before a new candidate is created.
 
 | Path | Owner / smallest sufficient change |
 | --- | --- |
@@ -137,9 +137,9 @@ while the r5 Write Gate is `BLOCKED`.
 | `.agent/workflows/sdd-protocol.md` | Owns the self-hosting operational Close sequence. |
 | `FILE_REGISTRY.yml` | Owns the machine-readable accepted evidence sequence. |
 | `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation and retains the fail-closed candidate-manifest boundary. |
-| `scripts/test-release-state-contracts.py` | Executed r4 owner of canonical checkout-history regression proof; r5 proposes the smallest extension to cover the second named consumer. |
+| `scripts/test-release-state-contracts.py` | Executed r4 owner of canonical checkout-history regression proof; r5 extends it only to cover the second named consumer. |
 | `.github/workflows/release-state-contract.yml` | Owns CI checkout depth for the ancestry-dependent release-state validator. |
-| `.github/workflows/framework-contracts.yml` | Proposed r5 owner of CI checkout depth for the separate `contracts` job that directly runs governance/release-state validation. |
+| `.github/workflows/framework-contracts.yml` | Executed r5 owner of CI checkout depth for the separate `contracts` job that directly runs governance/release-state validation. |
 
 No template, source skill, historical Work Block, closeout report, or
 `PROJECT_MAP.md` change is authorized for Execute. `PROJECT_MAP.md` may be an
