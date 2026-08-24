@@ -99,14 +99,14 @@ mutations, formal-specification authority, and candidate/active coexistence;
 and candidate-mode formal-specification policy must not be broadened. Those
 conditions are the exact scope of TASK-020.
 
-TASK-020 now implements those three deterministic guards. Its complete source
-subject remains pending independent Review, fresh-clone Verification, and Drift
-assurance before a renewed candidate declaration.
+TASK-020 completed those three deterministic guards. Its corrected frozen r7
+source subject received independent Review, fresh-clone Verification, and Drift
+assurance before the renewed candidate declaration.
 
 Fresh r7 Verification blocked the first source subject because it exposed a
 remaining fail-open: a Managed candidate missing its sibling tasklist could
-avoid formal-specification validation. TASK-020 remains in progress until that
-same-scope correction and its fresh assurance complete.
+avoid formal-specification validation. The same-scope correction was completed
+and freshly assured before the renewed candidate declaration.
 
 The corrected frozen r7 subject `0a9fa6eec4f585592c06f7168071265598b90219`
 received independent Reviewer `READY`, fresh-clone Verifier `READY`, and Drift
@@ -177,7 +177,7 @@ executes only `.github/workflows/framework-contracts.yml` and the corresponding
 extension of `scripts/test-release-state-contracts.py`. Corrective r7 changes
 only `governance/release-state.md`, `scripts/validate-release-state.py`, and
 `scripts/test-release-state-contracts.py`; fresh assurance of that complete
-subject remains required before a new candidate is created.
+subject completed before the current candidate was declared.
 
 | Path | Owner / smallest sufficient change |
 | --- | --- |
