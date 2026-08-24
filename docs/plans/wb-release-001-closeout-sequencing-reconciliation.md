@@ -79,8 +79,8 @@ the renewed evidence-only commit.
 
 ## Repository Preflight
 
-- **Clean isolated worktree:**
-  `/home/azur/Projects/WSL/agentic-sdlc-framework-wb-release-001`.
+- **Clean isolated worktree:** dedicated to this Work Block and separate from
+  the Owner's normal checkout.
 - **Branch/baseline:** `agent/wb-release-001-closeout-sequencing` at
   `bc05d3c554225d77aa23a4d63c5a8dd41c37ea34`.
 - **Original pilot checkout:** remains on
@@ -198,13 +198,17 @@ python3 scripts/validate-define-traceability.py \
   --tasks docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 bash scripts/test-sdd-contract.sh
 bash scripts/validate-governance.sh
+bash scripts/validate-publication.sh
 python3 scripts/validate-release-state.py
 python3 scripts/test-release-state-contracts.py
 ```
 
 The future implementation must retain ordinary-mode checks unchanged, add the
 full-history checkout to both named direct-consumer jobs, and make each
-canonical workflow setting part of the release-state fixture proof.
+canonical workflow setting part of the release-state fixture proof. Before a
+candidate is declared, the same publication validator used by Framework
+Contracts must pass in the isolated checkout; this prevents local-path or
+private-marker publication failures from surfacing only after push.
 
 ## Resumption Rule
 
