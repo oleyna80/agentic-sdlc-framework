@@ -32,11 +32,13 @@ intermediate subject before its closeout evidence exists.
 ## Expected Final Result
 
 The framework has one bounded, prospective, fail-closed procedure for a local
-pre-closeout candidate. It preserves ordinary release-state validation for any
-pushable/CI/mergeable head, permits independent final assurance of an exact
-terminal normative candidate, and requires an evidence-only persistence commit
-before ordinary release-state validation or CI can pass. WB-CORE-003G can then
-resume without relying on a contract-invalid published intermediate state.
+pre-closeout candidate. A persistent machine-readable `closeout_candidate` /
+`assurance_pending` record and projection permit independent final assurance
+without claiming successful closeout. The authoritative contract derives
+completion only from that immutable declaration plus bound terminal evidence;
+an evidence-only persistence commit is cross-revision checked before ordinary
+release-state validation or CI can pass. WB-CORE-003G can then resume without
+relying on a contract-invalid published intermediate state.
 
 ## Current State
 
@@ -141,22 +143,24 @@ contract change itself completes successfully.
 | Keep the current sequence and tolerate failed ordinary validation | Preserves wording but leaves a known contract-invalid intermediate state. | Rejected. |
 | Put a successful closeout report in the terminal projection before terminal assurance | Lets ordinary validation pass but makes the success claim temporally ambiguous. | Rejected. |
 | Add a blanket validator exception for any missing latest closeout | Weakens the default fail-closed guarantee and permits accidental incomplete heads. | Rejected. |
-| Explicit local-only pre-closeout candidate mode plus ordinary final mode | Makes the exception deliberate, testable, non-promotable, and limited to terminal assurance sequencing. | Recommended, pending Define assurance. |
+| Explicit local-only pre-closeout candidate mode plus ordinary final mode | Uses a persistent `closeout_candidate`/`assurance_pending` record, a two-part canonical completion rule, distinct `CANDIDATE_READY` output, and an exact candidate-to-evidence diff proof; it is deliberate, testable, non-promotable, and limited to terminal assurance sequencing. | Recommended, pending refreshed Define assurance. |
 
 ## Define Quality and Assurance Plan
 
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: PENDING
+Requirements Review: CHANGES_REQUIRED — supplemented definition required
 Traceability: PENDING
-Consistency Analysis: PENDING
+Consistency Analysis: CHANGES_REQUIRED — supplemented definition required
 Aggregate: PENDING
 ```
 
-Before any source write, obtain requirements-quality review, consistency
-analysis, and Critic review. Then request a prospective Owner approval of a
-specific revised specification and exact source write-set. After execution,
+The first independent requirements/consistency pass and Critic critique found
+that durable candidate semantics and cross-revision evidence proof must be
+specified before source approval. Refresh those reviews after this Define
+supplementation. Then request a prospective Owner approval of a specific
+revised specification and exact source write-set. After execution,
 require independent Reviewer, fresh-clone Verifier, and Drift assurance on the
 frozen implementation subject; no candidate mode may authorize a push, PR,
 merge, CI claim, or external action.

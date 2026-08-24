@@ -5,7 +5,7 @@ artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
 status: draft
 created_at: 2026-08-24
-revision: define-r1-2026-08-24
+revision: define-r3-2026-08-24
 owner_approval: Owner approved Define investigation only on 2026-08-24. No source, validator, governance, template, commit, push, pull-request, merge, or external authority is granted by this draft.
 ---
 
@@ -31,29 +31,52 @@ persistence, if that design survives Define quality and Critic review.
 - REQ-001: The release-state contract must distinguish a normal repository head
   from an explicit local-only pre-closeout candidate. The ordinary validator must
   continue to fail closed for incomplete closeout evidence on a normal head.
-- REQ-002: A pre-closeout candidate must bind one exact terminal Work Block
-  projection and preserve registry/map agreement, terminal-marker syntax, and
-  all applicable pre-existing closeout evidence without representing the
-  candidate as release-ready, pushable, merge-ready, or externally complete.
-- REQ-003: The candidate validation path must validate the intended terminal
+- REQ-002: A pre-closeout candidate must have one persistent, machine-readable
+  declaration in `FILE_REGISTRY.yml`. It must bind exactly one Work Block,
+  one predecessor completed Work Block, the candidate's `assurance_pending`
+  state, its required terminal evidence classes, and the normative manifest to
+  be assured. The declaration is created before terminal assurance and remains
+  unchanged after it; an evidence-only persistence commit must not remove or
+  rewrite it.
+- REQ-003: Candidate-only Work Block and registry/map markers must mean
+  `closeout_candidate`/`assurance_pending`, not `completed`,
+  `success-closeout`, or a READY final gate. `closeout_candidate` is a new
+  explicit lifecycle state, with `Current Stage: Close`, `Stage State:
+  assurance_pending`, and `Closeout Mode: candidate`; the registry/map carry
+  the same candidate state. Candidate validation must emit a distinct
+  non-release-ready result and must preserve registry/map agreement,
+  terminal-marker syntax, and all applicable pre-existing closeout evidence.
+- REQ-004: The candidate validation path must validate the intended terminal
   projection sufficiently for independent Reviewer, Verifier, and Drift
-  assurance, while requiring final evidence persistence to contain no hidden
-  normative changes beyond the candidate subject.
-- REQ-004: The protocol and machine-readable acceptance sequence must state the
+  assurance. A reproducible comparison command must bind the exact candidate
+  revision, the final evidence revision, and the allowed report/closeout
+  manifest; it must reject any normative-path delta between them.
+- REQ-005: The authoritative release-state contract must define
+  `closeout_candidate` completion as an explicit two-part canonical state: the
+  immutable candidate declaration and its bound required terminal evidence.
+  The candidate stays outside `completed_work_blocks`; raw
+  `latest_completed_work_block` stays the declared immediate predecessor; and
+  `active_work_block` remains null. `PROJECT_MAP.md` carries the same one
+  `closeout_candidate` record. The reports do not overwrite any raw state;
+  they satisfy the declared finalization condition and cause the validator to
+  derive exactly that candidate as the effective completed/latest entry only
+  when every required report binds the candidate revision. Without that
+  condition, `closeout_candidate` remains non-final and ordinary mode fails.
+- REQ-006: The protocol and machine-readable acceptance sequence must state the
   same prospective order: preliminary assurance; authorized local candidate;
   candidate validation and final applicable assurance; evidence-only report
   persistence; ordinary release-state validation and CI on the resulting PR
   head; then separate Owner merge approval.
-- REQ-005: Executable positive and adversarial fixtures must prove both modes:
+- REQ-007: Executable positive and adversarial fixtures must prove both modes:
   a valid ordinary completed state, a valid explicit pre-closeout candidate, and
   rejection of candidate mode when its declaration, predecessor binding,
   registry/map projection, terminal markers, or evidence-only boundary is
   malformed or absent.
-- REQ-006: The correction must remain a bounded release-state/procedure change.
+- REQ-008: The correction must remain a bounded release-state/procedure change.
   It must not alter completed historical Work Blocks, reopen WB-SKILL-002A/B,
   modify WB-CORE-003G source behavior, grant GitHub authority, weaken default
   release-state checks, or create a general exception for incomplete closeout.
-- REQ-007: The Work Block must record a reusable closeout procedure that lets
+- REQ-009: The Work Block must record a reusable closeout procedure that lets
   WB-CORE-003G resume only after this contract is accepted and implemented; the
   pilot's existing uncommitted status-only files remain out of scope for this
   Work Block.
@@ -66,27 +89,40 @@ persistence, if that design survives Define quality and Critic review.
 - AC-002 [req=REQ-001]: Candidate validation is selected only by an explicit,
   machine-readable candidate declaration and a deliberate command-line mode; it
   cannot be activated implicitly by a missing closeout report.
-- AC-003 [req=REQ-002]: Candidate validation binds exactly one final Work Block
-  path, requires it to be the final migration projection and requires
-  `FILE_REGISTRY.yml` and `PROJECT_MAP.md` to agree on that projection.
-- AC-004 [req=REQ-002]: Candidate documentation and validation prohibit push,
-  PR creation, CI/release-ready claims, merge, and external-state assertions
-  until evidence-only persistence restores ordinary release-state validity.
-- AC-005 [req=REQ-003]: Independent terminal assurance can name the exact
-  candidate commit and its normative manifest; later evidence persistence is
-  checked to contain only approved report/closeout paths and no candidate
-  normative-path change.
-- AC-006 [req=REQ-004]: `governance/release-state.md`, the self-hosting SDD
+- AC-003 [req=REQ-002]: Candidate validation accepts only one persistent
+  `FILE_REGISTRY.yml` declaration containing the Work Block ID, predecessor ID,
+  `assurance_pending` state, required evidence classes, and normative manifest;
+  it rejects a missing, duplicate, or malformed record.
+- AC-004 [req=REQ-003]: Candidate-only Work Block and registry/map projections
+  use explicit `closeout_candidate`/`assurance_pending` markers and contain no `completed`,
+  `success-closeout`, or READY final-gate claim. Candidate mode exits
+  successfully only with the distinct `CANDIDATE_READY` classification; it is
+  not ordinary `READY`, release-ready, or authority for push, PR, merge, CI,
+  or external-state claims.
+- AC-005 [req=REQ-004]: A reproducible validator command accepts exact
+  candidate and final-evidence revisions plus the candidate manifest, verifies
+  terminal reports bind the candidate revision, and rejects every changed path
+  outside the approved evidence/closeout manifest, including a mutated
+  persistent candidate record.
+- AC-006 [req=REQ-005]: Ordinary mode derives `completed` for exactly one
+  `closeout_candidate` only from its persistent declaration and every bound
+  terminal report. It requires the raw completed/latest entry to remain the
+  declared immediate predecessor, `active_work_block` to remain null, and the
+  `PROJECT_MAP.md` candidate record to agree; it rejects absent, wrong-subject,
+  incomplete, or duplicate evidence, and it never treats raw evidence as a
+  direct overwrite of the Work Block state.
+- AC-007 [req=REQ-006]: `governance/release-state.md`, the self-hosting SDD
   protocol, and `FILE_REGISTRY.yml` prescribe one non-contradictory prospective
   sequence and preserve separate Owner merge authority.
-- AC-007 [req=REQ-005]: Fixture coverage includes normal success, valid
-  candidate success, undeclared candidate rejection, default-mode rejection,
-  incorrect candidate/latest binding, map disagreement, malformed terminal
-  markers, and forbidden normative changes in evidence persistence.
-- AC-008 [req=REQ-006]: The frozen implementation manifest contains only the
+- AC-008 [req=REQ-007]: Fixture coverage includes normal success, valid
+  candidate success with `CANDIDATE_READY`, undeclared/default-mode rejection,
+  duplicate or incorrect predecessor binding, map disagreement, prohibited
+  success markers, missing evidence, and forbidden normative changes between
+  candidate and evidence revisions.
+- AC-009 [req=REQ-008]: The frozen implementation manifest contains only the
   Owner-approved contract/procedure/validator/fixture paths; no completed
   historical Work Block or unrelated source path is changed.
-- AC-009 [req=REQ-007]: The closeout records the exact prospective procedure,
+- AC-010 [req=REQ-009]: The closeout records the exact prospective procedure,
   residual limitations, and the explicit condition for resuming WB-CORE-003G;
   it does not claim that WB-CORE-003G has been closed.
 
@@ -98,16 +134,35 @@ The leading option is a strict two-mode validator:
    reviewed, merged, or treated as release-ready. It requires a successful
    closeout report for the latest completed Work Block exactly as today.
 2. **Pre-closeout candidate mode** is invoked deliberately for one local,
-   unpublished candidate commit. It validates the candidate declaration,
-   terminal Work Block projection, registry/map agreement, and predecessor
-   closeout while permitting the candidate's new closeout evidence to be absent.
-   It does not return a release-ready verdict and is not CI admission evidence.
+   unpublished candidate revision. `FILE_REGISTRY.yml` contains one persistent
+   `pre_closeout_candidate` record with: Work Block ID; predecessor completed
+   Work Block ID; `closeout_candidate`/`assurance_pending` state; required
+   `review`, `verification`, `drift`, and `closeout` evidence classes; and an
+   ordered normative manifest. The Work Block and registry/map use the same
+   `closeout_candidate`/`assurance_pending` identity; they do not claim
+   `completed`, `success-closeout`, or final READY gates.
+   Candidate mode validates that record, the terminal projection, map agreement,
+   and predecessor closeout while permitting only the new candidate evidence to
+   be absent. A successful run emits `CANDIDATE_READY`, never ordinary `READY`.
 3. After independent terminal assurance, an evidence-only commit persists the
-   reports and successful closeout evidence without changing the assured
-   normative manifest. Ordinary mode then becomes the only passing mode.
+   required reports and successful closeout evidence without changing the
+   candidate record or its assured normative manifest. A dedicated reproducible
+   comparison receives the exact candidate and final-evidence revisions and
+   rejects any changed path outside the declared report/closeout manifest. The
+   authoritative release-state contract recognizes the immutable candidate
+   declaration and its bound terminal evidence as a two-part canonical state.
+   The raw registry latest-completed entry stays the candidate's immediate
+   predecessor, `active_work_block` stays null, and the map retains the matching
+   candidate record; the validator derives an effective completed final entry
+   only then. The reports do not overwrite the candidate's raw lifecycle state.
+   Ordinary mode is the only passing mode after that condition is satisfied.
 
-The exact candidate declaration shape, predecessor checks, and evidence-only
-manifest proof remain design details for the implementation phase. They require
+Candidate mode grants no push, PR, merge, release, CI, or external-state
+authority; a local validator cannot physically prevent such actions. Default
+CI continues to run ordinary mode and therefore rejects an incomplete
+candidate. The exact flag/interface names remain implementation details, but
+the persistent declaration, markers, result classification, and cross-revision
+proof above are required design constraints. They require a refreshed
 requirements-quality review, consistency analysis, Critic review, an Owner
 approved specification revision, and an explicit future source write-set.
 
