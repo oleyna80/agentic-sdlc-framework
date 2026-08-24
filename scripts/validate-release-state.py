@@ -22,6 +22,11 @@ CANDIDATE_EVIDENCE_TYPES = {
     "drift": "drift_report",
     "closeout": "closeout_report",
 }
+CANDIDATE_EVIDENCE_VERDICTS = {
+    "review": "READY",
+    "verification": "READY",
+    "drift": "ALIGNED",
+}
 CANDIDATE_EVIDENCE_DIRECTORIES = {
     "review": "docs/reports/reviews/",
     "verification": "docs/reports/verification/",
@@ -504,6 +509,11 @@ def validate_candidate_evidence(root: Path, candidate: dict[str, Any]) -> str:
             raise ReleaseStateError(
                 f"candidate {evidence_class} evidence work_block_id does not match"
             )
+        expected_verdict = CANDIDATE_EVIDENCE_VERDICTS.get(evidence_class)
+        if expected_verdict and frontmatter.get("verdict") != expected_verdict:
+            raise ReleaseStateError(
+                f"candidate {evidence_class} evidence requires verdict={expected_verdict}"
+            )
         subject = frontmatter.get("subject_commit")
         if not isinstance(subject, str) or not COMMIT_SHA_RE.fullmatch(subject):
             raise ReleaseStateError(
@@ -617,6 +627,11 @@ def validate_evidence_persistence(
         frontmatter, _ = parse_frontmatter_text(text, f"evidence revision {relative}")
         if frontmatter.get("artifact_type") != expected_type:
             raise ReleaseStateError(f"evidence revision {relative} has wrong artifact_type")
+        expected_verdict = CANDIDATE_EVIDENCE_VERDICTS.get(evidence_class)
+        if expected_verdict and frontmatter.get("verdict") != expected_verdict:
+            raise ReleaseStateError(
+                f"evidence revision {relative} requires verdict={expected_verdict}"
+            )
         if frontmatter.get("subject_commit") != candidate_sha:
             raise ReleaseStateError(
                 f"evidence revision {relative} must bind candidate SHA {candidate_sha}"
@@ -624,18 +639,34 @@ def validate_evidence_persistence(
     return {"candidate_revision": candidate_sha, "evidence_revision": evidence_sha}
 
 
-def validate_current_candidate_persistence(root: Path, reported_subject: str) -> None:
-    """Bind ordinary candidate completion to the committed evidence-only transition."""
-    evidence_revision = git_output(root, "rev-parse", "--verify", "HEAD^{commit}")
-    parent_line = git_output(root, "rev-list", "--parents", "-n", "1", evidence_revision).split()
-    if len(parent_line) != 2:
+def validate_current_candidate_persistence(root: Path, candidate: dict[str, Any], reported_subject: str) -> None:
+    """Find the exact evidence-only transition in current HEAD ancestry."""
+    head = git_output(root, "rev-parse", "--verify", "HEAD^{commit}")
+    matches: list[dict[str, str]] = []
+    for evidence_revision in git_output(root, "rev-list", "--topo-order", head).splitlines():
+        parent_line = git_output(root, "rev-list", "--parents", "-n", "1", evidence_revision).split()
+        if len(parent_line) != 2:
+            continue
+        candidate_revision = parent_line[1]
+        try:
+            persisted_candidate = candidate_from_registry_text(
+                git_output(root, "show", f"{candidate_revision}:FILE_REGISTRY.yml")
+            )
+        except ReleaseStateError:
+            continue
+        if persisted_candidate != candidate["declaration"]:
+            continue
+        try:
+            matches.append(validate_evidence_persistence(root, candidate_revision, evidence_revision))
+        except ReleaseStateError:
+            continue
+    if len(matches) != 1:
         raise ReleaseStateError(
-            "ordinary candidate completion requires an evidence revision with one candidate parent"
+            "ordinary candidate completion requires exactly one persisted evidence-only transition"
         )
-    result = validate_evidence_persistence(root, parent_line[1], evidence_revision)
-    if reported_subject != result["candidate_revision"]:
+    if reported_subject != matches[0]["candidate_revision"]:
         raise ReleaseStateError(
-            "pre_closeout candidate evidence must bind the direct candidate revision"
+            "pre_closeout candidate evidence must bind the persisted candidate revision"
         )
 
 
@@ -1148,7 +1179,7 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
     if candidate is not None:
         effective_candidate = candidate["work_block"]
         reported_subject = validate_candidate_evidence(root, candidate)
-        validate_current_candidate_persistence(root, reported_subject)
+        validate_current_candidate_persistence(root, candidate, reported_subject)
         effective_completed.append(effective_candidate)
         effective_latest = effective_candidate
 

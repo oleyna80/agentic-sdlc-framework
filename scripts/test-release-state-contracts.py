@@ -275,6 +275,7 @@ artifact_id: wb-008-{kind}
 status: approved
 work_block_id: {CANDIDATE_ID}
 subject_commit: {subject_commit}
+verdict: {validator.CANDIDATE_EVIDENCE_VERDICTS[kind]}
 ---
 
 # {kind}
@@ -958,6 +959,26 @@ work_block_id: wb-007
         assert ordinary_result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
         assert ordinary_result["effective_latest_completed_work_block"] == CANDIDATE
 
+        git(root, "checkout", "-qb", "merge-integration", candidate_sha)
+        write(root / "integration.md", "integration parent\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "integration parent")
+        git(root, "merge", "--no-ff", primary_branch, "-m", "merge evidence")
+        merged_result = validator.validate_repository(root)
+        assert merged_result["effective_latest_completed_work_block"] == CANDIDATE
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "negative-verdict", candidate_sha)
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            evidence = candidate_evidence(evidence_class, candidate_sha)
+            if evidence_class == "review":
+                evidence = evidence.replace("verdict: READY", "verdict: CHANGES_REQUIRED")
+            write(root / relative, evidence)
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "negative review evidence")
+        expect_failure("candidate-negative-review-verdict", root, "requires verdict=READY")
+        git(root, "checkout", "-q", primary_branch)
+
         git(root, "checkout", "-qb", "wrong-subject", candidate_sha)
         wrong_subject = "f" * 40
         for evidence_class, relative in CANDIDATE_EVIDENCE.items():
@@ -967,7 +988,7 @@ work_block_id: wb-007
         expect_failure(
             "candidate-wrong-subject-evidence",
             root,
-            "must bind candidate SHA",
+            "requires exactly one persisted evidence-only transition",
         )
         git(root, "checkout", "-q", primary_branch)
 

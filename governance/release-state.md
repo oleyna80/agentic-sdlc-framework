@@ -67,7 +67,8 @@ Candidate mode is an explicit local validator invocation. It emits
 `CANDIDATE_READY`, not `READY`; all required terminal evidence must still be
 absent. Ordinary mode remains fail-closed while a declared candidate lacks its
 required evidence. Once all four approved evidence artifacts bind one exact
-candidate commit, ordinary mode derives that declaration as the **effective**
+candidate commit, with review/verifier verdicts exactly `READY` and drift exactly
+`ALIGNED`, ordinary mode derives that declaration as the **effective**
 completed/latest entry. It does not rewrite the raw Work Block, completed list,
 or raw latest-completed predecessor. The validator exposes the derived
 `effective_completed_work_blocks` and `effective_latest_completed_work_block`
@@ -85,7 +86,9 @@ requires every declared evidence file to bind `<candidate-commit>`, and rejects
 every changed path other than the exact declared evidence manifest. The evidence
 revision must use the candidate as its only direct parent, and that parent must
 not already contain terminal evidence. Ordinary mode applies the same proof before
-deriving an effective completed entry. It therefore
+deriving an effective completed entry by finding the unique persisted transition
+in the current `HEAD` ancestry; a later merge commit does not invalidate that
+proof. It therefore
 binds candidate assurance to its later evidence persistence without treating a
 report as a direct lifecycle overwrite.
 
