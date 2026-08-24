@@ -34,13 +34,54 @@ copy of later hosting-platform state.
 1. Work Block frontmatter and its single `Final State` or legacy `Closeout State`
    section define the lifecycle of that Work Block.
 2. `FILE_REGISTRY.yml:migration_state` is the machine-readable index of completed
-   and active migration Work Blocks.
+   and active migration Work Blocks, plus at most one explicit
+   `pre_closeout_candidate`.
 3. The machine block and visible `Migration Work` section in `PROJECT_MAP.md` are
    the human-readable projection of the same migration state.
 4. Closeout reports provide evidence and classification; they do not override the
    Work Block or registry.
 5. GitHub PR/merge state is external operational evidence and cannot override
    repository authority.
+
+### Explicit Pre-Closeout Candidate
+
+`pre_closeout_candidate` is the sole prospective exception to an otherwise
+ordinary completed-state transition. It is deliberately local-only and is not a
+completed Work Block, a release-ready state, or authority for push, pull request,
+CI, merge, or external action. Its purpose is to let independent assurance assess
+the exact terminal normative projection before the evidence that proves that
+assurance exists.
+
+The declaration lives persistently in `FILE_REGISTRY.yml:migration_state` and is
+either `null` or exactly one object containing its Work Block path and ID, the
+immediate raw completed predecessor, `state: assurance_pending`, the four required
+terminal evidence paths (`review`, `verification`, `drift`, and `closeout`), and
+the ordered normative manifest. `PROJECT_MAP.md` must carry the same declaration
+and visibly identify the candidate. The candidate Work Block stays outside
+`completed_work_blocks`, has `status: closeout_candidate`, and records `Current
+Stage: Close`, `Stage State: assurance_pending`, and `Closeout Mode: candidate`.
+It must not claim final READY review, verification, or drift gates.
+
+Candidate mode is an explicit local validator invocation. It emits
+`CANDIDATE_READY`, not `READY`; all required terminal evidence must still be
+absent. Ordinary mode remains fail-closed while a declared candidate lacks its
+required evidence. Once all four approved evidence artifacts bind one exact
+candidate commit, ordinary mode derives that declaration as the **effective**
+completed/latest entry. It does not rewrite the raw Work Block, completed list,
+or raw latest-completed predecessor.
+
+The evidence-only persistence revision must be proved with:
+
+```bash
+python3 scripts/validate-release-state.py \
+  --verify-evidence-persistence <candidate-commit> <evidence-commit>
+```
+
+This command requires the persistent declaration to be byte-for-meaning unchanged,
+requires every declared evidence file to bind `<candidate-commit>`, and rejects
+every changed path other than the exact declared evidence manifest. It therefore
+binds candidate assurance to its later evidence persistence without treating a
+report as a direct lifecycle overwrite.
 
 ## Required Invariants
 
@@ -177,6 +218,10 @@ validator must reject at least:
 - a latest completed Managed, Assured, or Distributed Work Block with a declared
   separate specification whose deterministic binding is invalid or whose
   resolved specification is not `approved`.
+- a candidate declaration that is absent, duplicated, malformed, disagrees with
+  its map projection or immediate predecessor, has invalid candidate lifecycle
+  markers, lacks any bound terminal evidence in ordinary mode, or has an
+  evidence-persistence revision that changes a normative path.
 
 ## Enforcement
 

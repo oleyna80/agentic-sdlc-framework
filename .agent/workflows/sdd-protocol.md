@@ -104,6 +104,15 @@ records only when their governing contract requires it; classify knowledge as
 durable, operational-only, or not-applicable; and report evidence, residual risk,
 and next action.
 
+When `governance/release-state.md` authorizes an explicit `pre_closeout_candidate`,
+use its sequence exactly: Owner-authorized local candidate declaration and
+status-only commit; deliberate `CANDIDATE_READY` validation; independent final
+assurance of that exact candidate; evidence-only persistence; exact
+candidate-to-evidence comparison; ordinary release-state validation and CI; then
+separate Owner merge approval. A candidate is never a completed, release-ready,
+or externally promotable state, and ordinary validation does not pass until every
+declared evidence artifact binds the candidate subject.
+
 ## Capability routing and hard stops
 
 Inspect live capability evidence before assignment: `unknown` is unavailable.

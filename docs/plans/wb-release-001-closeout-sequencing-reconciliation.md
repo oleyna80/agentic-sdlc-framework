@@ -10,14 +10,14 @@ last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: BLOCKED
-critic_gate: PENDING
+write_gate: READY
+critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner authorized Define investigation on a separate branch on 2026-08-24. Future source, commit, push, pull-request, merge, and external actions require their separately recorded authority.
+owner_approval: Owner approved specification revision define-r3-2026-08-24 and the exact Execute source write-set (governance/release-state.md, .agent/workflows/sdd-protocol.md, FILE_REGISTRY.yml, scripts/validate-release-state.py, scripts/test-release-state-contracts.py) on 2026-08-24. Commit, push, pull-request, merge, and external actions remain separately controlled.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,10 +42,10 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Define
+- **Current Stage:** Execute
 - **Stage State:** in_progress
-- **Write Gate:** BLOCKED
-- **Critic Gate:** PENDING
+- **Write Gate:** READY
+- **Critic Gate:** READY
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
@@ -58,7 +58,7 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 ## Normative Baseline
 
 - **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
-  (draft; not yet authority for Execute).
+  (approved; prospective authority for the exact Execute write-set).
 - **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
 - **Governing contracts:** `governance/release-state.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
@@ -96,7 +96,7 @@ prospective contract only; it does not rewrite those records.
 
 ## Scope
 
-### In Scope Now — Define Only
+### Define and Coordination Artifacts
 
 ```text
 docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
@@ -104,7 +104,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Proposed Future Source Write-Set — Not Authorized
+### Approved Execute Source Write-Set
 
 ```text
 governance/release-state.md
@@ -123,7 +123,7 @@ scripts/test-release-state-contracts.py
 | `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof. |
 
 No template, source skill, historical Work Block, closeout report, or
-`PROJECT_MAP.md` change is proposed for Execute. `PROJECT_MAP.md` may be an
+`PROJECT_MAP.md` change is authorized for Execute. `PROJECT_MAP.md` may be an
 approved terminal-projection path only during WB-RELEASE-001 Close, if the
 contract change itself completes successfully.
 
@@ -150,20 +150,20 @@ contract change itself completes successfully.
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: CHANGES_REQUIRED — supplemented definition required
-Traceability: PENDING
-Consistency Analysis: CHANGES_REQUIRED — supplemented definition required
-Aggregate: PENDING
+Requirements Review: READY — independent review bound to define-r3-2026-08-24.
+Traceability: READY — structural validation passed for define-r3-2026-08-24.
+Consistency Analysis: READY — independent analysis bound to define-r3-2026-08-24.
+Aggregate: READY
 ```
 
 The first independent requirements/consistency pass and Critic critique found
 that durable candidate semantics and cross-revision evidence proof must be
-specified before source approval. Refresh those reviews after this Define
-supplementation. Then request a prospective Owner approval of a specific
-revised specification and exact source write-set. After execution,
-require independent Reviewer, fresh-clone Verifier, and Drift assurance on the
-frozen implementation subject; no candidate mode may authorize a push, PR,
-merge, CI claim, or external action.
+specified before source approval. The refreshed reviews and Critic assessment
+are READY for define-r3-2026-08-24, and the Owner then approved that exact
+revision and source write-set prospectively. After execution, require
+independent Reviewer, fresh-clone Verifier, and Drift assurance on the frozen
+implementation subject; no candidate mode may authorize a push, PR, merge, CI
+claim, or external action.
 
 ## Validation Plan
 

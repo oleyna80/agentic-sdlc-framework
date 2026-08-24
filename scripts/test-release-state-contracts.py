@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import subprocess
 import tempfile
 
 import yaml
@@ -24,6 +25,14 @@ TASKLIST = "docs/tasklist/wb-007-agent-evaluation-trajectory-assurance.md"
 SPECIFICATION = "docs/specs/wb-007-agent-evaluation-trajectory-assurance.md"
 CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"
 OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"
+CANDIDATE = "docs/plans/wb-008-pre-closeout-candidate.md"
+CANDIDATE_ID = "WB-008"
+CANDIDATE_EVIDENCE = {
+    "review": "docs/reports/reviews/wb-008-pre-closeout-candidate.md",
+    "verification": "docs/reports/verification/wb-008-pre-closeout-candidate.md",
+    "drift": "docs/reports/drift/wb-008-pre-closeout-candidate.md",
+    "closeout": "docs/reports/closeout/wb-008-pre-closeout-candidate.md",
+}
 
 
 def write(path: Path, content: str) -> None:
@@ -200,13 +209,14 @@ def project_map(
     completed: list[str] | None = None,
     active: str | None = None,
     *,
+    candidate: dict | None = None,
     visible_override: str | None = None,
 ) -> str:
     completed = completed if completed is not None else [COMPLETED]
-    block = yaml.safe_dump(
-        {"completed_work_blocks": completed, "active_work_block": active},
-        sort_keys=False,
-    ).rstrip()
+    state = {"completed_work_blocks": completed, "active_work_block": active}
+    if candidate is not None:
+        state["pre_closeout_candidate"] = candidate
+    block = yaml.safe_dump(state, sort_keys=False).rstrip()
     if visible_override is not None:
         visible = visible_override
     elif active is None:
@@ -214,6 +224,85 @@ def project_map(
     else:
         visible = f"## Migration Work\n\nActive:\n\n- `{active}`\n"
     return f"# Project Map\n\n<!-- release-state\n{block}\n-->\n\n{visible}"
+
+
+def candidate_work_block() -> str:
+    return f"""---
+schema_version: 1
+artifact_type: work_block
+artifact_id: wb-008-pre-closeout-candidate
+status: closeout_candidate
+owner_role: orchestrator
+work_block_id: {CANDIDATE_ID}
+governance_profile: Managed
+---
+
+# {CANDIDATE_ID}
+
+## Current State
+
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Drift Gate:** PENDING
+- **Closeout Mode:** candidate
+"""
+
+
+def candidate_declaration() -> dict:
+    return {
+        "work_block": CANDIDATE,
+        "work_block_id": CANDIDATE_ID,
+        "predecessor_completed_work_block": COMPLETED,
+        "state": "assurance_pending",
+        "required_evidence": CANDIDATE_EVIDENCE.copy(),
+        "normative_manifest": [CANDIDATE, "FILE_REGISTRY.yml", "PROJECT_MAP.md"],
+    }
+
+
+def candidate_evidence(kind: str, subject_commit: str) -> str:
+    artifact_type = validator.CANDIDATE_EVIDENCE_TYPES[kind]
+    if kind == "closeout":
+        return closeout(
+            work_block_id=CANDIDATE_ID,
+            frontmatter_extra=f"subject_commit: {subject_commit}\n",
+        )
+    return f"""---
+schema_version: 1
+artifact_type: {artifact_type}
+artifact_id: wb-008-{kind}
+status: approved
+work_block_id: {CANDIDATE_ID}
+subject_commit: {subject_commit}
+---
+
+# {kind}
+"""
+
+
+def populate_candidate(root: Path) -> dict:
+    declaration = candidate_declaration()
+    candidate_registry = registry()
+    candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+    candidate_map = project_map(
+        candidate=declaration,
+        visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            "Closeout candidate:\n\n"
+            f"- `{CANDIDATE}`\n"
+        ),
+    )
+    populate(root, candidate_registry, candidate_map)
+    write(root / CANDIDATE, candidate_work_block())
+    return declaration
+
+
+def git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(root), *args], check=True, capture_output=True, text=True
+    )
+    return result.stdout.strip()
 
 
 def populate(root: Path, reg: dict | None = None, map_text: str | None = None) -> None:
@@ -770,6 +859,97 @@ work_block_id: wb-007
         populate(root)
         (root / ".github/workflows/release-state-contract.yml").unlink()
         expect_failure("missing-workflow", root, "release-state asset is missing")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-candidate-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        result = validator.validate_repository(root, candidate_mode=True)
+        assert result["verdict"] == "CANDIDATE_READY"
+        assert result["candidate_work_block"] == CANDIDATE
+        cli = subprocess.run(
+            ["python3", str(VALIDATOR), "--root", str(root), "--pre-closeout-candidate"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert cli.returncode == 0 and "Release-state contract: CANDIDATE_READY" in cli.stdout
+        expect_failure("candidate-default-missing-evidence", root, "requires review evidence")
+
+        malformed = registry()
+        malformed["migration_state"]["pre_closeout_candidate"] = []
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(malformed, sort_keys=False))
+        expect_failure("candidate-malformed", root, "must be an object or null")
+
+        declaration = populate_candidate(root)
+        registry_text = (root / "FILE_REGISTRY.yml").read_text(encoding="utf-8")
+        write(
+            root / "FILE_REGISTRY.yml",
+            registry_text.replace(
+                "  pre_closeout_candidate:",
+                "  pre_closeout_candidate: null\n  pre_closeout_candidate:",
+                1,
+            ),
+        )
+        expect_failure("candidate-duplicate", root, "duplicate pre_closeout_candidate")
+
+        declaration = populate_candidate(root)
+        declaration["predecessor_completed_work_block"] = OLDER
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration, visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
+        )))
+        expect_failure("candidate-wrong-predecessor", root, "must be the raw latest")
+
+        declaration = populate_candidate(root)
+        write(root / "PROJECT_MAP.md", project_map())
+        expect_failure("candidate-map-disagreement", root, "does not match FILE_REGISTRY")
+
+        declaration = populate_candidate(root)
+        write(root / CANDIDATE, candidate_work_block().replace("**Review Gate:** PENDING", "**Review Gate:** READY"))
+        expect_failure("candidate-prohibited-ready", root, "must not claim final review gate=READY")
+
+        declaration = populate_candidate(root)
+        declaration["required_evidence"]["review"] = "docs/reports/reviews/not-markdown.txt"
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration, visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
+        )))
+        expect_failure("candidate-bad-evidence-path", root, "must be under")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-evidence-persistence-") as temp:
+        root = Path(temp)
+        populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        result = validator.validate_evidence_persistence(root, candidate_sha, evidence_sha)
+        assert result["candidate_revision"] == candidate_sha
+        assert validator.validate_repository(root)["effective_completed_candidate"] == CANDIDATE
+
+        write(root / CANDIDATE, candidate_work_block() + "\nCandidate mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "forbidden normative change")
+        mutated_sha = git(root, "rev-parse", "HEAD")
+        try:
+            validator.validate_evidence_persistence(root, candidate_sha, mutated_sha)
+        except ReleaseStateError as exc:
+            assert "exactly the declared evidence manifest" in str(exc)
+        else:
+            raise AssertionError("candidate persistence accepted a normative mutation")
 
     print("Release-state contract fixtures: OK")
     return 0

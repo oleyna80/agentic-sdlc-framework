@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: draft
+status: approved
 created_at: 2026-08-24
 revision: define-r3-2026-08-24
-owner_approval: Owner approved Define investigation only on 2026-08-24. No source, validator, governance, template, commit, push, pull-request, merge, or external authority is granted by this draft.
+owner_approval: Owner approved specification revision define-r3-2026-08-24 and the exact Execute source write-set (governance/release-state.md, .agent/workflows/sdd-protocol.md, FILE_REGISTRY.yml, scripts/validate-release-state.py, scripts/test-release-state-contracts.py) on 2026-08-24. This prospective approval does not authorize commit, push, pull-request, merge, or external action.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -21,10 +21,10 @@ applicable assurance of the terminal normative projection before the
 evidence-only report commit. A status-only candidate therefore fails the ordinary
 validator before final assurance can be recorded.
 
-This draft is Define-only and creates no source authority. It must not retrofit
-or relabel historical evidence. It defines a prospective contract for an
-explicit, local-only pre-closeout candidate and its later evidence-only
-persistence, if that design survives Define quality and Critic review.
+This approved specification authorizes only the bounded prospective Execute
+write-set stated in its approval record. It must not retrofit or relabel
+historical evidence. It defines a prospective contract for an explicit,
+local-only pre-closeout candidate and its later evidence-only persistence.
 
 ## Requirements
 
