@@ -359,6 +359,7 @@ def validate_pre_closeout_candidate(
     completed: list[str],
     map_state: dict[str, Any],
     map_text: str,
+    active: str | None,
 ) -> dict[str, Any] | None:
     """Validate the one explicit local candidate declaration, if present."""
     candidate = migration.get("pre_closeout_candidate")
@@ -369,6 +370,10 @@ def validate_pre_closeout_candidate(
                 "PROJECT_MAP pre_closeout_candidate exists without FILE_REGISTRY declaration"
             )
         return None
+    if active is not None:
+        raise ReleaseStateError(
+            "pre_closeout_candidate requires active_work_block to be null"
+        )
     if not isinstance(candidate, dict):
         raise ReleaseStateError("pre_closeout_candidate must be an object or null")
     required_fields = {
@@ -484,6 +489,7 @@ def validate_pre_closeout_candidate(
     return {
         "declaration": candidate,
         "work_block": work_block,
+        "record": {"frontmatter": frontmatter, "markers": markers},
         "evidence": normalized_evidence,
         "manifest": manifest,
     }
@@ -668,6 +674,15 @@ def validate_current_candidate_persistence(root: Path, candidate: dict[str, Any]
         raise ReleaseStateError(
             "pre_closeout candidate evidence must bind the persisted candidate revision"
         )
+    candidate_revision = matches[0]["candidate_revision"]
+    for relative in candidate["manifest"]:
+        candidate_blob = git_output(root, "rev-parse", f"{candidate_revision}:{relative}")
+        current_blob = git_output(root, "rev-parse", f"HEAD:{relative}")
+        if current_blob != candidate_blob:
+            raise ReleaseStateError(
+                "current HEAD differs from persisted candidate normative manifest: "
+                f"{relative}"
+            )
 
 
 def validate_release_assets(root: Path, release_state: dict[str, Any]) -> None:
@@ -982,6 +997,8 @@ def validate_latest_formal_specification(
     root: Path,
     latest_relative: str,
     latest_record: dict[str, Any],
+    *,
+    require_sibling_tasklist: bool = True,
 ) -> None:
     """Validate an explicit separate-specification binding for the latest formal Work Block."""
     frontmatter = latest_record["frontmatter"]
@@ -1000,6 +1017,8 @@ def validate_latest_formal_specification(
         root, tasklist_relative, "latest completed formal Work Block sibling tasklist"
     )
     if not tasklist_path.is_file():
+        if not require_sibling_tasklist:
+            return
         raise ReleaseStateError(
             "latest completed formal Work Block requires sibling tasklist: "
             f"{tasklist_relative}"
@@ -1146,7 +1165,7 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
     validate_map_projection(map_text, active)
 
     candidate = validate_pre_closeout_candidate(
-        root, migration, completed, map_state, map_text
+        root, migration, completed, map_state, map_text, active
     )
 
     release_state = registry.get("release_state")
@@ -1164,6 +1183,12 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         if candidate is None:
             raise ReleaseStateError("pre-closeout candidate mode requires an explicit declaration")
         validate_candidate_mode(root, candidate)
+        validate_latest_formal_specification(
+            root,
+            candidate["work_block"],
+            candidate["record"],
+            require_sibling_tasklist=False,
+        )
         return {
             "completed_work_blocks": completed,
             "active_work_block": active,
@@ -1180,6 +1205,12 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         effective_candidate = candidate["work_block"]
         reported_subject = validate_candidate_evidence(root, candidate)
         validate_current_candidate_persistence(root, candidate, reported_subject)
+        validate_latest_formal_specification(
+            root,
+            effective_candidate,
+            candidate["record"],
+            require_sibling_tasklist=False,
+        )
         effective_completed.append(effective_candidate)
         effective_latest = effective_candidate
 

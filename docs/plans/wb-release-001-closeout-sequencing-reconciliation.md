@@ -3,21 +3,21 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: closeout_candidate
+status: in_progress
 owner_role: Owner
 created_at: 2026-08-24
 last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: BLOCKED
+write_gate: READY
 critic_gate: READY
-review_gate: PENDING
+review_gate: CHANGES_REQUIRED
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
-closeout_mode: candidate
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. The r5 source subject and bounded r6 publication-preflight correction are independently assured; this local pre-closeout candidate remains non-promotable. No merge authority is implied.
+closeout_mode: pending
+owner_approval: Owner directed corrective reopening after three independently confirmed exact-head release-state fail-open findings on 2026-08-24. This authorizes bounded investigation and correction within the existing approved specification; no merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,15 +42,15 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Close
-- **Stage State:** assurance_pending
-- **Write Gate:** BLOCKED
+- **Current Stage:** Execute
+- **Stage State:** in_progress
+- **Write Gate:** READY
 - **Critic Gate:** READY
-- **Review Gate:** PENDING
+- **Review Gate:** CHANGES_REQUIRED
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
 - **Drift Gate:** PENDING
-- **Closeout Mode:** candidate
+- **Closeout Mode:** pending
 
 Evaluation is not required because this is deterministic governance and
 validator reconciliation; it introduces no non-deterministic product behavior.
@@ -74,8 +74,34 @@ r4 corrected it, but exact-head CI then showed the independently checked out
 `contracts` job in `.github/workflows/framework-contracts.yml` runs the same
 ancestry-dependent validation with shallow history. The replacement must cover
 both identified direct consumers and a narrowly-owned regression assertion
-before creating a new candidate. No source/config commit will be appended after
-the renewed evidence-only commit.
+before creating a new candidate.
+
+### Corrective Reopening r7
+
+The exact-head independent review of r6 identified three implementation
+fail-open defects within the existing REQ-002, REQ-004, REQ-005, REQ-007 and
+AC-005, AC-006, AC-008 boundaries: the ordinary validator did not bind the
+current HEAD to the persisted candidate normative manifest; it did not apply
+the existing formal-specification authority check to an effective candidate;
+and it accepted a candidate while an unrelated active Work Block existed.
+
+The r6 candidate declaration and its reports are historical, superseded
+assurance artifacts. They do not cover the forthcoming corrective source
+subject and must not be used to claim closeout. This Work Block is returned to
+ordinary active state before source changes. The corrective implementation is
+limited to the validator, its deterministic fixture suite, and the one
+governing sentence that otherwise overstates later-merge safety.
+
+Fresh r7 Critic review assessed this bounded interpretation of the existing
+approved requirements as `APPROVE_WITH_CHANGES`: every declared manifest path
+must be bound at current HEAD; fixtures must cover direct and merge-result
+mutations, formal-specification authority, and candidate/active coexistence;
+and candidate-mode formal-specification policy must not be broadened. Those
+conditions are the exact scope of TASK-020.
+
+TASK-020 now implements those three deterministic guards. Its complete source
+subject remains pending independent Review, fresh-clone Verification, and Drift
+assurance before a renewed candidate declaration.
 
 ## Repository Preflight
 
@@ -114,7 +140,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Executed Source Write-Set
+### Executed Source Write-Set and Corrective r7 Write-Set
 
 ```text
 governance/release-state.md
@@ -128,8 +154,10 @@ scripts/test-release-state-contracts.py
 
 The first six paths were executed and assured under revision r4. Revision r5
 executes only `.github/workflows/framework-contracts.yml` and the corresponding
-extension of `scripts/test-release-state-contracts.py`; fresh assurance of the
-complete r5 source subject remains required before a new candidate is created.
+extension of `scripts/test-release-state-contracts.py`. Corrective r7 changes
+only `governance/release-state.md`, `scripts/validate-release-state.py`, and
+`scripts/test-release-state-contracts.py`; fresh assurance of that complete
+subject remains required before a new candidate is created.
 
 | Path | Owner / smallest sufficient change |
 | --- | --- |

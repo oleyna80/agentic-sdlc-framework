@@ -87,10 +87,11 @@ every changed path other than the exact declared evidence manifest. The evidence
 revision must use the candidate as its only direct parent, and that parent must
 not already contain terminal evidence. Ordinary mode applies the same proof before
 deriving an effective completed entry by finding the unique persisted transition
-in the current `HEAD` ancestry; a later merge commit does not invalidate that
-proof. It therefore
-binds candidate assurance to its later evidence persistence without treating a
-report as a direct lifecycle overwrite.
+in the current `HEAD` ancestry. A later commit or merge preserves that proof only
+when every declared normative-manifest path has the same blob at current `HEAD`
+as at the persisted candidate. It therefore binds candidate assurance to its
+later evidence persistence without treating a report as a direct lifecycle
+overwrite or allowing changed normative state to inherit stale assurance.
 
 ## Required Invariants
 

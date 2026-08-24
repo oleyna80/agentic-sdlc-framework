@@ -35,21 +35,8 @@ completed_work_blocks:
   - docs/plans/wb-skill-002-provider-neutral-verifier.md
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
-active_work_block: null
-pre_closeout_candidate:
-  work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-  work_block_id: WB-RELEASE-001
-  predecessor_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
-  state: assurance_pending
-  required_evidence:
-    review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation.md
-    verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation.md
-    drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation.md
-    closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation.md
-  normative_manifest:
-    - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-    - FILE_REGISTRY.yml
-    - PROJECT_MAP.md
+active_work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+pre_closeout_candidate: null
 -->
 
 ## Current Operational Architecture
@@ -375,10 +362,12 @@ authority.
 
 ## Migration Work
 
-Closeout candidate: `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md`
-is locally declared with `assurance_pending` state. It is not completed or
-promotable until its separately bound review, verification, drift, and closeout
-evidence are persisted and the ordinary release-state contract passes.
+Active corrective Work Block:
+`docs/plans/wb-release-001-closeout-sequencing-reconciliation.md`.
+
+Its r6 candidate and evidence are historical only after independently confirmed
+exact-head validator defects. No candidate is currently declared, and no
+closeout or promotion claim is active.
 
 The Repository Graph Provider boundary Work Block is completed:
 `docs/plans/wb-repository-graph-001-optional-local-provider.md` records
@@ -468,7 +457,9 @@ Completed:
 
 Active:
 
-No active implementation Work Block.
+- `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — active
+  corrective reconciliation after r6 exact-head validator findings; no
+  candidate, closeout, promotion, or merge claim is active.
 
 Planned:
 

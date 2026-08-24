@@ -28,6 +28,8 @@ CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.m
 OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"
 CANDIDATE = "docs/plans/wb-008-pre-closeout-candidate.md"
 CANDIDATE_ID = "WB-008"
+CANDIDATE_TASKLIST = "docs/tasklist/wb-008-pre-closeout-candidate.md"
+CANDIDATE_SPECIFICATION = "docs/specs/wb-008-pre-closeout-candidate.md"
 CANDIDATE_EVIDENCE = {
     "review": "docs/reports/reviews/wb-008-pre-closeout-candidate.md",
     "verification": "docs/reports/verification/wb-008-pre-closeout-candidate.md",
@@ -297,6 +299,19 @@ def populate_candidate(root: Path) -> dict:
     )
     populate(root, candidate_registry, candidate_map)
     write(root / CANDIDATE, candidate_work_block())
+    return declaration
+
+
+def populate_formal_candidate(root: Path, *, specification_status: str = "approved") -> dict:
+    declaration = populate_candidate(root)
+    write(
+        root / CANDIDATE_TASKLIST,
+        tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+    )
+    write(
+        root / CANDIDATE_SPECIFICATION,
+        specification(work_block_id=CANDIDATE_ID, status=specification_status),
+    )
     return declaration
 
 
@@ -1012,6 +1027,36 @@ work_block_id: wb-007
         )))
         expect_failure("candidate-bad-evidence-path", root, "must be under")
 
+        declaration = populate_candidate(root)
+        candidate_registry = registry(active=ACTIVE)
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(
+            root / "PROJECT_MAP.md",
+            project_map(
+                active=ACTIVE,
+                candidate=declaration,
+                visible_override=(
+                    "## Migration Work\n\nActive:\n\n"
+                    f"- `{ACTIVE}`\n\n"
+                    "Closeout candidate:\n\n"
+                    f"- `{CANDIDATE}`\n"
+                ),
+            ),
+        )
+        write(root / ACTIVE, work_block("wb-009", "in_progress"))
+        expect_failure(
+            "candidate-active-ordinary",
+            root,
+            "pre_closeout_candidate requires active_work_block to be null",
+        )
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "pre_closeout_candidate requires active_work_block to be null" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted an active work block")
+
     with tempfile.TemporaryDirectory(prefix="release-state-evidence-persistence-") as temp:
         root = Path(temp)
         populate_candidate(root)
@@ -1041,6 +1086,33 @@ work_block_id: wb-007
         git(root, "merge", "--no-ff", primary_branch, "-m", "merge evidence")
         merged_result = validator.validate_repository(root)
         assert merged_result["effective_latest_completed_work_block"] == CANDIDATE
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "post-evidence-normative-mutation", evidence_sha)
+        write(root / CANDIDATE, candidate_work_block() + "\nPost-evidence mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "post-evidence normative mutation")
+        expect_failure(
+            "post-evidence-normative-mutation",
+            root,
+            "current HEAD differs from persisted candidate normative manifest",
+        )
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "post-evidence-normative-side", evidence_sha)
+        write(root / CANDIDATE, candidate_work_block() + "\nMerge-side mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "merge-side normative mutation")
+        git(root, "checkout", "-qb", "post-evidence-normative-merge", evidence_sha)
+        write(root / "integration.md", "integration parent\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "integration parent")
+        git(root, "merge", "--no-ff", "post-evidence-normative-side", "-m", "merge normative mutation")
+        expect_failure(
+            "post-evidence-normative-merge",
+            root,
+            "current HEAD differs from persisted candidate normative manifest",
+        )
         git(root, "checkout", "-q", primary_branch)
 
         git(root, "checkout", "-qb", "negative-verdict", candidate_sha)
@@ -1089,6 +1161,49 @@ work_block_id: wb-007
             assert "exactly the declared evidence manifest" in str(exc)
         else:
             raise AssertionError("candidate persistence accepted a normative mutation")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-effective-candidate-formal-spec-") as temp:
+        root = Path(temp)
+        populate_formal_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "formal candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        candidate_result = validator.validate_repository(root, candidate_mode=True)
+        assert candidate_result["verdict"] == "CANDIDATE_READY"
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="draft"),
+        )
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "specification must be status approved" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted a draft formal specification")
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="approved"),
+        )
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate evidence")
+        ready_result = validator.validate_repository(root)
+        assert ready_result["effective_latest_completed_work_block"] == CANDIDATE
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="draft"),
+        )
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate formal specification regresses")
+        expect_failure(
+            "effective-candidate-formal-spec-draft",
+            root,
+            "specification must be status approved",
+        )
 
     print("Release-state contract fixtures: OK")
     return 0

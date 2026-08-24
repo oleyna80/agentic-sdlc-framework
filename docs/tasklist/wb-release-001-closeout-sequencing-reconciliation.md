@@ -19,6 +19,7 @@ status: in_progress
 - [x] TASK-014 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-release-001-closeout-sequencing-reconciliation.md,docs/specs/wb-release-001-closeout-sequencing-reconciliation.md,docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md] Record the CI shallow-checkout finding, abandon the pre-assurance candidate/evidence pair, and refresh Define scope without claiming that old terminal evidence covers the replacement source subject.
 - [x] TASK-015 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history.md,docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-consistency.md,docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-critic.md] Obtain refreshed independent requirements, consistency, and Critic assurance for revision r4 before source execution.
 - [x] TASK-018 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5.md,docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-consistency.md,docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-critic.md] Obtain refreshed independent requirements, consistency, and Critic assurance for revision r5 before source execution.
+- [x] TASK-019 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-release-001-closeout-sequencing-reconciliation.md,docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md,FILE_REGISTRY.yml,PROJECT_MAP.md] Reopen the r6 candidate after independently confirmed exact-head fail-open findings; remove its prospective declaration rather than claiming stale assurance covers corrective source changes.
 
 ## Authorized Execute Tasks
 
@@ -30,19 +31,20 @@ status: in_progress
 - [x] TASK-011 [type=requirement] [req=REQ-008] [ac=AC-009] [paths=governance/release-state.md,.agent/workflows/sdd-protocol.md,FILE_REGISTRY.yml,scripts/validate-release-state.py,scripts/test-release-state-contracts.py] Preserve bounded scope and prove the frozen source manifest excludes historical Work Blocks and unrelated implementation.
 - [x] TASK-016 [type=requirement] [req=REQ-010] [ac=AC-011] [paths=.github/workflows/release-state-contract.yml,scripts/test-release-state-contracts.py] Configure full Git history for the ancestry-dependent release-state workflow and add canonical workflow regression assertions.
 - [x] TASK-017 [type=requirement] [req=REQ-011] [ac=AC-012] [paths=.github/workflows/framework-contracts.yml,scripts/test-release-state-contracts.py] Configure full Git history for the separately checked-out `contracts` job that directly runs governance/release-state validation, and extend the canonical workflow regression assertions to both identified direct consumers.
+- [x] TASK-020 [type=requirement] [req=REQ-002,REQ-004,REQ-005,REQ-007] [ac=AC-005,AC-006,AC-008] [paths=governance/release-state.md,scripts/validate-release-state.py,scripts/test-release-state-contracts.py] Bind ordinary effective completion to the current HEAD's unchanged candidate normative manifest; apply formal-specification authority validation to the effective candidate; reject a candidate while any active Work Block exists; and add direct, merge-based, formal-specification, and active-state adversarial fixtures.
 
 ## Assure and Close
 
 - [ ] TASK-012 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation.md,docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation.md,docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation.md] Freeze the approved source subject and obtain independent Reviewer, fresh-clone Verifier, and Drift evidence.
 - [ ] TASK-013 [type=requirement] [req=REQ-009] [ac=AC-010] [paths=docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation.md,docs/plans/wb-release-001-closeout-sequencing-reconciliation.md,docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md,FILE_REGISTRY.yml,PROJECT_MAP.md] Close only after the accepted contract is implemented and the final repository state has ordinary release-state validation; record WB-CORE-003G as a follow-up/resumption dependency rather than changing it here.
+- [ ] TASK-021 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r7.md,docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r7.md,docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r7.md] Freeze the corrective source subject and obtain fresh independent Reviewer, fresh-clone Verifier, and Drift evidence before any renewed candidate declaration.
 
 ## Dependencies and Stop Conditions
 
-Revision-r3/r4 Define assurance and their source subjects remain historical
-evidence, but do not cover r5's second direct CI consumer. The new Define work
-must resolve the refreshed gate before the replacement source subject is frozen.
-The terminal assurance task requires that new frozen implementation diff. The
-Close task requires READY/ALIGNED final assurance.
+Revision-r3 through r6 assurance remains historical evidence only. The r7
+corrective source subject requires fresh Critic, Reviewer, Verifier, and Drift
+assurance before a new candidate is declared. The Close task requires
+READY/ALIGNED final assurance for that renewed candidate subject.
 
 Stop for Owner direction if candidate mode would weaken default validation,
 weaken default validation, treat a candidate as externally promotable, require
