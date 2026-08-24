@@ -10,14 +10,14 @@ last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: BLOCKED
-critic_gate: PENDING
+write_gate: READY
+critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. Revision r5 adds its named direct CI consumer only; refreshed Define assurance is required before this expanded Execute write-set can be approved. No candidate, push, PR, or merge authority is implied.
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. Revision r5 adds its named direct CI consumer only; refreshed r5 Define assurance supports the exact approved Execute write-set. No candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,10 +42,10 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Define
+- **Current Stage:** Execute
 - **Stage State:** in_progress
-- **Write Gate:** BLOCKED
-- **Critic Gate:** PENDING
+- **Write Gate:** READY
+- **Critic Gate:** READY
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
@@ -57,8 +57,8 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 
 ## Normative Baseline
 
-- **Draft Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
-  (revision r5; refreshed requirements, consistency, and Critic assurance pending).
+- **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
+  (revision r5; refreshed requirements, consistency, and Critic assurance recorded below).
 - **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
 - **Governing contracts:** `governance/release-state.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
@@ -169,11 +169,11 @@ contract change itself completes successfully.
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: PENDING — r5 must assess the additional direct CI consumer.
-Traceability: PENDING — r5 adds REQ-011 / AC-012 / TASK-017.
-Consistency Analysis: PENDING — r5 must verify bounded consumer inventory and lifecycle consistency.
-Critic: PENDING — r5 must assess scope/minimality and test coverage.
-Aggregate: PENDING
+Requirements Review: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5.md`.
+Traceability: READY — `requirements=11 acceptance=12 tasks=18` on revision r5.
+Consistency Analysis: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-consistency.md`.
+Critic: READY — `docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-critic.md`.
+Aggregate: READY
 ```
 
 The prior independent requirements/consistency pass and Critic critique found
@@ -182,10 +182,10 @@ specified before source approval. Revision r4 added one discovered CI history
 prerequisite, but exact-head CI demonstrated that its named-consumer inventory
 was incomplete. Revision r5 adds only the second observed direct consumer and
 extends the narrow deterministic guard to both known jobs. Fresh requirements,
-consistency, Critic, and traceability evidence is required before the Write Gate
-can become READY. After execution, require independent Reviewer, fresh-clone
-Verifier, and Drift assurance on the frozen implementation subject; no
-candidate mode may authorize a push, PR, merge, CI claim, or external action.
+consistency, Critic, and traceability evidence supports the r5 Write Gate for
+the exact source write-set. After execution, require independent Reviewer,
+fresh-clone Verifier, and Drift assurance on the frozen implementation subject;
+no candidate mode may authorize a push, PR, merge, CI claim, or external action.
 
 ## Validation Plan
 

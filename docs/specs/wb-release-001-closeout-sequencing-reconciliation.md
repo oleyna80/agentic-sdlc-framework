@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: draft
+status: approved
 created_at: 2026-08-24
 revision: define-r5-2026-08-24
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. This draft revision requires refreshed Define assurance before any expanded source write-set is approved; no candidate, push, PR, or merge authority is implied.
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. Refreshed r5 Define assurance supports only the exact bounded Execute write-set; no candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -21,7 +21,7 @@ applicable assurance of the terminal normative projection before the
 evidence-only report commit. A status-only candidate therefore fails the ordinary
 validator before final assurance can be recorded.
 
-This draft specification proposes only the bounded prospective Execute
+This approved specification defines only the bounded prospective Execute
 write-set stated in its revision record. It must not retrofit or relabel
 historical evidence. It defines a prospective contract for an explicit,
 local-only pre-closeout candidate and its later evidence-only persistence.
