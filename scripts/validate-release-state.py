@@ -1187,7 +1187,6 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
             root,
             candidate["work_block"],
             candidate["record"],
-            require_sibling_tasklist=False,
         )
         return {
             "completed_work_blocks": completed,
@@ -1209,7 +1208,6 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
             root,
             effective_candidate,
             candidate["record"],
-            require_sibling_tasklist=False,
         )
         effective_completed.append(effective_candidate)
         effective_latest = effective_candidate

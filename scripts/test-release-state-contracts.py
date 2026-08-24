@@ -299,6 +299,7 @@ def populate_candidate(root: Path) -> dict:
     )
     populate(root, candidate_registry, candidate_map)
     write(root / CANDIDATE, candidate_work_block())
+    write(root / CANDIDATE_TASKLIST, tasklist(work_block_id=CANDIDATE_ID))
     return declaration
 
 
@@ -1173,6 +1174,17 @@ work_block_id: wb-007
         candidate_sha = git(root, "rev-parse", "HEAD")
         candidate_result = validator.validate_repository(root, candidate_mode=True)
         assert candidate_result["verdict"] == "CANDIDATE_READY"
+        (root / CANDIDATE_TASKLIST).unlink()
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "requires sibling tasklist" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted a formal candidate without tasklist")
+        write(
+            root / CANDIDATE_TASKLIST,
+            tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+        )
         write(
             root / CANDIDATE_SPECIFICATION,
             specification(work_block_id=CANDIDATE_ID, status="draft"),
@@ -1193,6 +1205,16 @@ work_block_id: wb-007
         git(root, "commit", "-qm", "candidate evidence")
         ready_result = validator.validate_repository(root)
         assert ready_result["effective_latest_completed_work_block"] == CANDIDATE
+        (root / CANDIDATE_TASKLIST).unlink()
+        expect_failure(
+            "effective-candidate-formal-spec-missing-tasklist",
+            root,
+            "requires sibling tasklist",
+        )
+        write(
+            root / CANDIDATE_TASKLIST,
+            tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+        )
         write(
             root / CANDIDATE_SPECIFICATION,
             specification(work_block_id=CANDIDATE_ID, status="draft"),

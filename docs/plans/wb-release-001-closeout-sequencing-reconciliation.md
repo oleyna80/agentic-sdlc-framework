@@ -47,7 +47,7 @@ relying on a contract-invalid published intermediate state.
 - **Write Gate:** READY
 - **Critic Gate:** READY
 - **Review Gate:** CHANGES_REQUIRED
-- **Verification Verdict:** PENDING
+- **Verification Verdict:** BLOCKED
 - **Evaluation Verdict:** NOT_REQUIRED
 - **Drift Gate:** PENDING
 - **Closeout Mode:** pending
@@ -102,6 +102,11 @@ conditions are the exact scope of TASK-020.
 TASK-020 now implements those three deterministic guards. Its complete source
 subject remains pending independent Review, fresh-clone Verification, and Drift
 assurance before a renewed candidate declaration.
+
+Fresh r7 Verification blocked the first source subject because it exposed a
+remaining fail-open: a Managed candidate missing its sibling tasklist could
+avoid formal-specification validation. TASK-020 remains in progress until that
+same-scope correction and its fresh assurance complete.
 
 ## Repository Preflight
 
