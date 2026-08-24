@@ -2,8 +2,10 @@
 """Positive and adversarial fixtures for repository release-state reconciliation."""
 from __future__ import annotations
 
+from copy import deepcopy
 import importlib.util
 from pathlib import Path
+import subprocess
 import tempfile
 
 import yaml
@@ -24,6 +26,16 @@ TASKLIST = "docs/tasklist/wb-007-agent-evaluation-trajectory-assurance.md"
 SPECIFICATION = "docs/specs/wb-007-agent-evaluation-trajectory-assurance.md"
 CLOSEOUT = "docs/reports/closeout/wb-007-agent-evaluation-trajectory-assurance.md"
 OLDER_CLOSEOUT = "docs/reports/closeout/wb-006-bootstrap-restore-hardening.md"
+CANDIDATE = "docs/plans/wb-008-pre-closeout-candidate.md"
+CANDIDATE_ID = "WB-008"
+CANDIDATE_TASKLIST = "docs/tasklist/wb-008-pre-closeout-candidate.md"
+CANDIDATE_SPECIFICATION = "docs/specs/wb-008-pre-closeout-candidate.md"
+CANDIDATE_EVIDENCE = {
+    "review": "docs/reports/reviews/wb-008-pre-closeout-candidate.md",
+    "verification": "docs/reports/verification/wb-008-pre-closeout-candidate.md",
+    "drift": "docs/reports/drift/wb-008-pre-closeout-candidate.md",
+    "closeout": "docs/reports/closeout/wb-008-pre-closeout-candidate.md",
+}
 
 
 def write(path: Path, content: str) -> None:
@@ -200,13 +212,14 @@ def project_map(
     completed: list[str] | None = None,
     active: str | None = None,
     *,
+    candidate: dict | None = None,
     visible_override: str | None = None,
 ) -> str:
     completed = completed if completed is not None else [COMPLETED]
-    block = yaml.safe_dump(
-        {"completed_work_blocks": completed, "active_work_block": active},
-        sort_keys=False,
-    ).rstrip()
+    state = {"completed_work_blocks": completed, "active_work_block": active}
+    if candidate is not None:
+        state["pre_closeout_candidate"] = candidate
+    block = yaml.safe_dump(state, sort_keys=False).rstrip()
     if visible_override is not None:
         visible = visible_override
     elif active is None:
@@ -214,6 +227,100 @@ def project_map(
     else:
         visible = f"## Migration Work\n\nActive:\n\n- `{active}`\n"
     return f"# Project Map\n\n<!-- release-state\n{block}\n-->\n\n{visible}"
+
+
+def candidate_work_block() -> str:
+    return f"""---
+schema_version: 1
+artifact_type: work_block
+artifact_id: wb-008-pre-closeout-candidate
+status: closeout_candidate
+owner_role: orchestrator
+work_block_id: {CANDIDATE_ID}
+governance_profile: Managed
+---
+
+# {CANDIDATE_ID}
+
+## Current State
+
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Drift Gate:** PENDING
+- **Closeout Mode:** candidate
+"""
+
+
+def candidate_declaration() -> dict:
+    return {
+        "work_block": CANDIDATE,
+        "work_block_id": CANDIDATE_ID,
+        "predecessor_completed_work_block": COMPLETED,
+        "state": "assurance_pending",
+        "required_evidence": CANDIDATE_EVIDENCE.copy(),
+        "normative_manifest": [CANDIDATE, "FILE_REGISTRY.yml", "PROJECT_MAP.md"],
+    }
+
+
+def candidate_evidence(kind: str, subject_commit: str) -> str:
+    artifact_type = validator.CANDIDATE_EVIDENCE_TYPES[kind]
+    if kind == "closeout":
+        return closeout(
+            work_block_id=CANDIDATE_ID,
+            frontmatter_extra=f"subject_commit: {subject_commit}\n",
+        )
+    return f"""---
+schema_version: 1
+artifact_type: {artifact_type}
+artifact_id: wb-008-{kind}
+status: approved
+work_block_id: {CANDIDATE_ID}
+subject_commit: {subject_commit}
+verdict: {validator.CANDIDATE_EVIDENCE_VERDICTS[kind]}
+---
+
+# {kind}
+"""
+
+
+def populate_candidate(root: Path) -> dict:
+    declaration = candidate_declaration()
+    candidate_registry = registry()
+    candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+    candidate_map = project_map(
+        candidate=declaration,
+        visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            "Closeout candidate:\n\n"
+            f"- `{CANDIDATE}`\n"
+        ),
+    )
+    populate(root, candidate_registry, candidate_map)
+    write(root / CANDIDATE, candidate_work_block())
+    write(root / CANDIDATE_TASKLIST, tasklist(work_block_id=CANDIDATE_ID))
+    return declaration
+
+
+def populate_formal_candidate(root: Path, *, specification_status: str = "approved") -> dict:
+    declaration = populate_candidate(root)
+    write(
+        root / CANDIDATE_TASKLIST,
+        tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+    )
+    write(
+        root / CANDIDATE_SPECIFICATION,
+        specification(work_block_id=CANDIDATE_ID, status=specification_status),
+    )
+    return declaration
+
+
+def git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(root), *args], check=True, capture_output=True, text=True
+    )
+    return result.stdout.strip()
 
 
 def populate(root: Path, reg: dict | None = None, map_text: str | None = None) -> None:
@@ -237,7 +344,81 @@ def expect_failure(label: str, root: Path, contains: str) -> None:
     raise AssertionError(f"{label}: expected ReleaseStateError")
 
 
+def assert_checkout_history(
+    workflow: object, *, workflow_name: str, job_name: str
+) -> None:
+    """Require full history on one named ancestry-validator CI consumer."""
+    if not isinstance(workflow, dict):
+        raise AssertionError(f"{workflow_name} workflow must be a mapping")
+    jobs = workflow.get("jobs")
+    if not isinstance(jobs, dict):
+        raise AssertionError(f"{workflow_name} workflow must define jobs")
+    job = jobs.get(job_name)
+    if not isinstance(job, dict):
+        raise AssertionError(f"{workflow_name} workflow must define the {job_name} job")
+    steps = job.get("steps")
+    if not isinstance(steps, list):
+        raise AssertionError(f"{workflow_name}/{job_name} must define steps")
+    checkout_steps = [
+        step
+        for step in steps
+        if isinstance(step, dict) and step.get("uses") == "actions/checkout@v4"
+    ]
+    if len(checkout_steps) != 1:
+        raise AssertionError(f"{workflow_name}/{job_name} must have exactly one checkout step")
+    checkout_with = checkout_steps[0].get("with")
+    if not isinstance(checkout_with, dict) or checkout_with.get("fetch-depth") != 0:
+        raise AssertionError(f"{workflow_name}/{job_name} checkout must set fetch-depth: 0")
+
+
+def assert_canonical_ancestry_consumer_history() -> None:
+    """Prove each known direct CI consumer rejects shallow checkout history."""
+    consumers = (
+        ("release-state-contract", ".github/workflows/release-state-contract.yml", "release-state"),
+        ("framework-contracts", ".github/workflows/framework-contracts.yml", "contracts"),
+    )
+    for workflow_name, relative_path, job_name in consumers:
+        workflow = yaml.safe_load((ROOT / relative_path).read_text(encoding="utf-8"))
+        assert_checkout_history(workflow, workflow_name=workflow_name, job_name=job_name)
+
+        def checkout_step(candidate: dict) -> dict:
+            steps = candidate["jobs"][job_name]["steps"]
+            return next(step for step in steps if step.get("uses") == "actions/checkout@v4")
+
+        absent = deepcopy(workflow)
+        checkout_step(absent)["with"].pop("fetch-depth")
+
+        shallow = deepcopy(workflow)
+        checkout_step(shallow)["with"]["fetch-depth"] = 1
+
+        misplaced = deepcopy(workflow)
+        checkout_step(misplaced)["with"].pop("fetch-depth")
+        setup = next(
+            step
+            for step in misplaced["jobs"][job_name]["steps"]
+            if step.get("uses") == "actions/setup-python@v5"
+        )
+        setup.setdefault("with", {})["fetch-depth"] = 0
+
+        for label, candidate in (
+            ("absent", absent),
+            ("shallow", shallow),
+            ("misplaced", misplaced),
+        ):
+            try:
+                assert_checkout_history(
+                    candidate, workflow_name=workflow_name, job_name=job_name
+                )
+            except AssertionError:
+                continue
+            raise AssertionError(
+                f"{workflow_name}/{job_name} accepted {label} checkout depth"
+            )
+
+
 def main() -> int:
+    assert_canonical_ancestry_consumer_history()
+
     with tempfile.TemporaryDirectory(prefix="release-state-valid-") as temp:
         root = Path(temp)
         populate(root)
@@ -770,6 +951,281 @@ work_block_id: wb-007
         populate(root)
         (root / ".github/workflows/release-state-contract.yml").unlink()
         expect_failure("missing-workflow", root, "release-state asset is missing")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-candidate-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        result = validator.validate_repository(root, candidate_mode=True)
+        assert result["verdict"] == "CANDIDATE_READY"
+        assert result["candidate_work_block"] == CANDIDATE
+        cli = subprocess.run(
+            ["python3", str(VALIDATOR), "--root", str(root), "--pre-closeout-candidate"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert cli.returncode == 0 and "Release-state contract: CANDIDATE_READY" in cli.stdout
+        expect_failure("candidate-default-missing-evidence", root, "requires review evidence")
+
+        malformed = registry()
+        malformed["migration_state"]["pre_closeout_candidate"] = []
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(malformed, sort_keys=False))
+        expect_failure("candidate-malformed", root, "must be an object or null")
+
+        declaration = populate_candidate(root)
+        registry_text = (root / "FILE_REGISTRY.yml").read_text(encoding="utf-8")
+        write(
+            root / "FILE_REGISTRY.yml",
+            registry_text.replace(
+                "  pre_closeout_candidate:",
+                "  pre_closeout_candidate: null\n  pre_closeout_candidate:",
+                1,
+            ),
+        )
+        expect_failure("candidate-duplicate", root, "duplicate pre_closeout_candidate")
+
+        declaration = populate_candidate(root)
+        declaration["predecessor_completed_work_block"] = OLDER
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration, visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
+        )))
+        expect_failure("candidate-wrong-predecessor", root, "must be the raw latest")
+
+        declaration = populate_candidate(root)
+        write(root / "PROJECT_MAP.md", project_map())
+        expect_failure("candidate-map-disagreement", root, "does not match FILE_REGISTRY")
+
+        declaration = populate_candidate(root)
+        write(root / CANDIDATE, candidate_work_block().replace("**Review Gate:** PENDING", "**Review Gate:** READY"))
+        expect_failure("candidate-prohibited-ready", root, "requires review gate=PENDING")
+
+        declaration = populate_candidate(root)
+        write(
+            root / CANDIDATE,
+            candidate_work_block().replace(
+                "**Verification Verdict:** PENDING",
+                "**Verification Verdict:** READY — wrapped final claim",
+            ),
+        )
+        expect_failure("candidate-prohibited-ready-suffix", root, "requires verification verdict=PENDING")
+
+        declaration = populate_candidate(root)
+        write(root / CANDIDATE, candidate_work_block() + "\n## Final State\n\n- **Review Gate:** READY\n")
+        expect_failure("candidate-terminal-state-section", root, "must not contain a terminal state section")
+
+        declaration = populate_candidate(root)
+        declaration["required_evidence"]["review"] = "docs/reports/reviews/not-markdown.txt"
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration, visible_override=(
+            "## Migration Work\n\nNo active implementation Work Block.\n\n"
+            f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
+        )))
+        expect_failure("candidate-bad-evidence-path", root, "must be under")
+
+        declaration = populate_candidate(root)
+        candidate_registry = registry(active=ACTIVE)
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(
+            root / "PROJECT_MAP.md",
+            project_map(
+                active=ACTIVE,
+                candidate=declaration,
+                visible_override=(
+                    "## Migration Work\n\nActive:\n\n"
+                    f"- `{ACTIVE}`\n\n"
+                    "Closeout candidate:\n\n"
+                    f"- `{CANDIDATE}`\n"
+                ),
+            ),
+        )
+        write(root / ACTIVE, work_block("wb-009", "in_progress"))
+        expect_failure(
+            "candidate-active-ordinary",
+            root,
+            "pre_closeout_candidate requires active_work_block to be null",
+        )
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "pre_closeout_candidate requires active_work_block to be null" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted an active work block")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-evidence-persistence-") as temp:
+        root = Path(temp)
+        populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        primary_branch = git(root, "branch", "--show-current")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        result = validator.validate_evidence_persistence(root, candidate_sha, evidence_sha)
+        assert result["candidate_revision"] == candidate_sha
+        ordinary_result = validator.validate_repository(root)
+        assert ordinary_result["effective_completed_candidate"] == CANDIDATE
+        assert ordinary_result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
+        assert ordinary_result["effective_latest_completed_work_block"] == CANDIDATE
+
+        git(root, "checkout", "-qb", "merge-integration", candidate_sha)
+        write(root / "integration.md", "integration parent\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "integration parent")
+        git(root, "merge", "--no-ff", primary_branch, "-m", "merge evidence")
+        merged_result = validator.validate_repository(root)
+        assert merged_result["effective_latest_completed_work_block"] == CANDIDATE
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "post-evidence-normative-mutation", evidence_sha)
+        write(root / CANDIDATE, candidate_work_block() + "\nPost-evidence mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "post-evidence normative mutation")
+        expect_failure(
+            "post-evidence-normative-mutation",
+            root,
+            "current HEAD differs from persisted candidate normative manifest",
+        )
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "post-evidence-normative-side", evidence_sha)
+        write(root / CANDIDATE, candidate_work_block() + "\nMerge-side mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "merge-side normative mutation")
+        git(root, "checkout", "-qb", "post-evidence-normative-merge", evidence_sha)
+        write(root / "integration.md", "integration parent\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "integration parent")
+        git(root, "merge", "--no-ff", "post-evidence-normative-side", "-m", "merge normative mutation")
+        expect_failure(
+            "post-evidence-normative-merge",
+            root,
+            "current HEAD differs from persisted candidate normative manifest",
+        )
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "negative-verdict", candidate_sha)
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            evidence = candidate_evidence(evidence_class, candidate_sha)
+            if evidence_class == "review":
+                evidence = evidence.replace("verdict: READY", "verdict: CHANGES_REQUIRED")
+            write(root / relative, evidence)
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "negative review evidence")
+        expect_failure("candidate-negative-review-verdict", root, "requires verdict=READY")
+        git(root, "checkout", "-q", primary_branch)
+
+        git(root, "checkout", "-qb", "wrong-subject", candidate_sha)
+        wrong_subject = "f" * 40
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, wrong_subject))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "wrong subject evidence")
+        expect_failure(
+            "candidate-wrong-subject-evidence",
+            root,
+            "requires exactly one persisted evidence-only transition",
+        )
+        git(root, "checkout", "-q", primary_branch)
+
+        unrelated_tree = git(root, "rev-parse", f"{evidence_sha}^{{tree}}")
+        unrelated_sha = git(root, "commit-tree", unrelated_tree, "-m", "unrelated evidence tree")
+        try:
+            validator.validate_evidence_persistence(root, candidate_sha, unrelated_sha)
+        except ReleaseStateError as exc:
+            assert "must directly descend from candidate revision" in str(exc)
+        else:
+            raise AssertionError("candidate persistence accepted a non-descendant evidence revision")
+
+        git(root, "checkout", "-qb", "normative-mutation", candidate_sha)
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        write(root / CANDIDATE, candidate_work_block() + "\nCandidate mutation.\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "forbidden normative change")
+        mutated_sha = git(root, "rev-parse", "HEAD")
+        try:
+            validator.validate_evidence_persistence(root, candidate_sha, mutated_sha)
+        except ReleaseStateError as exc:
+            assert "exactly the declared evidence manifest" in str(exc)
+        else:
+            raise AssertionError("candidate persistence accepted a normative mutation")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-effective-candidate-formal-spec-") as temp:
+        root = Path(temp)
+        populate_formal_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "formal candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        candidate_result = validator.validate_repository(root, candidate_mode=True)
+        assert candidate_result["verdict"] == "CANDIDATE_READY"
+        (root / CANDIDATE_TASKLIST).unlink()
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "requires sibling tasklist" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted a formal candidate without tasklist")
+        write(
+            root / CANDIDATE_TASKLIST,
+            tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+        )
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="draft"),
+        )
+        try:
+            validator.validate_repository(root, candidate_mode=True)
+        except ReleaseStateError as exc:
+            assert "specification must be status approved" in str(exc)
+        else:
+            raise AssertionError("candidate mode accepted a draft formal specification")
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="approved"),
+        )
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate evidence")
+        ready_result = validator.validate_repository(root)
+        assert ready_result["effective_latest_completed_work_block"] == CANDIDATE
+        (root / CANDIDATE_TASKLIST).unlink()
+        expect_failure(
+            "effective-candidate-formal-spec-missing-tasklist",
+            root,
+            "requires sibling tasklist",
+        )
+        write(
+            root / CANDIDATE_TASKLIST,
+            tasklist(work_block_id=CANDIDATE_ID, specification=CANDIDATE_SPECIFICATION),
+        )
+        write(
+            root / CANDIDATE_SPECIFICATION,
+            specification(work_block_id=CANDIDATE_ID, status="draft"),
+        )
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate formal specification regresses")
+        expect_failure(
+            "effective-candidate-formal-spec-draft",
+            root,
+            "specification must be status approved",
+        )
 
     print("Release-state contract fixtures: OK")
     return 0

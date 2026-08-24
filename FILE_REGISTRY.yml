@@ -92,10 +92,11 @@ assurance_contract:
   report_inside_verified_commit_required: false
   acceptance_sequence:
     - preliminary_reviewer_and_verifier_assurance
-    - owner_authorizes_accepted_status_finalization
-    - status_only_normative_commit
-    - final_applicable_assurance_against_normative_subject
-    - evidence_only_report_commit
+    - owner_authorizes_local_pre_closeout_candidate
+    - status_only_candidate_commit_with_persistent_declaration
+    - explicit_candidate_validation_and_final_applicable_assurance
+    - evidence_only_persistence_commit_bound_to_candidate
+    - ordinary_release_state_validation_of_two_part_canonical_state
     - ci_on_resulting_pr_head
     - separate_owner_merge_approval
 
@@ -225,6 +226,20 @@ migration_state:
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
     - docs/plans/wb-skill-002b-provider-guard-boundaries.md
   active_work_block: null
+  pre_closeout_candidate:
+    work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+    work_block_id: WB-RELEASE-001
+    predecessor_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
+    state: assurance_pending
+    required_evidence:
+      review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
+    normative_manifest:
+      - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+      - FILE_REGISTRY.yml
+      - PROJECT_MAP.md
   next_planned_work_block: WB-CORE-004
   planned:
     - WB-CORE-004
