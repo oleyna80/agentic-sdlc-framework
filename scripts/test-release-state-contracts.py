@@ -328,66 +328,80 @@ def expect_failure(label: str, root: Path, contains: str) -> None:
     raise AssertionError(f"{label}: expected ReleaseStateError")
 
 
-def assert_release_state_checkout_history(workflow: object) -> None:
-    """Require full history on the checkout used by the release-state job."""
+def assert_checkout_history(
+    workflow: object, *, workflow_name: str, job_name: str
+) -> None:
+    """Require full history on one named ancestry-validator CI consumer."""
     if not isinstance(workflow, dict):
-        raise AssertionError("release-state workflow must be a mapping")
+        raise AssertionError(f"{workflow_name} workflow must be a mapping")
     jobs = workflow.get("jobs")
     if not isinstance(jobs, dict):
-        raise AssertionError("release-state workflow must define jobs")
-    release_state = jobs.get("release-state")
-    if not isinstance(release_state, dict):
-        raise AssertionError("release-state workflow must define the release-state job")
-    steps = release_state.get("steps")
+        raise AssertionError(f"{workflow_name} workflow must define jobs")
+    job = jobs.get(job_name)
+    if not isinstance(job, dict):
+        raise AssertionError(f"{workflow_name} workflow must define the {job_name} job")
+    steps = job.get("steps")
     if not isinstance(steps, list):
-        raise AssertionError("release-state job must define steps")
+        raise AssertionError(f"{workflow_name}/{job_name} must define steps")
     checkout_steps = [
         step
         for step in steps
         if isinstance(step, dict) and step.get("uses") == "actions/checkout@v4"
     ]
     if len(checkout_steps) != 1:
-        raise AssertionError("release-state job must have exactly one checkout step")
+        raise AssertionError(f"{workflow_name}/{job_name} must have exactly one checkout step")
     checkout_with = checkout_steps[0].get("with")
     if not isinstance(checkout_with, dict) or checkout_with.get("fetch-depth") != 0:
-        raise AssertionError("release-state checkout must set fetch-depth: 0")
+        raise AssertionError(f"{workflow_name}/{job_name} checkout must set fetch-depth: 0")
 
 
-def assert_canonical_release_state_workflow_history() -> None:
-    """Prove the canonical workflow rejects shallow or misplaced checkout depth."""
-    workflow_path = ROOT / ".github/workflows/release-state-contract.yml"
-    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
-    assert_release_state_checkout_history(workflow)
-
-    def checkout_step(candidate: dict) -> dict:
-        steps = candidate["jobs"]["release-state"]["steps"]
-        return next(step for step in steps if step.get("uses") == "actions/checkout@v4")
-
-    absent = deepcopy(workflow)
-    checkout_step(absent)["with"].pop("fetch-depth")
-
-    shallow = deepcopy(workflow)
-    checkout_step(shallow)["with"]["fetch-depth"] = 1
-
-    misplaced = deepcopy(workflow)
-    checkout_step(misplaced)["with"].pop("fetch-depth")
-    setup = next(
-        step
-        for step in misplaced["jobs"]["release-state"]["steps"]
-        if step.get("uses") == "actions/setup-python@v5"
+def assert_canonical_ancestry_consumer_history() -> None:
+    """Prove each known direct CI consumer rejects shallow checkout history."""
+    consumers = (
+        ("release-state-contract", ".github/workflows/release-state-contract.yml", "release-state"),
+        ("framework-contracts", ".github/workflows/framework-contracts.yml", "contracts"),
     )
-    setup.setdefault("with", {})["fetch-depth"] = 0
+    for workflow_name, relative_path, job_name in consumers:
+        workflow = yaml.safe_load((ROOT / relative_path).read_text(encoding="utf-8"))
+        assert_checkout_history(workflow, workflow_name=workflow_name, job_name=job_name)
 
-    for label, candidate in (("absent", absent), ("shallow", shallow), ("misplaced", misplaced)):
-        try:
-            assert_release_state_checkout_history(candidate)
-        except AssertionError:
-            continue
-        raise AssertionError(f"release-state workflow accepted {label} checkout depth")
+        def checkout_step(candidate: dict) -> dict:
+            steps = candidate["jobs"][job_name]["steps"]
+            return next(step for step in steps if step.get("uses") == "actions/checkout@v4")
+
+        absent = deepcopy(workflow)
+        checkout_step(absent)["with"].pop("fetch-depth")
+
+        shallow = deepcopy(workflow)
+        checkout_step(shallow)["with"]["fetch-depth"] = 1
+
+        misplaced = deepcopy(workflow)
+        checkout_step(misplaced)["with"].pop("fetch-depth")
+        setup = next(
+            step
+            for step in misplaced["jobs"][job_name]["steps"]
+            if step.get("uses") == "actions/setup-python@v5"
+        )
+        setup.setdefault("with", {})["fetch-depth"] = 0
+
+        for label, candidate in (
+            ("absent", absent),
+            ("shallow", shallow),
+            ("misplaced", misplaced),
+        ):
+            try:
+                assert_checkout_history(
+                    candidate, workflow_name=workflow_name, job_name=job_name
+                )
+            except AssertionError:
+                continue
+            raise AssertionError(
+                f"{workflow_name}/{job_name} accepted {label} checkout depth"
+            )
 
 
 def main() -> int:
-    assert_canonical_release_state_workflow_history()
+    assert_canonical_ancestry_consumer_history()
 
     with tempfile.TemporaryDirectory(prefix="release-state-valid-") as temp:
         root = Path(temp)
