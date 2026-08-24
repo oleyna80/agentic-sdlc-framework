@@ -10,14 +10,14 @@ last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: READY
-critic_gate: READY
+write_gate: BLOCKED
+critic_gate: PENDING
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner approved specification revision define-r3-2026-08-24 and the exact Execute source write-set (governance/release-state.md, .agent/workflows/sdd-protocol.md, FILE_REGISTRY.yml, scripts/validate-release-state.py, scripts/test-release-state-contracts.py) on 2026-08-24. Commit, push, pull-request, merge, and external actions remain separately controlled.
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed a minimal prevention for the shallow-checkout failure on 2026-08-24. The revision-r4 source extension remains Define-pending until refreshed assurance records it; no candidate, push, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,10 +42,10 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Execute
+- **Current Stage:** Define
 - **Stage State:** in_progress
-- **Write Gate:** READY
-- **Critic Gate:** READY
+- **Write Gate:** BLOCKED
+- **Critic Gate:** PENDING
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
@@ -57,15 +57,22 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 
 ## Normative Baseline
 
-- **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
-  (approved; prospective authority for the exact Execute write-set).
+- **Draft Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
+  (revision r4; pending refreshed Define assurance and write-gate resolution).
 - **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
 - **Governing contracts:** `governance/release-state.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
   `.agent/workflows/sdd-protocol.md`, and `FILE_REGISTRY.yml`.
 - **Implementation owners under investigation:**
   `scripts/validate-release-state.py` and
-  `scripts/test-release-state-contracts.py`.
+`scripts/test-release-state-contracts.py`.
+
+The published first candidate/evidence pair was deliberately abandoned before
+force-push: CI showed that `.github/workflows/release-state-contract.yml`
+checked out a shallow repository, so the ancestry proof could not run. The
+replacement must add full history and a narrowly-owned regression assertion
+before creating a new candidate. No source/config commit will be appended after
+the renewed evidence-only commit.
 
 ## Repository Preflight
 
@@ -104,7 +111,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Approved Execute Source Write-Set
+### Proposed Execute Source Write-Set
 
 ```text
 governance/release-state.md
@@ -112,6 +119,7 @@ governance/release-state.md
 FILE_REGISTRY.yml
 scripts/validate-release-state.py
 scripts/test-release-state-contracts.py
+.github/workflows/release-state-contract.yml
 ```
 
 | Path | Owner / smallest sufficient change |
@@ -121,6 +129,7 @@ scripts/test-release-state-contracts.py
 | `FILE_REGISTRY.yml` | Owns the machine-readable accepted evidence sequence. |
 | `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation. |
 | `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof. |
+| `.github/workflows/release-state-contract.yml` | Owns CI checkout depth for the ancestry-dependent release-state validator. |
 
 No template, source skill, historical Work Block, closeout report, or
 `PROJECT_MAP.md` change is authorized for Execute. `PROJECT_MAP.md` may be an
@@ -150,17 +159,19 @@ contract change itself completes successfully.
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: READY — independent review bound to define-r3-2026-08-24.
-Traceability: READY — structural validation passed for define-r3-2026-08-24.
-Consistency Analysis: READY — independent analysis bound to define-r3-2026-08-24.
-Aggregate: READY
+Requirements Review: PENDING — revision r4 adds the CI history requirement.
+Traceability: PENDING — rerun against define-r4-2026-08-24.
+Consistency Analysis: PENDING — revision r4 changes the source manifest.
+Aggregate: PENDING
 ```
 
-The first independent requirements/consistency pass and Critic critique found
+The prior independent requirements/consistency pass and Critic critique found
 that durable candidate semantics and cross-revision evidence proof must be
-specified before source approval. The refreshed reviews and Critic assessment
-are READY for define-r3-2026-08-24, and the Owner then approved that exact
-revision and source write-set prospectively. After execution, require
+specified before source approval. Revision r4 adds only the discovered CI
+history prerequisite and its narrow deterministic guard. It requires a fresh
+requirements review, consistency analysis, Critic assessment, traceability
+validation, and recorded write-gate resolution before execution. After
+execution, require
 independent Reviewer, fresh-clone Verifier, and Drift assurance on the frozen
 implementation subject; no candidate mode may authorize a push, PR, merge, CI
 claim, or external action.
@@ -180,8 +191,9 @@ python3 scripts/validate-release-state.py
 python3 scripts/test-release-state-contracts.py
 ```
 
-The future implementation must add explicit candidate-mode positive/adversarial
-fixtures and retain ordinary-mode checks unchanged.
+The future implementation must retain ordinary-mode checks unchanged, add the
+full-history workflow checkout, and make the canonical workflow setting part of
+the release-state fixture proof.
 
 ## Resumption Rule
 

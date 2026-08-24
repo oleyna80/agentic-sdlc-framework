@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: approved
+status: draft
 created_at: 2026-08-24
-revision: define-r3-2026-08-24
-owner_approval: Owner approved specification revision define-r3-2026-08-24 and the exact Execute source write-set (governance/release-state.md, .agent/workflows/sdd-protocol.md, FILE_REGISTRY.yml, scripts/validate-release-state.py, scripts/test-release-state-contracts.py) on 2026-08-24. This prospective approval does not authorize commit, push, pull-request, merge, or external action.
+revision: define-r4-2026-08-24
+owner_approval: Owner authorized the corrective PR-history rewrite/force-push and directed a minimal prevention for the shallow-checkout failure on 2026-08-24. This draft records the resulting proposed exact source write-set; it requires refreshed Define assurance before source execution.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -21,10 +21,17 @@ applicable assurance of the terminal normative projection before the
 evidence-only report commit. A status-only candidate therefore fails the ordinary
 validator before final assurance can be recorded.
 
-This approved specification authorizes only the bounded prospective Execute
-write-set stated in its approval record. It must not retrofit or relabel
+This draft specification proposes only the bounded prospective Execute
+write-set stated in its revision record. It must not retrofit or relabel
 historical evidence. It defines a prospective contract for an explicit,
 local-only pre-closeout candidate and its later evidence-only persistence.
+
+The first attempted evidence-only persistence exposed a CI integration gap: the
+release-state validator correctly requires Git ancestry to bind a candidate to
+its evidence commit, while its dedicated GitHub workflow used GitHub's default
+shallow checkout. This corrective revision must make that required history
+available and make the dependency executable, rather than weakening the
+validator or appending an unassured source change after terminal evidence.
 
 ## Requirements
 
@@ -80,6 +87,12 @@ local-only pre-closeout candidate and its later evidence-only persistence.
   WB-CORE-003G resume only after this contract is accepted and implemented; the
   pilot's existing uncommitted status-only files remain out of scope for this
   Work Block.
+- REQ-010: The dedicated release-state GitHub Actions workflow must check out
+  sufficient Git history for the validator's required candidate-to-evidence
+  ancestry proof. The framework must have a deterministic contract check that
+  fails if this workflow regresses to a shallow checkout. This prevention is
+  limited to that named workflow and must not relax candidate validation or add
+  a repository-wide workflow policy.
 
 ## Acceptance Criteria
 
@@ -125,6 +138,10 @@ local-only pre-closeout candidate and its later evidence-only persistence.
 - AC-010 [req=REQ-009]: The closeout records the exact prospective procedure,
   residual limitations, and the explicit condition for resuming WB-CORE-003G;
   it does not claim that WB-CORE-003G has been closed.
+- AC-011 [req=REQ-010]: `.github/workflows/release-state-contract.yml` sets
+  `fetch-depth: 0` on its checkout step, and
+  `scripts/test-release-state-contracts.py` deterministically rejects the
+  canonical workflow if that full-history setting is absent or changed.
 
 ## Design Decision to Validate in Define
 
@@ -165,6 +182,11 @@ the persistent declaration, markers, result classification, and cross-revision
 proof above are required design constraints. They require a refreshed
 requirements-quality review, consistency analysis, Critic review, an Owner
 approved specification revision, and an explicit future source write-set.
+
+The CI history correction is part of that same bounded procedure: it is made
+before the new candidate is frozen, is included in its normative manifest, and
+is independently assured with the rest of the source subject. It is never
+appended after evidence-only persistence.
 
 ## Non-Goals
 

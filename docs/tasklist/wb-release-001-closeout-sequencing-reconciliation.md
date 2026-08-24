@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: tasklist
 work_block_id: WB-RELEASE-001
 specification: docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
-specification_revision: define-r3-2026-08-24
+specification_revision: define-r4-2026-08-24
 status: in_progress
 ---
 
@@ -25,6 +25,9 @@ status: in_progress
 - [x] TASK-009 [type=requirement] [req=REQ-006] [ac=AC-007] [paths=governance/release-state.md,.agent/workflows/sdd-protocol.md,FILE_REGISTRY.yml] Synchronize the normative contract, operational procedure, and machine-readable acceptance sequence.
 - [x] TASK-010 [type=requirement] [req=REQ-007] [ac=AC-008] [paths=scripts/test-release-state-contracts.py] Add positive and adversarial fixtures for ordinary and candidate modes, including candidate declaration lifecycle and exact cross-revision proof.
 - [x] TASK-011 [type=requirement] [req=REQ-008] [ac=AC-009] [paths=governance/release-state.md,.agent/workflows/sdd-protocol.md,FILE_REGISTRY.yml,scripts/validate-release-state.py,scripts/test-release-state-contracts.py] Preserve bounded scope and prove the frozen source manifest excludes historical Work Blocks and unrelated implementation.
+- [ ] TASK-014 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-release-001-closeout-sequencing-reconciliation.md,docs/specs/wb-release-001-closeout-sequencing-reconciliation.md,docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md] Record the CI shallow-checkout finding, abandon the pre-assurance candidate/evidence pair, and refresh Define scope without claiming that old terminal evidence covers the replacement source subject.
+- [ ] TASK-015 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history.md,docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-consistency.md,docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-critic.md] Obtain refreshed independent requirements, consistency, and Critic assurance for revision r4 before source execution.
+- [ ] TASK-016 [type=requirement] [req=REQ-010] [ac=AC-011] [paths=.github/workflows/release-state-contract.yml,scripts/test-release-state-contracts.py] Configure full Git history for the ancestry-dependent release-state workflow and add a canonical workflow regression assertion.
 
 ## Assure and Close
 
@@ -33,11 +36,11 @@ status: in_progress
 
 ## Dependencies and Stop Conditions
 
-The Define assurance tasks and prospective Owner approval of specification
-revision `define-r3-2026-08-24` are complete. The remaining Execute tasks are
-authorized only for the exact listed source write-set. The terminal assurance
-task requires a frozen implementation diff. The Close task requires
-READY/ALIGNED final assurance.
+Revision-r3 Define assurance and its source subject remain historical evidence,
+but do not cover r4's workflow-history requirement. The new Define work
+must resolve the refreshed gate before the replacement source subject is
+frozen. The terminal assurance task requires that new frozen implementation
+diff. The Close task requires READY/ALIGNED final assurance.
 
 Stop for Owner direction if candidate mode would weaken default validation,
 weaken default validation, treat a candidate as externally promotable, require
