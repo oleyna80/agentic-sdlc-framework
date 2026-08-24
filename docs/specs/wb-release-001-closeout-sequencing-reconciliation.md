@@ -3,10 +3,10 @@ schema_version: 1
 artifact_type: specification
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: approved
+status: draft
 created_at: 2026-08-24
-revision: define-r4-2026-08-24
-owner_approval: Owner authorized the corrective PR-history rewrite/force-push and directed the minimal prevention for the shallow-checkout failure on 2026-08-24. Refreshed Define evidence establishes the exact bounded source write-set for this approved revision; no candidate, push, PR, or merge authority is implied.
+revision: define-r5-2026-08-24
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. This draft revision requires refreshed Define assurance before any expanded source write-set is approved; no candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -21,7 +21,7 @@ applicable assurance of the terminal normative projection before the
 evidence-only report commit. A status-only candidate therefore fails the ordinary
 validator before final assurance can be recorded.
 
-This approved specification defines only the bounded prospective Execute
+This draft specification proposes only the bounded prospective Execute
 write-set stated in its revision record. It must not retrofit or relabel
 historical evidence. It defines a prospective contract for an explicit,
 local-only pre-closeout candidate and its later evidence-only persistence.
@@ -29,9 +29,13 @@ local-only pre-closeout candidate and its later evidence-only persistence.
 The first attempted evidence-only persistence exposed a CI integration gap: the
 release-state validator correctly requires Git ancestry to bind a candidate to
 its evidence commit, while its dedicated GitHub workflow used GitHub's default
-shallow checkout. This corrective revision must make that required history
-available and make the dependency executable, rather than weakening the
-validator or appending an unassured source change after terminal evidence.
+shallow checkout. Revision r4 corrected that direct consumer, but exact-head
+CI then exposed a second direct consumer: the `contracts` job in
+`.github/workflows/framework-contracts.yml` invokes the same ancestry-dependent
+validation through governance validation with its own shallow checkout. This
+revision must make required history available to both identified direct
+consumers and make that bounded dependency executable, rather than weakening
+the validator or appending an unassured source change after terminal evidence.
 
 ## Requirements
 
@@ -93,6 +97,14 @@ validator or appending an unassured source change after terminal evidence.
   fails if this workflow regresses to a shallow checkout. This prevention is
   limited to that named workflow and must not change candidate-manifest
   validation or add a repository-wide workflow policy.
+- REQ-011: Every identified CI job that directly invokes the ancestry-dependent
+  release-state validation, including through `bash scripts/validate-governance.sh`,
+  must check out sufficient Git history. The identified direct consumers are
+  `.github/workflows/release-state-contract.yml` job `release-state` and
+  `.github/workflows/framework-contracts.yml` job `contracts`. The executable
+  contract must reject a shallow, absent, or misplaced full-history setting for
+  either named consumer. This is an explicit bounded inventory, not a
+  repository-wide workflow scan or a change to candidate-manifest semantics.
 
 ## Acceptance Criteria
 
@@ -142,6 +154,10 @@ validator or appending an unassured source change after terminal evidence.
   `fetch-depth: 0` on its checkout step, and
   `scripts/test-release-state-contracts.py` deterministically rejects a
   shallow, absent, or misplaced full-history checkout configuration.
+- AC-012 [req=REQ-011]: `.github/workflows/framework-contracts.yml` sets
+  `fetch-depth: 0` on the `contracts` job checkout. The release-state fixture
+  deterministically checks both named direct consumers and rejects shallow,
+  absent, or misplaced full-history checkout configuration for either job.
 
 ## Design Decision to Validate in Define
 

@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: tasklist
 work_block_id: WB-RELEASE-001
 specification: docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
-specification_revision: define-r4-2026-08-24
+specification_revision: define-r5-2026-08-24
 status: in_progress
 ---
 
@@ -18,6 +18,7 @@ status: in_progress
 - [x] TASK-005 [type=assurance] [req=-] [ac=-] [paths=docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-critic.md] Obtain a Critic assessment of candidate-state risks, default fail-closed behavior, test design, and write-set minimality.
 - [x] TASK-014 [type=documentation] [req=-] [ac=-] [paths=docs/plans/wb-release-001-closeout-sequencing-reconciliation.md,docs/specs/wb-release-001-closeout-sequencing-reconciliation.md,docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md] Record the CI shallow-checkout finding, abandon the pre-assurance candidate/evidence pair, and refresh Define scope without claiming that old terminal evidence covers the replacement source subject.
 - [x] TASK-015 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history.md,docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-consistency.md,docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-critic.md] Obtain refreshed independent requirements, consistency, and Critic assurance for revision r4 before source execution.
+- [ ] TASK-018 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5.md,docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-consistency.md,docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-r5-critic.md] Obtain refreshed independent requirements, consistency, and Critic assurance for revision r5 before source execution.
 
 ## Authorized Execute Tasks
 
@@ -28,6 +29,7 @@ status: in_progress
 - [x] TASK-010 [type=requirement] [req=REQ-007] [ac=AC-008] [paths=scripts/test-release-state-contracts.py] Add positive and adversarial fixtures for ordinary and candidate modes, including candidate declaration lifecycle and exact cross-revision proof.
 - [x] TASK-011 [type=requirement] [req=REQ-008] [ac=AC-009] [paths=governance/release-state.md,.agent/workflows/sdd-protocol.md,FILE_REGISTRY.yml,scripts/validate-release-state.py,scripts/test-release-state-contracts.py] Preserve bounded scope and prove the frozen source manifest excludes historical Work Blocks and unrelated implementation.
 - [x] TASK-016 [type=requirement] [req=REQ-010] [ac=AC-011] [paths=.github/workflows/release-state-contract.yml,scripts/test-release-state-contracts.py] Configure full Git history for the ancestry-dependent release-state workflow and add canonical workflow regression assertions.
+- [ ] TASK-017 [type=requirement] [req=REQ-011] [ac=AC-012] [paths=.github/workflows/framework-contracts.yml,scripts/test-release-state-contracts.py] Configure full Git history for the separately checked-out `contracts` job that directly runs governance/release-state validation, and extend the canonical workflow regression assertions to both identified direct consumers.
 
 ## Assure and Close
 
@@ -36,11 +38,11 @@ status: in_progress
 
 ## Dependencies and Stop Conditions
 
-Revision-r3 Define assurance and its source subject remain historical evidence,
-but do not cover r4's workflow-history requirement. The new Define work
-must resolve the refreshed gate before the replacement source subject is
-frozen. The terminal assurance task requires that new frozen implementation
-diff. The Close task requires READY/ALIGNED final assurance.
+Revision-r3/r4 Define assurance and their source subjects remain historical
+evidence, but do not cover r5's second direct CI consumer. The new Define work
+must resolve the refreshed gate before the replacement source subject is frozen.
+The terminal assurance task requires that new frozen implementation diff. The
+Close task requires READY/ALIGNED final assurance.
 
 Stop for Owner direction if candidate mode would weaken default validation,
 weaken default validation, treat a candidate as externally promotable, require

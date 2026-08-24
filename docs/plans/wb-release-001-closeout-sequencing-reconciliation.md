@@ -10,14 +10,14 @@ last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: READY
-critic_gate: READY
+write_gate: BLOCKED
+critic_gate: PENDING
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed the minimal prevention for the shallow-checkout failure on 2026-08-24. Refreshed r4 Define assurance supports the exact approved Execute write-set only; no candidate, push, PR, or merge authority is implied.
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. Revision r5 adds its named direct CI consumer only; refreshed Define assurance is required before this expanded Execute write-set can be approved. No candidate, push, PR, or merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,10 +42,10 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Execute
+- **Current Stage:** Define
 - **Stage State:** in_progress
-- **Write Gate:** READY
-- **Critic Gate:** READY
+- **Write Gate:** BLOCKED
+- **Critic Gate:** PENDING
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
@@ -57,8 +57,8 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 
 ## Normative Baseline
 
-- **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
-  (revision r4; requirements, consistency, and Critic assurance recorded below).
+- **Draft Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
+  (revision r5; refreshed requirements, consistency, and Critic assurance pending).
 - **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
 - **Governing contracts:** `governance/release-state.md`,
   `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
@@ -69,8 +69,11 @@ validator reconciliation; it introduces no non-deterministic product behavior.
 
 The published first candidate/evidence pair was deliberately abandoned before
 force-push: CI showed that `.github/workflows/release-state-contract.yml`
-checked out a shallow repository, so the ancestry proof could not run. The
-replacement must add full history and a narrowly-owned regression assertion
+checked out a shallow repository, so the ancestry proof could not run. Revision
+r4 corrected it, but exact-head CI then showed the independently checked out
+`contracts` job in `.github/workflows/framework-contracts.yml` runs the same
+ancestry-dependent validation with shallow history. The replacement must cover
+both identified direct consumers and a narrowly-owned regression assertion
 before creating a new candidate. No source/config commit will be appended after
 the renewed evidence-only commit.
 
@@ -111,7 +114,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Executed Source Write-Set
+### Source Write-Set: r4 Executed; r5 Expansion Proposed
 
 ```text
 governance/release-state.md
@@ -120,7 +123,13 @@ FILE_REGISTRY.yml
 scripts/validate-release-state.py
 scripts/test-release-state-contracts.py
 .github/workflows/release-state-contract.yml
+.github/workflows/framework-contracts.yml
 ```
+
+The first six paths were executed and assured under revision r4. Revision r5
+proposes only `.github/workflows/framework-contracts.yml` and the corresponding
+extension of `scripts/test-release-state-contracts.py`; it remains unexecuted
+while the r5 Write Gate is `BLOCKED`.
 
 | Path | Owner / smallest sufficient change |
 | --- | --- |
@@ -128,8 +137,9 @@ scripts/test-release-state-contracts.py
 | `.agent/workflows/sdd-protocol.md` | Owns the self-hosting operational Close sequence. |
 | `FILE_REGISTRY.yml` | Owns the machine-readable accepted evidence sequence. |
 | `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation and retains the fail-closed candidate-manifest boundary. |
-| `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof, including canonical checkout-history configuration. |
+| `scripts/test-release-state-contracts.py` | Executed r4 owner of canonical checkout-history regression proof; r5 proposes the smallest extension to cover the second named consumer. |
 | `.github/workflows/release-state-contract.yml` | Owns CI checkout depth for the ancestry-dependent release-state validator. |
+| `.github/workflows/framework-contracts.yml` | Proposed r5 owner of CI checkout depth for the separate `contracts` job that directly runs governance/release-state validation. |
 
 No template, source skill, historical Work Block, closeout report, or
 `PROJECT_MAP.md` change is authorized for Execute. `PROJECT_MAP.md` may be an
@@ -159,22 +169,23 @@ contract change itself completes successfully.
 Managed Define quality is required. The current evidence is:
 
 ```text
-Requirements Review: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history.md`.
-Traceability: READY — `requirements=10 acceptance=11 tasks=16` on revision r4.
-Consistency Analysis: READY — `docs/reports/requirements/wb-release-001-closeout-sequencing-reconciliation-workflow-history-consistency.md`.
-Critic: READY — `docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-workflow-history-critic.md`.
-Aggregate: READY
+Requirements Review: PENDING — r5 must assess the additional direct CI consumer.
+Traceability: PENDING — r5 adds REQ-011 / AC-012 / TASK-017.
+Consistency Analysis: PENDING — r5 must verify bounded consumer inventory and lifecycle consistency.
+Critic: PENDING — r5 must assess scope/minimality and test coverage.
+Aggregate: PENDING
 ```
 
 The prior independent requirements/consistency pass and Critic critique found
 that durable candidate semantics and cross-revision evidence proof must be
-specified before source approval. Revision r4 adds only the discovered CI
-history prerequisite and its narrow deterministic guard. Fresh requirements,
-consistency, Critic, and traceability evidence is recorded for this revision;
-the Write Gate is READY for the exact source write-set. After execution, require
-independent Reviewer, fresh-clone Verifier, and Drift assurance on the frozen
-implementation subject; no candidate mode may authorize a push, PR, merge, CI
-claim, or external action.
+specified before source approval. Revision r4 added one discovered CI history
+prerequisite, but exact-head CI demonstrated that its named-consumer inventory
+was incomplete. Revision r5 adds only the second observed direct consumer and
+extends the narrow deterministic guard to both known jobs. Fresh requirements,
+consistency, Critic, and traceability evidence is required before the Write Gate
+can become READY. After execution, require independent Reviewer, fresh-clone
+Verifier, and Drift assurance on the frozen implementation subject; no
+candidate mode may authorize a push, PR, merge, CI claim, or external action.
 
 ## Validation Plan
 
@@ -192,8 +203,8 @@ python3 scripts/test-release-state-contracts.py
 ```
 
 The future implementation must retain ordinary-mode checks unchanged, add the
-full-history workflow checkout, and make the canonical workflow setting part of
-the release-state fixture proof.
+full-history checkout to both named direct-consumer jobs, and make each
+canonical workflow setting part of the release-state fixture proof.
 
 ## Resumption Rule
 
