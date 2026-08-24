@@ -42,14 +42,14 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Execute
+- **Current Stage:** Assure
 - **Stage State:** in_progress
 - **Write Gate:** READY
 - **Critic Gate:** READY
-- **Review Gate:** CHANGES_REQUIRED
-- **Verification Verdict:** BLOCKED
+- **Review Gate:** READY
+- **Verification Verdict:** READY
 - **Evaluation Verdict:** NOT_REQUIRED
-- **Drift Gate:** PENDING
+- **Drift Gate:** ALIGNED
 - **Closeout Mode:** pending
 
 Evaluation is not required because this is deterministic governance and
@@ -107,6 +107,11 @@ Fresh r7 Verification blocked the first source subject because it exposed a
 remaining fail-open: a Managed candidate missing its sibling tasklist could
 avoid formal-specification validation. TASK-020 remains in progress until that
 same-scope correction and its fresh assurance complete.
+
+The corrected frozen r7 subject `0a9fa6eec4f585592c06f7168071265598b90219`
+received independent Reviewer `READY`, fresh-clone Verifier `READY`, and Drift
+`ALIGNED`. The earlier blocked verification remains historical evidence of the
+defect discovery; it is not relabelled or used as current assurance.
 
 ## Repository Preflight
 
