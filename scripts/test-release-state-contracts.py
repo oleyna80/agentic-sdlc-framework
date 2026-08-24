@@ -909,7 +909,21 @@ work_block_id: wb-007
 
         declaration = populate_candidate(root)
         write(root / CANDIDATE, candidate_work_block().replace("**Review Gate:** PENDING", "**Review Gate:** READY"))
-        expect_failure("candidate-prohibited-ready", root, "must not claim final review gate=READY")
+        expect_failure("candidate-prohibited-ready", root, "requires review gate=PENDING")
+
+        declaration = populate_candidate(root)
+        write(
+            root / CANDIDATE,
+            candidate_work_block().replace(
+                "**Verification Verdict:** PENDING",
+                "**Verification Verdict:** READY — wrapped final claim",
+            ),
+        )
+        expect_failure("candidate-prohibited-ready-suffix", root, "requires verification verdict=PENDING")
+
+        declaration = populate_candidate(root)
+        write(root / CANDIDATE, candidate_work_block() + "\n## Final State\n\n- **Review Gate:** READY\n")
+        expect_failure("candidate-terminal-state-section", root, "must not contain a terminal state section")
 
         declaration = populate_candidate(root)
         declaration["required_evidence"]["review"] = "docs/reports/reviews/not-markdown.txt"
@@ -938,7 +952,19 @@ work_block_id: wb-007
         evidence_sha = git(root, "rev-parse", "HEAD")
         result = validator.validate_evidence_persistence(root, candidate_sha, evidence_sha)
         assert result["candidate_revision"] == candidate_sha
-        assert validator.validate_repository(root)["effective_completed_candidate"] == CANDIDATE
+        ordinary_result = validator.validate_repository(root)
+        assert ordinary_result["effective_completed_candidate"] == CANDIDATE
+        assert ordinary_result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
+        assert ordinary_result["effective_latest_completed_work_block"] == CANDIDATE
+
+        unrelated_tree = git(root, "rev-parse", f"{evidence_sha}^{{tree}}")
+        unrelated_sha = git(root, "commit-tree", unrelated_tree, "-m", "unrelated evidence tree")
+        try:
+            validator.validate_evidence_persistence(root, candidate_sha, unrelated_sha)
+        except ReleaseStateError as exc:
+            assert "must descend from candidate revision" in str(exc)
+        else:
+            raise AssertionError("candidate persistence accepted a non-descendant evidence revision")
 
         write(root / CANDIDATE, candidate_work_block() + "\nCandidate mutation.\n")
         git(root, "add", ".")

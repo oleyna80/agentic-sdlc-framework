@@ -60,7 +60,8 @@ the ordered normative manifest. `PROJECT_MAP.md` must carry the same declaration
 and visibly identify the candidate. The candidate Work Block stays outside
 `completed_work_blocks`, has `status: closeout_candidate`, and records `Current
 Stage: Close`, `Stage State: assurance_pending`, and `Closeout Mode: candidate`.
-It must not claim final READY review, verification, or drift gates.
+Its review, verification, and drift markers are each exactly `PENDING`; it must
+not contain a `Final State`, `Terminal State`, or `Closeout State` section.
 
 Candidate mode is an explicit local validator invocation. It emits
 `CANDIDATE_READY`, not `READY`; all required terminal evidence must still be
@@ -68,7 +69,9 @@ absent. Ordinary mode remains fail-closed while a declared candidate lacks its
 required evidence. Once all four approved evidence artifacts bind one exact
 candidate commit, ordinary mode derives that declaration as the **effective**
 completed/latest entry. It does not rewrite the raw Work Block, completed list,
-or raw latest-completed predecessor.
+or raw latest-completed predecessor. The validator exposes the derived
+`effective_completed_work_blocks` and `effective_latest_completed_work_block`
+alongside those raw fields for consumers that need the two-part canonical view.
 
 The evidence-only persistence revision must be proved with:
 
@@ -79,7 +82,8 @@ python3 scripts/validate-release-state.py \
 
 This command requires the persistent declaration to be byte-for-meaning unchanged,
 requires every declared evidence file to bind `<candidate-commit>`, and rejects
-every changed path other than the exact declared evidence manifest. It therefore
+every changed path other than the exact declared evidence manifest. The evidence
+revision must descend from the candidate revision. It therefore
 binds candidate assurance to its later evidence persistence without treating a
 report as a direct lifecycle overwrite.
 

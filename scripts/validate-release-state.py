@@ -456,10 +456,19 @@ def validate_pre_closeout_candidate(
                 f"found {markers.get(key)!r}"
             )
     for key in ("review gate", "verification verdict", "drift gate"):
-        if markers.get(key) == "READY":
+        if markers.get(key) != "PENDING":
             raise ReleaseStateError(
-                f"pre_closeout candidate Work Block must not claim final {key}=READY"
+                f"pre_closeout candidate Work Block requires {key}=PENDING, "
+                f"found {markers.get(key)!r}"
             )
+    if re.search(
+        r"^##\s+(?:Final State|Terminal State|Closeout State)\s*$",
+        body,
+        re.MULTILINE | re.IGNORECASE,
+    ):
+        raise ReleaseStateError(
+            "pre_closeout candidate Work Block must not contain a terminal state section"
+        )
 
     if map_candidate != candidate:
         raise ReleaseStateError("PROJECT_MAP pre_closeout_candidate does not match FILE_REGISTRY")
@@ -564,6 +573,17 @@ def validate_evidence_persistence(
     evidence_sha = git_output(root, "rev-parse", "--verify", f"{evidence_revision}^{{commit}}")
     if candidate_sha == evidence_sha:
         raise ReleaseStateError("candidate and evidence revisions must differ")
+    ancestry = subprocess.run(
+        ["git", "-C", str(root), "merge-base", "--is-ancestor", candidate_sha, evidence_sha],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if ancestry.returncode == 1:
+        raise ReleaseStateError("evidence revision must descend from candidate revision")
+    if ancestry.returncode != 0:
+        detail = ancestry.stderr.strip() or ancestry.stdout.strip()
+        raise ReleaseStateError(f"cannot determine evidence revision ancestry: {detail}")
     candidate = candidate_from_registry_text(
         git_output(root, "show", f"{candidate_sha}:FILE_REGISTRY.yml")
     )
@@ -1107,9 +1127,13 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         }
 
     effective_candidate = None
+    effective_completed = completed.copy()
+    effective_latest = release_state["latest_completed_work_block"]
     if candidate is not None:
         effective_candidate = candidate["work_block"]
         validate_candidate_evidence(root, candidate)
+        effective_completed.append(effective_candidate)
+        effective_latest = effective_candidate
 
     return {
         "completed_work_blocks": completed,
@@ -1117,6 +1141,8 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         "latest_completed_work_block": release_state["latest_completed_work_block"],
         "closeout_report": release_state["closeout_report"],
         "effective_completed_candidate": effective_candidate,
+        "effective_completed_work_blocks": effective_completed,
+        "effective_latest_completed_work_block": effective_latest,
         "verdict": "READY",
     }
 
@@ -1160,6 +1186,7 @@ def main() -> int:
         print(f"Candidate Work Block: {result['candidate_work_block']}")
     if result.get("effective_completed_candidate"):
         print(f"Effective completed candidate: {result['effective_completed_candidate']}")
+        print(f"Effective latest completed: {result['effective_latest_completed_work_block']}")
     return 0
 
 
