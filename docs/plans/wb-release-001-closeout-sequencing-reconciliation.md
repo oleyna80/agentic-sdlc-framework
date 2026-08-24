@@ -3,21 +3,21 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: in_progress
+status: closeout_candidate
 owner_role: Owner
 created_at: 2026-08-24
 last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: READY
-review_gate: CHANGES_REQUIRED
+review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
-closeout_mode: pending
-owner_approval: Owner directed corrective reopening after three independently confirmed exact-head release-state fail-open findings on 2026-08-24. This authorizes bounded investigation and correction within the existing approved specification; no merge authority is implied.
+closeout_mode: candidate
+owner_approval: Owner authorized the local pre-closeout candidate and its bounded final assurance/evidence-persistence sequence on 2026-08-24. This grants no PR, merge, or default-branch authority.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,15 +42,15 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Assure
-- **Stage State:** in_progress
-- **Write Gate:** READY
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Write Gate:** BLOCKED
 - **Critic Gate:** READY
-- **Review Gate:** READY
-- **Verification Verdict:** READY
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
-- **Drift Gate:** ALIGNED
-- **Closeout Mode:** pending
+- **Drift Gate:** PENDING
+- **Closeout Mode:** candidate
 
 Evaluation is not required because this is deterministic governance and
 validator reconciliation; it introduces no non-deterministic product behavior.
@@ -112,6 +112,16 @@ The corrected frozen r7 subject `0a9fa6eec4f585592c06f7168071265598b90219`
 received independent Reviewer `READY`, fresh-clone Verifier `READY`, and Drift
 `ALIGNED`. The earlier blocked verification remains historical evidence of the
 defect discovery; it is not relabelled or used as current assurance.
+
+### Pre-Closeout Candidate r8
+
+The current raw state is a local-only `closeout_candidate` for the already
+assured r7 source subject. Its normative manifest is restricted to this Work
+Block, `FILE_REGISTRY.yml`, and `PROJECT_MAP.md`; it declares no successful
+closeout, promotion, CI result, PR, or merge. Independent final Reviewer,
+fresh-clone Verifier, and Drift assurance must bind this exact candidate before
+the separately persisted evidence-only completion record may be validated in
+ordinary mode.
 
 ## Repository Preflight
 
