@@ -111,7 +111,7 @@ docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
 docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
 ```
 
-### Proposed Execute Source Write-Set
+### Executed Source Write-Set
 
 ```text
 governance/release-state.md

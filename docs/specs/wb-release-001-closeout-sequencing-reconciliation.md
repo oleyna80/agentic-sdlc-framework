@@ -21,7 +21,7 @@ applicable assurance of the terminal normative projection before the
 evidence-only report commit. A status-only candidate therefore fails the ordinary
 validator before final assurance can be recorded.
 
-This draft specification proposes only the bounded prospective Execute
+This approved specification defines only the bounded prospective Execute
 write-set stated in its revision record. It must not retrofit or relabel
 historical evidence. It defines a prospective contract for an explicit,
 local-only pre-closeout candidate and its later evidence-only persistence.
