@@ -91,8 +91,8 @@ validator or appending an unassured source change after terminal evidence.
   sufficient Git history for the validator's required candidate-to-evidence
   ancestry proof. The framework must have a deterministic contract check that
   fails if this workflow regresses to a shallow checkout. This prevention is
-  limited to that named workflow and must not relax candidate validation or add
-  a repository-wide workflow policy.
+  limited to that named workflow and must not change candidate-manifest
+  validation or add a repository-wide workflow policy.
 
 ## Acceptance Criteria
 
@@ -140,8 +140,8 @@ validator or appending an unassured source change after terminal evidence.
   it does not claim that WB-CORE-003G has been closed.
 - AC-011 [req=REQ-010]: `.github/workflows/release-state-contract.yml` sets
   `fetch-depth: 0` on its checkout step, and
-  `scripts/test-release-state-contracts.py` deterministically rejects the
-  canonical workflow if that full-history setting is absent or changed.
+  `scripts/test-release-state-contracts.py` deterministically rejects a
+  shallow, absent, or misplaced full-history checkout configuration.
 
 ## Design Decision to Validate in Define
 
@@ -184,9 +184,9 @@ requirements-quality review, consistency analysis, Critic review, an Owner
 approved specification revision, and an explicit future source write-set.
 
 The CI history correction is part of that same bounded procedure: it is made
-before the new candidate is frozen, is included in its normative manifest, and
-is independently assured with the rest of the source subject. It is never
-appended after evidence-only persistence.
+before the new candidate is frozen and is independently assured with the rest
+of the frozen source subject. It is never appended after evidence-only
+persistence.
 
 ## Non-Goals
 

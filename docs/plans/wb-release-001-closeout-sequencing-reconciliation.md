@@ -127,8 +127,8 @@ scripts/test-release-state-contracts.py
 | `governance/release-state.md` | Defines the authoritative two-mode release-state semantics and default fail-closed boundary. |
 | `.agent/workflows/sdd-protocol.md` | Owns the self-hosting operational Close sequence. |
 | `FILE_REGISTRY.yml` | Owns the machine-readable accepted evidence sequence. |
-| `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation. |
-| `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof. |
+| `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation and retains the fail-closed candidate-manifest boundary. |
+| `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof, including canonical checkout-history configuration. |
 | `.github/workflows/release-state-contract.yml` | Owns CI checkout depth for the ancestry-dependent release-state validator. |
 
 No template, source skill, historical Work Block, closeout report, or
