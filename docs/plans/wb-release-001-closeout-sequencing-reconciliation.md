@@ -1,0 +1,187 @@
+---
+schema_version: 1
+artifact_type: work_block
+artifact_id: wb-release-001-closeout-sequencing-reconciliation
+work_block_id: WB-RELEASE-001
+status: in_progress
+owner_role: Owner
+created_at: 2026-08-24
+last_updated: 2026-08-24
+governance_profile: Managed
+branch: agent/wb-release-001-closeout-sequencing
+base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
+write_gate: BLOCKED
+critic_gate: PENDING
+review_gate: PENDING
+verification_verdict: PENDING
+drift_gate: PENDING
+evaluation_verdict: NOT_REQUIRED
+closeout_mode: pending
+owner_approval: Owner authorized Define investigation on a separate branch on 2026-08-24. Future source, commit, push, pull-request, merge, and external actions require their separately recorded authority.
+---
+
+# WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
+
+## Objective
+
+Repair the release-state sequencing contract exposed by the WB-CORE-003G pilot:
+the accepted terminal-assurance sequence requires a status-only normative
+subject, but the ordinary release-state validator correctly rejects that
+intermediate subject before its closeout evidence exists.
+
+## Expected Final Result
+
+The framework has one bounded, prospective, fail-closed procedure for a local
+pre-closeout candidate. It preserves ordinary release-state validation for any
+pushable/CI/mergeable head, permits independent final assurance of an exact
+terminal normative candidate, and requires an evidence-only persistence commit
+before ordinary release-state validation or CI can pass. WB-CORE-003G can then
+resume without relying on a contract-invalid published intermediate state.
+
+## Current State
+
+- **Current Stage:** Define
+- **Stage State:** in_progress
+- **Write Gate:** BLOCKED
+- **Critic Gate:** PENDING
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Evaluation Verdict:** NOT_REQUIRED
+- **Drift Gate:** PENDING
+- **Closeout Mode:** pending
+
+Evaluation is not required because this is deterministic governance and
+validator reconciliation; it introduces no non-deterministic product behavior.
+
+## Normative Baseline
+
+- **Approved Specification:** `docs/specs/wb-release-001-closeout-sequencing-reconciliation.md`
+  (draft; not yet authority for Execute).
+- **Derived Tasklist:** `docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md`.
+- **Governing contracts:** `governance/release-state.md`,
+  `governance/lifecycle.md`, `governance/artifacts.md`, `governance/authority.md`,
+  `.agent/workflows/sdd-protocol.md`, and `FILE_REGISTRY.yml`.
+- **Implementation owners under investigation:**
+  `scripts/validate-release-state.py` and
+  `scripts/test-release-state-contracts.py`.
+
+## Repository Preflight
+
+- **Clean isolated worktree:**
+  `/home/azur/Projects/WSL/agentic-sdlc-framework-wb-release-001`.
+- **Branch/baseline:** `agent/wb-release-001-closeout-sequencing` at
+  `bc05d3c554225d77aa23a4d63c5a8dd41c37ea34`.
+- **Original pilot checkout:** remains on
+  `agent/wb-core-003g-define-refresh` with four uncommitted status-only
+  projection files plus the Owner's unrelated
+  `Repository Graph Evaluation Brief.md`; none are in this worktree or scope.
+
+## Findings and Design Boundary
+
+The ordinary validator requires `latest_completed_work_block` to be the final
+registry entry and requires its successful closeout report. The accepted
+`FILE_REGISTRY.yml` evidence sequence instead places a `status_only_normative_commit`
+before final applicable assurance and an `evidence_only_report_commit` after it.
+The WB-CORE-003G candidate exposed the contradiction: `git diff --check` and
+source checks passed, while ordinary release-state/governance validation failed
+solely because no final closeout report could truthfully exist yet.
+
+Historical WB-SKILL-002A/B terminal projection commits included a success
+closeout before later terminal assurance reports were persisted. Their later
+reports correctly bound the terminal subject, but the recorded sequence leaves
+the completion claim temporally ambiguous. This Work Block corrects the
+prospective contract only; it does not rewrite those records.
+
+## Scope
+
+### In Scope Now — Define Only
+
+```text
+docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+docs/specs/wb-release-001-closeout-sequencing-reconciliation.md
+docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
+```
+
+### Proposed Future Source Write-Set — Not Authorized
+
+```text
+governance/release-state.md
+.agent/workflows/sdd-protocol.md
+FILE_REGISTRY.yml
+scripts/validate-release-state.py
+scripts/test-release-state-contracts.py
+```
+
+| Path | Owner / smallest sufficient change |
+| --- | --- |
+| `governance/release-state.md` | Defines the authoritative two-mode release-state semantics and default fail-closed boundary. |
+| `.agent/workflows/sdd-protocol.md` | Owns the self-hosting operational Close sequence. |
+| `FILE_REGISTRY.yml` | Owns the machine-readable accepted evidence sequence. |
+| `scripts/validate-release-state.py` | Owns deterministic ordinary/candidate validation. |
+| `scripts/test-release-state-contracts.py` | Owns executable positive and adversarial regression proof. |
+
+No template, source skill, historical Work Block, closeout report, or
+`PROJECT_MAP.md` change is proposed for Execute. `PROJECT_MAP.md` may be an
+approved terminal-projection path only during WB-RELEASE-001 Close, if the
+contract change itself completes successfully.
+
+### Out of Scope
+
+- Modifying the four uncommitted WB-CORE-003G pilot files or closing that Work
+  Block before this contract is accepted.
+- Retrofitting old closeout reports, relabeling old assurance, or changing
+  historical completed Work Blocks.
+- Any source/product/runtime/provider change, dependency, credential, GitHub
+  thread action, push, PR, merge, rebase, or default-branch mutation.
+
+## Design Options Considered
+
+| Option | Result | Disposition |
+| --- | --- | --- |
+| Keep the current sequence and tolerate failed ordinary validation | Preserves wording but leaves a known contract-invalid intermediate state. | Rejected. |
+| Put a successful closeout report in the terminal projection before terminal assurance | Lets ordinary validation pass but makes the success claim temporally ambiguous. | Rejected. |
+| Add a blanket validator exception for any missing latest closeout | Weakens the default fail-closed guarantee and permits accidental incomplete heads. | Rejected. |
+| Explicit local-only pre-closeout candidate mode plus ordinary final mode | Makes the exception deliberate, testable, non-promotable, and limited to terminal assurance sequencing. | Recommended, pending Define assurance. |
+
+## Define Quality and Assurance Plan
+
+Managed Define quality is required. The current evidence is:
+
+```text
+Requirements Review: PENDING
+Traceability: PENDING
+Consistency Analysis: PENDING
+Aggregate: PENDING
+```
+
+Before any source write, obtain requirements-quality review, consistency
+analysis, and Critic review. Then request a prospective Owner approval of a
+specific revised specification and exact source write-set. After execution,
+require independent Reviewer, fresh-clone Verifier, and Drift assurance on the
+frozen implementation subject; no candidate mode may authorize a push, PR,
+merge, CI claim, or external action.
+
+## Validation Plan
+
+Define structural validation:
+
+```bash
+git diff --check
+python3 scripts/validate-define-traceability.py \
+  --spec docs/specs/wb-release-001-closeout-sequencing-reconciliation.md \
+  --tasks docs/tasklist/wb-release-001-closeout-sequencing-reconciliation.md
+bash scripts/test-sdd-contract.sh
+bash scripts/validate-governance.sh
+python3 scripts/validate-release-state.py
+python3 scripts/test-release-state-contracts.py
+```
+
+The future implementation must add explicit candidate-mode positive/adversarial
+fixtures and retain ordinary-mode checks unchanged.
+
+## Resumption Rule
+
+WB-CORE-003G may resume only after WB-RELEASE-001 reaches a validated and
+approved closeout. Its existing status-only projection must then be rebuilt or
+rechecked against the current `main` and the accepted candidate procedure; no
+old local candidate is silently promoted.
