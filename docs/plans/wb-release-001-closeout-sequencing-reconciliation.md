@@ -3,21 +3,21 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-release-001-closeout-sequencing-reconciliation
 work_block_id: WB-RELEASE-001
-status: in_progress
+status: closeout_candidate
 owner_role: Owner
 created_at: 2026-08-24
 last_updated: 2026-08-24
 governance_profile: Managed
 branch: agent/wb-release-001-closeout-sequencing
 base_revision: bc05d3c554225d77aa23a4d63c5a8dd41c37ea34
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
-closeout_mode: pending
-owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. Revision r5 adds its named direct CI consumer only; refreshed r5 Define assurance supports the exact approved Execute write-set. No candidate, push, PR, or merge authority is implied.
+closeout_mode: candidate
+owner_approval: Owner authorized a corrective PR-history rewrite/force-push and directed prevention of recurrence after the exact-head Framework Contracts failure on 2026-08-24. The r5 source subject and bounded r6 publication-preflight correction are independently assured; this local pre-closeout candidate remains non-promotable. No merge authority is implied.
 ---
 
 # WB-RELEASE-001 — Release-State Closeout Sequencing Reconciliation
@@ -42,15 +42,15 @@ relying on a contract-invalid published intermediate state.
 
 ## Current State
 
-- **Current Stage:** Execute
-- **Stage State:** in_progress
-- **Write Gate:** READY
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Write Gate:** BLOCKED
 - **Critic Gate:** READY
 - **Review Gate:** PENDING
 - **Verification Verdict:** PENDING
 - **Evaluation Verdict:** NOT_REQUIRED
 - **Drift Gate:** PENDING
-- **Closeout Mode:** pending
+- **Closeout Mode:** candidate
 
 Evaluation is not required because this is deterministic governance and
 validator reconciliation; it introduces no non-deterministic product behavior.
