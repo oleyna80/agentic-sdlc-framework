@@ -5,68 +5,111 @@ artifact_id: wb-release-002-candidate-promotion-lifecycle
 work_block_id: WB-RELEASE-002
 status: draft
 created_at: 2026-08-25
-revision: define-r1-2026-08-25
-owner_approval: Owner authorized Define-only investigation of this revision on 2026-08-25. No source-write, commit, push, PR, merge, or canonical-projection authority is granted.
+revision: define-r2-2026-08-25
+owner_approval: Owner authorized correction of the WB-RELEASE-002 Define findings on 2026-08-25. This revision remains draft and grants no source-write, canonical-projection, pull request, merge, or thread-resolution authority.
 ---
 
 # WB-RELEASE-002 — Sequential Candidate Promotion and Next-Candidate Lifecycle
 
 ## Purpose and authority boundary
 
-This draft specification investigates the missing lifecycle transition exposed by the WB-CORE-003G pilot after WB-RELEASE-001 introduced a single evidence-bound `pre_closeout_candidate`. It is not approved for Execute and is not authority to modify release-state policy, validators, registry, map, or historical Work Blocks.
+This draft specification defines the missing lifecycle transition exposed after WB-RELEASE-001 introduced a single evidence-bound `pre_closeout_candidate`: an evidence-complete candidate needs a durable, truthful promotion state before a successor candidate can be declared.
 
-The specification must preserve the distinction between raw completed history and effective completion derived from immutable candidate evidence. A later approved revision may define a promotion record or another canonical representation, but may not fabricate evidence or backdate Owner approval.
+This revision is not approved for Execute. It is not authority to modify release-state policy, validators, registry, map, protocol, historical Work Blocks, or evidence. The future source/canonical write-set remains blocked until independent Define-quality evidence, Critic, and a later Owner approval resolve the normal Managed Write Gate.
+
+The design preserves four distinct concepts:
+
+1. raw historical `completed_work_blocks`;
+2. evidence-derived effective completion;
+3. the zero-or-one active `pre_closeout_candidate`;
+4. append-only promoted-candidate history.
+
+Candidate-derived completion must never be silently rewritten into raw history.
 
 ## Requirements
 
-- REQ-001: The lifecycle record must distinguish repository-proven raw completed state, evidence-derived effective completion, active candidate state, and any future promoted-candidate history. Missing or contradictory historical metadata must be reported as unverified rather than inferred.
-- REQ-002: Before a next candidate is declared, the prior evidence-complete candidate must be promoted through an explicit, deterministic transition that preserves its exact Work Block, evidence bindings, normative manifest, and effective-completion meaning.
-- REQ-003: The state model must allow exactly one active `pre_closeout_candidate` and must bind every candidate to one deterministic predecessor under the selected raw/effective history model.
-- REQ-004: Promotion must require the existing four evidence classes with the required verdicts, exact candidate binding, and unchanged normative manifest; incomplete or stale evidence must not authorize promotion.
-- REQ-005: Ordinary release-state validation must remain fail-closed for duplicate candidates, candidate/active coexistence, malformed projections, missing evidence, stale manifests, invalid predecessors, and ambiguous promotion history.
-- REQ-006: Promotion must retain immutable prior evidence and must not rewrite a raw historical Work Block from candidate-derived completion into a fact that was not recorded by the original lifecycle.
-- REQ-007: The invariant is prospective and transition-scoped. It must not force legacy records with absent profile/specification metadata into false compliance and must not register or mutate the WB-CORE-003G pilot from this Work Block.
-- REQ-008: The implementation design must assign each future source path to its owning contract and use the smallest sufficient change; this Define run authorizes no source path.
-- REQ-009: The future contract suite must exercise successful sequential promotion and adversarial cases for incomplete, duplicate, stale, reordered, and next-candidate state.
+- REQ-001: The lifecycle inventory and future state model must distinguish repository-proven raw completed state, evidence-derived effective completion, active candidate state, and promoted-candidate history. The baseline inventory must reconcile all 29 raw completed paths exactly. Missing or contradictory historical profile/specification metadata must be reported as `UNVERIFIED` rather than inferred from legacy prose, `process_level`, write-sets, or path references.
+- REQ-002: Before a successor candidate is declared, the prior evidence-complete candidate must pass a separate deterministic promotion transition. That transition must append an immutable evidence-bound promotion record to canonical machine history, clear the prior active candidate declaration, preserve its exact Work Block/evidence/normative-manifest/effective-completion meaning, and leave raw `completed_work_blocks` unchanged.
+- REQ-003: The state model must allow at most one active `pre_closeout_candidate`. Every new candidate must bind one deterministic predecessor equal to the `effective_latest_completed_work_block` from the immediately preceding validated repository state. Promotion must therefore validate before a separate successor-declaration revision; coding may not redefine predecessor as raw-latest when promoted effective history exists.
+- REQ-004: Promotion must require the existing four evidence classes with their required verdicts, exact candidate-subject binding, valid evidence-persistence ancestry/proof, and unchanged normative manifest at the promotion subject. Missing, stale, wrong-subject, or mutated evidence/manifest state must not authorize promotion.
+- REQ-005: Ordinary release-state validation must remain fail-closed for duplicate active candidates, candidate/active coexistence, malformed registry/map projection, missing evidence, stale manifests, invalid effective predecessors, duplicate promotion records, mutation/deletion/reordering of prior promoted history, candidate/promoted duplication, raw/promoted overlap, or an ambiguous/combined promotion-plus-successor transition that bypasses validation of the promotion state.
+- REQ-006: Promoted history must be append-only and retain immutable candidate/evidence revision bindings and evidence references. Promotion must not change historical Work Block lifecycle status/timing, relabel historical evidence, or append a candidate-derived completion to raw `completed_work_blocks`. Effective completion is derived from raw history plus ordered promoted history, plus the current evidence-complete candidate only where the existing candidate contract permits that derivation.
+- REQ-007: The invariant is prospective and transition-scoped. It must not force any of the 29 baseline raw completed records into a retroactive promotion migration, infer missing historical profile/specification authority, register or mutate WB-CORE-003G, or bring WB-CORE-003G/unrelated historical corrections into this Work Block.
+- REQ-008: The proposed future implementation write-set is exactly `governance/release-state.md`, `scripts/validate-release-state.py`, `scripts/test-release-state-contracts.py`, `FILE_REGISTRY.yml`, `PROJECT_MAP.md`, and `.agent/workflows/sdd-protocol.md`. Each path must remain owner-mapped to the smallest sufficient change. This draft authorizes none of those six paths for Execute.
+- REQ-009: The future contract suite must deterministically exercise successful promotion followed by a valid next-candidate declaration and adversarial cases for incomplete/wrong evidence, stale manifests, duplicate or mutated promoted history, deletion/reordering, candidate/promoted duplication, raw/promoted overlap, invalid effective predecessor, candidate/active coexistence, map disagreement, and attempted promotion/successor collapse without an intervening validated promotion state.
 
 ## Acceptance criteria
 
-- AC-001 [req=REQ-001]: The approved design includes a table of current completed/candidate records and explicitly labels missing profile/specification facts as `UNVERIFIED`.
-- AC-002 [req=REQ-002]: Given an evidence-complete WB-RELEASE-001 candidate, the design defines a transition that preserves its effective completion before a next candidate can be declared.
-- AC-003 [req=REQ-003]: The design defines exactly-one-candidate and predecessor rules for both the current candidate and its successor.
-- AC-004 [req=REQ-004]: A promotion attempt without all required exact-bound evidence or with a changed normative manifest is rejected deterministically.
-- AC-005 [req=REQ-005]: Existing fail-closed ordinary-mode behavior is retained for incomplete, duplicate, malformed, concurrent, or stale state; candidate mode cannot emit `READY`.
-- AC-006 [req=REQ-006]: The promoted record retains the prior candidate's immutable evidence references and does not alter the original Work Block's historical status or timing claims.
-- AC-007 [req=REQ-007]: No future validator rule is scoped as a retroactive global migration; the design explicitly excludes WB-CORE-003G and unrelated historical corrections.
-- AC-008 [req=REQ-008]: The approved implementation plan names the owning contract, smallest change, and rationale for every proposed source path, with the write-set remaining unauthorized until a later Owner decision.
-- AC-009 [req=REQ-009]: The future fixture plan covers a successful promotion, incomplete evidence, stale manifest, duplicate candidate, invalid predecessor, and valid next-candidate transition.
+- AC-001 [req=REQ-001]: The approved design reconciles exactly 29 raw completed paths as 19 records whose structured profile/specification applicability remains `UNVERIFIED` plus 10 raw records with explicit modern `governance_profile`; it separately identifies WB-RELEASE-001 as the candidate and does not count WB-SKILL-001 or WB-CORE-003G as baseline raw completed state.
+- AC-002 [req=REQ-002]: Given an evidence-complete WB-RELEASE-001 candidate, a promotion revision appends exactly one immutable promoted-history record, preserves exact candidate/evidence/manifest bindings, clears `pre_closeout_candidate`, mirrors the resulting state in `PROJECT_MAP.md`, and leaves raw `completed_work_blocks` byte-for-meaning unchanged before any successor candidate revision.
+- AC-003 [req=REQ-003]: After the promotion revision validates in ordinary mode, a separately created successor candidate is accepted only when its predecessor equals WB-RELEASE-001 as the effective latest completed Work Block; a successor pointing to the older raw latest WB-SKILL-002B is rejected.
+- AC-004 [req=REQ-004]: A promotion attempt without all required exact-bound evidence, without valid evidence-persistence proof, or with any changed normative-manifest path is rejected deterministically.
+- AC-005 [req=REQ-005]: Ordinary validation rejects incomplete, duplicate, malformed, reordered, deleted, stale, concurrently active, invalid-predecessor, candidate/promoted-overlap, raw/promoted-overlap, map-disagreement, or unvalidated combined-transition state; candidate mode continues to emit only its distinct candidate classification and cannot emit ordinary `READY`.
+- AC-006 [req=REQ-006]: The promoted record retains exact immutable candidate/evidence revision and evidence-reference data while the original Work Block and raw `completed_work_blocks` retain their historical status, timing, and membership.
+- AC-007 [req=REQ-007]: No new validator rule performs a retroactive global migration or metadata inference; WB-CORE-003G and unrelated historical corrections remain explicitly excluded.
+- AC-008 [req=REQ-008]: The implementation plan names the owning contract, smallest change, and rationale for exactly the six proposed future paths, and records that none is authorized until a later Owner decision after Define-quality and Critic evidence.
+- AC-009 [req=REQ-009]: Deterministic fixtures cover one successful promotion and valid successor plus every adversarial class named in REQ-009, including a successor that incorrectly uses raw latest instead of promoted effective latest and a combined transition without an independently validated promotion state.
 
-## Historical impact and scope decision
+## Baseline historical impact and scope decision
 
-The repository-wide inventory finds bounded impact: WB-RELEASE-001 is the only active evidence-complete candidate requiring promotion semantics. WB-SKILL-002, WB-SKILL-002A, WB-SKILL-002B, and WB-SKILL-001 have explicit approved specifications and raw completed records; no new transition failure is inferred for them. Nineteen older completed records lack structured profile/specification metadata and remain unverified. WB-CORE-003G is not part of the current baseline.
+The baseline registry contains exactly 29 raw completed Work Blocks and one `pre_closeout_candidate`:
 
-The recommended scope is prospective serial transition (option d: a separate promotion contract), not a latest-only retroactive validator sweep and not a rewrite of all completed records. The approved design must compare a durable effective-completion ledger with direct promotion into `completed_work_blocks`, explaining why the selected representation preserves raw history and current validator safety.
+- the first 19 raw entries, from WB-001 through WB-CORE-003E, have no structured modern `governance_profile`; their profile and separate-spec applicability remain `UNVERIFIED`, regardless of legacy prose or `process_level` values;
+- the remaining 10 raw entries have explicit modern profiles: WB-OPENCODE-002, WB-DESIGN-001, WB-DESIGN-002, WB-REPO-GRAPH-001, WB-CORE-003F, WB-DEFINE-001, WB-GIT-001, WB-SKILL-002, WB-SKILL-002A, and WB-SKILL-002B;
+- WB-SKILL-001 is not a baseline `completed_work_blocks` member and is not counted;
+- WB-RELEASE-001 is the one candidate/effective-completion subject and is not raw completed;
+- WB-CORE-003G is not part of the baseline completed/candidate registry state.
 
-## Future implementation candidates (not authorized)
+Historical impact is therefore **BOUNDED COLLATERAL IMPACT**: the new rule does not migrate any raw historical record. It supplies a prospective transition for WB-RELEASE-001 and later candidates only.
 
-- `governance/release-state.md` — normative serial-promotion and effective-history semantics are absent from the current contract.
-- `scripts/validate-release-state.py` — deterministic enforcement of promotion prerequisites, one-candidate serialization, predecessor continuity, and history binding.
-- `scripts/test-release-state-contracts.py` — regression fixtures for successful and adversarial transitions.
-- `FILE_REGISTRY.yml` — only if the selected canonical history representation requires a new machine-state field; not a pre-authorized path.
-- `PROJECT_MAP.md` — only if the machine-state shape changes and its human projection must be synchronized; not a pre-authorized path.
-- `.agent/workflows/sdd-protocol.md` — only if the final design requires a lifecycle procedure beyond release-state policy; not a pre-authorized path.
+## Selected state representation
 
-No source implementation, governance edit, registry/map edit, or fixture change occurs while this specification is `draft`.
+The draft selects an ordered append-only promoted-candidate ledger under `FILE_REGISTRY.yml:migration_state`, mirrored in `PROJECT_MAP.md`. The implementation may choose the final field spelling, but not a different semantic model without returning to Define.
+
+Each promoted record must bind at minimum:
+
+- Work Block path and ID;
+- deterministic predecessor effective Work Block;
+- exact candidate revision;
+- exact evidence-persistence revision;
+- the four declared evidence paths and their exact candidate binding;
+- the ordered normative manifest that was proved unchanged;
+- an unambiguous promoted/effective-completion state token.
+
+The ledger is canonical machine history separate from raw `completed_work_blocks`. Ordinary effective history is derived in order from raw completed history plus validated promotion records. A currently declared candidate may be additionally derived as effective only under the existing evidence-complete candidate contract; that temporary derivation must be converted to a durable ledger record before the candidate slot is reused.
+
+Promotion and successor declaration are separate repository revisions. The promotion revision must validate first. The later candidate declaration must use the previously validated `effective_latest_completed_work_block` as predecessor.
+
+Directly appending candidate-derived completion to raw `completed_work_blocks`, using a separate unapproved canonical store, or combining promotion and successor declaration so that the intermediate promoted state is never validated is outside this specification.
+
+## Future implementation write-set — proposed, exact, unauthorized
+
+- `governance/release-state.md` — define the ordered promotion ledger, effective-history derivation, promotion prerequisites, append-only semantics, and effective-predecessor rule.
+- `scripts/validate-release-state.py` — enforce exact promotion evidence/manifest binding, ledger uniqueness/order/immutability, effective-history derivation, and successor predecessor continuity.
+- `scripts/test-release-state-contracts.py` — prove positive and adversarial promotion/next-candidate behavior.
+- `FILE_REGISTRY.yml` — host the canonical ordered promoted-candidate history used by the actual future transition.
+- `PROJECT_MAP.md` — mirror the same migration state and candidate/promotion projection.
+- `.agent/workflows/sdd-protocol.md` — prescribe promotion → ordinary validation → separate successor declaration operational sequencing.
+
+No source implementation, governance edit, registry/map edit, protocol edit, or fixture change is authorized while this specification remains `draft`.
 
 ## Verification boundary
 
-Define quality, consistency analysis, and Critic are required before any future Execute decision. Independent Reviewer, fresh-clone Verifier, and Drift assurance apply to the later frozen implementation subject. Evaluation is not required because the target is deterministic governance/tooling lifecycle behavior with no non-deterministic product behavior.
+Corrected Define revision `define-r2-2026-08-25` requires fresh independent requirements-quality review, structural traceability, read-only consistency analysis, and Critic before any future Execute decision. Expected structural traceability remains:
+
+```text
+READY
+requirements=9 acceptance=9 tasks=15
+```
+
+Independent Reviewer, fresh-clone Verifier, and Drift assurance apply later to the frozen implementation subject. Evaluation is not required because the target is deterministic governance/tooling lifecycle behavior with no non-deterministic product behavior.
 
 ## Non-goals
 
-- Do not change WB-RELEASE-001 or its historical evidence in this Define run.
-- Do not repair WB-CORE-003G from this branch.
-- Do not alter existing candidate validation to make an invalid intermediate state pass.
-- Do not infer external Owner approval, historical profile, or historical specification authority.
+- Do not change WB-RELEASE-001 or any of its historical/source/final evidence from this Define revision.
+- Do not repair, register, promote, or relabel WB-CORE-003G from this Work Block.
+- Do not alter existing candidate validation merely to make an invalid intermediate state pass.
+- Do not infer external Owner approval, historical governance profile, or historical specification authority.
+- Do not retroactively add candidate-derived completion to raw `completed_work_blocks`.
 - Do not address Gemini recommendations, converge loops, context pruning, extensions, presets, workflows, bundles, or unrelated legacy cleanup.
 
