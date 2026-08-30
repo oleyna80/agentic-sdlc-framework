@@ -1268,6 +1268,12 @@ work_block_id: wb-007
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(broken, sort_keys=False))
         expect_failure("promotion-empty-ledger", root, "must be a non-empty array")
 
+        mutated = deepcopy(promoted_registry)
+        mutated["migration_state"]["promoted_candidates"][0]["candidate_revision"] = "a" * 40
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(mutated, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=mutated["migration_state"]["promoted_candidates"]))
+        expect_failure("promotion-record-mutation", root, "working-tree mutation is forbidden")
+
     print("Release-state contract fixtures: OK")
     return 0
 

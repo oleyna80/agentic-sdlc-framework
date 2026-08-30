@@ -1189,6 +1189,11 @@ def map_state_at(root: Path, revision: str) -> dict[str, Any]:
     return value
 
 
+def map_promoted_field_count(text: str) -> int:
+    match = MAP_BLOCK_RE.search(text)
+    return len(re.findall(r"^promoted_candidates:\s*", match.group("body"), re.MULTILINE)) if match else 0
+
+
 def revision_blob(root: Path, revision: str, relative: str) -> str:
     return git_output(root, "rev-parse", f"{revision}:{relative}")
 
@@ -1201,6 +1206,9 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         if current:
             raise ReleaseStateError("promoted_candidates requires a Git ancestry")
         return
+    head_ledger = registry_at(root, head)["migration_state"].get("promoted_candidates")
+    if current != promoted_candidates(root, head_ledger, "HEAD promoted_candidates"):
+        raise ReleaseStateError("promoted_candidates working-tree mutation is forbidden")
     if not current:
         history = git_output(
             root, "log", "--format=%H", "-S", "promoted_candidates", head,
@@ -1354,6 +1362,11 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         raise ReleaseStateError("FILE_REGISTRY.yml contains duplicate promoted_candidates fields")
     if promoted_field_count and migration.get("promoted_candidates") is None:
         raise ReleaseStateError("promoted_candidates must be absent before first promotion or a non-empty array after it")
+    map_promoted_count = map_promoted_field_count(map_text)
+    if map_promoted_count > 1 or (map_promoted_count and map_state.get("promoted_candidates") is None):
+        raise ReleaseStateError("PROJECT_MAP promoted_candidates must be absent or a single non-empty array")
+    if bool(promoted_field_count) != bool(map_promoted_count):
+        raise ReleaseStateError("PROJECT_MAP promoted_candidates presence does not match FILE_REGISTRY.yml")
     promoted = promoted_candidates(root, migration.get("promoted_candidates"), "promoted_candidates")
     map_promoted = promoted_candidates(root, map_state.get("promoted_candidates"), "PROJECT_MAP promoted_candidates")
     if map_promoted != promoted:
