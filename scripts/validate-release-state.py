@@ -1271,6 +1271,12 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         changed = set(filter(None, git_output(root, "diff", "--name-only", f"{parent}..{child}").splitlines()))
         if changed != {"FILE_REGISTRY.yml", "PROJECT_MAP.md"}:
             raise ReleaseStateError("promotion transition must change exactly FILE_REGISTRY.yml and PROJECT_MAP.md")
+        if (
+            child_state.get("completed_work_blocks") != parent_state.get("completed_work_blocks")
+            or child_state.get("active_work_block") != parent_state.get("active_work_block")
+            or child_registry.get("release_state") != registry_at(root, parent).get("release_state")
+        ):
+            raise ReleaseStateError("promotion transition must preserve the raw release-state history")
         if parent_state.get("pre_closeout_candidate") is None or child_state.get("pre_closeout_candidate") is not None:
             raise ReleaseStateError("promotion transition must clear exactly one existing candidate")
         record = child_ledger[-1]

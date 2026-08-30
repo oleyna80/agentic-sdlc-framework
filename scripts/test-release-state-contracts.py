@@ -1287,6 +1287,23 @@ work_block_id: wb-007
             "normative_manifest": declaration["normative_manifest"],
             "state": "promoted_effective",
         }]
+        def commit_bad_first_promotion(label: str, extra_paths: list[str]) -> None:
+            bad = registry()
+            bad["migration_state"]["pre_closeout_candidate"] = None
+            bad["migration_state"]["promoted_candidates"] = promoted
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False))
+            write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+            for relative in extra_paths:
+                write(root / relative, f"# {label}\n")
+            git(root, "add", "."); git(root, "commit", "-qm", label)
+            expect_failure(label, root, "promotion transition must change exactly")
+            git(root, "reset", "--hard", evidence_sha)
+
+        commit_bad_first_promotion("promotion-extra-path", ["docs/extra-promotion-path.md"])
+        commit_bad_first_promotion("promotion-combined-six-path", [
+            ".agent/workflows/sdd-protocol.md", "governance/release-state.md",
+            "scripts/validate-release-state.py", "scripts/test-release-state-contracts.py",
+        ])
         promoted_registry = registry()
         promoted_registry["migration_state"]["pre_closeout_candidate"] = None
         promoted_registry["migration_state"]["promoted_candidates"] = promoted
@@ -1330,6 +1347,15 @@ work_block_id: wb-007
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
         expect_failure("promotion-map-disagreement", root, "do not match FILE_REGISTRY")
+
+        git(root, "reset", "--hard", "HEAD")
+        deleted = registry()
+        deleted["migration_state"]["pre_closeout_candidate"] = None
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(deleted, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map())
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "committed ledger deletion")
+        expect_failure("promotion-committed-ledger-deletion", root, "deletion is forbidden")
 
     print("Release-state contract fixtures: OK")
     return 0
