@@ -1335,10 +1335,86 @@ work_block_id: wb-007
         assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE, subsequent["work_block"]]
 
         good_head = git(root, "rev-parse", "HEAD")
+        # A valid-shaped subsequent record still requires a sole-parent transition.
+        # Build its candidate/evidence history with the production helper, then
+        # reuse the exact promotion tree in a two-parent introduction.
+        add_promoted_candidate(root, 10, subsequent["work_block"], promoted)
+        third_evidence = git(root, "rev-parse", "HEAD^")
+        third_tree = git(root, "rev-parse", "HEAD^{tree}")
+        git(root, "checkout", "-q", "-B", "master", third_evidence)
+        git(root, "checkout", "-qb", "subsequent-promotion-side", third_evidence)
+        write(root / "docs/subsequent-promotion-side.md", "side\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "subsequent promotion side parent")
+        third_side = git(root, "rev-parse", "HEAD")
+        ambiguous_third = git(
+            root,
+            "commit-tree",
+            third_tree,
+            "-p",
+            third_evidence,
+            "-p",
+            third_side,
+            "-m",
+            "ambiguous subsequent promotion",
+        )
+        git(root, "update-ref", "HEAD", ambiguous_third)
+        git(root, "checkout", "-q", "-f", ambiguous_third)
+        expect_failure(
+            "promotion-invalid-subsequent-ancestry",
+            root,
+            "promotion transition must have one direct parent",
+        )
+        git(root, "checkout", "-q", "-B", "master", good_head)
+
+        # Two reachable, otherwise valid introductions of the same retained
+        # record are ambiguous history, even when their merge has one ledger.
+        duplicate_registry = registry()
+        duplicate_registry["migration_state"]["pre_closeout_candidate"] = None
+        duplicate_registry["migration_state"]["promoted_candidates"] = [promoted[0]]
+        git(root, "checkout", "-q", "-B", "duplicate-first", evidence_sha)
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "first duplicate promotion introduction")
+        duplicate_first = git(root, "rev-parse", "HEAD")
+        git(root, "checkout", "-q", "-B", "duplicate-second", evidence_sha)
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "second duplicate promotion introduction")
+        duplicate_second = git(root, "rev-parse", "HEAD")
+        # Make the merge tree distinct from both parents so the validator's
+        # path-limited ancestry traversal must retain both introductions.
+        duplicate_merge_registry = deepcopy(duplicate_registry)
+        duplicate_merge_registry["fixture_history_marker"] = "non-unique-introduction"
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_merge_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        duplicate_tree = git(root, "write-tree")
+        duplicate_merge = git(
+            root,
+            "commit-tree",
+            duplicate_tree,
+            "-p",
+            duplicate_first,
+            "-p",
+            duplicate_second,
+            "-m",
+            "non-unique promotion introduction",
+        )
+        git(root, "update-ref", "HEAD", duplicate_merge)
+        git(root, "checkout", "-q", "-f", duplicate_merge)
+        expect_failure(
+            "promotion-non-unique-historical-introduction",
+            root,
+            "each promotion record requires one uniquely discoverable transition",
+        )
+        git(root, "checkout", "-q", "-B", "master", good_head)
+
         fabricated = deepcopy(promoted[-1]); fabricated["work_block"] = "docs/plans/fabricated-promotion.md"; fabricated["work_block_id"] = "WB-FAB"; fabricated["predecessor_effective_work_block"] = promoted[-1]["work_block"]; fabricated["normative_manifest"] = ["docs/plans/fabricated-promotion.md", "FILE_REGISTRY.yml", "PROJECT_MAP.md"]
         for label, record, expected in (
             ("promotion-fabricated-history", fabricated, "must clear exactly one existing candidate"),
-            ("promotion-invalid-subsequent-ancestry", {**fabricated, "predecessor_effective_work_block": COMPLETED}, "predecessor ordering is invalid"),
+            ("promotion-invalid-subsequent-predecessor", {**fabricated, "predecessor_effective_work_block": COMPLETED}, "predecessor ordering is invalid"),
         ):
             bad = registry(); bad["migration_state"]["pre_closeout_candidate"] = None; bad["migration_state"]["promoted_candidates"] = promoted + [record]
             write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=bad["migration_state"]["promoted_candidates"]))
