@@ -6,28 +6,28 @@ work_block_id: WB-RELEASE-002
 status: in_progress
 owner_role: Owner
 created_at: 2026-08-25
-last_updated: 2026-08-25
+last_updated: 2026-08-30
 governance_profile: Managed
 branch: agent/wb-release-002-candidate-promotion
 base_revision: 73cd1cab36af327683991c768ea887911547df06
-write_gate: BLOCKED
-critic_gate: PENDING
+write_gate: READY_PHASE_A_ONLY
+critic_gate: READY
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: NOT_REQUIRED
 closeout_mode: pending
-owner_approval: Owner authorized correction of the WB-RELEASE-002 Define findings on 2026-08-25. This authorization is limited to the same three Define artifacts and their feature-branch persistence; it does not authorize source changes, canonical projection changes, pull request creation/update, merge, or thread resolution.
+owner_approval: Owner approved the corrected Define as authoritative and opened the WB-RELEASE-002 Phase A four-path Execute/Write Gate on 2026-08-30. FILE_REGISTRY.yml, PROJECT_MAP.md, actual promotion, push, PR mutation, merge, deployment, cleanup, and all other paths remain blocked pending separate Owner authority.
 ---
 
 # WB-RELEASE-002 — Sequential Candidate Promotion and Next-Candidate Lifecycle
 
 ## Stage and objective
 
-- **Current Stage:** Define
-- **Stage State:** in_progress
-- **Role:** Orchestrator → Architect
-- **Objective:** define a truthful, fail-closed transition from an evidence-complete `pre_closeout_candidate` to durable promoted history and then to the next candidate without discarding effective completion history or weakening ordinary release-state validation.
+- **Current Stage:** Execute
+- **Stage State:** PHASE_A_MECHANISM_ENABLEMENT_AUTHORIZED
+- **Role:** Orchestrator → Coder
+- **Objective:** implement the approved, truthful, fail-closed mechanism for a later transition from an evidence-complete `pre_closeout_candidate` to durable promoted history, without performing that promotion or weakening ordinary release-state validation.
 
 ## Context and confirmed trigger
 
@@ -41,12 +41,12 @@ An approved future specification and implementation plan define one serial candi
 
 ## Done criteria for Define
 
-- [ ] Current release-state candidate and all 29 raw completed records are reconciled from the baseline registry.
-- [ ] Historical impact is classified without inferring missing profile/specification metadata.
-- [ ] A prospective serial transition model and deterministic predecessor rule are selected.
-- [ ] Future implementation owners and smallest proposed write-set are recorded.
-- [ ] Requirements, acceptance criteria, and tasklist are structurally traceable.
-- [ ] Requirements review, consistency analysis, and Critic remain pending until their separate read-only stages.
+- [x] Current release-state candidate and all 29 raw completed records are reconciled from the baseline registry.
+- [x] Historical impact is classified without inferring missing profile/specification metadata.
+- [x] A prospective serial transition model and deterministic predecessor rule are selected.
+- [x] Future implementation owners and smallest proposed write-set are recorded.
+- [x] Requirements, acceptance criteria, and tasklist are structurally traceable.
+- [x] Fresh read-only Requirements Review, Consistency Analysis, and Critic review are complete; their verdicts are recorded below because this correction cannot create separate report artifacts.
 
 ## Normative baseline
 
@@ -145,9 +145,9 @@ The exact reconciliation is therefore **19 legacy/unverified-profile raw records
 
 ## Selected prospective transition model
 
-The draft design selects the exact canonical machine field **`FILE_REGISTRY.yml:migration_state.promoted_candidates`**, mirrored by the release-state projection in `PROJECT_MAP.md`. Direct promotion into `completed_work_blocks` is rejected because it would convert evidence-derived completion into a raw historical fact that the original Work Block never recorded.
+The draft design selects the exact canonical machine field **`FILE_REGISTRY.yml:migration_state.promoted_candidates`**; `PROJECT_MAP.md` is its derived projection, not a second SSOT. Direct promotion into `completed_work_blocks` is rejected because it would convert evidence-derived completion into a raw historical fact; clearing the candidate without durable history loses effective-predecessor continuity; a separate canonical artifact would create an unnecessary second SSOT.
 
-`promoted_candidates` is an ordered append-only list. Each record has exactly these semantic fields (final serialization syntax is YAML):
+`promoted_candidates` is an ordered append-only list. Its absence is valid only before the first promotion; thereafter it must be non-empty, ordered, retained, and projected exactly. Each record has exactly these semantic fields (final serialization syntax is YAML):
 
 ```text
 work_block
@@ -164,76 +164,74 @@ state: promoted_effective
 
 ### Promotion and successor sequence
 
-1. **Validated promotion parent:** the parent revision of a promotion must pass ordinary release-state validation with exactly one evidence-complete candidate derived as effective. At that parent, the existing evidence-persistence proof and current-HEAD candidate normative-manifest checks must already pass.
-2. **Dedicated promotion transition:** from that validated parent, append exactly one record to `migration_state.promoted_candidates` and clear `pre_closeout_candidate`. The promotion revision may change exactly `FILE_REGISTRY.yml` and `PROJECT_MAP.md`; `completed_work_blocks`, the candidate Work Block, all four evidence artifacts, and every other path remain unchanged.
-3. **Cross-revision promotion proof:** a deterministic comparison of the validated parent and promotion revision must verify the exact two-path delta, exact copied candidate/evidence/manifest bindings, append-only ledger growth by one record, candidate-slot clearing, registry/map agreement, and no other change. It must not require `FILE_REGISTRY.yml`/`PROJECT_MAP.md` to equal their candidate-manifest blobs after the transition, because those two projections are the intentional state-transition delta.
-4. **Post-promotion ordinary validation:** ordinary mode must validate the new ledger record, its candidate/evidence revisions, evidence paths, historical normative-manifest binding through the validated parent, uniqueness, ordering, and predecessor continuity. The promoted Work Block becomes the durable effective latest completed entry through the ledger, not through raw-history mutation.
-5. **Separate successor declaration revision:** only after the promotion revision itself validates in ordinary mode may a next `pre_closeout_candidate` be declared.
-6. **Deterministic predecessor rule:** every new candidate's predecessor must equal the `effective_latest_completed_work_block` from the immediately preceding validated state. At the current baseline that is WB-SKILL-002B before WB-RELEASE-001 becomes effective; after WB-RELEASE-001 promotion it is WB-RELEASE-001 for the next candidate.
+1. **Validated promotion parent:** the sole direct parent of a promotion must pass ordinary release-state validation with exactly one evidence-complete candidate derived as effective. At that parent, the existing evidence-persistence proof and current-HEAD candidate normative-manifest checks must already pass.
+2. **Dedicated promotion transition:** its one-parent child appends exactly one record to `migration_state.promoted_candidates` and clears `pre_closeout_candidate`. The promotion revision may change exactly `FILE_REGISTRY.yml` and `PROJECT_MAP.md`; `completed_work_blocks`, the candidate Work Block, all four evidence artifacts, and every other path remain unchanged.
+3. **Cross-revision promotion proof:** a deterministic discovery of the unique first commit that introduces each ledger record must verify its one direct parent, exact two-path delta, copied candidate/evidence/manifest bindings, append-only ledger growth by one record, candidate-slot clearing, registry/map agreement, and no other change. Merge-based or ambiguous discovery fails closed.
+4. **Post-promotion ordinary validation:** ordinary mode validates the new ledger record, its candidate/evidence revisions, evidence paths, historical normative-manifest binding through the parent, uniqueness, ordering, and predecessor continuity. The promoted Work Block becomes the durable effective latest completed entry through the ledger, not raw-history mutation.
+5. **Separate successor declaration revision:** only after the promotion revision itself validates in ordinary mode may a next `pre_closeout_candidate` be declared through the existing `predecessor_completed_work_block` field, whose prospective meaning is effective latest; a second/legacy-alternative predecessor field is rejected.
+6. **Deterministic ordering:** raw `completed_work_blocks` is frozen once promoted history begins. New Work Blocks may still be declared, executed, and ordinarily validated, but their managed completion proceeds through candidate then separately validated promotion, so the ledger supplies the unambiguous effective-history continuation.
 7. **Serialization:** a promotion record and a successor candidate may not be introduced as an ambiguous combined transition that bypasses validation of the promotion state; promotion precedes successor declaration in repository history.
 8. **Uniqueness and append-only history:** the same Work Block ID/path may not appear more than once in promoted history or simultaneously as promoted and active candidate; raw/promoted overlap, deletion, mutation, or reordering of a prior promotion record fails closed.
 9. **Existing safety preserved:** incomplete evidence, stale pre-promotion manifests, candidate/active coexistence, malformed map/registry projection, invalid predecessor, duplicate candidate, or ambiguous promotion ancestry remains `BLOCKED`, never `READY`.
 
 This is a draft architecture/specification choice, not Execute authority. Replacing `promoted_candidates` with direct raw-history mutation or a separate canonical artifact is a material specification change and must return to Define/Owner approval rather than being selected during coding.
 
-## Proposed future implementation write-set — exactly six paths, not authorized
+## Proposed future implementation write-set — exactly four paths, not authorized
 
 | Path | Owner / defect | Smallest sufficient future change | Why required |
 |---|---|---|---|
 | `governance/release-state.md` | Architect; missing serial promotion semantics | define `promoted_candidates`, promotion-parent proof, exact transition delta, effective history, and effective-predecessor rule | policy must exist before code enforcement |
 | `scripts/validate-release-state.py` | deterministic release-state owner | validate append-only promoted history, pre-promotion evidence/manifest integrity, exact promotion transition, uniqueness, ordering, and successor predecessor continuity | existing validator owns raw/effective release-state derivation |
 | `scripts/test-release-state-contracts.py` | release-state fixture owner | add positive and adversarial promotion/next-candidate fixtures | regression proof belongs beside the validator |
-| `FILE_REGISTRY.yml` | canonical machine migration state | add `promoted_candidates` and use it for the actual future transition | selected design requires durable machine-readable history |
-| `PROJECT_MAP.md` | human projection of migration state | mirror promoted history and candidate state consistently with the registry | current release-state contract requires registry/map agreement |
 | `.agent/workflows/sdd-protocol.md` | self-hosting lifecycle procedure | add validated-parent → promotion proof → ordinary validation → separate next-candidate sequence | the existing protocol currently stops after evidence persistence/ordinary validation |
 
-No source or canonical path above is authorized for Execute by this Define correction. A later Owner decision must approve the specification revision and exact implementation write-set after Define-quality evidence and Critic are resolved.
+The four paths above implement the contract. Separately, the future operational promotion transition is exactly `FILE_REGISTRY.yml` plus `PROJECT_MAP.md`, after implementation validates and only under its own Owner gate; it is not part of the implementation write-set and cannot be bundled with successor declaration. No source or canonical path is authorized by this Define correction.
 
 ## Define quality state
 
 - **Required:** yes — Managed formal specification.
-- **Requirements Review:** PENDING — rerun against corrected Define revision.
-- **Traceability:** PENDING — rerun against corrected Define revision.
-- **Consistency Analysis:** PENDING — rerun after requirements review/traceability.
-- **Aggregate:** PENDING.
+- **Requirements Review:** READY — fresh independent read-only re-review of the corrected three-file subject.
+- **Traceability:** READY — `python3 scripts/validate-define-traceability.py` reported `requirements=9 acceptance=9 tasks=15`.
+- **Consistency Analysis:** READY — fresh independent read-only analysis of the corrected three-file subject and governing contracts.
+- **Aggregate:** READY — evidence is Define-only and does not grant Execute authority.
 
 ## Gates and authority
 
-- **Write Gate:** BLOCKED.
-- **Critic Gate:** PENDING.
+- **Write Gate:** READY_PHASE_A_ONLY — limited to `governance/release-state.md`, `scripts/validate-release-state.py`, `scripts/test-release-state-contracts.py`, and `.agent/workflows/sdd-protocol.md`.
+- **Critic Gate:** READY — fresh Critic verdict `APPROVE`; it remains advisory and does not open the Write Gate.
 - **Review Gate:** PENDING.
 - **Verification Verdict:** PENDING.
 - **Drift Gate:** PENDING.
 - **Evaluation Verdict:** NOT_REQUIRED — deterministic governance/release-state lifecycle design introduces no non-deterministic product behavior.
-- **Closeout Mode:** pending.
+- **Closeout Mode:** PHASE_A_EXECUTE — the two-path canonical promotion transition requires a later separate Owner decision.
 
 ## Acceptance criteria
 
 - [ ] AC-001 [req=REQ-001]: The inventory reconciles exactly 29 raw completed paths as 19 legacy records with structured profile/spec facts left `UNVERIFIED` plus 10 records with explicit modern profile metadata, separately identifies WB-RELEASE-001 as the sole active candidate, and does not count WB-SKILL-001 or WB-CORE-003G as baseline raw completed state.
 - [ ] AC-002 [req=REQ-002]: The specification requires a separately validated promotion parent and a promotion revision that appends exactly one `promoted_candidates` record, clears the active candidate declaration, changes exactly `FILE_REGISTRY.yml` and `PROJECT_MAP.md`, and leaves raw `completed_work_blocks`, candidate/evidence artifacts, and every other path unchanged before any successor candidate revision.
-- [ ] AC-003 [req=REQ-003]: The future state model permits at most one active candidate, and a successor candidate is accepted only when its predecessor equals the effective latest completed Work Block from the immediately preceding validated promotion state.
+- [ ] AC-003 [req=REQ-003]: The future state model permits at most one active candidate, and a successor candidate uses the canonical `predecessor_completed_work_block` field with the effective latest completed Work Block from the immediately preceding validated promotion state; no alternate predecessor field is allowed.
 - [ ] AC-004 [req=REQ-004]: Promotion is rejected unless the parent state already proves all four exact candidate-bound evidence classes, valid evidence persistence, and unchanged candidate normative manifest, and unless the parent→promotion comparison proves the exact two-path registry/map transition with no other delta.
-- [ ] AC-005 [req=REQ-005]: Ordinary validation rejects incomplete, duplicated, malformed, reordered, deleted, stale, concurrently active, invalid-predecessor, raw/promoted-overlap, or ambiguous promotion state.
-- [ ] AC-006 [req=REQ-006]: Promoting a candidate retains immutable candidate/evidence/manifest bindings through the promotion record without changing any raw historical Work Block lifecycle status/timing or appending the candidate to raw `completed_work_blocks`.
+- [ ] AC-005 [req=REQ-005]: Ordinary validation rejects incomplete, duplicated, malformed, reordered, deleted, stale, concurrently active, invalid-predecessor, raw/promoted-overlap, absent/null/empty post-promotion ledger, merge-based/ambiguous promotion ancestry, or ambiguous promotion state.
+- [ ] AC-006 [req=REQ-006]: Promoting a candidate retains immutable candidate/evidence/manifest bindings through the promotion record without changing any raw historical Work Block lifecycle status/timing or appending the candidate to raw `completed_work_blocks`; raw history is frozen after the first promotion.
 - [ ] AC-007 [req=REQ-007]: The new promotion invariant applies prospectively and does not migrate the 29 historical raw records, register/mutate WB-CORE-003G, or relabel historical evidence.
-- [ ] AC-008 [req=REQ-008]: The proposed future implementation write-set is exactly the six owner-mapped paths above and remains unauthorized until a later Owner approval after Define-quality and Critic evidence.
+- [ ] AC-008 [req=REQ-008]: The proposed future implementation write-set is exactly the four owner-mapped implementation paths; the exact two-path registry/map promotion transition is separately Owner-gated and neither set is authorized by this Define correction.
 - [ ] AC-009 [req=REQ-009]: The future fixture plan covers successful validated-parent promotion followed by a valid next candidate plus incomplete evidence, stale pre-promotion manifest, forbidden extra transition path, duplicate promotion, promotion-record mutation/deletion/reordering, candidate/promoted duplication, raw/promoted overlap, invalid effective predecessor, candidate/active coexistence, map disagreement, and an attempted combined transition that bypasses a validated promotion state.
 
 ## Assumptions and Owner boundary
 
-- The current Owner instruction authorizes correction/persistence of these three Define artifacts only; no Execute/source/canonical projection or PR/merge/thread authority is implied.
-- The draft selects exact field `migration_state.promoted_candidates` to remove implementation ambiguity. It is not authoritative for Execute until a later Owner approval makes the corrected specification authoritative.
+- The current Owner instruction makes this corrected Define authoritative and authorizes only Phase A mechanism enablement in the exact four-path write-set; no canonical projection, actual promotion, push, PR/merge/thread, deployment, cleanup, or successor declaration authority is implied.
+- The draft selects exact field `migration_state.promoted_candidates` as the only canonical promotion-history store, with `PROJECT_MAP.md` derived from it. It is not authoritative for Execute until a later Owner approval makes the corrected specification authoritative.
 - Historical records without structured `governance_profile` or explicit separate-specification binding remain `UNVERIFIED`; legacy prose is not converted into modern metadata.
-- Any future proposal to mutate raw `completed_work_blocks` for candidate-derived completion, use a different canonical promotion store, or collapse promotion and successor declaration into one unvalidated state transition is a material specification change and returns to Define.
+- Any future proposal to mutate raw `completed_work_blocks` for candidate-derived completion, resume raw-history appends after promotion begins, use a different canonical promotion store, change predecessor serialization, or collapse promotion and successor declaration into one unvalidated state transition is a material specification change and returns to Define.
 
 ## Implementation plan
 
 | Task | Owner Role | Write-Set | Dependencies | Expected Evidence | Status |
 |---|---|---|---|---|---|
-| Correct inventory, select transition model, refresh requirements and proposed write-set | Architect | three WB-RELEASE-002 Define artifacts | baseline registry/governing contracts | corrected specification, plan, tasklist | in_progress |
-| Requirements-quality review | Requirements Reviewer | read-only report path | corrected Define artifacts | independent requirements verdict | planned |
-| Structural traceability | Requirements Reviewer / deterministic validator | read-only command result | corrected spec/tasklist | `READY requirements=9 acceptance=9 tasks=15` | planned |
-| Consistency analysis | Architect/Reviewer | read-only report path | requirements review + traceability | spec/plan/task/write-set consistency verdict | planned |
-| Critic review | Critic | read-only report path | Define-quality evidence | Critic verdict | planned |
-| Future Execute | Coder | only later Owner-approved exact six-path write-set | approved specification and resolved gates | implementation and tests | blocked |
-
+| Correct inventory, select transition model, refresh requirements and proposed write-set | Architect | three WB-RELEASE-002 Define artifacts | baseline registry/governing contracts | corrected specification, plan, tasklist | completed |
+| Requirements-quality review | Requirements Reviewer | read-only verdict recorded in this plan | corrected Define artifacts | `READY` | completed |
+| Structural traceability | Requirements Reviewer / deterministic validator | read-only command result | corrected spec/tasklist | `READY requirements=9 acceptance=9 tasks=15` | completed |
+| Consistency analysis | Architect/Reviewer | read-only verdict recorded in this plan | requirements review + traceability | `READY` | completed |
+| Critic review | Critic | read-only verdict recorded in this plan | Define-quality evidence | `APPROVE` | completed |
+| Phase A mechanism Execute | Coder | exact four-path implementation write-set | Owner-approved Define baseline | implementation and tests | authorized |
+| Future promotion transition | Coder | separately Owner-authorized exact two-path registry/map transition | validated implementation and ordinary-valid promotion parent | exact transition proof and ordinary validation | blocked |
