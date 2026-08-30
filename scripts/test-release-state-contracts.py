@@ -1304,6 +1304,20 @@ work_block_id: wb-007
             ".agent/workflows/sdd-protocol.md", "governance/release-state.md",
             "scripts/validate-release-state.py", "scripts/test-release-state-contracts.py",
         ])
+        # A real two-parent commit with a promotion tree is ambiguous by topology.
+        bad = registry(); bad["migration_state"]["pre_closeout_candidate"] = None; bad["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        tree = git(root, "write-tree")
+        git(root, "reset", "--hard", evidence_sha)
+        git(root, "checkout", "-qb", "promotion-side", evidence_sha)
+        write(root / "docs/side-history.md", "side\n"); git(root, "add", "."); git(root, "commit", "-qm", "side parent")
+        side = git(root, "rev-parse", "HEAD")
+        merged = git(root, "commit-tree", tree, "-p", evidence_sha, "-p", side, "-m", "ambiguous promotion")
+        git(root, "update-ref", "HEAD", merged)
+        git(root, "checkout", "-q", "-f", merged)
+        expect_failure("promotion-multi-parent-introduction", root, "one direct parent")
+        git(root, "checkout", "-q", "-B", "master", evidence_sha)
         promoted_registry = registry()
         promoted_registry["migration_state"]["pre_closeout_candidate"] = None
         promoted_registry["migration_state"]["promoted_candidates"] = promoted
@@ -1319,6 +1333,18 @@ work_block_id: wb-007
         promoted.append(subsequent)
         result = validator.validate_repository(root)
         assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE, subsequent["work_block"]]
+
+        good_head = git(root, "rev-parse", "HEAD")
+        fabricated = deepcopy(promoted[-1]); fabricated["work_block"] = "docs/plans/fabricated-promotion.md"; fabricated["work_block_id"] = "WB-FAB"; fabricated["predecessor_effective_work_block"] = promoted[-1]["work_block"]; fabricated["normative_manifest"] = ["docs/plans/fabricated-promotion.md", "FILE_REGISTRY.yml", "PROJECT_MAP.md"]
+        for label, record, expected in (
+            ("promotion-fabricated-history", fabricated, "must clear exactly one existing candidate"),
+            ("promotion-invalid-subsequent-ancestry", {**fabricated, "predecessor_effective_work_block": COMPLETED}, "predecessor ordering is invalid"),
+        ):
+            bad = registry(); bad["migration_state"]["pre_closeout_candidate"] = None; bad["migration_state"]["promoted_candidates"] = promoted + [record]
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=bad["migration_state"]["promoted_candidates"]))
+            git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md"); git(root, "commit", "-qm", label)
+            expect_failure(label, root, expected)
+            git(root, "reset", "--hard", good_head)
 
         promoted_registry = registry()
         promoted_registry["migration_state"]["promoted_candidates"] = promoted
