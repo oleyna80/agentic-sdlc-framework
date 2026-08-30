@@ -306,6 +306,41 @@ def populate_candidate(root: Path) -> dict:
     return declaration
 
 
+def add_promoted_candidate(root: Path, number: int, predecessor: str, ledger: list[dict]) -> dict:
+    """Create candidate, evidence, and the exact two-path promotion transition."""
+    ident = f"WB-{number:03d}"
+    slug = f"wb-{number:03d}-promotion-candidate"
+    plan = f"docs/plans/{slug}.md"
+    evidence = {kind: f"docs/reports/{directory}/{slug}.md" for kind, directory in
+                (("review", "reviews"), ("verification", "verification"), ("drift", "drift"), ("closeout", "closeout"))}
+    declaration = {"work_block": plan, "work_block_id": ident,
+                   "predecessor_completed_work_block": predecessor, "state": "assurance_pending",
+                   "required_evidence": evidence, "normative_manifest": [plan, "FILE_REGISTRY.yml", "PROJECT_MAP.md"]}
+    reg = registry()
+    reg["migration_state"]["pre_closeout_candidate"] = declaration
+    if ledger:
+        reg["migration_state"]["promoted_candidates"] = ledger
+    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg, sort_keys=False))
+    write(root / "PROJECT_MAP.md", project_map(candidate=declaration, promoted=ledger or None,
+        visible_override=f"## Migration Work\n\nNo active implementation Work Block.\n\nCloseout candidate:\n\n- `{plan}`\n"))
+    write(root / plan, candidate_work_block().replace(CANDIDATE_ID, ident).replace(CANDIDATE, plan))
+    git(root, "add", "."); git(root, "commit", "-qm", f"{ident} candidate")
+    candidate_sha = git(root, "rev-parse", "HEAD")
+    for kind, relative in evidence.items():
+        write(root / relative, candidate_evidence(kind, candidate_sha).replace(CANDIDATE_ID, ident))
+    git(root, "add", "."); git(root, "commit", "-qm", f"{ident} evidence")
+    evidence_sha = git(root, "rev-parse", "HEAD")
+    record = {"work_block": plan, "work_block_id": ident, "predecessor_effective_work_block": predecessor,
+              "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+              "required_evidence": evidence, "normative_manifest": declaration["normative_manifest"],
+              "state": "promoted_effective"}
+    promoted = ledger + [record]
+    reg = registry(); reg["migration_state"]["pre_closeout_candidate"] = None; reg["migration_state"]["promoted_candidates"] = promoted
+    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+    git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md"); git(root, "commit", "-qm", f"{ident} promotion")
+    return record
+
+
 def populate_formal_candidate(root: Path, *, specification_status: str = "approved") -> dict:
     declaration = populate_candidate(root)
     write(
@@ -1263,6 +1298,13 @@ work_block_id: wb-007
         assert result["effective_latest_completed_work_block"] == CANDIDATE
         assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
 
+        subsequent = add_promoted_candidate(root, 9, CANDIDATE, promoted)
+        promoted.append(subsequent)
+        result = validator.validate_repository(root)
+        assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE, subsequent["work_block"]]
+
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
         broken = deepcopy(promoted_registry)
         broken["migration_state"]["promoted_candidates"] = []
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(broken, sort_keys=False))
@@ -1273,6 +1315,21 @@ work_block_id: wb-007
         write(root / "FILE_REGISTRY.yml", yaml.safe_dump(mutated, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map(promoted=mutated["migration_state"]["promoted_candidates"]))
         expect_failure("promotion-record-mutation", root, "working-tree mutation is forbidden")
+
+        for label, adversarial, expected in (
+            ("promotion-entry-deletion", promoted[1:], "working-tree mutation is forbidden"),
+            ("promotion-entry-reorder", list(reversed(promoted)), "predecessor ordering is invalid"),
+            ("promotion-fabricated-entry", promoted + [deepcopy(promoted[-1])], "duplicate Work Block"),
+        ):
+            changed = deepcopy(promoted_registry)
+            changed["migration_state"]["promoted_candidates"] = adversarial
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(changed, sort_keys=False))
+            write(root / "PROJECT_MAP.md", project_map(promoted=adversarial))
+            expect_failure(label, root, expected)
+
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        expect_failure("promotion-map-disagreement", root, "do not match FILE_REGISTRY")
 
     print("Release-state contract fixtures: OK")
     return 0
