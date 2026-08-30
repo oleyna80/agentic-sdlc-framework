@@ -33,6 +33,12 @@ CANDIDATE_EVIDENCE_DIRECTORIES = {
     "drift": "docs/reports/drift/",
     "closeout": "docs/reports/closeout/",
 }
+PROMOTION_STATE = "promoted_effective"
+PROMOTION_FIELDS = {
+    "work_block", "work_block_id", "predecessor_effective_work_block",
+    "candidate_revision", "evidence_revision", "required_evidence",
+    "normative_manifest", "state",
+}
 COMMIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 MAP_BLOCK_RE = re.compile(r"<!--\s*release-state\s*\n(?P<body>.*?)\n-->\s*", re.DOTALL)
 MIGRATION_SECTION_RE = re.compile(
@@ -353,10 +359,54 @@ def candidate_paths(value: object, label: str) -> list[str]:
     return paths
 
 
+def promoted_candidates(root: Path, value: object, label: str) -> list[dict[str, Any]]:
+    """Validate the immutable promotion ledger shape without inferring legacy state."""
+    if value is None:
+        return []
+    if not isinstance(value, list) or not value:
+        raise ReleaseStateError(f"{label} must be a non-empty array once present")
+    records: list[dict[str, Any]] = []
+    seen_paths: set[str] = set()
+    seen_ids: set[str] = set()
+    for index, record in enumerate(value):
+        item_label = f"{label}[{index}]"
+        if not isinstance(record, dict) or set(record) != PROMOTION_FIELDS:
+            raise ReleaseStateError(f"{item_label} must contain exactly {sorted(PROMOTION_FIELDS)}")
+        if record.get("state") != PROMOTION_STATE:
+            raise ReleaseStateError(f"{item_label}.state must be {PROMOTION_STATE}")
+        work_block, _ = safe_repo_path(root, record["work_block"], item_label + ".work_block")
+        predecessor, _ = safe_repo_path(root, record["predecessor_effective_work_block"], item_label + ".predecessor_effective_work_block")
+        if not work_block.startswith("docs/plans/") or not work_block.endswith(".md"):
+            raise ReleaseStateError(f"{item_label}.work_block must be under docs/plans")
+        if not isinstance(record.get("work_block_id"), str) or not record["work_block_id"].strip():
+            raise ReleaseStateError(f"{item_label}.work_block_id must be a non-empty string")
+        for field in ("candidate_revision", "evidence_revision"):
+            if not isinstance(record.get(field), str) or not COMMIT_SHA_RE.fullmatch(record[field]):
+                raise ReleaseStateError(f"{item_label}.{field} must be a full commit SHA")
+        evidence = record.get("required_evidence")
+        if not isinstance(evidence, dict) or set(evidence) != set(CANDIDATE_EVIDENCE_TYPES):
+            raise ReleaseStateError(f"{item_label}.required_evidence must contain exact evidence keys")
+        for evidence_class, relative in evidence.items():
+            normalized, _ = safe_repo_path(root, relative, f"{item_label}.required_evidence.{evidence_class}")
+            if not normalized.startswith(CANDIDATE_EVIDENCE_DIRECTORIES[evidence_class]):
+                raise ReleaseStateError(f"{item_label} has invalid evidence path")
+        manifest = candidate_paths(record["normative_manifest"], item_label + ".normative_manifest")
+        if work_block not in manifest or "FILE_REGISTRY.yml" not in manifest or "PROJECT_MAP.md" not in manifest:
+            raise ReleaseStateError(f"{item_label}.normative_manifest lacks required paths")
+        if work_block in seen_paths or record["work_block_id"] in seen_ids:
+            raise ReleaseStateError("promoted_candidates contains duplicate Work Block")
+        if index and predecessor != records[-1]["work_block"]:
+            raise ReleaseStateError("promoted_candidates predecessor ordering is invalid")
+        seen_paths.add(work_block); seen_ids.add(record["work_block_id"])
+        records.append({**record, "work_block": work_block, "predecessor_effective_work_block": predecessor, "normative_manifest": manifest})
+    return records
+
+
 def validate_pre_closeout_candidate(
     root: Path,
     migration: dict[str, Any],
     completed: list[str],
+    effective_latest: str,
     map_state: dict[str, Any],
     map_text: str,
     active: str | None,
@@ -418,9 +468,9 @@ def validate_pre_closeout_candidate(
         candidate["predecessor_completed_work_block"],
         "pre_closeout_candidate.predecessor_completed_work_block",
     )
-    if predecessor != completed[-1]:
+    if predecessor != effective_latest:
         raise ReleaseStateError(
-            "pre_closeout_candidate predecessor must be the raw latest completed Work Block"
+            "pre_closeout_candidate predecessor must be the effective latest completed Work Block"
         )
 
     evidence = candidate.get("required_evidence")
@@ -1112,6 +1162,149 @@ def validate_map_projection(text: str, active: str | None) -> None:
             )
 
 
+def registry_at(root: Path, revision: str) -> dict[str, Any]:
+    try:
+        value = yaml.safe_load(git_output(root, "show", f"{revision}:FILE_REGISTRY.yml"))
+    except yaml.YAMLError as exc:
+        raise ReleaseStateError(f"invalid FILE_REGISTRY.yml at {revision}: {exc}") from exc
+    if not isinstance(value, dict) or not isinstance(value.get("migration_state"), dict):
+        raise ReleaseStateError("promotion history requires migration_state")
+    return value
+
+
+def map_state_at(root: Path, revision: str) -> dict[str, Any]:
+    try:
+        text = git_output(root, "show", f"{revision}:PROJECT_MAP.md")
+    except ReleaseStateError as exc:
+        raise ReleaseStateError(f"promotion history requires PROJECT_MAP.md at {revision}") from exc
+    match = MAP_BLOCK_RE.search(text)
+    if not match:
+        raise ReleaseStateError(f"promotion history requires release-state block at {revision}")
+    try:
+        value = yaml.safe_load(match.group("body"))
+    except yaml.YAMLError as exc:
+        raise ReleaseStateError(f"invalid PROJECT_MAP.md state at {revision}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ReleaseStateError("promotion history PROJECT_MAP state must be a mapping")
+    return value
+
+
+def revision_blob(root: Path, revision: str, relative: str) -> str:
+    return git_output(root, "rev-parse", f"{revision}:{relative}")
+
+
+def validate_promotion_history(root: Path, current: list[dict[str, Any]], completed: list[str]) -> None:
+    """Prove every current ledger record was introduced by one exact two-path child."""
+    try:
+        head = git_output(root, "rev-parse", "HEAD^{commit}")
+    except ReleaseStateError:
+        if current:
+            raise ReleaseStateError("promoted_candidates requires a Git ancestry")
+        return
+    if not current:
+        history = git_output(
+            root, "log", "--format=%H", "-S", "promoted_candidates", head,
+            "--", "FILE_REGISTRY.yml",
+        )
+        if not history:
+            return
+    commits = git_output(
+        root, "rev-list", "--reverse", "--topo-order", head, "--", "FILE_REGISTRY.yml"
+    ).splitlines()
+    seen_ledger = False
+    introductions: dict[str, int] = {record["work_block"]: 0 for record in current}
+    for child in commits:
+        try:
+            child_registry = registry_at(root, child)
+        except ReleaseStateError:
+            # Historical commits before release-state files are not transitions.
+            continue
+        parents = git_output(root, "rev-list", "--parents", "-n", "1", child).split()
+        if len(parents) == 1:
+            if child_registry["migration_state"].get("promoted_candidates") is not None:
+                raise ReleaseStateError("promotion transition must have one direct parent")
+            continue
+        if len(parents) != 2:
+            child_ledger = child_registry["migration_state"].get("promoted_candidates")
+            try:
+                parent_ledgers = [registry_at(root, parent)["migration_state"].get("promoted_candidates") for parent in parents[1:]]
+            except ReleaseStateError:
+                if child_ledger is not None:
+                    raise ReleaseStateError("promotion transition must have one direct parent")
+                continue
+            if any(parent_ledger != child_ledger for parent_ledger in parent_ledgers):
+                raise ReleaseStateError("promotion transition must have one direct parent")
+            continue
+        parent = parents[1]
+        try:
+            parent_state = registry_at(root, parent)["migration_state"]
+        except ReleaseStateError:
+            if child_registry["migration_state"].get("promoted_candidates") is not None:
+                raise ReleaseStateError("promotion transition must have one direct parent")
+            continue
+        child_state = child_registry["migration_state"]
+        parent_ledger = parent_state.get("promoted_candidates")
+        child_ledger = child_state.get("promoted_candidates")
+        if parent_ledger is None and child_ledger is None:
+            continue
+        if child_ledger is None:
+            raise ReleaseStateError("promoted_candidates deletion is forbidden")
+        if not isinstance(child_ledger, list) or not child_ledger:
+            raise ReleaseStateError("promoted_candidates must remain non-empty once introduced")
+        if parent_ledger is None:
+            parent_ledger = []
+        if not isinstance(parent_ledger, list) or child_ledger[:len(parent_ledger)] != parent_ledger:
+            raise ReleaseStateError("promoted_candidates mutation, deletion, or reordering is forbidden")
+        if len(child_ledger) not in {len(parent_ledger), len(parent_ledger) + 1}:
+            raise ReleaseStateError("promoted_candidates may grow by exactly one record")
+        seen_ledger = True
+        if len(child_ledger) == len(parent_ledger):
+            continue
+        changed = set(filter(None, git_output(root, "diff", "--name-only", f"{parent}..{child}").splitlines()))
+        if changed != {"FILE_REGISTRY.yml", "PROJECT_MAP.md"}:
+            raise ReleaseStateError("promotion transition must change exactly FILE_REGISTRY.yml and PROJECT_MAP.md")
+        if parent_state.get("pre_closeout_candidate") is None or child_state.get("pre_closeout_candidate") is not None:
+            raise ReleaseStateError("promotion transition must clear exactly one existing candidate")
+        record = child_ledger[-1]
+        candidate = parent_state["pre_closeout_candidate"]
+        if not isinstance(record, dict) or record.get("work_block") != candidate.get("work_block") or record.get("work_block_id") != candidate.get("work_block_id"):
+            raise ReleaseStateError("promotion record must bind the parent candidate")
+        if record.get("predecessor_effective_work_block") != (parent_ledger[-1]["work_block"] if parent_ledger else completed[-1]):
+            raise ReleaseStateError("promotion record predecessor must be the parent effective latest")
+        if map_state_at(root, parent).get("pre_closeout_candidate") != candidate:
+            raise ReleaseStateError("promotion parent PROJECT_MAP must match the candidate declaration")
+        if map_state_at(root, child).get("promoted_candidates") != child_ledger:
+            raise ReleaseStateError("promotion child PROJECT_MAP must match the promotion ledger")
+        matches = []
+        for evidence in git_output(root, "rev-list", "--topo-order", parent).splitlines():
+            lineage = git_output(root, "rev-list", "--parents", "-n", "1", evidence).split()
+            if len(lineage) != 2:
+                continue
+            if registry_at(root, lineage[1])["migration_state"].get("pre_closeout_candidate") != candidate:
+                continue
+            try:
+                matches.append(validate_evidence_persistence(root, lineage[1], evidence))
+            except ReleaseStateError:
+                continue
+        if len(matches) != 1 or record.get("candidate_revision") != matches[0]["candidate_revision"] or record.get("evidence_revision") != matches[0]["evidence_revision"]:
+            raise ReleaseStateError("promotion record must bind one valid evidence-persistence history")
+        if record.get("required_evidence") != candidate.get("required_evidence") or record.get("normative_manifest") != candidate.get("normative_manifest"):
+            raise ReleaseStateError("promotion record must retain immutable candidate bindings")
+        for relative in record["required_evidence"].values():
+            if revision_blob(root, parent, relative) != revision_blob(root, record["evidence_revision"], relative):
+                raise ReleaseStateError("promotion parent must retain the exact approved evidence")
+        for relative in record["normative_manifest"]:
+            if revision_blob(root, parent, relative) != revision_blob(root, record["candidate_revision"], relative):
+                raise ReleaseStateError("promotion parent must retain the exact candidate manifest")
+        introductions[record["work_block"]] = introductions.get(record["work_block"], 0) + 1
+    if not seen_ledger and current:
+        raise ReleaseStateError("promoted_candidates requires discoverable promotion history")
+    if seen_ledger and not current:
+        raise ReleaseStateError("promoted_candidates deletion is forbidden")
+    if any(count != 1 for count in introductions.values()):
+        raise ReleaseStateError("each promotion record requires one uniquely discoverable transition")
+
+
 def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str, Any]:
     root = root.resolve()
     registry_path = root / "FILE_REGISTRY.yml"
@@ -1121,6 +1314,9 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         raise ReleaseStateError("FILE_REGISTRY.yml requires migration_state")
     candidate_field_count = direct_yaml_mapping_field_count(
         registry_path, "migration_state", "pre_closeout_candidate"
+    )
+    promoted_field_count = direct_yaml_mapping_field_count(
+        registry_path, "migration_state", "promoted_candidates"
     )
     if candidate_field_count > 1:
         raise ReleaseStateError("FILE_REGISTRY.yml contains duplicate pre_closeout_candidate fields")
@@ -1154,6 +1350,19 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
             raise ReleaseStateError("active Work Block ID duplicates a completed Work Block ID")
 
     map_state, map_text = parse_map_state(root / "PROJECT_MAP.md")
+    if promoted_field_count > 1:
+        raise ReleaseStateError("FILE_REGISTRY.yml contains duplicate promoted_candidates fields")
+    if promoted_field_count and migration.get("promoted_candidates") is None:
+        raise ReleaseStateError("promoted_candidates must be absent before first promotion or a non-empty array after it")
+    promoted = promoted_candidates(root, migration.get("promoted_candidates"), "promoted_candidates")
+    map_promoted = promoted_candidates(root, map_state.get("promoted_candidates"), "PROJECT_MAP promoted_candidates")
+    if map_promoted != promoted:
+        raise ReleaseStateError("PROJECT_MAP promoted_candidates do not match FILE_REGISTRY.yml")
+    for record in promoted:
+        if record["work_block"] in completed_set:
+            raise ReleaseStateError("promoted candidate must stay outside completed_work_blocks")
+    validate_promotion_history(root, promoted, completed)
+    effective_before_candidate = promoted[-1]["work_block"] if promoted else completed[-1]
     map_completed = string_list(
         map_state.get("completed_work_blocks"), "PROJECT_MAP completed_work_blocks"
     )
@@ -1165,8 +1374,10 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
     validate_map_projection(map_text, active)
 
     candidate = validate_pre_closeout_candidate(
-        root, migration, completed, map_state, map_text, active
+        root, migration, completed, effective_before_candidate, map_state, map_text, active
     )
+    if candidate is not None and candidate["work_block"] in {record["work_block"] for record in promoted}:
+        raise ReleaseStateError("pre_closeout candidate must not also be promoted")
 
     release_state = registry.get("release_state")
     if not isinstance(release_state, dict):
@@ -1198,8 +1409,8 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
         }
 
     effective_candidate = None
-    effective_completed = completed.copy()
-    effective_latest = release_state["latest_completed_work_block"]
+    effective_completed = completed.copy() + [record["work_block"] for record in promoted]
+    effective_latest = effective_before_candidate
     if candidate is not None:
         effective_candidate = candidate["work_block"]
         reported_subject = validate_candidate_evidence(root, candidate)

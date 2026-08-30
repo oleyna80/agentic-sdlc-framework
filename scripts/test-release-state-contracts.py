@@ -213,12 +213,15 @@ def project_map(
     active: str | None = None,
     *,
     candidate: dict | None = None,
+    promoted: list[dict] | None = None,
     visible_override: str | None = None,
 ) -> str:
     completed = completed if completed is not None else [COMPLETED]
     state = {"completed_work_blocks": completed, "active_work_block": active}
     if candidate is not None:
         state["pre_closeout_candidate"] = candidate
+    if promoted is not None:
+        state["promoted_candidates"] = promoted
     block = yaml.safe_dump(state, sort_keys=False).rstrip()
     if visible_override is not None:
         visible = visible_override
@@ -993,7 +996,7 @@ work_block_id: wb-007
             "## Migration Work\n\nNo active implementation Work Block.\n\n"
             f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
         )))
-        expect_failure("candidate-wrong-predecessor", root, "must be the raw latest")
+        expect_failure("candidate-wrong-predecessor", root, "must be the effective latest")
 
         declaration = populate_candidate(root)
         write(root / "PROJECT_MAP.md", project_map())
@@ -1226,6 +1229,44 @@ work_block_id: wb-007
             root,
             "specification must be status approved",
         )
+
+    with tempfile.TemporaryDirectory(prefix="release-state-promotion-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        promoted = [{
+            "work_block": CANDIDATE, "work_block_id": CANDIDATE_ID,
+            "predecessor_effective_work_block": COMPLETED,
+            "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+            "required_evidence": CANDIDATE_EVIDENCE.copy(),
+            "normative_manifest": declaration["normative_manifest"],
+            "state": "promoted_effective",
+        }]
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["pre_closeout_candidate"] = None
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "promotion")
+        result = validator.validate_repository(root)
+        assert result["effective_latest_completed_work_block"] == CANDIDATE
+        assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
+
+        broken = deepcopy(promoted_registry)
+        broken["migration_state"]["promoted_candidates"] = []
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(broken, sort_keys=False))
+        expect_failure("promotion-empty-ledger", root, "must be a non-empty array")
 
     print("Release-state contract fixtures: OK")
     return 0

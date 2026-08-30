@@ -113,6 +113,12 @@ separate Owner merge approval. A candidate is never a completed, release-ready,
 or externally promotable state, and ordinary validation does not pass until every
 declared evidence artifact binds the candidate subject.
 
+Canonical promotion is a distinct Owner-gated transition, never part of
+mechanism implementation or evidence persistence. It is permitted only as the
+validated sole-parent, exact-two-path registry/map transition described by
+`governance/release-state.md`; any source, manifest, or multi-parent change is a
+separate subject and must stop for Owner direction.
+
 ## Capability routing and hard stops
 
 Inspect live capability evidence before assignment: `unknown` is unavailable.
