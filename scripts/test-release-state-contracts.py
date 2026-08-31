@@ -1526,23 +1526,30 @@ work_block_id: wb-007
             "normative_manifest": declaration["normative_manifest"],
             "state": "promoted_effective",
         }]
-        # This is the required two-path promotion topology, except that its
-        # registry side is malformed. A later syntactic recovery cannot make
-        # the missing parent promotion proof valid.
-        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< promotion\n")
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["pre_closeout_candidate"] = None
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
         write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
         git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
-        git(root, "commit", "-qm", "malformed promotion child")
-        recovered = registry()
-        recovered["migration_state"]["pre_closeout_candidate"] = None
-        recovered["migration_state"]["promoted_candidates"] = promoted
-        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(recovered, sort_keys=False))
+        git(root, "commit", "-qm", "valid promotion")
+        control = validator.validate_repository(root)
+        if control["effective_latest_completed_work_block"] != CANDIDATE:
+            raise AssertionError("promotion malformed-history control was not READY")
+
+        # The valid sole-parent, exact two-path promotion above establishes the
+        # protected boundary. A later syntactic recovery cannot hide a malformed
+        # canonical registry snapshot within that protected history.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< promotion\n")
         git(root, "add", "FILE_REGISTRY.yml")
-        git(root, "commit", "-qm", "recover malformed promotion child")
+        git(root, "commit", "-qm", "malformed protected promotion history")
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "recover malformed protected promotion history")
         expect_failure(
-            "promotion-malformed-child-recovery",
+            "promotion-malformed-protected-history",
             root,
-            "promotion transition must have one direct parent",
+            "promotion history cannot traverse malformed FILE_REGISTRY.yml after the first structural promotion",
         )
 
     print("Release-state contract fixtures: OK")
