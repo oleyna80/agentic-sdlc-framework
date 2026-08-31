@@ -49,11 +49,7 @@ Learning Review. Отдельная команда Owner "запиши урок"
    формулировки.
 5. Обновить `progress.md` новой записью (done + notes + checks).
 6. Обновить `context.md` (current focus + next execution queue + date).
-7. Для non-trivial Work Block просмотреть material findings из **Define,
-   Execute, Assure и Close**. Рассматривать как lesson candidates, в частности:
-   recurring failure/recovery patterns, durable invariants, source-of-truth
-   lessons, lifecycle/process defects, verification gaps, reusable operational
-   patterns и rejected approaches с важной evidence-backed причиной.
+7. Для non-trivial Work Block просмотреть material findings из **Define, Execute, Assure и Close**. Рассматривать как lesson candidates, в частности: recurring failure/recovery patterns, durable invariants, source-of-truth lessons, lifecycle/process defects, verification gaps, reusable operational patterns и rejected approaches с важной evidence-backed причиной.
 8. Применить utility filter. Candidate достоин durable promotion только если он
    evidence-backed и способен изменить future planning, execution strategy,
    review, verification, recovery или invariant enforcement. One-off noise,
