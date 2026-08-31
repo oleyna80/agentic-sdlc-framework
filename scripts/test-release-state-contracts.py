@@ -1504,6 +1504,47 @@ work_block_id: wb-007
         git(root, "commit", "-qm", "committed ledger deletion")
         expect_failure("promotion-committed-ledger-deletion", root, "deletion is forbidden")
 
+    with tempfile.TemporaryDirectory(prefix="release-state-malformed-promotion-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        promoted = [{
+            "work_block": CANDIDATE, "work_block_id": CANDIDATE_ID,
+            "predecessor_effective_work_block": COMPLETED,
+            "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+            "required_evidence": CANDIDATE_EVIDENCE.copy(),
+            "normative_manifest": declaration["normative_manifest"],
+            "state": "promoted_effective",
+        }]
+        # This is the required two-path promotion topology, except that its
+        # registry side is malformed. A later syntactic recovery cannot make
+        # the missing parent promotion proof valid.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< promotion\n")
+        write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "malformed promotion child")
+        recovered = registry()
+        recovered["migration_state"]["pre_closeout_candidate"] = None
+        recovered["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(recovered, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "recover malformed promotion child")
+        expect_failure(
+            "promotion-malformed-child-recovery",
+            root,
+            "promotion transition must have one direct parent",
+        )
+
     print("Release-state contract fixtures: OK")
     return 0
 
