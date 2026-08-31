@@ -50,6 +50,10 @@ conditions are satisfied. Opening the local scope does not create production,
 credential, live-data, destructive, protected-branch, or external-publish
 authority.
 
+When durable learning is a credible closeout outcome, Define should include the
+exact Engineering Memory path in the approved Work Block/write-set rather than
+relying on Close to invent new write authority.
+
 ### Stage 1 — Execute
 
 Functions:
@@ -123,16 +127,40 @@ Functions:
 
 1. Classify closeout.
 2. Synchronize specifications, decisions, task state, and documentation.
-3. Promote reusable knowledge into engineering memory.
-4. Record residual risks and follow-up Work Blocks.
-5. Produce an Owner-facing report.
+3. For every non-trivial Work Block, review material findings encountered during
+   Define, Execute, Assure, and Close for reusable engineering knowledge.
+4. Classify reusable lesson candidates as exactly `promoted`,
+   `operational-only`, or `not-applicable`; `none identified` is a valid result.
+5. Deduplicate and promote evidence-backed durable knowledge into already-approved
+   Engineering Memory paths when applicable.
+6. Record residual risks and follow-up Work Blocks.
+7. Produce an Owner-facing report.
+
+The Orchestrator Learning Review is a normal non-trivial Close responsibility for
+both successful and reporting-only closeout. It does not require a separate Owner
+reminder such as "record the lesson" once the Work Block and relevant memory write
+authority are approved.
+
+A lesson is durable only when evidence shows that it can change future planning,
+execution strategy, review, verification, recovery, or invariant enforcement.
+Do not promote one-off noise, speculation, raw transcripts, hidden/private
+reasoning, secrets/private data, routine status chronology, or facts cheaper to
+re-verify live. Before creating a new lesson, compare existing Engineering Memory
+and update/extend/supersede an existing reusable principle when appropriate.
+
+Learning classification is evidence/disposition, not permission. Candidate
+discovery cannot expand the approved write-set, Hard Stops, specification, or
+governance. If durable promotion needs a path or material framework change outside
+the current Work Block authority, return to Define. A project-specific lesson may
+suggest a framework improvement, but framework policy/template promotion requires
+a separate evidence-backed framework Work Block.
 
 Only a verification verdict of `READY` and every required evaluation verdict of
 `READY` permit successful closeout.
 
 `BLOCKED` or `UNVERIFIED` verification/evaluation permits diagnostics, corrective
-planning, and reporting-only closeout. It does not permit merge-ready, deploy-ready,
-release-ready, or completed claims.
+planning, learning classification, and reporting-only closeout. It does not
+permit merge-ready, deploy-ready, release-ready, or completed claims.
 
 Successful process closeout also does not bypass an external repository or
 production control. A protected merge, release, or deploy must still satisfy the
