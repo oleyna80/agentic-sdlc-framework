@@ -9,15 +9,17 @@ it does not grant authority or install enforcement.
 Use the lifecycle states in `governance/lifecycle.md`: Define → Execute →
 Assure → Close, with execution state distinct from assurance verdicts. A failed,
 unavailable, or unverified check is never a pass. Drafts, candidates, generated
-context, requirements-quality reports, tasklists, and operational memory cannot
-override higher authority.
+context, requirements-quality reports, tasklists, operational memory, and
+Engineering Memory classification cannot override higher authority.
 
 ## Stage 0 — Define
 
 The Orchestrator records objective, scope/exclusions, authority chain, risk,
 side effects, Hard Stops, exact write-set, one-Coder ownership, topology,
 capability limitations, acceptance checks, required assurance, and explicit
-Owner approvals.
+Owner approvals. When durable learning is a credible closeout outcome, include
+the exact Engineering Memory target path in the approved Work Block/write-set;
+Close must not manufacture write authority after a lesson is discovered.
 
 For formal Managed/Assured/Distributed work, Stage 0 also follows
 `governance/define-quality.md`:
@@ -100,9 +102,44 @@ and verifies the delivered code against the approved specification.
 
 Only completed required assurance permits successful closeout. Otherwise use
 reporting-only closeout and preserve the blocker. Synchronize authoritative
-records only when their governing contract requires it; classify knowledge as
-durable, operational-only, or not-applicable; and report evidence, residual risk,
-and next action.
+records only when their governing contract requires it.
+
+For every **non-trivial** Work Block, including reporting-only closeout, the
+Orchestrator MUST perform a Learning Review before Close is complete:
+
+1. Review material findings encountered during **Define, Execute, Assure, and
+   Close** rather than considering only the final assurance report.
+2. Identify candidate reusable knowledge such as recurring failure/recovery
+   patterns, durable invariants, source-of-truth lessons, lifecycle/process
+   defects, verification gaps, reusable operational patterns, or rejected
+   approaches with an important evidence-backed reason.
+3. Apply the utility filter: durable knowledge must be evidence-backed and
+   capable of changing future planning, execution strategy, review,
+   verification, recovery, or invariant enforcement. Exclude one-off noise,
+   speculation, raw transcripts, private chain-of-thought, secrets/private data,
+   routine status chronology, and facts cheaper to re-verify live.
+4. Classify material reusable candidates as exactly `promoted`,
+   `operational-only`, or `not-applicable`. `none identified` is valid; do not
+   create a lesson just to satisfy the closeout form.
+5. Before `promoted`, deduplicate against existing Engineering Memory. Prefer
+   updating/extending/superseding an existing reusable principle over creating a
+   duplicate.
+6. A promoted lesson records evidence, scope, reusable principle,
+   replacement/mitigation/recovery, authority boundary, review trigger, and last
+   verified.
+7. Promotion may mutate only an Engineering Memory path already approved by the
+   active Work Block. Classification/candidate discovery is not permission; if
+   the required path or material policy change is outside the write-set, return
+   to Define.
+8. Keep project-specific lessons project-local. Repetition/generalization may be
+   recorded as a follow-up candidate, but framework policy/template promotion
+   requires a separate evidence-backed framework Work Block.
+
+This Learning Review is ordinary Orchestrator Close responsibility and does not
+require a separate Owner reminder such as "record the lesson" after the Work
+Block and relevant write authority are approved. Record review coverage,
+candidate dispositions/deduplication, evidence, residual risk, and next action in
+the closeout report.
 
 When `governance/release-state.md` authorizes an explicit `pre_closeout_candidate`,
 use its sequence exactly: Owner-authorized local candidate declaration and
