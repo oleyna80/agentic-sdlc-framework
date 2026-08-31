@@ -107,8 +107,7 @@ records only when their governing contract requires it.
 For every **non-trivial** Work Block, including reporting-only closeout, the
 Orchestrator MUST perform a Learning Review before Close is complete:
 
-1. Review material findings encountered during **Define, Execute, Assure, and
-   Close** rather than considering only the final assurance report.
+1. Review material findings encountered during **Define, Execute, Assure, and Close** rather than considering only the final assurance report.
 2. Identify candidate reusable knowledge such as recurring failure/recovery
    patterns, durable invariants, source-of-truth lessons, lifecycle/process
    defects, verification gaps, reusable operational patterns, or rejected
