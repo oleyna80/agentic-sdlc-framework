@@ -129,8 +129,7 @@ Functions:
 2. Synchronize specifications, decisions, task state, and documentation.
 3. For every non-trivial Work Block, review material findings encountered during
    Define, Execute, Assure, and Close for reusable engineering knowledge.
-4. Classify reusable lesson candidates as exactly `promoted`,
-   `operational-only`, or `not-applicable`; `none identified` is a valid result.
+4. Classify reusable lesson candidates as exactly `promoted`, `operational-only`, or `not-applicable`; `none identified` is a valid result.
 5. Deduplicate and promote evidence-backed durable knowledge into already-approved
    Engineering Memory paths when applicable.
 6. Record residual risks and follow-up Work Blocks.
