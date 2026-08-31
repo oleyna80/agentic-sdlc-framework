@@ -226,20 +226,23 @@ migration_state:
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
     - docs/plans/wb-skill-002b-provider-guard-boundaries.md
   active_work_block: null
-  pre_closeout_candidate:
-    work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-    work_block_id: WB-RELEASE-001
-    predecessor_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
-    state: assurance_pending
-    required_evidence:
-      review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r8.md
-      verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r8.md
-      drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r8.md
-      closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
-    normative_manifest:
-      - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-      - FILE_REGISTRY.yml
-      - PROJECT_MAP.md
+  pre_closeout_candidate: null
+  promoted_candidates:
+    - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+      work_block_id: WB-RELEASE-001
+      predecessor_effective_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
+      candidate_revision: a254f99cff8b3f382134a5153d4d27b5579e9dd6
+      evidence_revision: e30234c21d9a1ce62df07b3053249e9439574963
+      required_evidence:
+        review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r8.md
+        verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r8.md
+        drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r8.md
+        closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      normative_manifest:
+        - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+        - FILE_REGISTRY.yml
+        - PROJECT_MAP.md
+      state: promoted_effective
   next_planned_work_block: WB-CORE-004
   planned:
     - WB-CORE-004
