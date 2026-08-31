@@ -1198,6 +1198,21 @@ def revision_blob(root: Path, revision: str, relative: str) -> str:
     return git_output(root, "rev-parse", f"{revision}:{relative}")
 
 
+def validate_frozen_canonical_history(
+    parent_registry: dict[str, Any], child_registry: dict[str, Any]
+) -> None:
+    """Keep raw completion state immutable after promotion history starts."""
+    parent_state = parent_registry["migration_state"]
+    child_state = child_registry["migration_state"]
+    if (
+        child_state.get("completed_work_blocks") != parent_state.get("completed_work_blocks")
+        or child_registry.get("release_state") != parent_registry.get("release_state")
+    ):
+        raise ReleaseStateError(
+            "post-promotion canonical release-state history is immutable"
+        )
+
+
 def validate_promotion_history(root: Path, current: list[dict[str, Any]], completed: list[str]) -> None:
     """Prove every current ledger record was introduced by one exact two-path child."""
     try:
@@ -1235,13 +1250,20 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         if len(parents) != 2:
             child_ledger = child_registry["migration_state"].get("promoted_candidates")
             try:
-                parent_ledgers = [registry_at(root, parent)["migration_state"].get("promoted_candidates") for parent in parents[1:]]
+                parent_registries = [registry_at(root, parent) for parent in parents[1:]]
             except ReleaseStateError:
                 if child_ledger is not None:
                     raise ReleaseStateError("promotion transition must have one direct parent")
                 continue
+            parent_ledgers = [
+                parent_registry["migration_state"].get("promoted_candidates")
+                for parent_registry in parent_registries
+            ]
             if any(parent_ledger != child_ledger for parent_ledger in parent_ledgers):
                 raise ReleaseStateError("promotion transition must have one direct parent")
+            if child_ledger:
+                for parent_registry in parent_registries:
+                    validate_frozen_canonical_history(parent_registry, child_registry)
             continue
         parent = parents[1]
         try:
@@ -1266,14 +1288,16 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         if len(child_ledger) not in {len(parent_ledger), len(parent_ledger) + 1}:
             raise ReleaseStateError("promoted_candidates may grow by exactly one record")
         seen_ledger = True
+        if parent_ledger:
+            validate_frozen_canonical_history(registry_at(root, parent), child_registry)
         if len(child_ledger) == len(parent_ledger):
             continue
         changed = set(filter(None, git_output(root, "diff", "--name-only", f"{parent}..{child}").splitlines()))
         if changed != {"FILE_REGISTRY.yml", "PROJECT_MAP.md"}:
             raise ReleaseStateError("promotion transition must change exactly FILE_REGISTRY.yml and PROJECT_MAP.md")
         if (
-            child_state.get("completed_work_blocks") != parent_state.get("completed_work_blocks")
-            or child_state.get("active_work_block") != parent_state.get("active_work_block")
+            child_state.get("active_work_block") != parent_state.get("active_work_block")
+            or child_state.get("completed_work_blocks") != parent_state.get("completed_work_blocks")
             or child_registry.get("release_state") != registry_at(root, parent).get("release_state")
         ):
             raise ReleaseStateError("promotion transition must preserve the raw release-state history")
@@ -1283,7 +1307,11 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         candidate = parent_state["pre_closeout_candidate"]
         if not isinstance(record, dict) or record.get("work_block") != candidate.get("work_block") or record.get("work_block_id") != candidate.get("work_block_id"):
             raise ReleaseStateError("promotion record must bind the parent candidate")
-        if record.get("predecessor_effective_work_block") != (parent_ledger[-1]["work_block"] if parent_ledger else completed[-1]):
+        if record.get("predecessor_effective_work_block") != (
+            parent_ledger[-1]["work_block"]
+            if parent_ledger
+            else parent_state["completed_work_blocks"][-1]
+        ):
             raise ReleaseStateError("promotion record predecessor must be the parent effective latest")
         if map_state_at(root, parent).get("pre_closeout_candidate") != candidate:
             raise ReleaseStateError("promotion parent PROJECT_MAP must match the candidate declaration")

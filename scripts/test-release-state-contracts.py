@@ -1335,6 +1335,26 @@ work_block_id: wb-007
         assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE, subsequent["work_block"]]
 
         good_head = git(root, "rev-parse", "HEAD")
+        # Once the ledger exists, a later commit cannot rewrite raw completion
+        # history or its matching release-state projection while retaining it.
+        rewritten = registry(completed=[COMPLETED, OLDER])
+        rewritten["migration_state"]["pre_closeout_candidate"] = None
+        rewritten["migration_state"]["promoted_candidates"] = promoted
+        rewritten["release_state"]["latest_completed_work_block"] = OLDER
+        rewritten["release_state"]["closeout_report"] = OLDER_CLOSEOUT
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(root / OLDER_CLOSEOUT, closeout(work_block_id="wb-006", evaluation=None))
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(rewritten, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(completed=[COMPLETED, OLDER], promoted=promoted))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "rewrite post-promotion raw history")
+        expect_failure(
+            "promotion-committed-canonical-history-mutation",
+            root,
+            "post-promotion canonical release-state history is immutable",
+        )
+        git(root, "reset", "--hard", good_head)
+
         # A valid-shaped subsequent record still requires a sole-parent transition.
         # Build its candidate/evidence history with the production helper, then
         # reuse the exact promotion tree in a two-parent introduction.
