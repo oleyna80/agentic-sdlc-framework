@@ -60,9 +60,7 @@ Learning Review. Отдельная команда Owner "запиши урок"
    speculation, raw transcripts, private chain-of-thought, secrets/private data,
    обычный status history и code facts, которые дешевле проверить live, не
    promoted.
-9. Классифицировать reusable knowledge ровно как `promoted`,
-   `operational-only` или `not-applicable`. `none identified` является валидным
-   результатом; не создавать lesson ради заполнения формы.
+9. Классифицировать reusable knowledge ровно как `promoted`, `operational-only` или `not-applicable`. `none identified` является валидным результатом; не создавать lesson ради заполнения формы.
 10. Перед `promoted` проверить существующий `docs/engineering-memory/` на
     дубликат. Если текущая entry уже выражает reusable principle, обновить или
     подтвердить её evidence/review trigger вместо создания новой параллельной
@@ -101,8 +99,7 @@ Learning Review. Отдельная команда Owner "запиши урок"
 - Список измененных SSOT файлов
 - Learning Review coverage: Define / Execute / Assure / Close
 - Material lesson candidates и disposition либо `none identified`
-- Engineering memory classification: `promoted`, `operational-only`, or
-  `not-applicable`
+- Engineering memory classification: `promoted`, `operational-only`, or `not-applicable`
 - Updated/deduplicated Engineering Memory entries либо `none`
 - Local-only/ignored статус SSOT файлов
 - Residual risks
