@@ -3,13 +3,14 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-learning-001-orchestrator-learning-loop
 work_block_id: WB-LEARNING-001
-status: in_progress
+status: completed
 owner_role: orchestrator
 created_at: 2026-08-31
 base_revision: 73cd1cab36af327683991c768ea887911547df06
 branch: agent/wb-learning-001-orchestrator-learning-loop
 governance_profile: Managed
 verification_tier: Standard
+implementation_subject: 65cba2a107ab2cbd8d8eb0437d8dfe392e8200e0
 ---
 
 # WB-LEARNING-001 — Orchestrator Learning Loop
@@ -46,7 +47,7 @@ bootstrap/profiles.json
 scripts/test-sdd-contract.sh
 ```
 
-No implementation path outside this list may be changed without returning to Define and obtaining a revised Owner decision.
+The frozen implementation comparison from Define coordination commit `037c886fd98b3217ad990ffc4769696ef2a258f1` to implementation subject `65cba2a107ab2cbd8d8eb0437d8dfe392e8200e0` contains exactly these 12 paths.
 
 ## Architecture
 
@@ -66,30 +67,40 @@ No implementation path outside this list may be changed without returning to Def
 - **Runtime drift:** canonical procedure stays runtime-neutral; OpenCode mirror is checked for semantic parity.
 - **Process bloat:** no new lifecycle state, hook, daemon, or validator schema in this WB.
 
-## Assurance Plan
+## Assurance Evidence
 
-- Requirements quality: required and recorded under `docs/reports/requirements/`.
-- Define consistency: repository-grounded analysis completed before Owner approval.
-- Critic: required; same-context Define Critic recorded, plus post-implementation read-only review.
-- Reviewer: read-only review of frozen implementation subject.
-- Verifier: deterministic contract/bootstrap/governance/publication checks.
-- Evaluation: NOT_REQUIRED; behavior is a deterministic documentation/bootstrap contract change.
-- Drift: required because Governance Core and portable lifecycle semantics change.
+- Requirements quality: `docs/reports/requirements/wb-learning-001-requirements-quality.md` — READY.
+- Define Critic: `docs/reports/reviews/wb-learning-001-critic.md` — APPROVE, same-context read-only.
+- Implementation Review: `docs/reports/reviews/wb-learning-001-implementation-review.md` — READY, same-context read-only.
+- Verification: `docs/reports/verification/wb-learning-001-verification.md` — READY; provider-native deterministic CI bound to exact implementation SHA.
+- Drift: `docs/reports/drift/wb-learning-001-drift.md` — ALIGNED, same-context read-only.
+- Evaluation: NOT_REQUIRED; deterministic governance/template/bootstrap contract change.
+- Framework Contracts run `33431711019` / #1342 on implementation subject — success.
+- Release State Contract run `33431711049` / #926 on implementation subject — success; compatibility evidence only, no release-state ownership.
+- Provider snapshot artifact `provider-contracts-snapshot-33431711019-1`, ID `9772898082`, digest `sha256:6255ccfc6a514263741c6b085589944a519829de3f97de15e8214a266fb89ae6`.
 
-Canonical verification commands:
+## Learning Review
 
-```text
-bash scripts/test-sdd-contract.sh
-python3 scripts/test-bootstrap-profiles.py
-bash scripts/validate-governance.sh
-bash scripts/validate-publication.sh
-git diff --check
-```
+Lifecycle stages reviewed: Define, Execute, Assure, Close.
+
+| Candidate | Evidence / effect | Disposition |
+| --- | --- | --- |
+| Classification must not become write authority | Define found that default coordination authority excludes `docs/engineering-memory/**`; the design now requires pre-authorized target or return to Define | `not-applicable` to separate Engineering Memory promotion because the principle is now an explicit normative requirement of this WB |
+| Line-oriented contract assertion vs Markdown wrapping | First PR CI captured `FAIL: .agent/workflows/sdd-protocol.md missing contract pattern: Define, Execute, Assure, and Close`; wording was made line-verifiable and final full suite passed | `operational-only`; one observed testability defect, insufficient recurrence evidence for a new durable lesson |
+
+Overall Engineering Memory classification: `operational-only`.
+
+No `docs/engineering-memory/` mutation is authorized or required by this closeout. No automatic project-to-framework promotion is performed.
 
 ## Lifecycle State
 
 - Define: READY / Owner approved.
-- Write Gate: READY for the exact implementation write-set above.
-- Execute: in progress.
-- Assure: pending.
-- Close: pending.
+- Write Gate: CLOSED; implementation subject frozen.
+- Execute: completed.
+- Review Gate: READY.
+- Verification Verdict: READY.
+- Evaluation Verdict: NOT_REQUIRED.
+- Drift Gate: READY / ALIGNED.
+- Closeout Mode: success-closeout, subject to final terminal-state CI and closeout evidence-only persistence.
+- Task Status: completed.
+- Merge / release / deployment: not authorized by this Work Block closeout.
