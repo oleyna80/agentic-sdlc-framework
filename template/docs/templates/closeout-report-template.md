@@ -29,10 +29,21 @@ chain-of-thought, hidden reasoning, model scratchpads, secrets, or protected dat
 Do not copy dynamic Git commit counts, check counts, or CI counters into this
 tracked report; use the SHA-bound provider snapshot artifact instead.
 
-### Engineering Memory
+### Engineering Memory / Learning Review
+- **Applicability:** [non-trivial learning review required | trivial with reason]
+- **Lifecycle stages reviewed:** [Define, Execute, Assure, Close | not applicable with reason]
+- **Material lesson candidates:** [candidate/evidence/disposition table or `none identified`]
 - **Classification:** [promoted | operational-only | not-applicable]
+- **Deduplication check:** [existing entries checked; updated/superseded/new | not applicable]
 - **Entries Updated:** [docs/engineering-memory/* | none]
+- **Promotion authority:** [target path already approved | no mutation; returned/follow-up to Define]
 - **Reason:** [why reusable knowledge was or was not promoted]
+- **Framework generalization:** [none | candidate only; separate framework Work Block required]
+
+For a non-trivial Work Block, Learning Review is part of Close for both `SUCCESS`
+and `REPORTING_ONLY`; it does not require a separate Owner reminder. Classification
+is evidence/disposition only and never expands the Work Block write-set or other
+authority. `none identified` is valid and preferable to manufacturing a lesson.
 
 ### Residual Risk
 - [none | unresolved risk]
