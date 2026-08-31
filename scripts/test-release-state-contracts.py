@@ -1271,6 +1271,15 @@ work_block_id: wb-007
         git(root, "init", "-q")
         git(root, "config", "user.email", "fixtures@example.test")
         git(root, "config", "user.name", "Fixture")
+        # A malformed legacy snapshot predating candidate evidence is tolerated
+        # only until the first structural promotion boundary is proven.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< legacy\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "malformed legacy release state")
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration))
         git(root, "add", ".")
         git(root, "commit", "-qm", "candidate")
         candidate_sha = git(root, "rev-parse", "HEAD")
@@ -1328,6 +1337,22 @@ work_block_id: wb-007
         result = validator.validate_repository(root)
         assert result["effective_latest_completed_work_block"] == CANDIDATE
         assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
+
+        first_promotion_head = git(root, "rev-parse", "HEAD")
+        # Once a structural promotion exists, malformed registry history cannot
+        # be hidden by a later valid recovery commit.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< corrupted\n")
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "malformed post-promotion registry")
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "recover post-promotion registry")
+        expect_failure(
+            "promotion-post-boundary-malformed-registry",
+            root,
+            "promotion history cannot traverse malformed FILE_REGISTRY.yml after the first structural promotion",
+        )
+        git(root, "reset", "--hard", first_promotion_head)
 
         subsequent = add_promoted_candidate(root, 9, CANDIDATE, promoted)
         promoted.append(subsequent)

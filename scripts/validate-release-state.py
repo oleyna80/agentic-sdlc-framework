@@ -1234,13 +1234,18 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
     commits = git_output(
         root, "rev-list", "--reverse", "--topo-order", head, "--", "FILE_REGISTRY.yml"
     ).splitlines()
-    seen_ledger = False
+    structural_promotion_boundary = False
     introductions: dict[str, int] = {record["work_block"]: 0 for record in current}
     for child in commits:
         try:
             child_registry = registry_at(root, child)
-        except ReleaseStateError:
-            # Historical commits before release-state files are not transitions.
+        except ReleaseStateError as exc:
+            if structural_promotion_boundary:
+                raise ReleaseStateError(
+                    "promotion history cannot traverse malformed FILE_REGISTRY.yml "
+                    "after the first structural promotion"
+                ) from exc
+            # Legacy snapshots can predate a usable release-state contract.
             continue
         parents = git_output(root, "rev-list", "--parents", "-n", "1", child).split()
         if len(parents) == 1:
@@ -1251,7 +1256,12 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
             child_ledger = child_registry["migration_state"].get("promoted_candidates")
             try:
                 parent_registries = [registry_at(root, parent) for parent in parents[1:]]
-            except ReleaseStateError:
+            except ReleaseStateError as exc:
+                if structural_promotion_boundary:
+                    raise ReleaseStateError(
+                        "promotion history cannot traverse malformed FILE_REGISTRY.yml "
+                        "after the first structural promotion"
+                    ) from exc
                 if child_ledger is not None:
                     raise ReleaseStateError("promotion transition must have one direct parent")
                 continue
@@ -1268,7 +1278,12 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         parent = parents[1]
         try:
             parent_state = registry_at(root, parent)["migration_state"]
-        except ReleaseStateError:
+        except ReleaseStateError as exc:
+            if structural_promotion_boundary:
+                raise ReleaseStateError(
+                    "promotion history cannot traverse malformed FILE_REGISTRY.yml "
+                    "after the first structural promotion"
+                ) from exc
             if child_registry["migration_state"].get("promoted_candidates") is not None:
                 raise ReleaseStateError("promotion transition must have one direct parent")
             continue
@@ -1287,7 +1302,6 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
             raise ReleaseStateError("promoted_candidates mutation, deletion, or reordering is forbidden")
         if len(child_ledger) not in {len(parent_ledger), len(parent_ledger) + 1}:
             raise ReleaseStateError("promoted_candidates may grow by exactly one record")
-        seen_ledger = True
         if parent_ledger:
             validate_frozen_canonical_history(registry_at(root, parent), child_registry)
         if len(child_ledger) == len(parent_ledger):
@@ -1322,7 +1336,15 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
             lineage = git_output(root, "rev-list", "--parents", "-n", "1", evidence).split()
             if len(lineage) != 2:
                 continue
-            if registry_at(root, lineage[1])["migration_state"].get("pre_closeout_candidate") != candidate:
+            try:
+                evidence_parent_state = registry_at(root, lineage[1])["migration_state"]
+            except ReleaseStateError as exc:
+                if lineage[1] == record.get("candidate_revision"):
+                    raise ReleaseStateError(
+                        "promotion evidence lineage contains malformed FILE_REGISTRY.yml"
+                    ) from exc
+                continue
+            if evidence_parent_state.get("pre_closeout_candidate") != candidate:
                 continue
             try:
                 matches.append(validate_evidence_persistence(root, lineage[1], evidence))
@@ -1339,9 +1361,10 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
             if revision_blob(root, parent, relative) != revision_blob(root, record["candidate_revision"], relative):
                 raise ReleaseStateError("promotion parent must retain the exact candidate manifest")
         introductions[record["work_block"]] = introductions.get(record["work_block"], 0) + 1
-    if not seen_ledger and current:
+        structural_promotion_boundary = True
+    if not structural_promotion_boundary and current:
         raise ReleaseStateError("promoted_candidates requires discoverable promotion history")
-    if seen_ledger and not current:
+    if structural_promotion_boundary and not current:
         raise ReleaseStateError("promoted_candidates deletion is forbidden")
     if any(count != 1 for count in introductions.values()):
         raise ReleaseStateError("each promotion record requires one uniquely discoverable transition")
