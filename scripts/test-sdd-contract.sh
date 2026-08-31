@@ -604,4 +604,33 @@ for path in \
   require_absent_pattern "$path" 'Plan & Discover|Stage 2: Verify|Codex mega-orchestrator'
 done
 
+# WB-LEARNING-001: non-trivial Close performs a lifecycle-wide, authority-safe
+# learning review and fresh projects receive an empty project-local lessons log.
+require_file "template/docs/engineering-memory/lessons-learned.md"
+require_contains "governance/lifecycle.md" 'Orchestrator Learning Review'
+require_contains "governance/lifecycle.md" 'Define, Execute, Assure, and Close'
+require_contains "governance/lifecycle.md" 'promoted.*operational-only.*not-applicable'
+require_contains "governance/lifecycle.md" 'does not require a separate Owner'
+require_contains "governance/lifecycle.md" 'not permission'
+require_contains ".agent/workflows/sdd-protocol.md" 'Define, Execute, Assure, and Close'
+require_contains ".agent/workflows/sdd-protocol.md" 'deduplicate against existing Engineering Memory'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'Orchestrator Learning Review'
+require_contains "template/.agent/workflows/sdd-protocol.md" 'none identified'
+require_contains "skills/ssot-sync-closeout/SKILL.md" 'Define, Execute, Assure и Close'
+require_contains "skills/ssot-sync-closeout/SKILL.md" 'promoted.*operational-only.*not-applicable'
+require_contains "skills/ssot-sync-closeout/SKILL.md" 'не является permission grant'
+require_contains ".opencode/skills/ssot-sync-closeout/SKILL.md" 'Define, Execute, Assure, and Close'
+require_contains ".opencode/skills/ssot-sync-closeout/SKILL.md" 'Classification is not permission'
+require_contains "framework/memory/project-engineering-memory.md" 'Project-to-Framework Boundary'
+require_contains "framework/memory/project-engineering-memory.md" 'MUST perform an Orchestrator Learning Review'
+require_contains "template/docs/engineering-memory/README.md" 'Project-to-Framework Boundary'
+require_contains "template/docs/engineering-memory/lessons-learned.md" 'Framework example/history lessons are intentionally'
+require_contains "template/docs/engineering-memory/lessons-learned.md" 'separate evidence-backed framework Work'
+require_absent_pattern "template/docs/engineering-memory/lessons-learned.md" 'LL-001|LL-002|LL-003'
+require_contains "bootstrap/profiles.json" 'docs/engineering-memory/lessons-learned.md'
+require_contains "template/docs/templates/work-block-template.md" 'Engineering Memory closeout target:'
+require_contains "template/docs/templates/work-block-template.md" 'Learning promotion authority:'
+require_contains "template/docs/templates/closeout-report-template.md" 'Lifecycle stages reviewed:'
+require_contains "template/docs/templates/closeout-report-template.md" 'Promotion authority:'
+
 echo "OK: runtime-neutral SDLC protocol and evaluation-aware direct consumers satisfy the contract checks"
