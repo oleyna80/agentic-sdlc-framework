@@ -226,6 +226,32 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertFalse((target / "two.txt").exists())
             self.assertEqual(operator_file.read_text(encoding="utf-8"), "preserve")
 
+    def test_rollback_preserves_operator_artifact_after_target_directory_replacement(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            original_target = root / "target-before-replacement"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt", "two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def replace_target_then_fail(path: Path) -> None:
+                if path.name == "one.txt":
+                    target.rename(original_target)
+                    target.mkdir()
+                    (target / "operator-owned.txt").write_text("preserve", encoding="utf-8")
+                elif path.name == "two.txt":
+                    raise OSError("injected publication failure after target replacement")
+
+            result = install.apply_plan(plan, manifest, failure_injector=replace_target_then_fail)
+            self.assertFalse(result.success)
+            self.assertEqual(result.residual_paths, ())
+            self.assertEqual((target / "operator-owned.txt").read_text(encoding="utf-8"), "preserve")
+            self.assertFalse((target / "one.txt").exists())
+            self.assertFalse((target / "two.txt").exists())
+            self.assertFalse((original_target / "one.txt").exists())
+            self.assertFalse((original_target / "two.txt").exists())
+
     def test_incomplete_rollback_reports_exact_residual_and_recovery(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

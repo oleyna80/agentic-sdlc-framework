@@ -343,9 +343,14 @@ def _open_destination_parent(
         raise
 
 
-def _unlink_created(target_root: Path, relative_path: str, is_directory: bool) -> None:
-    """Remove a recorded artifact only through a no-follow descriptor chain."""
-    target_fd = _open_target_fd(target_root)
+def _unlink_created(target_fd: int, relative_path: str, is_directory: bool) -> None:
+    """Remove a recorded artifact only through the original target descriptor.
+
+    ``target_fd`` remains open from publication through rollback.  In
+    particular, rollback must not reopen ``target_root`` by pathname: an
+    operator may replace that directory after publication starts, and a
+    pathname reopen could then remove an artifact owned by the replacement.
+    """
     parent_fd = -1
     try:
         parent_fd, name = _open_destination_parent(target_fd, relative_path, [], create_missing=False)
@@ -356,10 +361,10 @@ def _unlink_created(target_root: Path, relative_path: str, is_directory: bool) -
     finally:
         if parent_fd >= 0:
             os.close(parent_fd)
-        os.close(target_fd)
 
 
 def _rollback(
+    target_fd: int,
     target_root: Path,
     created_files: Iterable[str],
     created_dirs: Iterable[str],
@@ -371,7 +376,7 @@ def _rollback(
         try:
             if rollback_failure_injector and rollback_failure_injector(path):
                 raise OSError("injected rollback failure")
-            _unlink_created(target_root, relative_path, is_directory=False)
+            _unlink_created(target_fd, relative_path, is_directory=False)
         except OSError:
             residuals.append(str(path))
     for relative_path in reversed(tuple(created_dirs)):
@@ -379,7 +384,7 @@ def _rollback(
         try:
             if rollback_failure_injector and rollback_failure_injector(path):
                 raise OSError("injected rollback failure")
-            _unlink_created(target_root, relative_path, is_directory=True)
+            _unlink_created(target_fd, relative_path, is_directory=True)
         except OSError:
             residuals.append(str(path))
     return tuple(residuals)
@@ -435,6 +440,7 @@ def apply_plan(
     created_files: list[str] = []
     created_dirs: list[str] = []
     stage_root: Path | None = None
+    target_fd = -1
     try:
         stage_root = _create_external_stage_dir(target_root)
         for action in create_actions:
@@ -445,28 +451,25 @@ def apply_plan(
             if _sha256_file(staged) != action.source_sha256:
                 raise OSError(f"staged bytes changed for {action.path}")
         target_fd = _open_target_fd(target_root)
-        try:
-            for action in create_actions:
-                if before_publish_injector:
-                    before_publish_injector(action.path)
-                parent_fd = -1
-                try:
-                    parent_fd, name = _open_destination_parent(target_fd, action.path, created_dirs)
-                    output_fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o666, dir_fd=parent_fd)
-                    destination = target_root.joinpath(*PurePosixPath(action.path).parts)
-                    source = stage_root.joinpath(*PurePosixPath(action.path).parts)
-                    with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
-                        shutil.copyfileobj(input_handle, output_handle)
-                    created_files.append(action.path)
-                    if failure_injector:
-                        failure_injector(destination)
-                finally:
-                    if parent_fd >= 0:
-                        os.close(parent_fd)
-        finally:
-            os.close(target_fd)
+        for action in create_actions:
+            if before_publish_injector:
+                before_publish_injector(action.path)
+            parent_fd = -1
+            try:
+                parent_fd, name = _open_destination_parent(target_fd, action.path, created_dirs)
+                output_fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o666, dir_fd=parent_fd)
+                destination = target_root.joinpath(*PurePosixPath(action.path).parts)
+                source = stage_root.joinpath(*PurePosixPath(action.path).parts)
+                with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
+                    shutil.copyfileobj(input_handle, output_handle)
+                created_files.append(action.path)
+                if failure_injector:
+                    failure_injector(destination)
+            finally:
+                if parent_fd >= 0:
+                    os.close(parent_fd)
     except OSError as exc:
-        residuals = _rollback(target_root, created_files, created_dirs, rollback_failure_injector)
+        residuals = _rollback(target_fd, target_root, created_files, created_dirs, rollback_failure_injector) if target_fd >= 0 else ()
         recovery = None
         if residuals:
             recovery = "Remove only these residual paths after inspection: " + ", ".join(residuals)
@@ -486,6 +489,8 @@ def apply_plan(
             recovery_instructions=recovery,
         )
     finally:
+        if target_fd >= 0:
+            os.close(target_fd)
         if stage_root is not None:
             try:
                 shutil.rmtree(stage_root)
