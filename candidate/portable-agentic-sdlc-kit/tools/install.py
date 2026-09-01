@@ -363,30 +363,65 @@ def _unlink_created(target_fd: int, relative_path: str, is_directory: bool) -> N
             os.close(parent_fd)
 
 
+def _publication_root_for_reporting(target_fd: int) -> Path | None:
+    """Return the current pathname of the opened publication directory.
+
+    Publication and rollback intentionally retain a directory descriptor so a
+    replacement of ``target_root`` cannot redirect cleanup.  A textual target
+    pathname is therefore no longer necessarily the location of a residual.
+    On hosts exposing ``/proc/self/fd``, use its kernel-maintained descriptor
+    link only after proving it still identifies the opened directory.  If that
+    proof is unavailable, callers must report an inspection gap rather than
+    falsely naming a replacement directory.
+    """
+    try:
+        descriptor_stat = os.fstat(target_fd)
+        descriptor_link = os.readlink(f"/proc/self/fd/{target_fd}")
+        if not os.path.isabs(descriptor_link) or descriptor_link.endswith(" (deleted)"):
+            return None
+        reported_root = Path(descriptor_link)
+        path_stat = reported_root.stat()
+    except OSError:
+        return None
+    if (path_stat.st_dev, path_stat.st_ino) != (descriptor_stat.st_dev, descriptor_stat.st_ino):
+        return None
+    return reported_root
+
+
+def _reported_artifact_path(reporting_root: Path | None, target_fd: int, relative_path: str) -> str:
+    if reporting_root is not None:
+        return str(reporting_root.joinpath(*PurePosixPath(relative_path).parts))
+    descriptor_stat = os.fstat(target_fd)
+    return (
+        f"<unresolved publication directory dev={descriptor_stat.st_dev} "
+        f"ino={descriptor_stat.st_ino}>/{relative_path}"
+    )
+
+
 def _rollback(
     target_fd: int,
-    target_root: Path,
+    reporting_root: Path | None,
     created_files: Iterable[str],
     created_dirs: Iterable[str],
     rollback_failure_injector: Callable[[Path], bool] | None,
 ) -> tuple[str, ...]:
     residuals: list[str] = []
     for relative_path in reversed(tuple(created_files)):
-        path = target_root.joinpath(*PurePosixPath(relative_path).parts)
+        path = _reported_artifact_path(reporting_root, target_fd, relative_path)
         try:
-            if rollback_failure_injector and rollback_failure_injector(path):
+            if rollback_failure_injector and rollback_failure_injector(Path(path)):
                 raise OSError("injected rollback failure")
             _unlink_created(target_fd, relative_path, is_directory=False)
         except OSError:
-            residuals.append(str(path))
+            residuals.append(path)
     for relative_path in reversed(tuple(created_dirs)):
-        path = target_root.joinpath(*PurePosixPath(relative_path).parts)
+        path = _reported_artifact_path(reporting_root, target_fd, relative_path)
         try:
-            if rollback_failure_injector and rollback_failure_injector(path):
+            if rollback_failure_injector and rollback_failure_injector(Path(path)):
                 raise OSError("injected rollback failure")
             _unlink_created(target_fd, relative_path, is_directory=True)
         except OSError:
-            residuals.append(str(path))
+            residuals.append(path)
     return tuple(residuals)
 
 
@@ -469,17 +504,31 @@ def apply_plan(
                 if parent_fd >= 0:
                     os.close(parent_fd)
     except OSError as exc:
-        residuals = _rollback(target_fd, target_root, created_files, created_dirs, rollback_failure_injector) if target_fd >= 0 else ()
+        reporting_root = _publication_root_for_reporting(target_fd) if target_fd >= 0 else None
+        residuals = (
+            _rollback(target_fd, reporting_root, created_files, created_dirs, rollback_failure_injector)
+            if target_fd >= 0
+            else ()
+        )
         recovery = None
         if residuals:
-            recovery = "Remove only these residual paths after inspection: " + ", ".join(residuals)
+            if reporting_root is None:
+                recovery = (
+                    "Do not remove paths beneath the current target pathname: "
+                    "the rollback residual is tied to the opened publication directory, "
+                    "whose pathname could not be proven. Inspect the reported descriptor "
+                    "identity before any manual cleanup: "
+                    + ", ".join(residuals)
+                )
+            else:
+                recovery = "Remove only these residual paths after inspection: " + ", ".join(residuals)
         return ApplyResult(
             success=False,
             plan_identity=plan.plan_identity,
             created_paths=tuple(
-                str(target_root.joinpath(*PurePosixPath(path).parts))
+                _reported_artifact_path(reporting_root, target_fd, path)
                 for path in created_files
-                if str(target_root.joinpath(*PurePosixPath(path).parts)) not in residuals
+                if _reported_artifact_path(reporting_root, target_fd, path) not in residuals
             ),
             skipped_paths=skipped,
             collision_paths=(),

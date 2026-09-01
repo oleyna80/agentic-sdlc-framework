@@ -280,6 +280,43 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertTrue((target / "one.txt").is_file())
             self.assertFalse((target / "two.txt").exists())
 
+    def test_incomplete_rollback_after_target_replacement_reports_actual_residual(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            prior_target = root / "target-before-replacement"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt", "two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def replace_target_then_fail(path: Path) -> None:
+                if path.name == "one.txt":
+                    target.rename(prior_target)
+                    target.mkdir()
+                    (target / "operator-owned.txt").write_text("preserve", encoding="utf-8")
+                elif path.name == "two.txt":
+                    raise OSError("injected publication failure after target replacement")
+
+            def fail_rollback(path: Path) -> bool:
+                return path.name == "one.txt"
+
+            result = install.apply_plan(
+                plan,
+                manifest,
+                failure_injector=replace_target_then_fail,
+                rollback_failure_injector=fail_rollback,
+            )
+            actual_residual = str(prior_target / "one.txt")
+            replacement_path = str(target / "one.txt")
+            self.assertFalse(result.success)
+            self.assertEqual(result.residual_paths, (actual_residual,))
+            self.assertIn(actual_residual, result.recovery_instructions or "")
+            self.assertNotIn(replacement_path, result.recovery_instructions or "")
+            self.assertTrue((prior_target / "one.txt").is_file())
+            self.assertFalse((prior_target / "two.txt").exists())
+            self.assertEqual((target / "operator-owned.txt").read_text(encoding="utf-8"), "preserve")
+            self.assertFalse((target / "one.txt").exists())
+
     def test_source_change_after_plan_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
