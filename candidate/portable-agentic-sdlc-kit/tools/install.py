@@ -30,6 +30,14 @@ from typing import Callable, Iterable
 EXIT_INVALID = 2
 MANIFEST_SCHEMA = 1
 WINDOWS_RESERVED = re.compile(r"[<>:\"|?*]")
+WINDOWS_DEVICE_NAMES = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    *(f"COM{number}" for number in range(1, 10)),
+    *(f"LPT{number}" for number in range(1, 10)),
+}
 
 
 class InstallerError(Exception):
@@ -149,6 +157,12 @@ def _validate_relative_path(value: object) -> str:
         raise ManifestError(f"manifest path is not normalized: {value!r}")
     if any(WINDOWS_RESERVED.search(part) for part in path.parts):
         raise ManifestError(f"manifest path contains invalid platform characters: {value!r}")
+    for component in path.parts:
+        if component.rstrip(" .") != component:
+            raise ManifestError(f"manifest path has a Windows-trimmed component: {value!r}")
+        device_stem = component.split(".", 1)[0].upper()
+        if device_stem in WINDOWS_DEVICE_NAMES:
+            raise ManifestError(f"manifest path has a Windows reserved device component: {value!r}")
     return value
 
 
@@ -181,6 +195,8 @@ def load_manifest(manifest_path: Path | None = None) -> PackageManifest:
     paths = tuple(_validate_relative_path(item) for item in approved)
     if tuple(sorted(paths)) != paths or len(set(paths)) != len(paths):
         raise ManifestError("manifest approved_create_paths must be unique and lexicographically sorted")
+    if len({path.casefold() for path in paths}) != len(paths):
+        raise ManifestError("manifest approved_create_paths must not collide under Windows case folding")
     return PackageManifest(package_identity, MANIFEST_SCHEMA, revision, payload_root, paths, resolved_manifest)
 
 
@@ -276,42 +292,118 @@ def _result_from_plan(plan: InstallPlan, diagnostic: str) -> ApplyResult:
     )
 
 
-def _create_parent_dirs(target_root: Path, relative_path: str, created_dirs: list[Path]) -> None:
-    current = target_root
-    for component in PurePosixPath(relative_path).parts[:-1]:
-        current = current / component
-        try:
-            info = current.lstat()
-        except FileNotFoundError:
-            current.mkdir()
-            created_dirs.append(current)
-            continue
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-            raise OSError(f"unsafe destination parent during publication: {current.relative_to(target_root).as_posix()}")
+def _descriptor_publication_supported() -> bool:
+    """Return whether this host can publish without following target symlinks."""
+    required = (os.open, os.mkdir, os.stat, os.unlink)
+    return hasattr(os, "O_NOFOLLOW") and all(operation in os.supports_dir_fd for operation in required)
+
+
+def _open_target_fd(target_root: Path) -> int:
+    if not _descriptor_publication_supported():
+        raise OSError("safe descriptor-relative publication is unavailable on this platform")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    return os.open(target_root, flags)
+
+
+def _open_destination_parent(
+    target_fd: int,
+    relative_path: str,
+    created_dirs: list[str],
+    *,
+    create_missing: bool = True,
+) -> tuple[int, str]:
+    """Open a destination parent without following any path component.
+
+    Each descent is relative to an already-open directory descriptor.  A
+    directory swapped for a symlink after planning is therefore rejected rather
+    than followed during publication.
+    """
+    parts = PurePosixPath(relative_path).parts
+    current_fd = os.dup(target_fd)
+    traversed: list[str] = []
+    try:
+        for component in parts[:-1]:
+            traversed.append(component)
+            try:
+                info = os.stat(component, dir_fd=current_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                if not create_missing:
+                    raise
+                os.mkdir(component, dir_fd=current_fd)
+                created_dirs.append("/".join(traversed))
+                info = os.stat(component, dir_fd=current_fd, follow_symlinks=False)
+            if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+                raise OSError(f"unsafe destination parent during publication: {'/'.join(traversed)}")
+            next_fd = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current_fd)
+            os.close(current_fd)
+            current_fd = next_fd
+        return current_fd, parts[-1]
+    except BaseException:
+        os.close(current_fd)
+        raise
+
+
+def _unlink_created(target_root: Path, relative_path: str, is_directory: bool) -> None:
+    """Remove a recorded artifact only through a no-follow descriptor chain."""
+    target_fd = _open_target_fd(target_root)
+    parent_fd = -1
+    try:
+        parent_fd, name = _open_destination_parent(target_fd, relative_path, [], create_missing=False)
+        if is_directory:
+            os.rmdir(name, dir_fd=parent_fd)
+        else:
+            os.unlink(name, dir_fd=parent_fd)
+    finally:
+        if parent_fd >= 0:
+            os.close(parent_fd)
+        os.close(target_fd)
 
 
 def _rollback(
-    created_files: Iterable[Path],
-    created_dirs: Iterable[Path],
+    target_root: Path,
+    created_files: Iterable[str],
+    created_dirs: Iterable[str],
     rollback_failure_injector: Callable[[Path], bool] | None,
 ) -> tuple[str, ...]:
     residuals: list[str] = []
-    for path in reversed(tuple(created_files)):
+    for relative_path in reversed(tuple(created_files)):
+        path = target_root.joinpath(*PurePosixPath(relative_path).parts)
         try:
             if rollback_failure_injector and rollback_failure_injector(path):
                 raise OSError("injected rollback failure")
-            path.unlink()
+            _unlink_created(target_root, relative_path, is_directory=False)
         except OSError:
             residuals.append(str(path))
-    for path in reversed(tuple(created_dirs)):
+    for relative_path in reversed(tuple(created_dirs)):
+        path = target_root.joinpath(*PurePosixPath(relative_path).parts)
         try:
             if rollback_failure_injector and rollback_failure_injector(path):
                 raise OSError("injected rollback failure")
-            path.rmdir()
+            _unlink_created(target_root, relative_path, is_directory=True)
         except OSError:
-            if path.exists() or path.is_symlink():
-                residuals.append(str(path))
+            residuals.append(str(path))
     return tuple(residuals)
+
+
+def _create_external_stage_dir(target_root: Path) -> Path:
+    """Create staging outside the resolved target, even with hostile TMPDIR."""
+    candidates = (Path(tempfile.gettempdir()), target_root.parent)
+    for candidate in candidates:
+        try:
+            resolved_candidate = candidate.resolve(strict=True)
+        except OSError:
+            continue
+        if not resolved_candidate.is_dir() or _is_within(resolved_candidate, target_root):
+            continue
+        try:
+            stage_root = Path(tempfile.mkdtemp(prefix="portable-kit-stage-", dir=resolved_candidate))
+            if _is_within(stage_root.resolve(strict=True), target_root):
+                stage_root.rmdir()
+                continue
+            return stage_root
+        except OSError:
+            continue
+    raise OSError("cannot create staging outside the resolved target root")
 
 
 def apply_plan(
@@ -319,6 +411,7 @@ def apply_plan(
     manifest_path: Path | None = None,
     failure_injector: Callable[[Path], None] | None = None,
     rollback_failure_injector: Callable[[Path], bool] | None = None,
+    before_publish_injector: Callable[[str], None] | None = None,
 ) -> ApplyResult:
     """Revalidate, stage, and publish a plan without touching pre-existing files.
 
@@ -339,38 +432,52 @@ def apply_plan(
     target_root = Path(plan.target_root)
     create_actions = tuple(action for action in plan.actions if action.action == "create")
     skipped = tuple(action.path for action in plan.actions if action.action == "skip-identical")
-    created_files: list[Path] = []
-    created_dirs: list[Path] = []
+    created_files: list[str] = []
+    created_dirs: list[str] = []
+    stage_root: Path | None = None
     try:
-        with tempfile.TemporaryDirectory(prefix="portable-kit-stage-") as stage_name:
-            stage_root = Path(stage_name)
+        stage_root = _create_external_stage_dir(target_root)
+        for action in create_actions:
+            source = _source_path(manifest, action.path)
+            staged = stage_root.joinpath(*PurePosixPath(action.path).parts)
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, staged)
+            if _sha256_file(staged) != action.source_sha256:
+                raise OSError(f"staged bytes changed for {action.path}")
+        target_fd = _open_target_fd(target_root)
+        try:
             for action in create_actions:
-                source = _source_path(manifest, action.path)
-                staged = stage_root.joinpath(*PurePosixPath(action.path).parts)
-                staged.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, staged)
-                if _sha256_file(staged) != action.source_sha256:
-                    raise OSError(f"staged bytes changed for {action.path}")
-            for action in create_actions:
-                destination, unsafe = _destination_safety(target_root, action.path)
-                if unsafe:
-                    raise OSError(f"unsafe destination during publication: {unsafe}")
-                _create_parent_dirs(target_root, action.path, created_dirs)
-                source = stage_root.joinpath(*PurePosixPath(action.path).parts)
-                with source.open("rb") as input_handle, destination.open("xb") as output_handle:
-                    shutil.copyfileobj(input_handle, output_handle)
-                created_files.append(destination)
-                if failure_injector:
-                    failure_injector(destination)
+                if before_publish_injector:
+                    before_publish_injector(action.path)
+                parent_fd = -1
+                try:
+                    parent_fd, name = _open_destination_parent(target_fd, action.path, created_dirs)
+                    output_fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o666, dir_fd=parent_fd)
+                    destination = target_root.joinpath(*PurePosixPath(action.path).parts)
+                    source = stage_root.joinpath(*PurePosixPath(action.path).parts)
+                    with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
+                        shutil.copyfileobj(input_handle, output_handle)
+                    created_files.append(action.path)
+                    if failure_injector:
+                        failure_injector(destination)
+                finally:
+                    if parent_fd >= 0:
+                        os.close(parent_fd)
+        finally:
+            os.close(target_fd)
     except OSError as exc:
-        residuals = _rollback(created_files, created_dirs, rollback_failure_injector)
+        residuals = _rollback(target_root, created_files, created_dirs, rollback_failure_injector)
         recovery = None
         if residuals:
             recovery = "Remove only these residual paths after inspection: " + ", ".join(residuals)
         return ApplyResult(
             success=False,
             plan_identity=plan.plan_identity,
-            created_paths=tuple(str(path) for path in created_files if str(path) not in residuals),
+            created_paths=tuple(
+                str(target_root.joinpath(*PurePosixPath(path).parts))
+                for path in created_files
+                if str(target_root.joinpath(*PurePosixPath(path).parts)) not in residuals
+            ),
             skipped_paths=skipped,
             collision_paths=(),
             blocked_paths=(),
@@ -378,6 +485,14 @@ def apply_plan(
             diagnostic=f"publication failed: {exc}",
             recovery_instructions=recovery,
         )
+    finally:
+        if stage_root is not None:
+            try:
+                shutil.rmtree(stage_root)
+            except OSError:
+                # Staging is outside the target and an operator-visible failure
+                # is preferable to reporting a successful publication with junk.
+                pass
     return ApplyResult(
         success=True,
         plan_identity=plan.plan_identity,

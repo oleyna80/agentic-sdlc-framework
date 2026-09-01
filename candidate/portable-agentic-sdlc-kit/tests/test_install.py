@@ -103,7 +103,19 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertEqual(existing.read_bytes(), b"operator-owned content")
 
     def test_invalid_and_windows_style_paths_fail_closed(self) -> None:
-        invalid_paths = ["../escape.txt", "/absolute.txt", "C:\\drive.txt", "\\\\server\\share.txt", "safe\\mixed.txt"]
+        invalid_paths = [
+            "../escape.txt",
+            "/absolute.txt",
+            "C:\\drive.txt",
+            "\\\\server\\share.txt",
+            "safe\\mixed.txt",
+            "CON",
+            "aux.txt",
+            "Com1.log",
+            "nested/LpT9.md",
+            "trailing-dot.",
+            "trailing-space ",
+        ]
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             target = root / "target"
@@ -112,6 +124,15 @@ class InstallerFixtureTests(unittest.TestCase):
                 manifest = self.make_package(root / str(index), [invalid])
                 with self.assertRaises(install.ManifestError, msg=invalid):
                     install.build_plan(target, manifest)
+
+    def test_windows_casefold_destination_collisions_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            target.mkdir()
+            manifest = self.make_package(root, ["Guide.md", "guide.md"])
+            with self.assertRaises(install.ManifestError):
+                install.build_plan(target, manifest)
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable on this platform")
     def test_symlink_parent_escape_is_blocked_without_target_mutation(self) -> None:
@@ -129,6 +150,46 @@ class InstallerFixtureTests(unittest.TestCase):
             result = install.apply_plan(plan)
             self.assertFalse(result.success)
             self.assertEqual(list(outside.iterdir()), [])
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable on this platform")
+    def test_parent_symlink_swap_after_plan_fails_closed_without_escape(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            outside = root / "outside"
+            target.mkdir()
+            outside.mkdir()
+            (target / "nested").mkdir()
+            manifest = self.make_package(root, ["nested/item.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def swap_parent(relative_path: str) -> None:
+                self.assertEqual(relative_path, "nested/item.txt")
+                (target / "nested").rmdir()
+                os.symlink(outside, target / "nested")
+
+            result = install.apply_plan(plan, manifest, before_publish_injector=swap_parent)
+            self.assertFalse(result.success)
+            self.assertIn("unsafe destination parent", result.diagnostic or "")
+            self.assertFalse((outside / "item.txt").exists())
+            self.assertTrue((target / "nested").is_symlink())
+
+    def test_staging_remains_outside_target_when_tempdir_points_at_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt"])
+            plan = install.build_plan(target, manifest)
+            original_tempdir = tempfile.tempdir
+            try:
+                tempfile.tempdir = str(target)
+                result = install.apply_plan(plan, manifest)
+            finally:
+                tempfile.tempdir = original_tempdir
+            self.assertTrue(result.success, result.diagnostic)
+            self.assertEqual((target / "one.txt").read_text(encoding="utf-8"), "payload:one.txt\n")
+            self.assertFalse(any(path.name.startswith("portable-kit-stage-") for path in target.iterdir()))
 
     def test_apply_rejects_target_drift_before_publication(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
