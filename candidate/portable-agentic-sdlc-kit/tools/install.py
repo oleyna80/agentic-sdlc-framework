@@ -69,6 +69,8 @@ class PlanAction:
 @dataclass(frozen=True)
 class InstallPlan:
     target_root: str
+    target_device: int
+    target_inode: int
     manifest_digest: str
     plan_identity: str
     actions: tuple[PlanAction, ...]
@@ -80,6 +82,7 @@ class InstallPlan:
     def to_dict(self) -> dict[str, object]:
         return {
             "target_root": self.target_root,
+            "target_identity": {"device": self.target_device, "inode": self.target_inode},
             "manifest_digest": self.manifest_digest,
             "plan_identity": self.plan_identity,
             "actions": [asdict(action) for action in self.actions],
@@ -124,6 +127,7 @@ class _PublishedArtifact:
 
     relative_path: str
     parent_fd: int
+    object_fd: int
     name: str
     is_directory: bool
     device: int
@@ -283,6 +287,7 @@ def build_plan(target: Path | str, manifest_path: Path | None = None) -> Install
     """Create a complete non-mutating installation plan."""
     manifest = load_manifest(manifest_path)
     target_root = _resolve_target(target)
+    target_info = target_root.stat()
     actions = tuple(
         _classify_destination(target_root, _source_path(manifest, relative_path), relative_path)
         for relative_path in manifest.approved_create_paths
@@ -291,9 +296,17 @@ def build_plan(target: Path | str, manifest_path: Path | None = None) -> Install
     identity_input = {
         "manifest_digest": manifest_digest,
         "target_root": str(target_root),
+        "target_identity": {"device": target_info.st_dev, "inode": target_info.st_ino},
         "actions": [asdict(action) for action in actions],
     }
-    return InstallPlan(str(target_root), manifest_digest, _sha256_bytes(_canonical_json(identity_input)), actions)
+    return InstallPlan(
+        str(target_root),
+        target_info.st_dev,
+        target_info.st_ino,
+        manifest_digest,
+        _sha256_bytes(_canonical_json(identity_input)),
+        actions,
+    )
 
 
 def _result_from_plan(plan: InstallPlan, diagnostic: str) -> ApplyResult:
@@ -320,6 +333,24 @@ def _open_target_fd(target_root: Path) -> int:
         raise OSError("safe descriptor-relative publication is unavailable on this platform")
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     return os.open(target_root, flags)
+
+
+def _target_identity_matches(plan: InstallPlan, target_fd: int) -> bool:
+    """Prove both the open root and its current pathname are the planned root.
+
+    The descriptor keeps subsequent publication anchored if the pathname is
+    renamed.  Comparing the pathname as well prevents publication when a new
+    directory has already replaced the planned root before mutation begins.
+    """
+    expected = (plan.target_device, plan.target_inode)
+    opened = os.fstat(target_fd)
+    if (opened.st_dev, opened.st_ino) != expected:
+        return False
+    try:
+        named = os.stat(plan.target_root, follow_symlinks=False)
+    except OSError:
+        return False
+    return stat.S_ISDIR(named.st_mode) and (named.st_dev, named.st_ino) == expected
 
 
 def _open_destination_parent(
@@ -357,6 +388,7 @@ def _open_destination_parent(
                     _PublishedArtifact(
                         relative_path="/".join(traversed),
                         parent_fd=os.dup(current_fd),
+                        object_fd=-1,
                         name=component,
                         is_directory=True,
                         device=info.st_dev,
@@ -379,6 +411,11 @@ def _open_destination_parent(
             if (opened.st_dev, opened.st_ino) != expected_identity:
                 os.close(next_fd)
                 raise OSError(f"destination parent changed during publication: {parent_path}")
+            if created_dirs and created_dirs[-1].relative_path == parent_path and created_dirs[-1].object_fd < 0:
+                # Keep a descriptor for the created directory itself.  Its
+                # parent entry may later be renamed or replaced, while this
+                # descriptor can still prove the physical residual location.
+                created_dirs[-1].object_fd = os.dup(next_fd)
             os.close(current_fd)
             current_fd = next_fd
         return current_fd, parts[-1]
@@ -387,11 +424,11 @@ def _open_destination_parent(
         raise
 
 
-def _descriptor_path(directory_fd: int) -> Path | None:
-    """Return a proven current pathname for an already-open directory."""
+def _descriptor_path(descriptor_fd: int) -> Path | None:
+    """Return a proven current pathname for an already-open object."""
     try:
-        descriptor_stat = os.fstat(directory_fd)
-        descriptor_link = os.readlink(f"/proc/self/fd/{directory_fd}")
+        descriptor_stat = os.fstat(descriptor_fd)
+        descriptor_link = os.readlink(f"/proc/self/fd/{descriptor_fd}")
         if not os.path.isabs(descriptor_link) or descriptor_link.endswith(" (deleted)"):
             return None
         reported_directory = Path(descriptor_link)
@@ -413,14 +450,26 @@ def _artifact_identity_matches(artifact: _PublishedArtifact) -> bool:
 
 
 def _reported_artifact_path(artifact: _PublishedArtifact) -> str:
+    object_path = _descriptor_path(artifact.object_fd)
+    if object_path is not None:
+        try:
+            object_stat = object_path.stat()
+        except OSError:
+            # The descriptor still proves the object identity, but its
+            # pathname was concurrently removed or rebound before it could be
+            # verified.  Report it as unresolved below rather than guessing.
+            pass
+        else:
+            if (object_stat.st_dev, object_stat.st_ino) == (artifact.device, artifact.inode):
+                return str(object_path)
     parent_path = _descriptor_path(artifact.parent_fd)
     if parent_path is not None and _artifact_identity_matches(artifact):
         return str(parent_path / artifact.name)
     descriptor_stat = os.fstat(artifact.parent_fd)
     return (
-        f"<unresolved created artifact dev={artifact.device} ino={artifact.inode} "
-        f"parent-dev={descriptor_stat.st_dev} parent-ino={descriptor_stat.st_ino} "
-        f"name={artifact.name!r}>"
+        f"location unresolved; created artifact identity dev={artifact.device} ino={artifact.inode}; "
+        f"parent identity dev={descriptor_stat.st_dev} ino={descriptor_stat.st_ino}; "
+        f"entry name={artifact.name!r}"
     )
 
 
@@ -470,6 +519,11 @@ def _close_artifacts(artifacts: Iterable[_PublishedArtifact]) -> None:
             os.close(artifact.parent_fd)
         except OSError:
             pass
+        if artifact.object_fd >= 0:
+            try:
+                os.close(artifact.object_fd)
+            except OSError:
+                pass
 
 
 def _create_external_stage_dir(target_root: Path) -> Path:
@@ -576,6 +630,8 @@ def apply_plan(
             if _sha256_file(staged) != action.source_sha256:
                 raise OSError(f"staged bytes changed for {action.path}")
         target_fd = _open_target_fd(target_root)
+        if not _target_identity_matches(plan, target_fd):
+            raise OSError("target root identity changed before publication")
         parent_identities = _bind_parent_identities(target_fd, create_actions)
         for action in create_actions:
             if before_publish_injector:
@@ -588,24 +644,33 @@ def apply_plan(
                 output_fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o666, dir_fd=parent_fd)
                 destination = target_root.joinpath(*PurePosixPath(action.path).parts)
                 source = stage_root.joinpath(*PurePosixPath(action.path).parts)
-                with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
-                    shutil.copyfileobj(input_handle, output_handle)
-                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
-                created_files.append(
-                    _PublishedArtifact(
-                        relative_path=action.path,
-                        parent_fd=os.dup(parent_fd),
-                        name=name,
-                        is_directory=False,
-                        device=info.st_dev,
-                        inode=info.st_ino,
+                artifact_fd = os.dup(output_fd)
+                try:
+                    with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
+                        shutil.copyfileobj(input_handle, output_handle)
+                    info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+                    created_files.append(
+                        _PublishedArtifact(
+                            relative_path=action.path,
+                            parent_fd=os.dup(parent_fd),
+                            object_fd=artifact_fd,
+                            name=name,
+                            is_directory=False,
+                            device=info.st_dev,
+                            inode=info.st_ino,
+                        )
                     )
-                )
+                    artifact_fd = -1  # Ledger now owns the retained descriptor.
+                finally:
+                    if artifact_fd >= 0:
+                        os.close(artifact_fd)
                 if failure_injector:
                     failure_injector(destination)
             finally:
                 if parent_fd >= 0:
                     os.close(parent_fd)
+        if not _target_identity_matches(plan, target_fd):
+            raise OSError("target root identity changed during publication")
     except OSError as exc:
         residuals = (
             _rollback(created_files, created_dirs, rollback_failure_injector)
@@ -617,7 +682,9 @@ def apply_plan(
             recovery = (
                 "Do not remove paths beneath the current target pathname unless each "
                 "reported artifact identity is independently proven. Inspect only these "
-                "descriptor-bound residual locations before manual cleanup: " + ", ".join(residuals)
+                "descriptor-bound residual locations before manual cleanup. Entries beginning "
+                "'location unresolved' are identity evidence, not filesystem paths; do not infer "
+                "a pathname for them: " + ", ".join(residuals)
             )
         return ApplyResult(
             success=False,

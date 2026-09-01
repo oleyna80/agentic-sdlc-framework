@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -205,6 +206,27 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertEqual((target / "one.txt").read_text(encoding="utf-8"), "operator drift")
             self.assertFalse((target / "two.txt").exists())
 
+    def test_apply_rejects_same_path_root_replacement_before_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            displaced = root / "target-before-replacement"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt"])
+            plan = install.build_plan(target, manifest)
+            target.rename(displaced)
+            target.mkdir()
+            operator_file = target / "operator-owned.txt"
+            operator_file.write_text("preserve", encoding="utf-8")
+
+            result = install.apply_plan(plan, manifest)
+
+            self.assertFalse(result.success)
+            self.assertEqual(result.diagnostic, "apply revalidation failed: plan changed before publication")
+            self.assertEqual(operator_file.read_text(encoding="utf-8"), "preserve")
+            self.assertFalse((target / "one.txt").exists())
+            self.assertFalse((displaced / "one.txt").exists())
+
     def test_staged_publication_failure_rolls_back_only_created_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -338,7 +360,8 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertEqual((target / "nested" / "operator-owned.txt").read_text(encoding="utf-8"), "preserve")
             self.assertFalse((target / "nested" / "two.txt").exists())
             self.assertFalse((displaced / "one.txt").exists())
-            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+            self.assertIn(str(displaced), result.residual_paths)
+            self.assertIn(str(displaced), result.recovery_instructions or "")
             self.assertNotIn(str(target / "nested"), result.recovery_instructions or "")
 
     def test_multilevel_intermediate_replacement_preserves_operator_artifacts(self) -> None:
@@ -367,7 +390,8 @@ class InstallerFixtureTests(unittest.TestCase):
             )
             self.assertFalse((target / "nested" / "intermediate" / "two.txt").exists())
             self.assertFalse((displaced / "one.txt").exists())
-            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+            self.assertIn(str(displaced), result.residual_paths)
+            self.assertIn(str(displaced), result.recovery_instructions or "")
 
     def test_same_name_operator_replacement_is_never_reported_as_removable_residual(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -388,9 +412,45 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertFalse(result.success)
             self.assertEqual((target / "one.txt").read_text(encoding="utf-8"), "operator-owned replacement")
             self.assertFalse((target / "two.txt").exists())
-            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+            self.assertTrue(any(path.startswith("location unresolved;") for path in result.residual_paths))
             self.assertNotIn(str(target / "one.txt"), result.recovery_instructions or "")
             self.assertIn("independently proven", result.recovery_instructions or "")
+
+    def test_unresolved_residual_is_explicit_when_location_cannot_be_proven(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt", "two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def fail_after_second(path: Path) -> None:
+                if path.name == "two.txt":
+                    raise OSError("injected publication failure")
+
+            rollback_attempts = 0
+
+            def fail_rollback(path: Path) -> bool:
+                nonlocal rollback_attempts
+                rollback_attempts += 1
+                return rollback_attempts == 2
+
+            # This models a host where descriptor-to-path recovery is not
+            # available. The installer must not fabricate target/one.txt as
+            # an exact physical residual location.
+            with mock.patch.object(install, "_descriptor_path", return_value=None):
+                result = install.apply_plan(
+                    plan,
+                    manifest,
+                    failure_injector=fail_after_second,
+                    rollback_failure_injector=fail_rollback,
+                )
+
+            self.assertFalse(result.success)
+            self.assertEqual(len(result.residual_paths), 1)
+            self.assertTrue(result.residual_paths[0].startswith("location unresolved;"))
+            self.assertNotIn(str(target / "one.txt"), result.recovery_instructions or "")
+            self.assertIn("not filesystem paths", result.recovery_instructions or "")
 
     def test_source_change_after_plan_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
