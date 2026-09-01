@@ -20,6 +20,41 @@ what evidence changed the decision, the replacement, and the reusable principle.
 Historical entries do not override current Owner instruction, governance,
 specifications, ADRs, or active Work Blocks.
 
+## LL-002 — Candidate-derived completion needs a durable, separately validated history
+
+**Status:** adopted prospectively
+**Evidence:** `docs/reports/closeout/wb-release-002-candidate-promotion-lifecycle.md`; canonical promotion transition `a144dc2a4f93c15faeab32252dbe30f4dff96c4c` → `541a8e0382849012147a9e33ca9d9929f9dafd39`
+**Verified:** 2026-09-01
+**Trigger:** a completed evidence-bound candidate must release the single active-candidate slot without being rewritten as raw historical completion.
+
+### Attempted approach
+
+The preceding candidate procedure correctly derived effective completion from
+bound evidence, but had no durable promoted-history state before a successor
+could be declared.
+
+### What changed the decision
+
+Clearing the candidate alone loses deterministic predecessor continuity, while
+adding it to `completed_work_blocks` misstates evidence-derived completion as
+raw historical completion. A combined promotion and successor revision also
+prevents the intermediate promotion state from being independently validated.
+
+### Replacement
+
+Use an append-only canonical `promoted_candidates` ledger in `FILE_REGISTRY.yml`
+with `PROJECT_MAP.md` as its projection. Require a sole-parent, exact two-path
+registry/map promotion from an already-valid evidence-complete parent; only
+after ordinary validation of that promoted state may a later successor bind to
+the effective latest Work Block.
+
+### Reusable lesson
+
+When a lifecycle derives completion from evidence rather than a raw history
+entry, preserve that distinction in a durable append-only record and validate
+the state transition separately from the next lifecycle declaration. This keeps
+predecessor semantics deterministic without rewriting historical facts.
+
 ## LL-001 — Per-Work-Block SSH signing for normal development
 
 **Status:** retired from the normal development path  
