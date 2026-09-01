@@ -76,7 +76,7 @@ syntax/diff hygiene, governance/SDD/publication validation, and repository
 integrity. These are factual assurance results, not claims that separate
 tracked review, verification, or drift report artifacts were created.
 
-## Residual Risks and Follow-Up
+## Residual Risks and Limitations
 
 - The promoted ledger has no successor candidate yet. Any successor must use
   the existing canonical `predecessor_completed_work_block` field bound to the
@@ -84,6 +84,9 @@ tracked review, verification, or drift report artifacts were created.
 - The promotion safety guarantee is deterministic repository-local assurance;
   future direct release-state consumers still require explicit contract-suite
   coverage when introduced.
+
+## Follow-Up Work
+
 - This success-closeout does not authorize push, pull-request activity, merge,
   external CI interpretation, deployment, or cleanup. Any such action requires
   a separate Owner-controlled decision and fresh external-state inspection.
