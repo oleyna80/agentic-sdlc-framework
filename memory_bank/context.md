@@ -15,3 +15,6 @@
   planned product Work Block; any successor candidate needs its own approval.
 - Session rule: inspect live Git state and current authority before writing;
   uncommitted work may belong to another approved stream.
+- WB-CORE-004 Define is approved by the Owner gate in Issue #50 at baseline
+  `be988807c38543eb90a728fcb4349bc97dd5695a`; the candidate remains
+  noncanonical and Execute is blocked pending `OWNER_CORE_004_EXECUTE_GATE`.

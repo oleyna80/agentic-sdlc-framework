@@ -11,3 +11,4 @@ Append concise Critic, Reviewer, and Verifier facts. Full evidence belongs in
 | 2026-08-03 | WB-CORE-003B | Reviewer | READY (final) | Corrected active final-assurance projection had no actionable findings. | `docs/reports/reviews/wb-core-003b-independent-review.md` |
 | 2026-08-03 | WB-CORE-003B | Verifier | READY (final) | Release-state, governance, SDD, fixtures, format and scoped checks passed. | `docs/reports/verification/wb-core-003b-verification.md` |
 | 2026-08-03 | WB-CORE-003B | Drift assessment | ALIGNED | No new authority, lifecycle, navigation, or memory drift found. | `docs/reports/reviews/wb-core-003b-drift-assessment.md` |
+| 2026-09-01 | WB-CORE-004 | Critic | APPROVE | No unresolved Define scope, authority, traceability, or safety findings. | `docs/reports/reviews/wb-core-004-portable-kit-installer-packaging-critic.md` |
