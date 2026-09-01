@@ -36,20 +36,23 @@ completed_work_blocks:
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
 active_work_block: null
-pre_closeout_candidate:
-  work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-  work_block_id: WB-RELEASE-001
-  predecessor_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
-  state: assurance_pending
-  required_evidence:
-    review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r8.md
-    verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r8.md
-    drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r8.md
-    closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
-  normative_manifest:
-    - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-    - FILE_REGISTRY.yml
-    - PROJECT_MAP.md
+pre_closeout_candidate: null
+promoted_candidates:
+  - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+    work_block_id: WB-RELEASE-001
+    predecessor_effective_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
+    candidate_revision: a254f99cff8b3f382134a5153d4d27b5579e9dd6
+    evidence_revision: e30234c21d9a1ce62df07b3053249e9439574963
+    required_evidence:
+      review: docs/reports/reviews/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      verification: docs/reports/verification/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      drift: docs/reports/drift/wb-release-001-closeout-sequencing-reconciliation-r8.md
+      closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
+    normative_manifest:
+      - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+      - FILE_REGISTRY.yml
+      - PROJECT_MAP.md
+    state: promoted_effective
 -->
 
 ## Current Operational Architecture
@@ -375,13 +378,13 @@ authority.
 
 ## Migration Work
 
-Closeout candidate:
+Canonical promoted candidate:
 `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md`.
 
-Its r6 candidate and evidence are historical only after independently confirmed
-exact-head validator defects. The current r8 candidate is local-only and
-`assurance_pending`; no successful closeout, promotion, CI, PR, or merge claim
-is active.
+WB-RELEASE-001 is the sole canonical `promoted_effective` ledger record. Its
+`pre_closeout_candidate` slot is cleared, raw completed history is preserved,
+and no successor candidate is declared. This release-state projection makes no
+GitHub, PR, merge, or deployment claim.
 
 No active implementation Work Block.
 
@@ -471,11 +474,12 @@ Completed:
     intermediate verifier BLOCKED result remains historical corrective evidence;
     final source assurance applies only to its corrected frozen subject.
 
-Pre-closeout candidate:
+Promoted candidate:
 
-- `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — local
-  `assurance_pending` candidate for final independent assurance; it is not a
-  completed Work Block and makes no closeout, promotion, CI, PR, or merge claim.
+- `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — the sole
+  canonical `promoted_effective` ledger record; its pre-closeout candidate slot
+  is cleared, raw completed history is preserved, and no successor candidate is
+  declared. This projection makes no GitHub, PR, merge, or deployment claim.
 
 Planned:
 

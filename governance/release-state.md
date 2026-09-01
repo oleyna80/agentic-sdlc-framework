@@ -35,7 +35,7 @@ copy of later hosting-platform state.
    section define the lifecycle of that Work Block.
 2. `FILE_REGISTRY.yml:migration_state` is the machine-readable index of completed
    and active migration Work Blocks, plus at most one explicit
-   `pre_closeout_candidate`.
+   `pre_closeout_candidate` and an ancestry-backed `promoted_candidates` ledger.
 3. The machine block and visible `Migration Work` section in `PROJECT_MAP.md` are
    the human-readable projection of the same migration state.
 4. Closeout reports provide evidence and classification; they do not override the
@@ -92,6 +92,25 @@ when every declared normative-manifest path has the same blob at current `HEAD`
 as at the persisted candidate. It therefore binds candidate assurance to its
 later evidence persistence without treating a report as a direct lifecycle
 overwrite or allowing changed normative state to inherit stale assurance.
+
+### Canonical Promotion Ledger
+
+`promoted_candidates` is absent for a legacy repository until its first valid
+canonical promotion. Once introduced it is a non-empty, append-only ordered
+ledger, projected identically in both `FILE_REGISTRY.yml` and `PROJECT_MAP.md`.
+Each record preserves the candidate identity, its effective predecessor, exact
+candidate and evidence revisions, evidence paths, and normative manifest.
+
+Mechanism enablement never creates a ledger record or changes the effective
+release state. A canonical promotion is a separate, sole-parent Git transition:
+its parent has exactly one fully evidenced candidate; its child clears that
+candidate, appends exactly one matching ledger record, and changes exactly
+`FILE_REGISTRY.yml` and `PROJECT_MAP.md`. The validator proves the ancestor
+candidate-to-evidence chain and immutable manifest blobs. It rejects deletion,
+mutation, reordering, ambiguous/multi-parent introduction, and any combined
+promotion that changes additional paths. Subsequent candidates therefore name
+the ledger tail as their effective predecessor while the raw completed list
+remains unchanged.
 
 ## Required Invariants
 

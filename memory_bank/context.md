@@ -6,13 +6,12 @@
   specification/ADRs, active Work Block, then lower-authority evidence/memory.
 - Portable Kit: accepted target product; candidate remains noncanonical,
   uninstalled, and unpromoted.
-- Latest completed work: WB-CORE-003D completed parallel-write-set orchestration
-  governance (repository closeout only; no VCS, promotion, installation, or
-  runtime action authorized). WB-CORE-003C completed-state assurance binding
-  and WB-CORE-003B self-hosting control-plane reconciliation were completed
-  earlier in this sequence. WB-CORE-003E is the active corrective Work Block
-  for bounded document-only closure-evidence correction.
-- Active work: WB-CORE-003E — closure evidence correction; bounded document-only
-  write-set. WB-CORE-004 remains the next planned product Work Block.
+- Latest completed work: WB-RELEASE-002 completed the serial candidate-promotion
+  mechanism and repository-local promotion of WB-RELEASE-001. The final assured
+  projection is `df2304dee157f5b22374b6d32c6274e053730c53`; the canonical
+  ledger has WB-RELEASE-001 as the sole `promoted_effective` record, raw history
+  is unchanged, and no successor candidate is declared.
+- Active work: none in this repository projection. WB-CORE-004 remains the next
+  planned product Work Block; any successor candidate needs its own approval.
 - Session rule: inspect live Git state and current authority before writing;
   uncommitted work may belong to another approved stream.

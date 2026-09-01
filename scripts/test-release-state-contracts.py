@@ -213,12 +213,15 @@ def project_map(
     active: str | None = None,
     *,
     candidate: dict | None = None,
+    promoted: list[dict] | None = None,
     visible_override: str | None = None,
 ) -> str:
     completed = completed if completed is not None else [COMPLETED]
     state = {"completed_work_blocks": completed, "active_work_block": active}
     if candidate is not None:
         state["pre_closeout_candidate"] = candidate
+    if promoted is not None:
+        state["promoted_candidates"] = promoted
     block = yaml.safe_dump(state, sort_keys=False).rstrip()
     if visible_override is not None:
         visible = visible_override
@@ -301,6 +304,41 @@ def populate_candidate(root: Path) -> dict:
     write(root / CANDIDATE, candidate_work_block())
     write(root / CANDIDATE_TASKLIST, tasklist(work_block_id=CANDIDATE_ID))
     return declaration
+
+
+def add_promoted_candidate(root: Path, number: int, predecessor: str, ledger: list[dict]) -> dict:
+    """Create candidate, evidence, and the exact two-path promotion transition."""
+    ident = f"WB-{number:03d}"
+    slug = f"wb-{number:03d}-promotion-candidate"
+    plan = f"docs/plans/{slug}.md"
+    evidence = {kind: f"docs/reports/{directory}/{slug}.md" for kind, directory in
+                (("review", "reviews"), ("verification", "verification"), ("drift", "drift"), ("closeout", "closeout"))}
+    declaration = {"work_block": plan, "work_block_id": ident,
+                   "predecessor_completed_work_block": predecessor, "state": "assurance_pending",
+                   "required_evidence": evidence, "normative_manifest": [plan, "FILE_REGISTRY.yml", "PROJECT_MAP.md"]}
+    reg = registry()
+    reg["migration_state"]["pre_closeout_candidate"] = declaration
+    if ledger:
+        reg["migration_state"]["promoted_candidates"] = ledger
+    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg, sort_keys=False))
+    write(root / "PROJECT_MAP.md", project_map(candidate=declaration, promoted=ledger or None,
+        visible_override=f"## Migration Work\n\nNo active implementation Work Block.\n\nCloseout candidate:\n\n- `{plan}`\n"))
+    write(root / plan, candidate_work_block().replace(CANDIDATE_ID, ident).replace(CANDIDATE, plan))
+    git(root, "add", "."); git(root, "commit", "-qm", f"{ident} candidate")
+    candidate_sha = git(root, "rev-parse", "HEAD")
+    for kind, relative in evidence.items():
+        write(root / relative, candidate_evidence(kind, candidate_sha).replace(CANDIDATE_ID, ident))
+    git(root, "add", "."); git(root, "commit", "-qm", f"{ident} evidence")
+    evidence_sha = git(root, "rev-parse", "HEAD")
+    record = {"work_block": plan, "work_block_id": ident, "predecessor_effective_work_block": predecessor,
+              "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+              "required_evidence": evidence, "normative_manifest": declaration["normative_manifest"],
+              "state": "promoted_effective"}
+    promoted = ledger + [record]
+    reg = registry(); reg["migration_state"]["pre_closeout_candidate"] = None; reg["migration_state"]["promoted_candidates"] = promoted
+    write(root / "FILE_REGISTRY.yml", yaml.safe_dump(reg, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+    git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md"); git(root, "commit", "-qm", f"{ident} promotion")
+    return record
 
 
 def populate_formal_candidate(root: Path, *, specification_status: str = "approved") -> dict:
@@ -993,7 +1031,7 @@ work_block_id: wb-007
             "## Migration Work\n\nNo active implementation Work Block.\n\n"
             f"Closeout candidate:\n\n- `{CANDIDATE}`\n"
         )))
-        expect_failure("candidate-wrong-predecessor", root, "must be the raw latest")
+        expect_failure("candidate-wrong-predecessor", root, "must be the effective latest")
 
         declaration = populate_candidate(root)
         write(root / "PROJECT_MAP.md", project_map())
@@ -1225,6 +1263,293 @@ work_block_id: wb-007
             "effective-candidate-formal-spec-draft",
             root,
             "specification must be status approved",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="release-state-promotion-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        # A malformed legacy snapshot predating candidate evidence is tolerated
+        # only until the first structural promotion boundary is proven.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< legacy\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "malformed legacy release state")
+        candidate_registry = registry()
+        candidate_registry["migration_state"]["pre_closeout_candidate"] = declaration
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(candidate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(candidate=declaration))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        promoted = [{
+            "work_block": CANDIDATE, "work_block_id": CANDIDATE_ID,
+            "predecessor_effective_work_block": COMPLETED,
+            "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+            "required_evidence": CANDIDATE_EVIDENCE.copy(),
+            "normative_manifest": declaration["normative_manifest"],
+            "state": "promoted_effective",
+        }]
+        def commit_bad_first_promotion(label: str, extra_paths: list[str]) -> None:
+            bad = registry()
+            bad["migration_state"]["pre_closeout_candidate"] = None
+            bad["migration_state"]["promoted_candidates"] = promoted
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False))
+            write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+            for relative in extra_paths:
+                write(root / relative, f"# {label}\n")
+            git(root, "add", "."); git(root, "commit", "-qm", label)
+            expect_failure(label, root, "promotion transition must change exactly")
+            git(root, "reset", "--hard", evidence_sha)
+
+        commit_bad_first_promotion("promotion-extra-path", ["docs/extra-promotion-path.md"])
+        commit_bad_first_promotion("promotion-combined-six-path", [
+            ".agent/workflows/sdd-protocol.md", "governance/release-state.md",
+            "scripts/validate-release-state.py", "scripts/test-release-state-contracts.py",
+        ])
+        # A real two-parent commit with a promotion tree is ambiguous by topology.
+        bad = registry(); bad["migration_state"]["pre_closeout_candidate"] = None; bad["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        tree = git(root, "write-tree")
+        git(root, "reset", "--hard", evidence_sha)
+        git(root, "checkout", "-qb", "promotion-side", evidence_sha)
+        write(root / "docs/side-history.md", "side\n"); git(root, "add", "."); git(root, "commit", "-qm", "side parent")
+        side = git(root, "rev-parse", "HEAD")
+        merged = git(root, "commit-tree", tree, "-p", evidence_sha, "-p", side, "-m", "ambiguous promotion")
+        git(root, "update-ref", "HEAD", merged)
+        git(root, "checkout", "-q", "-f", merged)
+        expect_failure("promotion-multi-parent-introduction", root, "one direct parent")
+        git(root, "checkout", "-q", "-B", "master", evidence_sha)
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["pre_closeout_candidate"] = None
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "promotion")
+        result = validator.validate_repository(root)
+        assert result["effective_latest_completed_work_block"] == CANDIDATE
+        assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE]
+
+        first_promotion_head = git(root, "rev-parse", "HEAD")
+        # Once a structural promotion exists, malformed registry history cannot
+        # be hidden by a later valid recovery commit.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< corrupted\n")
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "malformed post-promotion registry")
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "recover post-promotion registry")
+        expect_failure(
+            "promotion-post-boundary-malformed-registry",
+            root,
+            "promotion history cannot traverse malformed FILE_REGISTRY.yml after the first structural promotion",
+        )
+        git(root, "reset", "--hard", first_promotion_head)
+
+        subsequent = add_promoted_candidate(root, 9, CANDIDATE, promoted)
+        promoted.append(subsequent)
+        result = validator.validate_repository(root)
+        assert result["effective_completed_work_blocks"] == [COMPLETED, CANDIDATE, subsequent["work_block"]]
+
+        good_head = git(root, "rev-parse", "HEAD")
+        # Once the ledger exists, a later commit cannot rewrite raw completion
+        # history or its matching release-state projection while retaining it.
+        rewritten = registry(completed=[COMPLETED, OLDER])
+        rewritten["migration_state"]["pre_closeout_candidate"] = None
+        rewritten["migration_state"]["promoted_candidates"] = promoted
+        rewritten["release_state"]["latest_completed_work_block"] = OLDER
+        rewritten["release_state"]["closeout_report"] = OLDER_CLOSEOUT
+        write(root / OLDER, work_block("wb-006", "completed", evaluation=None))
+        write(root / OLDER_CLOSEOUT, closeout(work_block_id="wb-006", evaluation=None))
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(rewritten, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(completed=[COMPLETED, OLDER], promoted=promoted))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "rewrite post-promotion raw history")
+        expect_failure(
+            "promotion-committed-canonical-history-mutation",
+            root,
+            "post-promotion canonical release-state history is immutable",
+        )
+        git(root, "reset", "--hard", good_head)
+
+        # A valid-shaped subsequent record still requires a sole-parent transition.
+        # Build its candidate/evidence history with the production helper, then
+        # reuse the exact promotion tree in a two-parent introduction.
+        add_promoted_candidate(root, 10, subsequent["work_block"], promoted)
+        third_evidence = git(root, "rev-parse", "HEAD^")
+        third_tree = git(root, "rev-parse", "HEAD^{tree}")
+        git(root, "checkout", "-q", "-B", "master", third_evidence)
+        git(root, "checkout", "-qb", "subsequent-promotion-side", third_evidence)
+        write(root / "docs/subsequent-promotion-side.md", "side\n")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "subsequent promotion side parent")
+        third_side = git(root, "rev-parse", "HEAD")
+        ambiguous_third = git(
+            root,
+            "commit-tree",
+            third_tree,
+            "-p",
+            third_evidence,
+            "-p",
+            third_side,
+            "-m",
+            "ambiguous subsequent promotion",
+        )
+        git(root, "update-ref", "HEAD", ambiguous_third)
+        git(root, "checkout", "-q", "-f", ambiguous_third)
+        expect_failure(
+            "promotion-invalid-subsequent-ancestry",
+            root,
+            "promotion transition must have one direct parent",
+        )
+        git(root, "checkout", "-q", "-B", "master", good_head)
+
+        # Two reachable, otherwise valid introductions of the same retained
+        # record are ambiguous history, even when their merge has one ledger.
+        duplicate_registry = registry()
+        duplicate_registry["migration_state"]["pre_closeout_candidate"] = None
+        duplicate_registry["migration_state"]["promoted_candidates"] = [promoted[0]]
+        git(root, "checkout", "-q", "-B", "duplicate-first", evidence_sha)
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "first duplicate promotion introduction")
+        duplicate_first = git(root, "rev-parse", "HEAD")
+        git(root, "checkout", "-q", "-B", "duplicate-second", evidence_sha)
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "second duplicate promotion introduction")
+        duplicate_second = git(root, "rev-parse", "HEAD")
+        # Make the merge tree distinct from both parents so the validator's
+        # path-limited ancestry traversal must retain both introductions.
+        duplicate_merge_registry = deepcopy(duplicate_registry)
+        duplicate_merge_registry["fixture_history_marker"] = "non-unique-introduction"
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(duplicate_merge_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        duplicate_tree = git(root, "write-tree")
+        duplicate_merge = git(
+            root,
+            "commit-tree",
+            duplicate_tree,
+            "-p",
+            duplicate_first,
+            "-p",
+            duplicate_second,
+            "-m",
+            "non-unique promotion introduction",
+        )
+        git(root, "update-ref", "HEAD", duplicate_merge)
+        git(root, "checkout", "-q", "-f", duplicate_merge)
+        expect_failure(
+            "promotion-non-unique-historical-introduction",
+            root,
+            "each promotion record requires one uniquely discoverable transition",
+        )
+        git(root, "checkout", "-q", "-B", "master", good_head)
+
+        fabricated = deepcopy(promoted[-1]); fabricated["work_block"] = "docs/plans/fabricated-promotion.md"; fabricated["work_block_id"] = "WB-FAB"; fabricated["predecessor_effective_work_block"] = promoted[-1]["work_block"]; fabricated["normative_manifest"] = ["docs/plans/fabricated-promotion.md", "FILE_REGISTRY.yml", "PROJECT_MAP.md"]
+        for label, record, expected in (
+            ("promotion-fabricated-history", fabricated, "must clear exactly one existing candidate"),
+            ("promotion-invalid-subsequent-predecessor", {**fabricated, "predecessor_effective_work_block": COMPLETED}, "predecessor ordering is invalid"),
+        ):
+            bad = registry(); bad["migration_state"]["pre_closeout_candidate"] = None; bad["migration_state"]["promoted_candidates"] = promoted + [record]
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(bad, sort_keys=False)); write(root / "PROJECT_MAP.md", project_map(promoted=bad["migration_state"]["promoted_candidates"]))
+            git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md"); git(root, "commit", "-qm", label)
+            expect_failure(label, root, expected)
+            git(root, "reset", "--hard", good_head)
+
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
+        broken = deepcopy(promoted_registry)
+        broken["migration_state"]["promoted_candidates"] = []
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(broken, sort_keys=False))
+        expect_failure("promotion-empty-ledger", root, "must be a non-empty array")
+
+        mutated = deepcopy(promoted_registry)
+        mutated["migration_state"]["promoted_candidates"][0]["candidate_revision"] = "a" * 40
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(mutated, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=mutated["migration_state"]["promoted_candidates"]))
+        expect_failure("promotion-record-mutation", root, "working-tree mutation is forbidden")
+
+        for label, adversarial, expected in (
+            ("promotion-entry-deletion", promoted[1:], "working-tree mutation is forbidden"),
+            ("promotion-entry-reorder", list(reversed(promoted)), "predecessor ordering is invalid"),
+            ("promotion-fabricated-entry", promoted + [deepcopy(promoted[-1])], "duplicate Work Block"),
+        ):
+            changed = deepcopy(promoted_registry)
+            changed["migration_state"]["promoted_candidates"] = adversarial
+            write(root / "FILE_REGISTRY.yml", yaml.safe_dump(changed, sort_keys=False))
+            write(root / "PROJECT_MAP.md", project_map(promoted=adversarial))
+            expect_failure(label, root, expected)
+
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=[promoted[0]]))
+        expect_failure("promotion-map-disagreement", root, "do not match FILE_REGISTRY")
+
+        git(root, "reset", "--hard", "HEAD")
+        deleted = registry()
+        deleted["migration_state"]["pre_closeout_candidate"] = None
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(deleted, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map())
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "committed ledger deletion")
+        expect_failure("promotion-committed-ledger-deletion", root, "deletion is forbidden")
+
+    with tempfile.TemporaryDirectory(prefix="release-state-malformed-promotion-") as temp:
+        root = Path(temp)
+        declaration = populate_candidate(root)
+        git(root, "init", "-q")
+        git(root, "config", "user.email", "fixtures@example.test")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "candidate")
+        candidate_sha = git(root, "rev-parse", "HEAD")
+        for evidence_class, relative in CANDIDATE_EVIDENCE.items():
+            write(root / relative, candidate_evidence(evidence_class, candidate_sha))
+        git(root, "add", ".")
+        git(root, "commit", "-qm", "evidence")
+        evidence_sha = git(root, "rev-parse", "HEAD")
+        promoted = [{
+            "work_block": CANDIDATE, "work_block_id": CANDIDATE_ID,
+            "predecessor_effective_work_block": COMPLETED,
+            "candidate_revision": candidate_sha, "evidence_revision": evidence_sha,
+            "required_evidence": CANDIDATE_EVIDENCE.copy(),
+            "normative_manifest": declaration["normative_manifest"],
+            "state": "promoted_effective",
+        }]
+        promoted_registry = registry()
+        promoted_registry["migration_state"]["pre_closeout_candidate"] = None
+        promoted_registry["migration_state"]["promoted_candidates"] = promoted
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        write(root / "PROJECT_MAP.md", project_map(promoted=promoted))
+        git(root, "add", "FILE_REGISTRY.yml", "PROJECT_MAP.md")
+        git(root, "commit", "-qm", "valid promotion")
+        control = validator.validate_repository(root)
+        if control["effective_latest_completed_work_block"] != CANDIDATE:
+            raise AssertionError("promotion malformed-history control was not READY")
+
+        # The valid sole-parent, exact two-path promotion above establishes the
+        # protected boundary. A later syntactic recovery cannot hide a malformed
+        # canonical registry snapshot within that protected history.
+        write(root / "FILE_REGISTRY.yml", "migration_state:\n<<<<<<< promotion\n")
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "malformed protected promotion history")
+        write(root / "FILE_REGISTRY.yml", yaml.safe_dump(promoted_registry, sort_keys=False))
+        git(root, "add", "FILE_REGISTRY.yml")
+        git(root, "commit", "-qm", "recover malformed protected promotion history")
+        expect_failure(
+            "promotion-malformed-protected-history",
+            root,
+            "promotion history cannot traverse malformed FILE_REGISTRY.yml after the first structural promotion",
         )
 
     print("Release-state contract fixtures: OK")
