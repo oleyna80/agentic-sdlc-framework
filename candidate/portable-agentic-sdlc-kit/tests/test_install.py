@@ -317,6 +317,81 @@ class InstallerFixtureTests(unittest.TestCase):
             self.assertEqual((target / "operator-owned.txt").read_text(encoding="utf-8"), "preserve")
             self.assertFalse((target / "one.txt").exists())
 
+    def test_nested_parent_replacement_is_rejected_before_operator_directory_is_used(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            displaced = root / "nested-before-replacement"
+            target.mkdir()
+            manifest = self.make_package(root, ["nested/one.txt", "nested/two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def replace_nested_after_first(path: Path) -> None:
+                if path.name == "one.txt":
+                    (target / "nested").rename(displaced)
+                    (target / "nested").mkdir()
+                    (target / "nested" / "operator-owned.txt").write_text("preserve", encoding="utf-8")
+
+            result = install.apply_plan(plan, manifest, failure_injector=replace_nested_after_first)
+            self.assertFalse(result.success)
+            self.assertIn("unsafe destination parent", result.diagnostic or "")
+            self.assertEqual((target / "nested" / "operator-owned.txt").read_text(encoding="utf-8"), "preserve")
+            self.assertFalse((target / "nested" / "two.txt").exists())
+            self.assertFalse((displaced / "one.txt").exists())
+            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+            self.assertNotIn(str(target / "nested"), result.recovery_instructions or "")
+
+    def test_multilevel_intermediate_replacement_preserves_operator_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            displaced = root / "intermediate-before-replacement"
+            target.mkdir()
+            manifest = self.make_package(root, ["nested/intermediate/one.txt", "nested/intermediate/two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def replace_intermediate_after_first(path: Path) -> None:
+                if path.name == "one.txt":
+                    (target / "nested" / "intermediate").rename(displaced)
+                    (target / "nested" / "intermediate").mkdir()
+                    (target / "nested" / "intermediate" / "operator-owned.txt").write_text(
+                        "preserve", encoding="utf-8"
+                    )
+
+            result = install.apply_plan(plan, manifest, failure_injector=replace_intermediate_after_first)
+            self.assertFalse(result.success)
+            self.assertIn("unsafe destination parent", result.diagnostic or "")
+            self.assertEqual(
+                (target / "nested" / "intermediate" / "operator-owned.txt").read_text(encoding="utf-8"),
+                "preserve",
+            )
+            self.assertFalse((target / "nested" / "intermediate" / "two.txt").exists())
+            self.assertFalse((displaced / "one.txt").exists())
+            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+
+    def test_same_name_operator_replacement_is_never_reported_as_removable_residual(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            target.mkdir()
+            manifest = self.make_package(root, ["one.txt", "two.txt"])
+            plan = install.build_plan(target, manifest)
+
+            def replace_first_then_fail(path: Path) -> None:
+                if path.name == "one.txt":
+                    path.unlink()
+                    path.write_text("operator-owned replacement", encoding="utf-8")
+                elif path.name == "two.txt":
+                    raise OSError("injected publication failure")
+
+            result = install.apply_plan(plan, manifest, failure_injector=replace_first_then_fail)
+            self.assertFalse(result.success)
+            self.assertEqual((target / "one.txt").read_text(encoding="utf-8"), "operator-owned replacement")
+            self.assertFalse((target / "two.txt").exists())
+            self.assertTrue(any(path.startswith("<unresolved created artifact") for path in result.residual_paths))
+            self.assertNotIn(str(target / "one.txt"), result.recovery_instructions or "")
+            self.assertIn("independently proven", result.recovery_instructions or "")
+
     def test_source_change_after_plan_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

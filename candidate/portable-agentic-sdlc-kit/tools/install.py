@@ -113,6 +113,23 @@ class ApplyResult:
         }
 
 
+@dataclass
+class _PublishedArtifact:
+    """An installer-created object bound to the descriptor that named it.
+
+    The retained parent descriptor is deliberately part of the rollback proof.
+    A relative pathname can be rebound by an operator after publication starts;
+    that pathname must never be reopened to decide what rollback may remove.
+    """
+
+    relative_path: str
+    parent_fd: int
+    name: str
+    is_directory: bool
+    device: int
+    inode: int
+
+
 def _canonical_json(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True).encode("utf-8")
 
@@ -308,7 +325,8 @@ def _open_target_fd(target_root: Path) -> int:
 def _open_destination_parent(
     target_fd: int,
     relative_path: str,
-    created_dirs: list[str],
+    created_dirs: list[_PublishedArtifact],
+    parent_identities: dict[str, tuple[int, int] | None],
     *,
     create_missing: bool = True,
 ) -> tuple[int, str]:
@@ -324,17 +342,43 @@ def _open_destination_parent(
     try:
         for component in parts[:-1]:
             traversed.append(component)
+            parent_path = "/".join(traversed)
+            expected_identity = parent_identities[parent_path]
             try:
                 info = os.stat(component, dir_fd=current_fd, follow_symlinks=False)
             except FileNotFoundError:
+                if expected_identity is not None:
+                    raise OSError(f"destination parent changed during publication: {parent_path}")
                 if not create_missing:
                     raise
                 os.mkdir(component, dir_fd=current_fd)
-                created_dirs.append("/".join(traversed))
                 info = os.stat(component, dir_fd=current_fd, follow_symlinks=False)
-            if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-                raise OSError(f"unsafe destination parent during publication: {'/'.join(traversed)}")
+                created_dirs.append(
+                    _PublishedArtifact(
+                        relative_path="/".join(traversed),
+                        parent_fd=os.dup(current_fd),
+                        name=component,
+                        is_directory=True,
+                        device=info.st_dev,
+                        inode=info.st_ino,
+                    )
+                )
+                parent_identities[parent_path] = (info.st_dev, info.st_ino)
+            if expected_identity is None and parent_path in parent_identities:
+                # A parent that was absent during pre-publication binding must
+                # be created by this publication, never adopted after a swap.
+                expected_identity = parent_identities[parent_path]
+            if (
+                stat.S_ISLNK(info.st_mode)
+                or not stat.S_ISDIR(info.st_mode)
+                or expected_identity != (info.st_dev, info.st_ino)
+            ):
+                raise OSError(f"unsafe destination parent during publication: {parent_path}")
             next_fd = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current_fd)
+            opened = os.fstat(next_fd)
+            if (opened.st_dev, opened.st_ino) != expected_identity:
+                os.close(next_fd)
+                raise OSError(f"destination parent changed during publication: {parent_path}")
             os.close(current_fd)
             current_fd = next_fd
         return current_fd, parts[-1]
@@ -343,86 +387,89 @@ def _open_destination_parent(
         raise
 
 
-def _unlink_created(target_fd: int, relative_path: str, is_directory: bool) -> None:
-    """Remove a recorded artifact only through the original target descriptor.
-
-    ``target_fd`` remains open from publication through rollback.  In
-    particular, rollback must not reopen ``target_root`` by pathname: an
-    operator may replace that directory after publication starts, and a
-    pathname reopen could then remove an artifact owned by the replacement.
-    """
-    parent_fd = -1
+def _descriptor_path(directory_fd: int) -> Path | None:
+    """Return a proven current pathname for an already-open directory."""
     try:
-        parent_fd, name = _open_destination_parent(target_fd, relative_path, [], create_missing=False)
-        if is_directory:
-            os.rmdir(name, dir_fd=parent_fd)
-        else:
-            os.unlink(name, dir_fd=parent_fd)
-    finally:
-        if parent_fd >= 0:
-            os.close(parent_fd)
-
-
-def _publication_root_for_reporting(target_fd: int) -> Path | None:
-    """Return the current pathname of the opened publication directory.
-
-    Publication and rollback intentionally retain a directory descriptor so a
-    replacement of ``target_root`` cannot redirect cleanup.  A textual target
-    pathname is therefore no longer necessarily the location of a residual.
-    On hosts exposing ``/proc/self/fd``, use its kernel-maintained descriptor
-    link only after proving it still identifies the opened directory.  If that
-    proof is unavailable, callers must report an inspection gap rather than
-    falsely naming a replacement directory.
-    """
-    try:
-        descriptor_stat = os.fstat(target_fd)
-        descriptor_link = os.readlink(f"/proc/self/fd/{target_fd}")
+        descriptor_stat = os.fstat(directory_fd)
+        descriptor_link = os.readlink(f"/proc/self/fd/{directory_fd}")
         if not os.path.isabs(descriptor_link) or descriptor_link.endswith(" (deleted)"):
             return None
-        reported_root = Path(descriptor_link)
-        path_stat = reported_root.stat()
+        reported_directory = Path(descriptor_link)
+        path_stat = reported_directory.stat()
     except OSError:
         return None
     if (path_stat.st_dev, path_stat.st_ino) != (descriptor_stat.st_dev, descriptor_stat.st_ino):
         return None
-    return reported_root
+    return reported_directory
 
 
-def _reported_artifact_path(reporting_root: Path | None, target_fd: int, relative_path: str) -> str:
-    if reporting_root is not None:
-        return str(reporting_root.joinpath(*PurePosixPath(relative_path).parts))
-    descriptor_stat = os.fstat(target_fd)
+def _artifact_identity_matches(artifact: _PublishedArtifact) -> bool:
+    try:
+        info = os.stat(artifact.name, dir_fd=artifact.parent_fd, follow_symlinks=False)
+    except OSError:
+        return False
+    expected_type = stat.S_ISDIR if artifact.is_directory else stat.S_ISREG
+    return expected_type(info.st_mode) and (info.st_dev, info.st_ino) == (artifact.device, artifact.inode)
+
+
+def _reported_artifact_path(artifact: _PublishedArtifact) -> str:
+    parent_path = _descriptor_path(artifact.parent_fd)
+    if parent_path is not None and _artifact_identity_matches(artifact):
+        return str(parent_path / artifact.name)
+    descriptor_stat = os.fstat(artifact.parent_fd)
     return (
-        f"<unresolved publication directory dev={descriptor_stat.st_dev} "
-        f"ino={descriptor_stat.st_ino}>/{relative_path}"
+        f"<unresolved created artifact dev={artifact.device} ino={artifact.inode} "
+        f"parent-dev={descriptor_stat.st_dev} parent-ino={descriptor_stat.st_ino} "
+        f"name={artifact.name!r}>"
     )
 
 
+def _unlink_created(artifact: _PublishedArtifact) -> None:
+    """Remove only the exact object created by this publication.
+
+    The artifact's current directory entry must still have the recorded inode,
+    device and type.  A replacement is an operator-owned object and causes a
+    fail-closed rollback residual rather than an unlink/rmdir by pathname.
+    """
+    if not _artifact_identity_matches(artifact):
+        raise OSError("created artifact identity cannot be proven during rollback")
+    if artifact.is_directory:
+        os.rmdir(artifact.name, dir_fd=artifact.parent_fd)
+    else:
+        os.unlink(artifact.name, dir_fd=artifact.parent_fd)
+
+
 def _rollback(
-    target_fd: int,
-    reporting_root: Path | None,
-    created_files: Iterable[str],
-    created_dirs: Iterable[str],
+    created_files: Iterable[_PublishedArtifact],
+    created_dirs: Iterable[_PublishedArtifact],
     rollback_failure_injector: Callable[[Path], bool] | None,
 ) -> tuple[str, ...]:
     residuals: list[str] = []
-    for relative_path in reversed(tuple(created_files)):
-        path = _reported_artifact_path(reporting_root, target_fd, relative_path)
+    for artifact in reversed(tuple(created_files)):
+        path = _reported_artifact_path(artifact)
         try:
             if rollback_failure_injector and rollback_failure_injector(Path(path)):
                 raise OSError("injected rollback failure")
-            _unlink_created(target_fd, relative_path, is_directory=False)
+            _unlink_created(artifact)
         except OSError:
             residuals.append(path)
-    for relative_path in reversed(tuple(created_dirs)):
-        path = _reported_artifact_path(reporting_root, target_fd, relative_path)
+    for artifact in reversed(tuple(created_dirs)):
+        path = _reported_artifact_path(artifact)
         try:
             if rollback_failure_injector and rollback_failure_injector(Path(path)):
                 raise OSError("injected rollback failure")
-            _unlink_created(target_fd, relative_path, is_directory=True)
+            _unlink_created(artifact)
         except OSError:
             residuals.append(path)
     return tuple(residuals)
+
+
+def _close_artifacts(artifacts: Iterable[_PublishedArtifact]) -> None:
+    for artifact in artifacts:
+        try:
+            os.close(artifact.parent_fd)
+        except OSError:
+            pass
 
 
 def _create_external_stage_dir(target_root: Path) -> Path:
@@ -444,6 +491,48 @@ def _create_external_stage_dir(target_root: Path) -> Path:
         except OSError:
             continue
     raise OSError("cannot create staging outside the resolved target root")
+
+
+def _bind_parent_identities(target_fd: int, actions: Iterable[PlanAction]) -> dict[str, tuple[int, int] | None]:
+    """Bind every required parent to its pre-publication directory identity.
+
+    Missing parents are recorded as absent.  Publication may create those exact
+    missing components but must fail if another actor supplies a directory in
+    their place after this binding step.
+    """
+    identities: dict[str, tuple[int, int] | None] = {}
+    for action in actions:
+        current_fd = os.dup(target_fd)
+        traversed: list[str] = []
+        try:
+            for component in PurePosixPath(action.path).parts[:-1]:
+                traversed.append(component)
+                parent_path = "/".join(traversed)
+                try:
+                    info = os.stat(component, dir_fd=current_fd, follow_symlinks=False)
+                except FileNotFoundError:
+                    identities.setdefault(parent_path, None)
+                    # Every deeper component is necessarily absent too.
+                    for remaining in PurePosixPath(action.path).parts[len(traversed):-1]:
+                        traversed.append(remaining)
+                        identities.setdefault("/".join(traversed), None)
+                    break
+                if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+                    raise OSError(f"unsafe destination parent during publication: {parent_path}")
+                identity = (info.st_dev, info.st_ino)
+                previous = identities.setdefault(parent_path, identity)
+                if previous != identity:
+                    raise OSError(f"destination parent changed during publication: {parent_path}")
+                next_fd = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current_fd)
+                opened = os.fstat(next_fd)
+                if (opened.st_dev, opened.st_ino) != identity:
+                    os.close(next_fd)
+                    raise OSError(f"destination parent changed during publication: {parent_path}")
+                os.close(current_fd)
+                current_fd = next_fd
+        finally:
+            os.close(current_fd)
+    return identities
 
 
 def apply_plan(
@@ -472,8 +561,9 @@ def apply_plan(
     target_root = Path(plan.target_root)
     create_actions = tuple(action for action in plan.actions if action.action == "create")
     skipped = tuple(action.path for action in plan.actions if action.action == "skip-identical")
-    created_files: list[str] = []
-    created_dirs: list[str] = []
+    created_files: list[_PublishedArtifact] = []
+    created_dirs: list[_PublishedArtifact] = []
+    parent_identities: dict[str, tuple[int, int] | None] = {}
     stage_root: Path | None = None
     target_fd = -1
     try:
@@ -486,49 +576,57 @@ def apply_plan(
             if _sha256_file(staged) != action.source_sha256:
                 raise OSError(f"staged bytes changed for {action.path}")
         target_fd = _open_target_fd(target_root)
+        parent_identities = _bind_parent_identities(target_fd, create_actions)
         for action in create_actions:
             if before_publish_injector:
                 before_publish_injector(action.path)
             parent_fd = -1
             try:
-                parent_fd, name = _open_destination_parent(target_fd, action.path, created_dirs)
+                parent_fd, name = _open_destination_parent(
+                    target_fd, action.path, created_dirs, parent_identities
+                )
                 output_fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o666, dir_fd=parent_fd)
                 destination = target_root.joinpath(*PurePosixPath(action.path).parts)
                 source = stage_root.joinpath(*PurePosixPath(action.path).parts)
                 with os.fdopen(output_fd, "wb") as output_handle, source.open("rb") as input_handle:
                     shutil.copyfileobj(input_handle, output_handle)
-                created_files.append(action.path)
+                info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+                created_files.append(
+                    _PublishedArtifact(
+                        relative_path=action.path,
+                        parent_fd=os.dup(parent_fd),
+                        name=name,
+                        is_directory=False,
+                        device=info.st_dev,
+                        inode=info.st_ino,
+                    )
+                )
                 if failure_injector:
                     failure_injector(destination)
             finally:
                 if parent_fd >= 0:
                     os.close(parent_fd)
     except OSError as exc:
-        reporting_root = _publication_root_for_reporting(target_fd) if target_fd >= 0 else None
         residuals = (
-            _rollback(target_fd, reporting_root, created_files, created_dirs, rollback_failure_injector)
+            _rollback(created_files, created_dirs, rollback_failure_injector)
             if target_fd >= 0
             else ()
         )
         recovery = None
         if residuals:
-            if reporting_root is None:
-                recovery = (
-                    "Do not remove paths beneath the current target pathname: "
-                    "the rollback residual is tied to the opened publication directory, "
-                    "whose pathname could not be proven. Inspect the reported descriptor "
-                    "identity before any manual cleanup: "
-                    + ", ".join(residuals)
-                )
-            else:
-                recovery = "Remove only these residual paths after inspection: " + ", ".join(residuals)
+            recovery = (
+                "Do not remove paths beneath the current target pathname unless each "
+                "reported artifact identity is independently proven. Inspect only these "
+                "descriptor-bound residual locations before manual cleanup: " + ", ".join(residuals)
+            )
         return ApplyResult(
             success=False,
             plan_identity=plan.plan_identity,
             created_paths=tuple(
-                _reported_artifact_path(reporting_root, target_fd, path)
-                for path in created_files
-                if _reported_artifact_path(reporting_root, target_fd, path) not in residuals
+                _reported_artifact_path(artifact)
+                for artifact in created_files
+                if _artifact_identity_matches(artifact)
+                and _reported_artifact_path(artifact) not in residuals
             ),
             skipped_paths=skipped,
             collision_paths=(),
@@ -540,6 +638,8 @@ def apply_plan(
     finally:
         if target_fd >= 0:
             os.close(target_fd)
+        _close_artifacts(created_files)
+        _close_artifacts(created_dirs)
         if stage_root is not None:
             try:
                 shutil.rmtree(stage_root)
