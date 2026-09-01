@@ -54,6 +54,10 @@ integration admission, credentials, deployment permission, or a Hard Stop except
 Trajectory evaluation uses observable events only and must never request hidden
 reasoning, private chain-of-thought, or model scratchpads.
 
+Engineering Memory classification is also evidence/disposition only. It cannot
+expand the approved Work Block write-set, specification, governance, Hard Stops,
+or any external capability.
+
 ## Governance Profiles
 
 The Work Block selects the smallest sufficient governance profile:
@@ -167,6 +171,8 @@ Block before source changes begin.
    - review and verification plan;
    - evaluation requirement and approved plan path;
    - drift triggers;
+   - when durable learning is a credible closeout outcome, the exact Engineering
+     Memory target path that may be updated during Close;
    - for formal Managed/Assured/Distributed tasklists, use stable `REQ-*`,
      `AC-*`, and `TASK-*` references for requirement implementation tasks;
    - classify setup/foundation, assurance, and documentation work honestly rather
@@ -469,9 +475,45 @@ Orchestrator.
 1. Determine closeout mode.
 2. Synchronize derived artifacts with the approved specification and delivered state.
 3. Update task status.
-4. Promote durable, reusable engineering knowledge.
-5. Record operational results and residual risks.
-6. Produce closeout report and Owner summary.
+4. For every non-trivial Work Block, perform an Orchestrator Learning Review of material findings from Define, Execute, Assure, and Close.
+5. Classify reusable lesson candidates as exactly `promoted`, `operational-only`, or `not-applicable`.
+6. Deduplicate and promote evidence-backed durable knowledge into already-approved Engineering Memory paths when applicable.
+7. Record operational results and residual risks.
+8. Produce closeout report and Owner summary.
+
+## Orchestrator Learning Review
+
+Learning Review is required for both `success-closeout` and `reporting-only`
+when the Work Block is non-trivial. It is part of normal Close and does not
+require a separate Owner reminder after Work Block/write authority is approved.
+
+1. Review material findings from **Define, Execute, Assure, and Close**.
+2. Consider recurring failure/recovery patterns, durable invariants,
+   source-of-truth lessons, lifecycle/process defects, verification gaps,
+   reusable operational patterns, and rejected approaches with important
+   evidence-backed reasons.
+3. Promote only evidence-backed knowledge capable of changing future planning,
+   execution strategy, review, verification, recovery, or invariant enforcement.
+4. Exclude one-off noise, speculation, raw transcripts, private chain-of-thought,
+   secrets/private data, routine status chronology, and facts cheaper to
+   re-verify live.
+5. `none identified` is valid; do not manufacture a lesson.
+6. Before `promoted`, deduplicate against existing Engineering Memory and prefer
+   updating/extending/superseding an existing reusable principle to creating a
+   duplicate.
+7. A promoted lesson records evidence, scope, reusable principle,
+   replacement/mitigation/recovery, authority boundary, review trigger, and last
+   verified.
+8. Classification/candidate discovery is not permission. Promotion may mutate
+   only a memory path already approved by the active Work Block; otherwise
+   return to Define.
+9. Project-specific lessons remain project-local. Framework generalization is a
+   follow-up candidate only until a separate evidence-backed framework Work
+   Block approves policy/template changes.
+
+The closeout report records lifecycle-stage review coverage, material candidates
+and dispositions (or `none identified`), deduplication/promotion result,
+authority boundary, residual risk, and next action.
 
 ## Source-of-Truth Synchronization Order
 
@@ -496,7 +538,8 @@ tasklists never silently override an approved specification.
 - drift gate `READY` or valid documented skip;
 - required Hard Stop actions either not performed or explicitly approved;
 - residual risks documented;
-- normative and derived artifacts synchronized.
+- normative and derived artifacts synchronized;
+- required non-trivial Learning Review recorded.
 
 Otherwise use `reporting-only` and keep the task blocked or incomplete.
 

@@ -107,6 +107,12 @@ tasklists, evaluation reports, and operational logs.
 - **One Coder per write-set:** [yes]
 - **Parallel writers:** [no | separate worktrees and non-overlapping write-sets]
 - **Scope guard:** [git diff/status/path validation]
+- **Engineering Memory closeout target:** [none | exact pre-authorized path(s), e.g. docs/engineering-memory/lessons-learned.md]
+- **Learning promotion authority:** [target already inside approved write-set/coordination authority | no memory mutation authorized; return to Define if needed]
+
+Engineering Memory candidate discovery or classification never expands this
+write-set. Pre-authorizing a closeout target permits a later evidence-backed
+update; it does not require a lesson to be created.
 
 Lifecycle reports, evaluation evidence, logs, and gate artifacts are counted
 separately from implementation files when applying Quick-Fix and trigger thresholds.
@@ -278,6 +284,7 @@ Model/provider/integration names do not define roles or authority.
 - **Evaluation contract/update:** [yes/no; paths]
 - **User/engineering documentation update:** [yes/no; paths]
 - **Engineering memory candidate:** [yes/no; classification]
+- **Engineering Memory closeout target:** [none | exact pre-authorized path(s)]
 - **Generated/local boundary change:** [yes/no; why]
 
 ## Commit / Publication Scope
@@ -321,13 +328,23 @@ reasoning, private chain-of-thought, model scratchpads, secrets, or protected pa
 
 ### Knowledge and Retrospective
 
+- **Learning Review applicability:** [required for non-trivial WB | trivial/not required with reason]
+- **Lifecycle stages reviewed:** [Define, Execute, Assure, Close]
+- **Material lesson candidates:** [candidate/evidence/disposition table | none identified]
+- **Deduplication result:** [updated/extended/superseded/new | not applicable]
 - **What worked:** [evidence-based]
 - **What failed or caused friction:** [evidence-based]
 - **What not to repeat:** [specific]
 - **Reusable knowledge:** [path | none]
 - **Engineering memory classification:** [promoted | operational-only | not-applicable]
-- **Framework updates to consider:** [list]
+- **Promotion authority:** [already-approved memory target | no mutation; Define/follow-up required]
+- **Framework updates to consider:** [candidate only; separate framework Work Block required | none]
 - **Follow-up Work Blocks:** [IDs/paths]
+
+For a non-trivial Work Block the Learning Review is part of Close for both
+`SUCCESS` and `REPORTING_ONLY`; no separate Owner reminder is required. `none
+identified` is valid. Classification is not permission and cannot expand the
+approved write-set.
 
 `SUCCESS` requires all required assurance gates, including evaluation when required,
 to pass. Otherwise use `REPORTING_ONLY`; do not claim merge, deploy, release, or
