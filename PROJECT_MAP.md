@@ -378,13 +378,13 @@ authority.
 
 ## Migration Work
 
-Closeout candidate:
+Canonical promoted candidate:
 `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md`.
 
-Its r6 candidate and evidence are historical only after independently confirmed
-exact-head validator defects. The current r8 candidate is local-only and
-`assurance_pending`; no successful closeout, promotion, CI, PR, or merge claim
-is active.
+WB-RELEASE-001 is the sole canonical `promoted_effective` ledger record. Its
+`pre_closeout_candidate` slot is cleared, raw completed history is preserved,
+and no successor candidate is declared. This release-state projection makes no
+GitHub, PR, merge, or deployment claim.
 
 No active implementation Work Block.
 
@@ -474,11 +474,12 @@ Completed:
     intermediate verifier BLOCKED result remains historical corrective evidence;
     final source assurance applies only to its corrected frozen subject.
 
-Pre-closeout candidate:
+Promoted candidate:
 
-- `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — local
-  `assurance_pending` candidate for final independent assurance; it is not a
-  completed Work Block and makes no closeout, promotion, CI, PR, or merge claim.
+- `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — the sole
+  canonical `promoted_effective` ledger record; its pre-closeout candidate slot
+  is cleared, raw completed history is preserved, and no successor candidate is
+  declared. This projection makes no GitHub, PR, merge, or deployment claim.
 
 Planned:
 
