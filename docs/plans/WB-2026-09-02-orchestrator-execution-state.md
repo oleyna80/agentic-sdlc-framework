@@ -23,14 +23,17 @@ This Work Block is independent of:
 No commit from those branches is an implicit dependency or permitted merge source. Any later convergence requires a separately reviewed integration decision.
 
 ## Lifecycle State
-- **Current Stage:** Define
-- **Execution State:** in_progress
-- **Write Gate:** BLOCKED pending refreshed consistency analysis + Critic round 2
+- **Current Stage:** Execute
+- **Execution State:** ready
+- **Source Write Scope:** READY for exactly the final Define write-set below after Critic round 2 approval.
+- **Runtime-local gate capability:** `.agent/active-work-block.json` is local/ignored and is not instantiated by the GitHub connector environment used in this chat. Therefore no local hook/gate pass is claimed; repository writes must remain explicit, reviewable GitHub operations inside this Work Block's approved write-set. External GitHub capability does not expand that scope.
 - **Owner Approval Evidence:** Owner explicitly approved a separate branch and new Work Block in chat on 2026-09-02.
-- **Requirements-Quality Review:** READY — `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-requirements-review.md`
-- **Traceability:** READY after Critic supplements — `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-traceability.md`
-- **Consistency Analysis:** initial READY; refresh pending after Critic supplements
-- **Critic Gate:** round 1 `SUPPLEMENT`; C-01 through C-05 incorporated; round 2 pending
+- **Define Quality Aggregate:** READY.
+  - requirements review: `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-requirements-review.md`
+  - traceability: `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-traceability.md`
+  - consistency: `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-consistency-analysis.md`
+- **Critic Gate:** APPROVE round 2 — `docs/reports/reviews/WB-2026-09-02-orchestrator-execution-state-critic.md`
+- **Critic Isolation:** same-context read-only; not independent assurance.
 - **Verification Verdict:** pending
 - **Evaluation:** required
 
@@ -98,7 +101,7 @@ Define and implement a runtime-neutral **Execution State Plane** in which:
 
 `docs/specs/WB-2026-09-02-orchestrator-execution-state.md`
 
-The current Define candidate selects:
+The approved Define design selects:
 
 - schema version 4;
 - monotonic `state_version` with inter-process serialization and expected-version compare-and-swap checked after lock acquisition/re-read;
@@ -113,19 +116,19 @@ The current Define candidate selects:
 - fail-closed v3 -> v4 migration that forces writes blocked and prior assurance unbound;
 - explicit Codex Cloud admission/reconciliation semantics.
 
-## Critic Round 1 and Corrections
+## Critic Rounds
 
 Critic report: `docs/reports/reviews/WB-2026-09-02-orchestrator-execution-state-critic.md`.
 
-Round 1 returned `SUPPLEMENT` and kept the source gate closed. Its five material findings are incorporated into the current specification/tasklist:
+Round 1 returned `SUPPLEMENT` and kept source writes blocked. The five material findings were incorporated:
 
-- **C-01:** real concurrent mutation now serializes the entire transaction under a bounded OS-backed local lock, then re-reads and performs CAS;
-- **C-02:** canonical state/snapshot SHA-256 digest bytes are defined exactly;
-- **C-03:** all authority/identity/assurance/subject surfaces are explicitly protected from generic patches;
-- **C-04:** handoff import is authority-attenuating and requires an already initialized matching target state;
-- **C-05:** deterministic v3 -> v4 migration preserves compatible evidence/scope but forces writes blocked and assurance unbound.
+- **C-01:** serialized inter-process state transaction + true concurrency fixture;
+- **C-02:** exact canonical SHA-256 state/snapshot digest;
+- **C-03:** complete authority/identity/assurance/subject protected-field set;
+- **C-04:** authority-attenuating handoff import into an already initialized matching target;
+- **C-05:** deterministic fail-closed v3 -> v4 migration.
 
-No source implementation is authorized until refreshed consistency analysis and Critic round 2 confirm these corrections.
+Refreshed consistency analysis returned READY. Round 2 reviewed exact Define subject `26bc8a31440841fc4caf96e0c82961745ac08d21` and returned `APPROVE`; subsequent Critic/plan commits are coordination evidence/status only and do not change the approved specification/task/write-set.
 
 ## Traceable Task Decomposition
 
@@ -157,8 +160,6 @@ Answers: **what durable reusable engineering lesson should change future Work Bl
 Existing Learning Review remains authoritative. Execution state must not become a second Engineering Memory system.
 
 ## Final Define Write-Set
-
-Coordination artifacts below may be written while source remains blocked. Source implementation may begin only after Define/Critic resolves.
 
 ```text
 # Define / coordination / evidence
@@ -288,10 +289,9 @@ All implementation remains on the isolated feature branch. Revert only Work Bloc
 | 2026-09-02 | Define | `define_quality` default/lifecycle drift identified | tracked default vs lifecycle helper | complete |
 | 2026-09-02 | Define | Local active-state portability gap identified for cloud/fresh checkouts | bootstrap/restore contract | complete |
 | 2026-09-02 | Define | Formal specification + requirements review completed | spec + requirements review | complete |
-| 2026-09-02 | Define | Traceable tasklist created; validator semantics yield 12/12/10/0 | traceability report | complete |
-| 2026-09-02 | Define | Initial consistency analysis | consistency report | READY before Critic supplements |
-| 2026-09-02 | Define | Critic round 1 | critic report | SUPPLEMENT; source gate remains BLOCKED |
-| 2026-09-02 | Define | C-01 through C-05 incorporated into spec/tasklist/write-set | spec/tasklist/this plan | complete |
-| 2026-09-02 | Define | Traceability refreshed after Critic corrections | traceability report | READY |
-| 2026-09-02 | Define | Refreshed consistency analysis | pending | pending |
-| 2026-09-02 | Define | Critic round 2 | pending | pending |
+| 2026-09-02 | Define | Traceable tasklist + first consistency pass | traceability/consistency reports | READY |
+| 2026-09-02 | Define | Critic round 1 | critic report | SUPPLEMENT; source gate stayed BLOCKED |
+| 2026-09-02 | Define | C-01 through C-05 incorporated | spec/tasklist/plan | complete |
+| 2026-09-02 | Define | Traceability + consistency refreshed | Define reports | READY |
+| 2026-09-02 | Define | Critic round 2 on `26bc8a31440841fc4caf96e0c82961745ac08d21` | critic report | APPROVE |
+| 2026-09-02 | Execute | Source scope opened for exact approved write-set; local connector has no runtime gate file | this plan + Critic | ready |
