@@ -7,6 +7,7 @@ verdict: READY
 analysis_role: consistency_analyzer
 isolation: same_context_read_only
 created_at: 2026-09-02
+round: 2
 specification: docs/specs/WB-2026-09-02-orchestrator-execution-state.md
 plan: docs/plans/WB-2026-09-02-orchestrator-execution-state.md
 tasklist: docs/tasklist/WB-2026-09-02-orchestrator-execution-state.tasklist.md
@@ -16,7 +17,7 @@ tasklist: docs/tasklist/WB-2026-09-02-orchestrator-execution-state.tasklist.md
 
 ## Verdict
 
-**READY** — no unresolved material contradiction remains across specification, plan, task decomposition, and final Define write-set.
+**READY** — after Critic round-1 supplements C-01 through C-05, no unresolved material contradiction remains across specification, plan, task decomposition, and final Define write-set.
 
 This analysis is read-only with respect to normative/source artifacts and is not represented as independent assurance.
 
@@ -26,54 +27,78 @@ This analysis is read-only with respect to normative/source artifacts and is not
 - 12 requirements and 12 acceptance criteria are structurally covered by requirement tasks.
 - No unknown REQ/AC references remain.
 - Enabling/assurance/documentation tasks do not satisfy implementation coverage.
-- Traceability result: READY, 12 REQ / 12 AC / 10 TASK / 0 structural errors.
+- Refreshed traceability result: READY, 12 REQ / 12 AC / 10 TASK / 0 structural errors.
+
+### Critic C-01 -> serialized concurrency contract
+- Spec requires an OS-backed local lock around the complete read -> re-read -> version compare -> reduce -> atomic write transaction.
+- `expected_state_version` is checked after lock acquisition and canonical re-read.
+- TASK-001 covers lock implementation/ignore/publication behavior.
+- TASK-004 requires a true concurrent same-version fixture, not a merely sequential stale-version test.
+- Plan risk/control wording matches the specification.
+
+**Result:** resolved.
+
+### Critic C-02 -> portable digest
+- Spec defines SHA-256 over canonical `json.dumps(... ensure_ascii=False, sort_keys=True, separators=(",", ":"))` UTF-8 bytes with no trailing newline.
+- `snapshot_digest`, when present, is excluded from its own hashed object.
+- TASK-003 owns canonical digest + handoff behavior.
+
+**Result:** resolved.
+
+### Critic C-03 -> protected authority/identity/assurance surfaces
+Generic patch protection now explicitly includes schema/state version ownership, authority mode, Work Block identity, governance, specification, base commit, Define-quality, write gate, Critic, all assurance, closeout, integrations, both write sets, Hard Stops, authority-relevant lifecycle readiness, and Git subject/generation fields. Dedicated lifecycle/observation/assurance commands remain the only mutation routes for those surfaces.
+
+**Result:** resolved.
+
+### Critic C-04 -> authority-attenuating handoff
+- Target runtime must already have initialized matching Work Block identity/scope.
+- Snapshot protected fields are match predicates, not imported authority.
+- Import cannot activate write gate, integrations, approval, assurance readiness, governance, write-set, Hard Stops, or external capability.
+- Default/uninitialized target rejects import.
+- TASK-003 and TASK-006 cover implementation plus Codex Cloud use.
+
+**Result:** resolved.
+
+### Critic C-05 -> schema-v3 migration
+- Dedicated migration validates known v3 under the state lock.
+- Compatible identity/scope/evidence are preserved.
+- New v4 state starts `state_version=0`, write gate BLOCKED, integrations inactive, and previous READY assurance UNVERIFIED/unbound while evidence pointers remain.
+- Malformed/unknown v3 remains untouched and BLOCKED.
+- TASK-005 owns migration across state readers/writers and fixtures; TASK-007 includes migration evaluation.
+
+**Result:** resolved.
 
 ### Specification -> architecture/plan
-- REQ-001 single live state matches the plan decision to extend `.agent/active-work-block.json` rather than add a parallel live SSOT.
-- REQ-002/003/008/009 map to schema v4, state-version CAS, deterministic reducer, protected fields, and conflict rejection in the plan.
-- REQ-004 maps to subject reconciliation + reducer-owned assurance invalidation.
-- REQ-005/006 map to bounded evidence pointers and compact context assembly.
-- REQ-007 maps to non-authoritative handoff snapshot export/import and exact source revision reconciliation.
-- REQ-010 maps to coordinated schema-v4 migration plus the existing `define_quality` lifecycle/default repair.
-- REQ-011 maps to the Codex Cloud admission gate and exact GitHub reconciliation.
-- REQ-012 maps to the >=50-step focused evaluation and portable UTF-8 context-byte metric.
+- REQ-001: one live state matches `.agent/active-work-block.json` anchor.
+- REQ-002/003/008: serialized transaction + CAS + rejection semantics match the plan.
+- REQ-004: dedicated subject observation and reducer-owned assurance invalidation match the plan.
+- REQ-005/006: bounded evidence + compact context match the plan.
+- REQ-007/009: digest-bound, authority-attenuating handoff matches the plan.
+- REQ-010: all known authority-relevant state readers plus v3 migration and `define_quality` repair are covered.
+- REQ-011: Codex Cloud remains admitted worker with exact GitHub reconciliation.
+- REQ-012: >=50-step, true concurrency, subject replacement, noise, handoff/restart, migration, and UTF-8 byte evaluation are all required by plan/tasklist.
 
-### Tasklist -> write-set
-Every path declared by TASK-001 through TASK-010 is contained in the final Define write-set in the Work Block plan. Additional coordination artifacts required by Define/Critic/assurance are also explicitly included.
+### Tasklist -> final write-set
+Every path declared by TASK-001 through TASK-010 is included in the Work Block final write-set. The Critic-induced lock/publication paths `template/project.gitignore` and `scripts/validate_publication.py` are now included both in TASK-001 and the plan.
 
-### Existing repository consumers -> write-set
-Repository search identified authority-relevant schema-v3 readers/fixtures in:
+### Existing repository consumers -> migration surface
+Known current schema-v3 authority readers/fixtures are included:
 
-- `template/.codex/hooks/pre_tool_use_policy.py`;
-- `template/.codex/scripts/doctor.py`;
-- `template/.claude/hooks/work_block_gate.py`;
-- `template/.claude/hooks/assurance_gate.py`;
-- `scripts/test-codex-adapter.py`;
-- `scripts/test-integration-contracts.py`;
-- coupled control-plane/profile/runtime tests and docs.
+- Codex source guard, doctor, lifecycle helper, write-gate view;
+- Claude source and assurance guards;
+- blocked-default/install validator;
+- control-plane, adapter, restore, runtime-conformance, integration, hard-stop/admission fixtures;
+- current lifecycle/Define/runtime docs and SDD contract assertions.
 
-Those surfaces are covered by TASK-005/TASK-008 and the plan write-set. Historical reports/plans that truthfully describe schema v3 at their historical subject are not migration targets and must not be rewritten merely to remove old terminology.
+Historical reports/plans remain historical evidence and are intentionally not mass-rewritten.
 
-### Self-hosting state
-No tracked root `.agent/active-work-block.json` or root `.agent/active-work-block.default.json` exists on the feature branch through the GitHub repository surface; generated-project canonical defaults remain under `template/.agent/`. Local ignored self-hosting state, if present in a runtime checkout, is operational state and is not silently committed as part of this Work Block.
-
-## Resolved Define Corrections
-
-1. Initial plan write-set was too narrow for a schema-version migration.
-   - Resolved by expanding the final write-set to all identified authority-relevant readers, wrappers, tests, documentation, and navigation surfaces.
-2. `current_evidence_refs` was not objectively bounded.
-   - Resolved at max 16.
-3. Context-size evaluation lacked a portable metric.
-   - Resolved with per-step/cumulative serialized UTF-8 bytes.
-4. Handoff snapshot revision binding risked containing-commit SHA circularity.
-   - Resolved by binding to source execution revision/state digest and treating later archival commits as transport/evidence, not the execution subject.
-5. Existing lifecycle/default `define_quality` drift could be hidden by the migration.
-   - Resolved by explicit REQ-010/AC-010 and implementation task coverage.
+### Self-hosting / tracked-state boundary
+No tracked root `.agent/active-work-block.json` or root `.agent/active-work-block.default.json` exists through the GitHub repository surface. Generated-project defaults remain under `template/.agent/`; local self-hosting active state, when present in a runtime checkout, remains operational/local and is not silently committed.
 
 ## Residual Capability Constraint
 
-The current Chat container cannot clone GitHub because outbound DNS is unavailable. Connector-backed repository evidence is sufficient for this Define consistency analysis, but repository-native tests/CI remain mandatory before final assurance. No native command result is claimed here.
+The current Chat container cannot clone GitHub because outbound DNS is unavailable. Connector-backed repository evidence is sufficient for Define, but repository-native tests and CI remain mandatory before final assurance. No native command result is claimed by this report.
 
 ## Conclusion
 
-The specification is implementation-ready, task decomposition is traceable, the final write-set covers the identified migration surface, and no unresolved Owner decision is required before Critic review.
+Critic round-1 blockers are fully represented in the current specification and traceable task decomposition. The write-set covers the resulting implementation surface. Define is ready for Critic round 2; no unresolved Owner decision is required.
