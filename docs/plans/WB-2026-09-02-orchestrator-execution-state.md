@@ -25,12 +25,12 @@ No commit from those branches is an implicit dependency or permitted merge sourc
 ## Lifecycle State
 - **Current Stage:** Define
 - **Execution State:** in_progress
-- **Write Gate:** BLOCKED pending consistency analysis + Critic
+- **Write Gate:** BLOCKED pending refreshed consistency analysis + Critic round 2
 - **Owner Approval Evidence:** Owner explicitly approved a separate branch and new Work Block in chat on 2026-09-02.
 - **Requirements-Quality Review:** READY — `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-requirements-review.md`
-- **Traceability:** READY — `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-traceability.md`
-- **Consistency Analysis:** pending
-- **Critic Gate:** pending
+- **Traceability:** READY after Critic supplements — `docs/reports/requirements/WB-2026-09-02-orchestrator-execution-state-traceability.md`
+- **Consistency Analysis:** initial READY; refresh pending after Critic supplements
+- **Critic Gate:** round 1 `SUPPLEMENT`; C-01 through C-05 incorporated; round 2 pending
 - **Verification Verdict:** pending
 - **Evaluation:** required
 
@@ -87,28 +87,45 @@ Codex Cloud can work from GitHub-hosted repositories/branches and is suitable fo
 Define and implement a runtime-neutral **Execution State Plane** in which:
 
 1. the next Orchestrator action is assembled primarily from immutable procedure, canonical current Work Block state, and the latest relevant observation;
-2. workers propose bounded state changes and a deterministic provider-neutral reducer validates/applies them atomically;
+2. workers propose bounded state changes and a deterministic provider-neutral reducer validates/applies them under a serialized read/validate/write transaction;
 3. provenance/history remains evidence retrievable on demand rather than default full-history context;
 4. Engineering Memory remains the separate durable cross-Work-Block learning plane;
 5. authoritative subject replacement deterministically invalidates assurance tied to stale subjects;
 6. overlapping worker updates cannot silently overwrite accepted state;
-7. cross-session/runtime recovery uses a validated non-authoritative snapshot, not transcript reconstruction.
+7. cross-session/runtime recovery uses an authority-attenuating validated non-authoritative snapshot, not transcript reconstruction.
 
 ## Normative Specification
 
 `docs/specs/WB-2026-09-02-orchestrator-execution-state.md`
 
-The accepted Define candidate selects:
+The current Define candidate selects:
 
 - schema version 4;
-- monotonic `state_version` + expected-version compare-and-swap;
+- monotonic `state_version` with inter-process serialization and expected-version compare-and-swap checked after lock acquisition/re-read;
 - one live canonical state path;
-- protected / runtime-mutable / reducer-derived field classes;
+- complete protected / runtime-mutable / reducer-derived field classes;
 - deterministic atomic reducer;
+- dedicated Git-subject observation/reconciliation rather than generic revision patches;
+- canonical SHA-256 JSON digest semantics;
 - max 16 current evidence pointers;
 - portable context metric = UTF-8 serialized bytes;
-- non-authoritative handoff snapshots bound to exact source state/repository revision without self-referential commit SHA;
+- authority-attenuating non-authoritative handoff snapshots bound to exact source state/repository revision without self-referential commit SHA;
+- fail-closed v3 -> v4 migration that forces writes blocked and prior assurance unbound;
 - explicit Codex Cloud admission/reconciliation semantics.
+
+## Critic Round 1 and Corrections
+
+Critic report: `docs/reports/reviews/WB-2026-09-02-orchestrator-execution-state-critic.md`.
+
+Round 1 returned `SUPPLEMENT` and kept the source gate closed. Its five material findings are incorporated into the current specification/tasklist:
+
+- **C-01:** real concurrent mutation now serializes the entire transaction under a bounded OS-backed local lock, then re-reads and performs CAS;
+- **C-02:** canonical state/snapshot SHA-256 digest bytes are defined exactly;
+- **C-03:** all authority/identity/assurance/subject surfaces are explicitly protected from generic patches;
+- **C-04:** handoff import is authority-attenuating and requires an already initialized matching target state;
+- **C-05:** deterministic v3 -> v4 migration preserves compatible evidence/scope but forces writes blocked and assurance unbound.
+
+No source implementation is authorized until refreshed consistency analysis and Critic round 2 confirm these corrections.
 
 ## Traceable Task Decomposition
 
@@ -123,7 +140,7 @@ Answers: **what is currently true and what transition is legal next?**
 
 - compact and structured;
 - one live canonical state per execution root;
-- mutable only by validated transitions;
+- mutable only by validated serialized transitions;
 - no raw transcripts or private reasoning.
 
 ### Evidence Plane
@@ -178,6 +195,8 @@ template/.agent/active-work-block.default.json
 template/.agent/active-work-block.json
 template/scripts/work-block-state.py
 template/scripts/validate-installation-profile.py
+template/project.gitignore
+scripts/validate_publication.py
 
 # Runtime readers/wrappers
 template/.codex/scripts/lifecycle.py
@@ -215,13 +234,13 @@ Codex Cloud may be used only as an admitted runtime/worker, never as authority. 
 2. bind task to exact branch/revision;
 3. assign one bounded logical role and explicit write-set subset;
 4. prohibit protected/default branch mutation and unrelated branch adoption;
-5. supply validated handoff snapshot only if active state is needed;
+5. supply validated handoff snapshot only if active operational state is needed;
 6. record data leaving the current runtime/machine and authentication boundary without secrets;
 7. require exact resulting revision/diff/check evidence;
 8. reconcile GitHub head/result before updating canonical current state;
 9. never infer independent Reviewer/Verifier status from cloud execution alone.
 
-If active state cannot be transported/reconciled safely, Codex Cloud remains read-only for this Work Block.
+Imported snapshots never activate source-side write gates, integrations, assurance readiness, governance, Hard Stops, or other authority on the target runtime.
 
 ## Acceptance Criteria
 Use AC-001 through AC-012 in the normative specification. No prose-only completion claim supersedes them.
@@ -230,11 +249,12 @@ Use AC-001 through AC-012 in the normative specification. No prose-only completi
 At minimum:
 
 1. >=50 sequential state transitions;
-2. external current/frozen subject replacement after earlier assurance;
-3. irrelevant CI/tool noise that must not persist in default compact context;
-4. restart/handoff recovery without transcript input;
-5. overlapping patches from the same expected state version;
-6. state-centric versus history-heavy per-step/cumulative UTF-8 context bytes.
+2. true concurrent same-version mutations proving one accepted transition cannot be lost;
+3. external current/frozen subject replacement after earlier assurance;
+4. irrelevant CI/tool noise that must not persist in default compact context;
+5. restart/handoff recovery without transcript input and without authority propagation;
+6. valid and malformed v3 -> v4 migration;
+7. state-centric versus history-heavy per-step/cumulative UTF-8 context bytes.
 
 Exact tokenizer counts may be additional evidence if a runtime exposes them. Do not claim unmeasured token savings.
 
@@ -243,11 +263,13 @@ Exact tokenizer counts may be additional evidence if a runtime exposes them. Do 
 | --- | --- |
 | second state SSOT | one live `.agent/active-work-block.json`; snapshots explicitly import-only |
 | compression loses needed fact | stable evidence pointers + selective retrieval; provenance not deleted |
-| LLM corrupts state | deterministic allowlisted reducer + CAS + atomic replace |
-| patch expands authority | authority fields protected; existing lifecycle/Owner procedures only |
+| LLM corrupts state | deterministic allowlisted reducer + serialized CAS + atomic replace |
+| patch expands authority | complete protected field set; existing lifecycle/Owner procedures only |
 | old reader silently ignores v4 | schema bump; v3 fails closed; migrate coupled readers/tests together |
+| handoff transfers authority | target must already be initialized; protected snapshot state is match-only and never activated |
 | handoff commit SHA circularity | bind snapshot to source revision/state digest; containing archive commit is not subject |
-| concurrent writers race | expected `state_version` + serialized canonical write |
+| concurrent writers race | OS-backed lock + re-read + expected `state_version` under lock |
+| stale v3 local state | deterministic v3 migration forces write gate blocked and assurance unbound |
 | Codex Cloud treated as authority/independent assurance | explicit admission + actual isolation classification + GitHub reconciliation |
 | paper result over-generalized | framework-specific evaluation with portable byte metric |
 
@@ -262,12 +284,14 @@ All implementation remains on the isolated feature branch. Revert only Work Bloc
 | --- | --- | --- | --- | --- |
 | 2026-09-02 | Define | Owner approved separate branch and Work Block | chat instruction | complete |
 | 2026-09-02 | Define | Branch created from exact `main` revision `be988807c38543eb90a728fcb4349bc97dd5695a` | GitHub ref | complete |
-| 2026-09-02 | Define | Initial architecture recorded | this plan | complete |
 | 2026-09-02 | Define | Existing state/default/lifecycle/guards/bootstrap/runtime surfaces inventoried | repository evidence | complete |
 | 2026-09-02 | Define | `define_quality` default/lifecycle drift identified | tracked default vs lifecycle helper | complete |
 | 2026-09-02 | Define | Local active-state portability gap identified for cloud/fresh checkouts | bootstrap/restore contract | complete |
-| 2026-09-02 | Define | Formal specification created and tightened after requirements self-review | specification + requirements review | complete |
-| 2026-09-02 | Define | Traceable tasklist created; exact validator semantics yield 12/12/10/0 | traceability report | complete |
-| 2026-09-02 | Define | Final implementation write-set expanded to all identified schema-v4 consumers | this plan/tasklist | complete |
-| 2026-09-02 | Define | Consistency analysis | pending | pending |
-| 2026-09-02 | Define | Critic | pending | pending |
+| 2026-09-02 | Define | Formal specification + requirements review completed | spec + requirements review | complete |
+| 2026-09-02 | Define | Traceable tasklist created; validator semantics yield 12/12/10/0 | traceability report | complete |
+| 2026-09-02 | Define | Initial consistency analysis | consistency report | READY before Critic supplements |
+| 2026-09-02 | Define | Critic round 1 | critic report | SUPPLEMENT; source gate remains BLOCKED |
+| 2026-09-02 | Define | C-01 through C-05 incorporated into spec/tasklist/write-set | spec/tasklist/this plan | complete |
+| 2026-09-02 | Define | Traceability refreshed after Critic corrections | traceability report | READY |
+| 2026-09-02 | Define | Refreshed consistency analysis | pending | pending |
+| 2026-09-02 | Define | Critic round 2 | pending | pending |
