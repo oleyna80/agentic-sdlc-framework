@@ -22,7 +22,7 @@ It is not:
 - independent Reviewer/Verifier merely because execution is remote/cloud-hosted;
 - permission to change the approved specification, requirements, architecture, or write-set.
 
-Returned commits, diffs, command output, and test results are worker evidence and MUST be reconciled against GitHub before the Orchestrator accepts them as current state.
+Returned commits, diffs, command output, and test results are worker evidence and MUST be reconciled before the Orchestrator accepts them as current state.
 
 ## Mission Objective
 
@@ -34,8 +34,8 @@ The provider-neutral architecture is already selected and partially implemented.
 
 At dispatch, the Orchestrator MUST supply:
 
-- repository: `oleyna80/agentic-sdlc-framework`;
-- branch: `wb/2026-09-02-orchestrator-execution-state`;
+- repository provenance: `oleyna80/agentic-sdlc-framework`;
+- source-branch provenance: `wb/2026-09-02-orchestrator-execution-state` or a dedicated Cloud child branch created from the same exact subject;
 - **exact Git commit SHA** containing this mission record;
 - specification: `docs/specs/WB-2026-09-02-orchestrator-execution-state.md`;
 - tasklist: `docs/tasklist/WB-2026-09-02-orchestrator-execution-state.tasklist.md`;
@@ -45,7 +45,26 @@ At dispatch, the Orchestrator MUST supply:
 - core fixtures: `scripts/test-work-block-state.py`;
 - synthetic evaluation: `scripts/evaluate-work-block-state.py`.
 
-Do not dispatch from `main`, the Learning Loop branch, `WB-RELEASE-002`, or an unspecified moving branch head.
+Do not dispatch from `main`, the Learning Loop subject, `WB-RELEASE-002`, or an unspecified moving branch head.
+
+## Cloud Execution Identity Rule
+
+The **exact dispatched commit SHA is the authoritative repository-subject identity** for this bounded Cloud mission.
+
+Codex Cloud may expose that exact commit through a synthetic local branch name such as `work`, through a task-local branch, or through a detached checkout. The local branch label is therefore diagnostic metadata, not an authority predicate.
+
+A Cloud checkout is acceptable when all of the following are true before implementation starts:
+
+1. `git rev-parse HEAD` equals the exact dispatched SHA;
+2. the worktree contains no pre-existing modified, staged, or untracked files attributable to another task;
+3. the required mission/spec/core files at that SHA are present and readable;
+4. no unrelated commit is introduced before work starts.
+
+A different local branch name **alone** is not a reason to stop when the exact SHA and clean-subject conditions above hold.
+
+The worker MUST NOT checkout, reset, rebase, merge, clean, or otherwise mutate an unrelated workspace merely to manufacture the requested branch label. If the exact HEAD SHA is wrong, STOP and report the mismatch.
+
+A missing Git remote inside the sandbox is not by itself a mission failure. Report it as an environment limitation. Result reconciliation must then rely on the exact returned commit/diff/patch evidence until a resulting commit becomes visible through GitHub or is otherwise imported through a reviewed path.
 
 ## Coder Write-Set — Cloud Mission 1
 
@@ -158,7 +177,7 @@ If repository-native discovery shows another directly coupled schema-state test,
 Do not:
 
 - push or mutate `main`/protected default branch;
-- merge, rebase, force-push, reset, or rewrite history;
+- merge, rebase, force-push, reset, clean an unrelated workspace, or rewrite history;
 - adopt commits from Learning Loop or `WB-RELEASE-002`;
 - modify files outside the Cloud Mission 1 write-set;
 - change spec/requirements/tasklist/architecture;
@@ -167,37 +186,42 @@ Do not:
 - access or expose credentials/secrets/live infrastructure/live data;
 - create assurance READY verdicts.
 
-A normal commit on the exact feature branch is permitted if the Codex Cloud surface supports it. If it returns a patch rather than a commit, report that honestly.
+A normal commit on the task-local/synthetic Cloud branch is permitted if the Codex Cloud surface supports it. A branch label such as `work` does not itself grant or reduce authority. If the environment returns a patch rather than a commit, report that honestly.
 
 ## Result Contract
 
 Return all of the following:
 
 1. exact input/base SHA actually checked out;
-2. exact resulting commit SHA, or state explicitly that no commit was created;
-3. `git status --short --branch`;
-4. `git diff --name-only <input-sha>...HEAD` (or equivalent exact changed-file list);
-5. confirmation that every changed path is inside Cloud Mission 1 write-set;
-6. commands run and exit status;
-7. full list of passing/failing tests;
-8. concise failure excerpts for any non-zero test;
-9. any additional path/scope needed but not modified;
-10. whether network/dependency setup differed from normal repository execution;
-11. no merge/deployment/release action performed.
+2. local branch label (including `work` or detached state) as diagnostic metadata;
+3. exact resulting commit SHA, or state explicitly that no commit was created;
+4. `git status --short --branch`;
+5. `git diff --name-only <input-sha>...HEAD` (or equivalent exact changed-file list);
+6. confirmation that every changed path is inside Cloud Mission 1 write-set;
+7. commands run and exit status;
+8. full list of passing/failing tests;
+9. concise failure excerpts for any non-zero test;
+10. any additional path/scope needed but not modified;
+11. whether a Git remote was available and whether network/dependency setup differed from normal repository execution;
+12. no merge/deployment/release/rebase/reset/force-push/protected-branch action performed.
 
 ## Reconciliation Rule
 
-The Orchestrator accepts the cloud result only after independently checking GitHub:
+The Orchestrator accepts the cloud result only after checking:
 
 ```text
 reported base SHA == dispatched SHA
-reported resulting SHA == branch/commit visible on GitHub (if pushed)
+starting tree was clean and bound to that SHA
 changed paths subset-of Cloud Mission 1 write-set
-no unrelated branch ancestry introduced
+no unrelated ancestry introduced
 native evidence corresponds to the reported resulting subject
 ```
 
-Any mismatch keeps the result `UNVERIFIED` and source state is not advanced from cloud narrative alone.
+Branch-name equality is not required for a synthetic Cloud checkout.
+
+If the resulting commit is pushed/visible on GitHub, its reported SHA MUST match GitHub. If no remote/push is available, the result remains worker evidence until the returned commit/diff/patch is imported through a reviewed path; narrative alone does not advance canonical state.
+
+Any identity/evidence mismatch keeps the result `UNVERIFIED`.
 
 ## Data Boundary
 
@@ -205,4 +229,4 @@ This is a public repository. The worker may read the repository content required
 
 ## Rollback / Disable
 
-If the mission fails or returns out-of-scope changes, discard/revert only the cloud worker's feature-branch commit through normal reviewed Git history. Do not reset/rewrite the branch. Codex Cloud admission ends with this bounded mission unless a subsequent Work Block/mission record explicitly renews it.
+If the mission fails or returns out-of-scope changes, discard/revert only the cloud worker's feature/task commit through normal reviewed Git history. Do not reset/rewrite the canonical branch. Codex Cloud admission ends with this bounded mission unless a subsequent Work Block/mission record explicitly renews it.
