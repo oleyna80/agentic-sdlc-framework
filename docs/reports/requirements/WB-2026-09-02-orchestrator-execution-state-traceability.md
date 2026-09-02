@@ -8,7 +8,7 @@ created_at: 2026-09-02
 validator_source: scripts/validate-define-traceability.py
 validator_source_sha: 7c2d9f62f72fd851b1cd25714d66a14405b03c27
 specification_blob_sha: e39ca0318f973fbd58167047dfd62d9f6fcba02a
-tasklist_blob_sha: 43b277b8416e7b76f2be8b2e2656280f827628f6
+tasklist_blob_sha: 56c66c353fbab9c15a00c68641ae16b144c9394b
 execution_environment: connector-sourced offline semantic execution
 ---
 
