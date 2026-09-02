@@ -48,11 +48,11 @@ progress:
   next_action
 context:
   latest_observation_ref
-  current_evidence_refs[]
+  current_evidence_refs[]   # maximum 16 current pointers
   handoff_snapshot_ref
 ```
 
-`base_commit` remains the planning baseline to avoid duplicating an already canonical field. Full task history remains in the traceable tasklist; full evidence history remains in reports/log artifacts.
+`base_commit` remains the planning baseline to avoid duplicating an already canonical field. Full task history remains in the traceable tasklist; full evidence history remains in reports/log artifacts. `context.current_evidence_refs` is limited to **16** current pointers; older evidence is not deleted from its owning report/log artifact merely because it leaves active state.
 
 ## Patch Classes
 
@@ -64,20 +64,30 @@ Generic state patches MUST distinguish:
 
 At minimum, `write_set`, `coordination_write_set`, `external_hard_stops`, `integrations`, `governance_profile`, `authority_mode`, and source-write readiness are authority-protected.
 
+## Handoff Transport and Revision Binding
+
+A handoff snapshot is a transport/evidence object, not live state. It MUST contain the source Work Block ID, source `state_version`, state digest, source repository/branch revision, and snapshot status. The preferred cross-runtime transport is direct task/session payload or another explicitly admitted artifact channel so the target checkout can remain at the exact bound source revision.
+
+If a snapshot is later archived in Git, that archival commit MUST NOT be treated as the snapshot's bound execution subject. Import validates the snapshot's declared source revision; any intervening repository commits require reconciliation, and only explicitly allowed coordination-only ancestry may be accepted by a dedicated rule. This avoids self-referential commit-SHA requirements.
+
+## Context-Size Metric
+
+The portable comparison metric is **UTF-8 serialized bytes of the assembled default Orchestrator context** for each evaluated step. If a runtime exposes exact tokenizer/token counts, they may be recorded as an additional runtime-specific metric, but byte size is the required cross-runtime baseline. The evaluation compares cumulative and per-step context bytes against an explicitly defined history-heavy baseline.
+
 ## Requirements
 
 - REQ-001: The framework MUST retain exactly one live canonical Work Block state per execution root at `.agent/active-work-block.json`; no parallel live Execution State SSOT may be introduced.
 - REQ-002: Schema v4 MUST include a monotonic `state_version`, and every generic mutable-state transition MUST require an exact `expected_state_version` compare-and-swap precondition.
 - REQ-003: A provider-neutral deterministic reducer MUST validate patch shape, allowed paths, values, state version, lifecycle invariants, and authority boundaries before atomically replacing canonical state; rejection MUST preserve the previous valid state byte-for-semantics.
 - REQ-004: Authoritative observations that change the current or frozen assurance subject MUST deterministically invalidate or stale assurance bound to the prior subject and advance subject generation without relying on an LLM to remember each dependent field.
-- REQ-005: Active state MUST store only bounded current evidence pointers; durable provenance MUST remain in existing report/log/evidence artifacts and MUST be retrievable without replaying full chat/tool history.
+- REQ-005: Active state MUST store no more than 16 current evidence pointers; durable provenance MUST remain in existing report/log/evidence artifacts and MUST be retrievable without replaying full chat/tool history.
 - REQ-006: Default Orchestrator context assembly MUST be defined as immutable procedure + canonical current state + latest relevant observation + selectively retrieved evidence, and MUST NOT require full conversation replay for routine next-step decisions.
-- REQ-007: The framework MUST support deterministic export/import of a non-authoritative handoff snapshot sufficient to initialize an execution root on another session/runtime when the snapshot is bound to exact Work Block ID, state version/digest, branch/repository revision, and passes current-state/repository reconciliation.
+- REQ-007: The framework MUST support deterministic export/import of a non-authoritative handoff snapshot sufficient to initialize an execution root on another session/runtime when the snapshot is bound to exact Work Block ID, state version/digest, branch/repository revision, and passes current-state/repository reconciliation without requiring a self-referential containing-commit SHA.
 - REQ-008: Concurrent/overlapping state mutation MUST fail deterministically through state-version compare-and-swap and shared-state serialization; a worker MUST NOT silently overwrite another worker's accepted transition.
 - REQ-009: Generic state patches MUST NOT create or expand write authority, integration admission, Hard Stop capability, governance profile, Owner approval, or assurance readiness; those transitions remain governed by their existing procedures.
 - REQ-010: Schema migration MUST update tracked defaults, runtime lifecycle helper(s), Codex and Claude source guards, bootstrap/default validation, documentation, and regression fixtures consistently; the existing `define_quality` default/lifecycle drift MUST be resolved rather than carried into v4.
 - REQ-011: Codex Cloud MAY be used only as an admitted bounded worker supplied with an exact branch/revision and, when active state is required, a validated handoff snapshot; returned commits/results MUST be reconciled against GitHub before becoming current state, and cloud execution alone MUST NOT be labelled independent assurance.
-- REQ-012: The implementation MUST include framework-specific evaluation fixtures covering at least 50 sequential transitions, external subject replacement, irrelevant tool/CI noise, restart/handoff recovery, conflicting patches, and observable context-size comparison against a history-heavy baseline without claiming unmeasured token savings.
+- REQ-012: The implementation MUST include framework-specific evaluation fixtures covering at least 50 sequential transitions, external subject replacement, irrelevant tool/CI noise, restart/handoff recovery, conflicting patches, and observable context-size comparison using cumulative/per-step UTF-8 serialized bytes against a history-heavy baseline without claiming unmeasured token savings.
 
 ## Acceptance Criteria
 
@@ -85,14 +95,14 @@ At minimum, `write_set`, `coordination_write_set`, `external_hard_stops`, `integ
 - AC-002 [req=REQ-002]: Two patches with the same expected version cannot both succeed; the first increments `state_version` and the second is rejected as stale.
 - AC-003 [req=REQ-003]: Malformed, unauthorized, invalid-value, and invariant-breaking patches return a blocking result and leave the last valid canonical state unchanged.
 - AC-004 [req=REQ-004]: A fixture changes the authoritative subject after READY assurance and demonstrates deterministic subject-generation advance plus invalidation/staleness of assurance tied to the old subject.
-- AC-005 [req=REQ-005]: Active-state fixtures enforce bounded current evidence references, while prior evidence remains addressable from stable report/log references outside the active-state payload.
+- AC-005 [req=REQ-005]: Active-state fixtures reject a seventeenth current evidence reference unless an existing pointer is retired from active state, while prior evidence remains addressable from stable report/log references outside the active-state payload.
 - AC-006 [req=REQ-006]: Runtime/session guidance specifies the compact context contract and a recovery fixture selects a legal next action without using prior conversation transcript as required input.
-- AC-007 [req=REQ-007]: Exported handoff contains Work Block ID, state version/digest, repository/branch revision, and snapshot status; import rejects mismatched/stale subjects and can restore a valid new execution root from a compatible snapshot.
+- AC-007 [req=REQ-007]: Exported handoff contains Work Block ID, state version/digest, source repository/branch revision, and snapshot status; import rejects incompatible subjects/revisions, does not require its own containing commit SHA, and can restore a valid new execution root from a compatible snapshot.
 - AC-008 [req=REQ-008]: An adversarial fixture submits overlapping transitions from the same base state and proves deterministic rejection of the stale/conflicting transition.
 - AC-009 [req=REQ-009]: Fixtures attempt to expand write-set, integration admission, Hard Stops, governance, and readiness through generic patches and all fail closed.
 - AC-010 [req=REQ-010]: v4 defaults and all state readers/writers agree; `prepare`/`open` for Managed state preserve a valid `define_quality` object, existing control-plane fixtures are migrated, and installation/default validation passes.
 - AC-011 [req=REQ-011]: Codex Cloud admission documentation records exact role, write-set, branch/revision, data boundary, snapshot/reconciliation procedure, and correctly classifies output evidence/isolation.
-- AC-012 [req=REQ-012]: Deterministic evaluation runs the required scenarios, reports correctness/rejection/recovery results and observable context sizes, and does not infer savings when measurement is unavailable.
+- AC-012 [req=REQ-012]: Deterministic evaluation runs the required scenarios, reports correctness/rejection/recovery results plus per-step and cumulative UTF-8 context bytes for state-centric and history-heavy baselines, and does not infer token savings when exact token measurement is unavailable.
 
 ## Failure and Recovery Semantics
 
