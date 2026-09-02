@@ -1,5 +1,6 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
+  "state_version": 0,
   "authority_mode": "github_capability",
   "work_block_id": "",
   "governance_profile": "Controlled",
@@ -90,5 +91,26 @@
     "credentials",
     "client_communications",
     "irreversible_publish"
-  ]
+  ],
+  "lifecycle": {
+    "stage": "define",
+    "execution_state": "blocked"
+  },
+  "subject": {
+    "current_revision": "",
+    "frozen_revision": "",
+    "generation": 0
+  },
+  "progress": {
+    "active_tasks": [],
+    "blockers": [],
+    "pending_decisions": [],
+    "next_action": ""
+  },
+  "context": {
+    "latest_observation_ref": "",
+    "current_evidence_refs": [],
+    "handoff_snapshot_ref": ""
+  },
+  "lifecycle_note": "coordination"
 }
