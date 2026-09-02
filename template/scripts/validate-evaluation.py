@@ -9,7 +9,7 @@ import sys
 from typing import Any
 
 SCHEMA_VERSION = 1
-ACTIVE_WORK_BLOCK_SCHEMA_VERSION = 3
+ACTIVE_WORK_BLOCK_SCHEMA_VERSION = 4
 ACTIVE_AUTHORITY_MODE = "github_capability"
 RESULT_STATES = {"pass", "fail", "blocked", "not_run", "not_applicable"}
 EVALUATION_VERDICTS = {"READY", "BLOCKED", "UNVERIFIED"}
