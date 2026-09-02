@@ -211,8 +211,8 @@ def validate_define_quality(gate: dict) -> None:
 
 
 def validate_source_gate(gate: dict) -> list[str]:
-    if gate.get("schema_version") != 3:
-        raise Denied("Source writes require active-work-block schema_version=3.")
+    if gate.get("schema_version") != 4:
+        raise Denied("Source writes require active-work-block schema_version=4.")
     if gate.get("authority_mode") != "github_capability":
         raise Denied("Source writes require authority_mode=github_capability.")
     if not str(gate.get("work_block_id") or "").strip():

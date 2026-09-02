@@ -324,7 +324,7 @@ def shared_gate_contract() -> None:
         (TEMPLATE / ".agent/active-work-block.default.json").read_text(encoding="utf-8")
     )
     assert gate == default_gate, "template active/default Work Block copies must stay aligned"
-    assert gate.get("schema_version") == 3
+    assert gate.get("schema_version") == 4
     assert gate.get("authority_mode") == "github_capability"
     assert gate.get("governance_profile") == "Controlled"
     assert gate.get("define_quality") == DEFAULT_DEFINE_QUALITY

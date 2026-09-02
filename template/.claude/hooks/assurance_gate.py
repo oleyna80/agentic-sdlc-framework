@@ -36,8 +36,8 @@ def load_gate(root: Path) -> dict:
         raise GateError(f"Invalid {GATE_PATH.as_posix()}: {exc}") from exc
     if not isinstance(gate, dict):
         raise GateError("Active Work Block gate must be a JSON object.")
-    if gate.get("schema_version") != 3:
-        raise GateError("Closeout requires active-work-block schema_version=3.")
+    if gate.get("schema_version") != 4:
+        raise GateError("Closeout requires active-work-block schema_version=4.")
     if gate.get("authority_mode") != "github_capability":
         raise GateError("Closeout requires authority_mode=github_capability.")
     if not str(gate.get("work_block_id") or "").strip():

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Focused fixtures for schema v3 external Hard Stop guardrails."""
+"""Focused fixtures for schema v4 external Hard Stop guardrails."""
 from __future__ import annotations
 
 import json
@@ -64,7 +64,7 @@ def denied(repo: Path, command: str, contains: str) -> None:
 
 def gate(repo: Path, *, integrations: dict | None = None) -> None:
     value = {
-        "schema_version": 3,
+        "schema_version": 4,
         "authority_mode": "github_capability",
         "work_block_id": "WB-FIXTURE",
         "write_gate": {"status": "READY", "opened_at": "fixture"},

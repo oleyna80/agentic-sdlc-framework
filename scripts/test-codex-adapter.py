@@ -117,7 +117,8 @@ def write_gate(repo: Path, *, status: str = "READY", profile: str = "Managed") -
     if profile == "Controlled":
         define_quality = dict(DEFAULT_DEFINE_QUALITY)
     gate = {
-        "schema_version": 3,
+        "schema_version": 4,
+        "state_version": 0,
         "authority_mode": "github_capability",
         "work_block_id": "wb-fixture",
         "governance_profile": profile,
@@ -159,8 +160,32 @@ def write_gate(repo: Path, *, status: str = "READY", profile: str = "Managed") -
             "irreversible_publish",
         ],
         "integrations": {"approved": [], "admission_records": []},
-        "assurance": {},
+        "assurance": {
+            name: {
+                "required": name in {"review", "verification"},
+                "status": "PENDING",
+                "verdict": "PENDING",
+                "report": "",
+                "isolation": "unknown",
+                "skip_reason": "",
+            }
+            for name in ("review", "verification", "evaluation", "drift")
+        },
         "closeout_mode": "pending",
+        "lifecycle": {"stage": "execute", "execution_state": "ready"},
+        "subject": {"current_revision": "", "frozen_revision": "", "generation": 0},
+        "progress": {
+            "active_tasks": [],
+            "blockers": [],
+            "pending_decisions": [],
+            "next_action": "",
+        },
+        "context": {
+            "latest_observation_ref": "",
+            "current_evidence_refs": [],
+            "handoff_snapshot_ref": "",
+        },
+        "lifecycle_note": "fixture",
     }
     (repo / ".agent/active-work-block.json").write_text(
         json.dumps(gate, indent=2) + "\n", encoding="utf-8"
@@ -213,14 +238,14 @@ def static_contracts() -> None:
     gate = json.loads(
         (TEMPLATE / ".agent/active-work-block.json").read_text(encoding="utf-8")
     )
-    if gate.get("schema_version") != 3:
-        fail("gate schema must be version 3")
+    if gate.get("schema_version") != 4:
+        fail("gate schema must be version 4")
     if gate.get("authority_mode") != "github_capability":
         fail("gate authority_mode must be github_capability")
     if gate.get("define_quality") != DEFAULT_DEFINE_QUALITY:
         fail("generated gate must start with canonical Controlled Define-quality default")
     if "authorization" in gate or "hard_stop_approvals" in gate:
-        fail("legacy signed authority fields remain in schema v3")
+        fail("legacy signed authority fields remain in schema v4")
     if gate.get("write_gate") != {"status": "BLOCKED", "opened_at": None}:
         fail("generated gate must start BLOCKED")
 
@@ -445,7 +470,7 @@ def hook_fixtures() -> None:
         assert_denied(
             "legacy schema source write",
             decision(PRE_TOOL, repo, event(repo, "Edit", file_path="src/app.py")),
-            "schema_version=3",
+            "schema_version=4",
         )
         gate = write_gate(repo)
         gate["critic"]["status"] = "PENDING"
@@ -473,13 +498,13 @@ def hook_fixtures() -> None:
             fail(result.stderr)
         context = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
         if "github_capability" not in context or "External Hard Stops" not in context:
-            fail("schema v3 capability context missing from SubagentStart")
+            fail("schema v4 capability context missing from SubagentStart")
 
 
 def main() -> int:
     static_contracts()
     hook_fixtures()
-    print("Codex adapter schema v3 fixtures: OK")
+    print("Codex adapter schema v4 fixtures: OK")
     return 0
 
 

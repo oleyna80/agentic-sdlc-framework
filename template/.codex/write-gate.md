@@ -17,11 +17,12 @@ from the default path.
 
 ## Default state
 
-Generated projects start with schema v3:
+Generated projects start with schema v4:
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
+  "state_version": 0,
   "authority_mode": "github_capability",
   "write_gate": {"status": "BLOCKED", "opened_at": null},
   "write_set": []
@@ -56,7 +57,7 @@ reopens the Work Block scope explicitly.
 
 `PreToolUse` checks:
 
-- schema v3 and `authority_mode=github_capability`;
+- schema v4 and `authority_mode=github_capability`;
 - active Work Block and READY state;
 - specification path/revision;
 - resolved Critic state;
@@ -105,4 +106,4 @@ agent process.
 ## Legacy signed records
 
 Historical `.agent/authorizations/*.json` and `.sig` files may remain as audit
-evidence. Schema v3 does not require or trust them for normal development.
+evidence. Schema v4 does not require or trust them for normal development.

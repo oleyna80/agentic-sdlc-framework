@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only Codex doctor for schema v3 GitHub-capability projects."""
+"""Read-only Codex doctor for schema v4 GitHub-capability projects."""
 from __future__ import annotations
 
 import argparse
@@ -34,11 +34,11 @@ def gate_readiness(gate):
             "result": "UNVERIFIED",
             "detail": "active gate is not an object",
         }
-    if gate.get("schema_version") != 3:
+    if gate.get("schema_version") != 4:
         return {
             "name": "authority_mode",
             "result": "UNVERIFIED",
-            "detail": "expected active-work-block schema_version=3",
+            "detail": "expected active-work-block schema_version=4",
         }
     if gate.get("authority_mode") != "github_capability":
         return {

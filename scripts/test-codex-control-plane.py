@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline fixtures for the schema v3 GitHub-capability lifecycle helper."""
+"""Offline fixtures for the schema v4 GitHub-capability lifecycle helper."""
 from __future__ import annotations
 
 import json
@@ -53,7 +53,7 @@ def state(repo: Path) -> dict:
 
 
 def main() -> None:
-    with tempfile.TemporaryDirectory(prefix="codex-control-plane-v3-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="codex-control-plane-v4-") as temporary:
         repo = Path(temporary) / "repo"
         repo.mkdir()
         (repo / ".agent").mkdir()
@@ -72,7 +72,7 @@ def main() -> None:
         prepared = call(repo, "prepare", "--reason", "stage-0")
         assert prepared.returncode == 0, prepared.stdout + prepared.stderr
         value = state(repo)
-        assert value["schema_version"] == 3
+        assert value["schema_version"] == 4
         assert value["authority_mode"] == "github_capability"
         assert value["write_gate"] == {"status": "BLOCKED", "opened_at": None}
         assert "authorization" not in value
@@ -82,6 +82,8 @@ def main() -> None:
         opened = call(
             repo,
             "open",
+            "--expected-version",
+            "0",
             "--work-block-id",
             "WB-FIXTURE",
             "--specification-path",
@@ -103,7 +105,7 @@ def main() -> None:
         )
         assert opened.returncode == 0, opened.stdout + opened.stderr
         value = state(repo)
-        assert value["schema_version"] == 3
+        assert value["schema_version"] == 4
         assert value["authority_mode"] == "github_capability"
         assert value["work_block_id"] == "WB-FIXTURE"
         assert value["base_commit"] == h0
@@ -124,10 +126,14 @@ def main() -> None:
         assert state(repo)["base_commit"] == h0
 
         # Invalid scope/Critic states fail closed.
-        call(repo, "prepare", "--reason", "retry")
+        prepared = call(repo, "prepare", "--reason", "retry")
+        assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+        assert state(repo)["state_version"] == 2
         blocked(
             repo,
             "open",
+            "--expected-version",
+            "2",
             "--work-block-id",
             "WB-NO-WRITE",
             "--specification-path",
@@ -138,6 +144,8 @@ def main() -> None:
         blocked(
             repo,
             "open",
+            "--expected-version",
+            "2",
             "--work-block-id",
             "WB-BAD-CRITIC",
             "--specification-path",
@@ -152,6 +160,8 @@ def main() -> None:
         blocked(
             repo,
             "open",
+            "--expected-version",
+            "2",
             "--work-block-id",
             "WB-SKIPPED",
             "--specification-path",
@@ -167,6 +177,8 @@ def main() -> None:
         opened = call(
             repo,
             "open",
+            "--expected-version",
+            "2",
             "--work-block-id",
             "WB-SKIPPED",
             "--specification-path",
@@ -186,6 +198,8 @@ def main() -> None:
         blocked(
             repo,
             "close",
+            "--expected-version",
+            "3",
             "--reason",
             "premature",
             "--mode",
@@ -195,6 +209,8 @@ def main() -> None:
         blocked(
             repo,
             "close",
+            "--expected-version",
+            "3",
             "--reason",
             "premature-reporting",
             "--mode",
@@ -229,7 +245,16 @@ def main() -> None:
         (repo / ".agent/active-work-block.json").write_text(
             json.dumps(current, indent=2) + "\n", encoding="utf-8"
         )
-        frozen = call(repo, "freeze", "--reason", "assurance")
+        frozen = call(
+            repo,
+            "freeze",
+            "--expected-version",
+            "3",
+            "--reason",
+            "assurance",
+            "--evidence-ref",
+            "evidence://freeze",
+        )
         assert frozen.returncode == 0, frozen.stdout + frozen.stderr
         frozen_state = state(repo)
         assert frozen_state["write_gate"]["status"] == "BLOCKED"
@@ -238,6 +263,8 @@ def main() -> None:
         closed = call(
             repo,
             "close",
+            "--expected-version",
+            "4",
             "--reason",
             "verified",
             "--mode",

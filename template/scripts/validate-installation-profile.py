@@ -10,7 +10,7 @@ from typing import Any
 PROFILE_PATH = Path(".agent/bootstrap-profile.json")
 DEFAULT_WORK_BLOCK_PATH = Path(".agent/active-work-block.default.json")
 SCHEMA_VERSION = 1
-DEFAULT_WORK_BLOCK_SCHEMA_VERSION = 3
+DEFAULT_WORK_BLOCK_SCHEMA_VERSION = 4
 EXPECTED_AUTHORITY_MODE = "github_capability"
 EXPECTED_DEFAULT_GOVERNANCE_PROFILE = "Controlled"
 EXPECTED_DEFAULT_DEFINE_QUALITY = {
@@ -213,6 +213,10 @@ def validate_blocked_default(root: Path) -> None:
         raise ValidationError(
             f"{DEFAULT_WORK_BLOCK_PATH} requires schema_version={DEFAULT_WORK_BLOCK_SCHEMA_VERSION}"
         )
+    if state.get("state_version") != 0:
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} state_version must be the canonical zero default"
+        )
     if state.get("authority_mode") != EXPECTED_AUTHORITY_MODE:
         raise ValidationError(
             f"{DEFAULT_WORK_BLOCK_PATH} authority_mode must be {EXPECTED_AUTHORITY_MODE}"
@@ -234,7 +238,7 @@ def validate_blocked_default(root: Path) -> None:
         raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} missing write_gate object")
     if write_gate != {"status": "BLOCKED", "opened_at": None}:
         raise ValidationError(
-            f"{DEFAULT_WORK_BLOCK_PATH} write_gate must be the canonical BLOCKED schema v3 state"
+            f"{DEFAULT_WORK_BLOCK_PATH} write_gate must be the canonical BLOCKED schema v4 state"
         )
     integrations = state.get("integrations")
     if integrations != {"approved": [], "admission_records": []}:
@@ -243,6 +247,37 @@ def validate_blocked_default(root: Path) -> None:
         )
     if state.get("write_set") != []:
         raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} write_set must be empty")
+    if state.get("work_block_id") != "" or state.get("base_commit") != "":
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} must not carry Work Block identity or authority"
+        )
+    if state.get("specification") != {"path": "", "revision": ""}:
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} specification must be empty"
+        )
+    if state.get("lifecycle") != {"stage": "define", "execution_state": "blocked"}:
+        raise ValidationError(
+            f"{DEFAULT_WORK_BLOCK_PATH} lifecycle must be define/blocked"
+        )
+    if state.get("subject") != {
+        "current_revision": "",
+        "frozen_revision": "",
+        "generation": 0,
+    }:
+        raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} subject must be empty")
+    if state.get("progress") != {
+        "active_tasks": [],
+        "blockers": [],
+        "pending_decisions": [],
+        "next_action": "",
+    }:
+        raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} progress must be empty")
+    if state.get("context") != {
+        "latest_observation_ref": "",
+        "current_evidence_refs": [],
+        "handoff_snapshot_ref": "",
+    }:
+        raise ValidationError(f"{DEFAULT_WORK_BLOCK_PATH} context must be empty")
     if state.get("external_hard_stops") != EXPECTED_EXTERNAL_HARD_STOPS:
         raise ValidationError(
             f"{DEFAULT_WORK_BLOCK_PATH} external_hard_stops must match the canonical capability boundary"

@@ -17,6 +17,130 @@ ROLE_AUTHORITY = {
     "reviewer": "Read-only for source/runtime; may write only the approved Review report artifact.",
     "verifier": "Read-only for source/runtime; may write only approved verification evidence/report artifacts.",
 }
+VALID_PROFILES = {"Advisory", "Controlled", "Managed", "Assured", "Distributed"}
+VALID_STAGES = {"define", "execute", "assure", "close"}
+VALID_EXECUTION_STATES = {"blocked", "ready", "in_progress", "completed"}
+VALID_GATE_STATUSES = {"BLOCKED", "READY"}
+VALID_DEFINE_STATUSES = {"PENDING", "READY", "BLOCKED"}
+VALID_ASSURANCE_STATUSES = {"PENDING", "READY", "SKIPPED", "DEGRADED", "BLOCKED"}
+MAX_EVIDENCE_REFS = 16
+
+
+def _is_string(value: Any) -> bool:
+    return isinstance(value, str)
+
+
+def _is_string_list(value: Any, *, maximum: int | None = None) -> bool:
+    return (
+        isinstance(value, list)
+        and (maximum is None or len(value) <= maximum)
+        and all(_is_string(item) for item in value)
+    )
+
+
+def validate_v4_state(data: dict[str, Any]) -> str | None:
+    """Validate the v4 envelope before exposing any state-derived context."""
+    if data.get("schema_version") != 4:
+        return "machine-readable Work Block gate schema_version=4 is required"
+    if data.get("authority_mode") != "github_capability":
+        return "machine-readable Work Block gate authority mode is unsupported"
+    if (
+        isinstance(data.get("state_version"), bool)
+        or not isinstance(data.get("state_version"), int)
+        or data["state_version"] < 0
+    ):
+        return "machine-readable Work Block gate state_version is invalid"
+    if not _is_string(data.get("work_block_id")):
+        return "machine-readable Work Block gate work_block_id is invalid"
+    if data.get("governance_profile") not in VALID_PROFILES:
+        return "machine-readable Work Block gate governance profile is unsupported"
+
+    specification = data.get("specification")
+    if not isinstance(specification, dict) or not all(
+        _is_string(specification.get(field)) for field in ("path", "revision")
+    ):
+        return "machine-readable Work Block gate specification is invalid"
+    if not _is_string(data.get("base_commit")):
+        return "machine-readable Work Block gate base_commit is invalid"
+
+    define_quality = data.get("define_quality")
+    if not isinstance(define_quality, dict) or not isinstance(
+        define_quality.get("required"), bool
+    ):
+        return "machine-readable Work Block gate define_quality is invalid"
+    if define_quality.get("status") not in VALID_DEFINE_STATUSES or not all(
+        _is_string(define_quality.get(field))
+        for field in ("requirements_review", "traceability", "consistency_analysis")
+    ):
+        return "machine-readable Work Block gate define_quality is incomplete"
+
+    write_gate = data.get("write_gate")
+    if not isinstance(write_gate, dict) or write_gate.get("status") not in VALID_GATE_STATUSES:
+        return "machine-readable Work Block gate write_gate is invalid"
+    if write_gate.get("opened_at") is not None and not _is_string(write_gate.get("opened_at")):
+        return "machine-readable Work Block gate write_gate timestamp is invalid"
+
+    critic = data.get("critic")
+    if not isinstance(critic, dict) or not isinstance(critic.get("required"), bool) or not all(
+        _is_string(critic.get(field))
+        for field in ("status", "verdict", "report", "isolation", "skip_reason")
+    ):
+        return "machine-readable Work Block gate critic is incomplete"
+
+    assurance = data.get("assurance")
+    if not isinstance(assurance, dict) or set(assurance) != {
+        "review", "verification", "evaluation", "drift"
+    }:
+        return "machine-readable Work Block gate assurance is incomplete"
+    for item in assurance.values():
+        if not isinstance(item, dict) or not isinstance(item.get("required"), bool):
+            return "machine-readable Work Block gate assurance entry is invalid"
+        if item.get("status") not in VALID_ASSURANCE_STATUSES or not all(
+            _is_string(item.get(field))
+            for field in ("verdict", "report", "isolation", "skip_reason")
+        ):
+            return "machine-readable Work Block gate assurance entry is incomplete"
+
+    if not _is_string(data.get("closeout_mode")) or not isinstance(data.get("integrations"), dict):
+        return "machine-readable Work Block gate control fields are incomplete"
+    integrations = data["integrations"]
+    if not _is_string_list(integrations.get("approved")) or not _is_string_list(
+        integrations.get("admission_records")
+    ):
+        return "machine-readable Work Block gate integrations are invalid"
+    if not _is_string_list(data.get("write_set")) or not _is_string_list(
+        data.get("coordination_write_set")
+    ) or not _is_string_list(data.get("external_hard_stops")):
+        return "machine-readable Work Block gate scope fields are invalid"
+
+    lifecycle = data.get("lifecycle")
+    if not isinstance(lifecycle, dict) or lifecycle.get("stage") not in VALID_STAGES or lifecycle.get(
+        "execution_state"
+    ) not in VALID_EXECUTION_STATES:
+        return "machine-readable Work Block gate lifecycle is invalid"
+    subject = data.get("subject")
+    if not isinstance(subject, dict) or not all(
+        _is_string(subject.get(field)) for field in ("current_revision", "frozen_revision")
+    ) or (
+        isinstance(subject.get("generation"), bool)
+        or not isinstance(subject.get("generation"), int)
+        or subject["generation"] < 0
+    ):
+        return "machine-readable Work Block gate subject is invalid"
+    progress = data.get("progress")
+    if not isinstance(progress, dict) or not all(
+        _is_string_list(progress.get(field))
+        for field in ("active_tasks", "blockers", "pending_decisions")
+    ) or not _is_string(progress.get("next_action")):
+        return "machine-readable Work Block gate progress is incomplete"
+    context = data.get("context")
+    if not isinstance(context, dict) or not _is_string(context.get("latest_observation_ref")) or not _is_string_list(
+        context.get("current_evidence_refs"), maximum=MAX_EVIDENCE_REFS
+    ) or not _is_string(context.get("handoff_snapshot_ref")):
+        return "machine-readable Work Block gate context is incomplete"
+    if not _is_string(data.get("lifecycle_note")):
+        return "machine-readable Work Block gate lifecycle_note is invalid"
+    return None
 
 
 def find_repo_root(cwd: Path) -> Path:
@@ -45,12 +169,11 @@ def load_gate(root: Path) -> tuple[dict[str, Any] | None, str | None]:
         return None, "machine-readable Work Block gate is missing"
     except (OSError, json.JSONDecodeError) as exc:
         return None, f"machine-readable Work Block gate is invalid: {exc}"
-    if (
-        not isinstance(data, dict)
-        or data.get("schema_version") != 3
-        or data.get("authority_mode") != "github_capability"
-    ):
-        return None, "machine-readable Work Block gate schema/authority mode is unsupported"
+    if not isinstance(data, dict):
+        return None, "machine-readable Work Block gate must be a JSON object"
+    error = validate_v4_state(data)
+    if error:
+        return None, error
     return data, None
 
 

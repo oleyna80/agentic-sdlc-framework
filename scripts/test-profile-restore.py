@@ -187,7 +187,7 @@ def main() -> int:
         default_gate = load_json(project / ".agent/active-work-block.default.json")
         active_gate = load_json(project / ".agent/active-work-block.json")
         assert active_gate == default_gate
-        assert active_gate["schema_version"] == 3
+        assert active_gate["schema_version"] == 4
         assert active_gate["authority_mode"] == "github_capability"
         assert active_gate["governance_profile"] == "Controlled"
         assert active_gate["define_quality"] == CANONICAL_DEFINE_QUALITY_DEFAULT
@@ -213,7 +213,7 @@ def main() -> int:
 
         restored_gate = load_json(project / ".agent/active-work-block.json")
         assert restored_gate == default_gate
-        assert restored_gate["schema_version"] == 3
+        assert restored_gate["schema_version"] == 4
         assert restored_gate["authority_mode"] == "github_capability"
         assert restored_gate["governance_profile"] == "Controlled"
         assert restored_gate["define_quality"] == CANONICAL_DEFINE_QUALITY_DEFAULT

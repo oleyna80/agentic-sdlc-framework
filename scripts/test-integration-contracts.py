@@ -537,8 +537,8 @@ def repository_graph_bootstrap_fixture() -> None:
             fail(f"provider-named compatibility path remains: {path.relative_to(ROOT)}")
 
     gate = load_json(TEMPLATE / ".agent/active-work-block.json")
-    if gate.get("schema_version") != 3:
-        fail("active Work Block schema_version must be 3")
+    if gate.get("schema_version") != 4:
+        fail("active Work Block schema_version must be 4")
     if gate.get("authority_mode") != "github_capability":
         fail("active Work Block authority_mode must be github_capability")
     if gate.get("governance_profile") != "Controlled":
@@ -546,7 +546,7 @@ def repository_graph_bootstrap_fixture() -> None:
     if gate.get("define_quality") != DEFAULT_DEFINE_QUALITY:
         fail("generated Work Block must contain canonical Define-quality default")
     if "authorization" in gate or "hard_stop_approvals" in gate:
-        fail("legacy signed authority fields must be absent from schema v3")
+        fail("legacy signed authority fields must be absent from schema v4")
     if gate.get("integrations") != {"approved": [], "admission_records": []}:
         fail("generated integration approvals must start empty")
     assurance = gate.get("assurance")
@@ -651,7 +651,7 @@ def write_gate(
     if profile == "Controlled":
         define_quality = dict(DEFAULT_DEFINE_QUALITY)
     gate: dict[str, Any] = {
-        "schema_version": 3,
+        "schema_version": 4,
         "authority_mode": "github_capability",
         "work_block_id": "wb-integration-fixture",
         "governance_profile": profile,
