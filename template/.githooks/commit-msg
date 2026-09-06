@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""Cooperative Work Block trailer guard for generated projects."""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+
+def fail(message: str) -> int:
+    print(f"WORK-BLOCK COMMIT BLOCKED: {message}", file=sys.stderr)
+    print("Use exactly one 'Work-Block: <current-id>' trailer, or close the Work Block.", file=sys.stderr)
+    return 1
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        return fail("Git did not provide a commit-message path")
+    try:
+        root = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip())
+    except (OSError, subprocess.CalledProcessError):
+        return fail("cannot resolve the repository root")
+    state_path = root / ".agent/active-work-block.json"
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return fail(f"cannot parse {state_path}: {exc}")
+    if not isinstance(state, dict) or state.get("schema_version") != 3:
+        return fail("canonical state must be a JSON object with schema_version 3")
+    work_block_id = state.get("work_block_id")
+    mode = state.get("closeout_mode")
+    if not isinstance(work_block_id, str):
+        return fail("work_block_id must be a string")
+    if mode not in {"pending", "success-closeout", "reporting-only"}:
+        return fail("closeout_mode is missing or unsupported")
+    if not work_block_id or mode != "pending":
+        return 0
+    try:
+        parsed = subprocess.run(
+            ["git", "interpret-trailers", "--parse"],
+            input=Path(sys.argv[1]).read_bytes(), capture_output=True, check=True,
+        ).stdout.decode("utf-8")
+    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as exc:
+        return fail(f"cannot parse Git trailers: {exc}")
+    trailers = []
+    for line in parsed.splitlines():
+        if ":" in line:
+            key, value = line.split(":", 1)
+            if key == "Work-Block":
+                trailers.append(value.strip())
+    if len(trailers) != 1:
+        return fail(f"active Work Block {work_block_id!r} requires exactly one canonical trailer")
+    if trailers[0] != work_block_id:
+        return fail(f"trailer value {trailers[0]!r} does not match active Work Block {work_block_id!r}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

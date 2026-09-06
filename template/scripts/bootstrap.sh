@@ -8,6 +8,41 @@ PROFILE_VALIDATOR="$ROOT/scripts/validate-installation-profile.py"
 ACTIVE_WORK_BLOCK="$ROOT/.agent/active-work-block.json"
 DEFAULT_WORK_BLOCK="$ROOT/.agent/active-work-block.default.json"
 
+INSTALL_GIT_HOOKS=false
+CHECK_GIT_HOOKS=false
+for arg in "$@"; do
+  case "$arg" in
+    --install-git-hooks) INSTALL_GIT_HOOKS=true ;;
+    --check-git-hooks) CHECK_GIT_HOOKS=true ;;
+    *) echo "FAIL: unknown bootstrap option: $arg" >&2; exit 2 ;;
+  esac
+done
+
+GIT_HOOK="$ROOT/.githooks/commit-msg"
+check_git_hook_files() {
+  [ -f "$GIT_HOOK" ] || { echo "FAIL: missing $GIT_HOOK" >&2; return 1; }
+  [ -x "$GIT_HOOK" ] || { echo "FAIL: hook is not executable: $GIT_HOOK" >&2; return 1; }
+}
+
+if $INSTALL_GIT_HOOKS || $CHECK_GIT_HOOKS; then
+  check_git_hook_files
+  git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || {
+    echo "FAIL: hook operations require a Git repository" >&2; exit 1;
+  }
+  if $INSTALL_GIT_HOOKS; then
+    git -C "$ROOT" config --local core.hooksPath .githooks
+    [ "$(git -C "$ROOT" config --local --get core.hooksPath)" = ".githooks" ] || {
+      echo "FAIL: repository-local core.hooksPath was not set to .githooks" >&2; exit 1;
+    }
+    echo "  INSTALLED: repository-local core.hooksPath=.githooks"
+  else
+    [ "$(git -C "$ROOT" config --local --get core.hooksPath 2>/dev/null || true)" = ".githooks" ] || {
+      echo "FAIL: repository-local core.hooksPath is not .githooks" >&2; exit 1;
+    }
+    echo "  CHECKED: repository-local core.hooksPath=.githooks"
+  fi
+fi
+
 echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
 
 [ -f "$PROFILE_FILE" ] || {

@@ -205,6 +205,8 @@ def assert_profile(requested: str, resolved: str, root: Path) -> None:
     config = (root / ".agent/project-config.md").read_text(encoding="utf-8")
     assert f"INSTALLATION_PROFILE:** `{resolved}`" in config
     assert_no_placeholders(root)
+    hook = root / ".githooks/commit-msg"
+    assert hook.is_file() and hook.stat().st_mode & 0o111, f"{requested}: portable hook missing or not executable"
     assert_git_boundaries(root, profile_state)
 
 
