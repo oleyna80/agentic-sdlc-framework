@@ -35,6 +35,7 @@ completed_work_blocks:
   - docs/plans/wb-skill-002-provider-neutral-verifier.md
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
+  - docs/plans/wb-gov-001-commit-work-block-linkage.md
 active_work_block: null
 pre_closeout_candidate: null
 promoted_candidates:
@@ -319,6 +320,8 @@ Missing network, revision, or license evidence fails closed.
 | `docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md` | completed closeout | Repository success-closeout for WB-SKILL-002A |
 | `docs/plans/wb-skill-002b-provider-guard-boundaries.md` | completed Work Block | Bounded imperative-provider and Markdown-fence guard correction |
 | `docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md` | completed closeout | Repository success-closeout for WB-SKILL-002B |
+| `docs/plans/wb-gov-001-commit-work-block-linkage.md` | completed Work Block | Runtime-neutral commit to Work Block linkage contract and fixtures |
+| `docs/reports/closeout/wb-gov-001-commit-work-block-linkage.md` | completed closeout | Repository success-closeout for WB-GOV-001 |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |

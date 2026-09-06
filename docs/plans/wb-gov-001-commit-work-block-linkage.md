@@ -2,23 +2,36 @@
 schema_version: 1
 artifact_type: work_block
 work_block_id: WB-GOV-001
-status: in_progress
+status: completed
 governance_profile: Managed
 branch: agent/wb-gov-001-commit-work-block-linkage
 base_revision: be988807c38543eb90a728fcb4349bc97dd5695a
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
 specification_revision: owner-approved-pr51-correction-r2-2026-09-06
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: APPROVE
-review_gate: PENDING
-verification_verdict: PENDING
-drift_gate: PENDING
+review_gate: READY
+verification_verdict: READY
+drift_gate: ALIGNED
 evaluation_verdict: SKIPPED
-closeout_mode: pending
+closeout_mode: success-closeout
 owner_approval: Owner authorized implementation, tests, assurance evidence, commit, and non-force feature-branch push; PR merge and protected/default branch mutation remain out of scope.
 ---
 
 # WB-GOV-001 — Implementation plan
+
+## Final State
+
+- **Current Stage:** Close
+- **Stage State:** completed
+- **Write Gate:** BLOCKED
+- **Critic Gate:** APPROVE
+- **Review Gate:** READY
+- **Verification Verdict:** READY
+- **Drift Gate:** ALIGNED
+- **Evaluation Verdict:** SKIPPED — deterministic contract validation is sufficient.
+- **Closeout Mode:** success-closeout
+- **Task Status:** completed
 
 ## Stage and objective
 

@@ -2,7 +2,7 @@
 # repository zones. Register contracts, canonical classes, and boundaries, not
 # mutable assurance results or every file.
 
-version: 24
+version: 25
 scope: framework_repository
 architecture: runtime_neutral_control_plane
 
@@ -225,6 +225,7 @@ migration_state:
     - docs/plans/wb-skill-002-provider-neutral-verifier.md
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
     - docs/plans/wb-skill-002b-provider-guard-boundaries.md
+    - docs/plans/wb-gov-001-commit-work-block-linkage.md
   active_work_block: null
   pre_closeout_candidate: null
   promoted_candidates:
@@ -255,8 +256,8 @@ release_state:
   validator: scripts/validate-release-state.py
   fixtures: scripts/test-release-state-contracts.py
   workflow: .github/workflows/release-state-contract.yml
-  latest_completed_work_block: docs/plans/wb-skill-002b-provider-guard-boundaries.md
-  closeout_report: docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md
+  latest_completed_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+  closeout_report: docs/reports/closeout/wb-gov-001-commit-work-block-linkage.md
   external_vcs_state: non_normative
   authority: assurance_only
 

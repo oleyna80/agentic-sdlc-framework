@@ -5,7 +5,7 @@ artifact_id: wb-gov-001-commit-work-block-linkage-verification
 status: approved
 owner_role: verifier
 work_block_id: WB-GOV-001
-subject_revision: a97e05643613946fc20c8c50a31647c1da9852d0
+subject_revision: 1f508bf6eefc577951a2102685a41a94e4bdd949
 created_at: 2026-09-06
 last_verified: 2026-09-06
 ---
@@ -14,26 +14,32 @@ last_verified: 2026-09-06
 
 - **Verdict:** READY
 - **Exact base:** `be988807c38543eb90a728fcb4349bc97dd5695a`
-- **Frozen implementation subject:** `a97e05643613946fc20c8c50a31647c1da9852d0`
+- **Frozen implementation subject:** `1f508bf6eefc577951a2102685a41a94e4bdd949`
 - **Application/framework reserved paths:** unchanged
 - **Active Work Block:** none in the framework source repository
 - **Global/system hooks configuration:** unchanged
 
 ## Deterministic evidence
 
-- commit-linkage fixture suite: **28 assertions PASS**;
+- commit-linkage fixture suite: **55 assertions PASS**;
 - bootstrap profile matrix: PASS;
 - CI contract router fixtures: PASS;
 - runtime-neutral SDD contract: PASS;
 - governance validation: PASS;
-- Define traceability: READY, 12 requirements / 18 acceptance criteria / 7 tasks;
+- Define traceability: READY, 12 requirements / 18 acceptance criteria / 8 tasks;
 - release-state validation: READY.
 
-The fixture proves rejection of a missing trailer for an active pending Work
-Block, acceptance of the exact trailer, inactive behavior for empty and
-terminal state, frozen-state behavior, malformed-state fail-closed behavior,
-and a real ordinary-commit rejection followed by a successful `--no-verify`
-commit in a disposable generated repository.
+The fixture suite independently proves:
+1. Rejection of check before hook configuration;
+2. Strict read-only invariance of `--check-git-hooks` (no creation, restoration,
+   or modification of `memory_bank/**`, `.agent/active-work-block.json`, or
+   `.agent/project-config.md`; local and global Git configuration unchanged);
+3. Normal bootstrap compatibility restoring operational files while leaving `hooksPath` unchanged;
+4. Explicit `--install-git-hooks` behavior setting repository-local `core.hooksPath=.githooks`;
+5. Ordinary commit rejection when missing the canonical trailer in an active pending Work Block;
+6. Ordinary commit acceptance with the exact `Work-Block: <id>` trailer;
+7. Cooperative `--no-verify` bypass success;
+8. Observed Git `cherry-pick` and `revert` execution without hook trailer enforcement as documented cooperative limitations.
 
 The reserved WB-CORE-004 through WB-CORE-007 roadmap and all provider,
 application, deployment, and protected/default branch paths are untouched.
