@@ -7,7 +7,7 @@ governance_profile: Managed
 branch: agent/wb-gov-001-commit-work-block-linkage
 base_revision: be988807c38543eb90a728fcb4349bc97dd5695a
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
-specification_revision: owner-approved-2026-09-06
+specification_revision: owner-approved-pr51-correction-r2-2026-09-06
 write_gate: READY
 critic_gate: APPROVE
 review_gate: PENDING
@@ -23,7 +23,8 @@ owner_approval: Owner authorized implementation, tests, assurance evidence, comm
 ## Stage and objective
 
 Execute the approved runtime-neutral commit trailer contract in the generated
-framework scaffold, preserve default bootstrap behavior, and prove the result
+framework scaffold, preserve default bootstrap behavior, make hook checks strictly
+read-only, and prove the result and known cooperative enforcement limitations
 with disposable repositories and existing framework contracts.
 
 ## Bounded write-set
@@ -40,9 +41,12 @@ artifacts. No runtime provider or application paths are authorized.
    parsing available in the generated framework contract; it resolves the
    repository root and never depends on Codex, Claude, OpenCode, or branch names.
 2. Bootstrap flags are explicit. No-argument health checks perform no Git config
-   write. Install uses `git config --local`; check is read-only.
+   write. Install uses `git config --local`; check is strictly read-only and exits
+   immediately without modifying files or configuration.
 3. The fixture suite uses isolated temporary repositories/configuration and real
-   commits, including `--no-verify`; it does not activate this framework checkout.
+   commits, verifying ordinary rejection, exact-trailer success, `--no-verify`
+   bypass, and documented commit-producing limitations (such as `git cherry-pick`
+   and `git revert`); it does not activate this framework checkout.
 
 ## Assurance and stops
 

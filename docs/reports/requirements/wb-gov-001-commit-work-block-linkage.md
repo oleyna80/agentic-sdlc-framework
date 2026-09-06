@@ -18,11 +18,12 @@ last_verified: 2026-09-06
 - **Specification:** `docs/specs/wb-gov-001-commit-work-block-linkage.md`
 - **Tasklist:** `docs/tasklist/wb-gov-001-commit-work-block-linkage.md`
 
-The specification contains 12 requirements and 18 acceptance criteria. The
-tasklist contains seven bounded tasks with explicit paths and complete
-requirement/acceptance coverage. Non-goals exclude application changes,
-provider/API integrations, schema-v3 changes, global/system Git configuration,
-deployment, and reserved WB-CORE-004 through WB-CORE-007 scope.
+The specification contains 12 requirements and 18 acceptance criteria under
+revision `owner-approved-pr51-correction-r2-2026-09-06`. The tasklist contains
+eight bounded tasks with explicit paths and complete requirement/acceptance
+coverage. Non-goals exclude application changes, provider/API integrations,
+schema-v3 changes, global/system Git configuration, deployment, universal Git
+commit interception, and reserved WB-CORE-004 through WB-CORE-007 scope.
 
 The framework's schema-v3 lifecycle helper is exercised only in disposable
 generated-project fixtures; the framework repository itself has no operational

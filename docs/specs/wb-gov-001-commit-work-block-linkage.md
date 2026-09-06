@@ -4,7 +4,7 @@ artifact_type: specification
 artifact_id: wb-gov-001-commit-work-block-linkage
 work_block_id: WB-GOV-001
 status: approved
-revision: owner-approved-2026-09-06
+revision: owner-approved-pr51-correction-r2-2026-09-06
 governance_profile: Managed
 base_revision: be988807c38543eb90a728fcb4349bc97dd5695a
 ---
@@ -31,9 +31,11 @@ add authority modes, or consume WB-CORE-004 through WB-CORE-007.
   and `closeout_mode` is `pending`; terminal retained records are inactive.
 - REQ-003: A pending Work Block remains linkage-active when `write_gate` is
   `BLOCKED`; write authority and linkage are separate concepts.
-- REQ-004: Active commits require exactly one canonical `Work-Block` Git trailer
-  whose value equals the state ID exactly; missing, empty, duplicate, or unequal
-  trailers fail closed.
+- REQ-004: Commits intended to participate in an active Work Block are expected
+  by governance to carry exactly one canonical `Work-Block` Git trailer whose
+  value equals the state ID exactly. The installed `commit-msg` hook enforces this
+  for hook-invoking commit flows by rejecting missing, empty, duplicate, or unequal
+  trailers.
 - REQ-005: Invalid or contradictory active state fails closed with actionable
   output. The hook uses no Work Block ID regex and does not infer from prose,
   branch names, or gate markdown.
@@ -43,9 +45,13 @@ add authority modes, or consume WB-CORE-004 through WB-CORE-007.
   included in every generated installation profile.
 - REQ-008: Bootstrap remains backward-compatible by default and only explicit
   `--install-git-hooks` may set repository-local `core.hooksPath` to `.githooks`.
-  `--check-git-hooks` is read-only; global/system Git configuration is untouched.
-- REQ-009: A real disposable repository fixture proves ordinary rejection and
-  cooperative `git commit --no-verify` bypass while documenting that limitation.
+  `--check-git-hooks` is strictly read-only, validating hooks and returning
+  immediately without modifying Git configuration or writing operational files;
+  global/system Git configuration is untouched.
+- REQ-009: Real disposable repository fixtures prove ordinary missing-trailer
+  rejection, exact-trailer acceptance, `--check-git-hooks` read-only invariance,
+  and document known cooperative enforcement limitations (including `--no-verify`,
+  `git cherry-pick`, `git revert`, and uninstalled hooks).
 - REQ-010: Existing profiles, bootstrap generation, and framework CI run the
   new contract without making any runtime adapter the authority for it.
 - REQ-011: Documentation has one normative linkage contract and referential
@@ -60,17 +66,20 @@ add authority modes, or consume WB-CORE-004 through WB-CORE-007.
 - AC-002 [req=REQ-002]: empty, success-closeout, and reporting-only records allow
   a no-trailer commit; pending non-empty records require linkage.
 - AC-003 [req=REQ-003]: pending plus BLOCKED write gate still requires linkage.
-- AC-004 [req=REQ-004]: missing, mismatched, empty, and duplicate trailers fail;
-  one exact canonical trailer passes.
+- AC-004 [req=REQ-004]: for hook-invoking commit flows, missing, mismatched,
+  empty, and duplicate trailers fail; one exact canonical trailer passes.
 - AC-005 [req=REQ-005]: no framework-specific WB-ID grammar is introduced and
   invalid state errors identify the corrective action.
 - AC-006 [req=REQ-006]: default and retained terminal compatibility is tested.
 - AC-007 [req=REQ-007]: generated core and runtime-specific profiles contain an
   executable `.githooks/commit-msg`.
 - AC-008 [req=REQ-008]: default bootstrap leaves hooksPath unchanged, install
-  changes only local hooksPath, and check detects configured/unconfigured state.
-- AC-009 [req=REQ-009]: actual hook enforcement rejects a real commit and
-  `--no-verify` succeeds in a disposable repository.
+  changes only local hooksPath, and check is strictly read-only without operational
+  file or config mutation while detecting configured/unconfigured state.
+- AC-009 [req=REQ-009]: actual hook enforcement rejects an ordinary missing-trailer
+  commit, accepts an exact-trailer commit, allows `--no-verify` bypass, and tests
+  observed behavior for commit-producing commands like `git cherry-pick` and
+  `git revert` as documented cooperative limitations in a disposable repository.
 - AC-010 [req=REQ-010]: existing bootstrap/profile/runtime contracts remain green.
 - AC-011 [req=REQ-011]: normative and referential docs agree on active state,
   trailer, installation, and cooperative limitations.
@@ -86,5 +95,6 @@ add authority modes, or consume WB-CORE-004 through WB-CORE-007.
 ## Non-goals
 
 No `subject_branch`, date-slug regex, automatic resubmission-like behavior,
-remote commit enforcement, security-boundary claim, default hook activation,
-schema-v3 redesign, or protected/default branch operation.
+universal Git commit interception, remote commit enforcement, security-boundary
+claim, default hook activation, schema-v3 redesign, or protected/default branch
+operation.

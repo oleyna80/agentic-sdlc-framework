@@ -7,8 +7,9 @@ permission.
 
 Every profile also receives the runtime-neutral `.githooks/commit-msg` contract.
 It is inactive until explicitly enabled with the generated project's
-`scripts/bootstrap.sh --install-git-hooks`; see
-`governance/commit-work-block-linkage.md` for normative behavior.
+`scripts/bootstrap.sh --install-git-hooks`; `--check-git-hooks` provides a
+read-only check. See `governance/commit-work-block-linkage.md` for normative
+behavior.
 
 The per-Work Block dimensions remain independent:
 

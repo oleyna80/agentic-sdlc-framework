@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: tasklist
 work_block_id: WB-GOV-001
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
-specification_revision: owner-approved-2026-09-06
+specification_revision: owner-approved-pr51-correction-r2-2026-09-06
 status: in_progress
 ---
 
@@ -16,6 +16,7 @@ status: in_progress
 - [ ] TASK-005 [type=requirement] [req=REQ-012] [ac=AC-012,AC-018] [paths=docs/reports/reviews/wb-gov-001-commit-work-block-linkage.md,docs/reports/verification/wb-gov-001-commit-work-block-linkage.md] Verify scope, schema, and reserved-roadmap boundaries.
 - [ ] TASK-006 [type=assurance] [req=-] [ac=AC-017] [paths=docs/reports/drift/wb-gov-001-commit-work-block-linkage.md,docs/reports/closeout/wb-gov-001-commit-work-block-linkage.md] Record drift, publication, release-state, and closeout evidence.
 - [ ] TASK-007 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-gov-001-commit-work-block-linkage.md] Record Define quality and structural traceability evidence.
+- [ ] TASK-008 [type=requirement] [req=REQ-004,REQ-008,REQ-009] [ac=AC-004,AC-008,AC-009] [paths=template/scripts/bootstrap.sh,governance/commit-work-block-linkage.md,scripts/test-commit-work-block-linkage.sh] Reconcile read-only hook check behavior, narrow normative enforcement guarantee, and add limitation fixtures.
 
 ## Stop conditions
 

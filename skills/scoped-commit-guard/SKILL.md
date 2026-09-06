@@ -30,8 +30,9 @@ allowed-tools:
 
 For generated projects, the optional runtime-neutral Work Block trailer hook is
 documented in `governance/commit-work-block-linkage.md`. It is a cooperative
-traceability guard, not a security boundary; use the canonical
-`Work-Block: <exact-current_work_block_id>` trailer when linkage is active.
+traceability guard for hook-invoking commit flows, not a security boundary; use
+the canonical `Work-Block: <exact-current_work_block_id>` trailer when linkage is
+active.
 
 ## Workflow
 1. Зафиксировать whitelist файлов stage.

@@ -24,23 +24,28 @@ check_git_hook_files() {
   [ -x "$GIT_HOOK" ] || { echo "FAIL: hook is not executable: $GIT_HOOK" >&2; return 1; }
 }
 
-if $INSTALL_GIT_HOOKS || $CHECK_GIT_HOOKS; then
+if $CHECK_GIT_HOOKS; then
   check_git_hook_files
   git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || {
     echo "FAIL: hook operations require a Git repository" >&2; exit 1;
   }
-  if $INSTALL_GIT_HOOKS; then
-    git -C "$ROOT" config --local core.hooksPath .githooks
-    [ "$(git -C "$ROOT" config --local --get core.hooksPath)" = ".githooks" ] || {
-      echo "FAIL: repository-local core.hooksPath was not set to .githooks" >&2; exit 1;
-    }
-    echo "  INSTALLED: repository-local core.hooksPath=.githooks"
-  else
-    [ "$(git -C "$ROOT" config --local --get core.hooksPath 2>/dev/null || true)" = ".githooks" ] || {
-      echo "FAIL: repository-local core.hooksPath is not .githooks" >&2; exit 1;
-    }
-    echo "  CHECKED: repository-local core.hooksPath=.githooks"
-  fi
+  [ "$(git -C "$ROOT" config --local --get core.hooksPath 2>/dev/null || true)" = ".githooks" ] || {
+    echo "FAIL: repository-local core.hooksPath is not .githooks" >&2; exit 1;
+  }
+  echo "  CHECKED: repository-local core.hooksPath=.githooks"
+  exit 0
+fi
+
+if $INSTALL_GIT_HOOKS; then
+  check_git_hook_files
+  git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || {
+    echo "FAIL: hook operations require a Git repository" >&2; exit 1;
+  }
+  git -C "$ROOT" config --local core.hooksPath .githooks
+  [ "$(git -C "$ROOT" config --local --get core.hooksPath)" = ".githooks" ] || {
+    echo "FAIL: repository-local core.hooksPath was not set to .githooks" >&2; exit 1;
+  }
+  echo "  INSTALLED: repository-local core.hooksPath=.githooks"
 fi
 
 echo "==> Bootstrap: verifying Agentic SDLC layer at $ROOT"
