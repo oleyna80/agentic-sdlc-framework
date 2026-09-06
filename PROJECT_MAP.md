@@ -35,9 +35,21 @@ completed_work_blocks:
   - docs/plans/wb-skill-002-provider-neutral-verifier.md
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
-  - docs/plans/wb-gov-001-commit-work-block-linkage.md
 active_work_block: null
-pre_closeout_candidate: null
+pre_closeout_candidate:
+  work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+  work_block_id: WB-GOV-001
+  predecessor_completed_work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+  state: assurance_pending
+  required_evidence:
+    review: docs/reports/reviews/wb-gov-001-commit-work-block-linkage-r2.md
+    verification: docs/reports/verification/wb-gov-001-commit-work-block-linkage-r2.md
+    drift: docs/reports/drift/wb-gov-001-commit-work-block-linkage-r2.md
+    closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r2.md
+  normative_manifest:
+    - docs/plans/wb-gov-001-commit-work-block-linkage.md
+    - FILE_REGISTRY.yml
+    - PROJECT_MAP.md
 promoted_candidates:
   - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
     work_block_id: WB-RELEASE-001
@@ -320,8 +332,6 @@ Missing network, revision, or license evidence fails closed.
 | `docs/reports/closeout/wb-skill-002a-post-merge-reconciliation.md` | completed closeout | Repository success-closeout for WB-SKILL-002A |
 | `docs/plans/wb-skill-002b-provider-guard-boundaries.md` | completed Work Block | Bounded imperative-provider and Markdown-fence guard correction |
 | `docs/reports/closeout/wb-skill-002b-provider-guard-boundaries.md` | completed closeout | Repository success-closeout for WB-SKILL-002B |
-| `docs/plans/wb-gov-001-commit-work-block-linkage.md` | completed Work Block | Runtime-neutral commit to Work Block linkage contract and fixtures |
-| `docs/reports/closeout/wb-gov-001-commit-work-block-linkage.md` | completed closeout | Repository success-closeout for WB-GOV-001 |
 | `docs/plans/wb-design-002-portable-design-md-artifact-contract.md` | completed Work Block | Portable DESIGN.md contract and Impeccable/frontend-design consumer reconciliation |
 | `docs/plans/wb-010-skill-library-maintenance-integration.md` | completed Work Block | Admission and assurance for skill-library maintenance |
 | `docs/reports/closeout/wb-010-skill-library-maintenance-integration.md` | completed closeout | Repository success-closeout for WB-010 |
@@ -384,12 +394,16 @@ authority.
 Canonical promoted candidate:
 `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md`.
 
-WB-RELEASE-001 is the sole canonical `promoted_effective` ledger record. Its
-`pre_closeout_candidate` slot is cleared, raw completed history is preserved,
-and no successor candidate is declared. This release-state projection makes no
+WB-RELEASE-001 is the sole canonical `promoted_effective` ledger record.
+WB-GOV-001 is declared as the active pre-closeout successor candidate under
+the prospective release-state flow. This release-state projection makes no
 GitHub, PR, merge, or deployment claim.
 
 No active implementation Work Block.
+
+Closeout candidate:
+
+- `docs/plans/wb-gov-001-commit-work-block-linkage.md` — runtime-neutral commit to Work Block linkage contract and fixtures; candidate declared under the prospective release-state flow.
 
 The Repository Graph Provider boundary Work Block is completed:
 `docs/plans/wb-repository-graph-001-optional-local-provider.md` records
@@ -481,8 +495,9 @@ Promoted candidate:
 
 - `docs/plans/wb-release-001-closeout-sequencing-reconciliation.md` — the sole
   canonical `promoted_effective` ledger record; its pre-closeout candidate slot
-  is cleared, raw completed history is preserved, and no successor candidate is
-  declared. This projection makes no GitHub, PR, merge, or deployment claim.
+  is cleared, raw completed history is preserved, and WB-GOV-001 is declared as
+  the active pre-closeout successor candidate. This projection makes no GitHub,
+  PR, merge, or deployment claim.
 
 Planned:
 

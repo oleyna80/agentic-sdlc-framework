@@ -1213,7 +1213,12 @@ def validate_frozen_canonical_history(
         )
 
 
-def validate_promotion_history(root: Path, current: list[dict[str, Any]], completed: list[str]) -> None:
+def validate_promotion_history(
+    root: Path,
+    current: list[dict[str, Any]],
+    completed: list[str],
+    current_registry: dict[str, Any] | None = None,
+) -> None:
     """Prove every current ledger record was introduced by one exact two-path child."""
     try:
         head = git_output(root, "rev-parse", "HEAD^{commit}")
@@ -1235,6 +1240,7 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         root, "rev-list", "--reverse", "--topo-order", head, "--", "FILE_REGISTRY.yml"
     ).splitlines()
     structural_promotion_boundary = False
+    canonical_frozen_registry: dict[str, Any] | None = None
     introductions: dict[str, int] = {record["work_block"]: 0 for record in current}
     for child in commits:
         try:
@@ -1302,10 +1308,11 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
             raise ReleaseStateError("promoted_candidates mutation, deletion, or reordering is forbidden")
         if len(child_ledger) not in {len(parent_ledger), len(parent_ledger) + 1}:
             raise ReleaseStateError("promoted_candidates may grow by exactly one record")
-        if parent_ledger:
-            validate_frozen_canonical_history(registry_at(root, parent), child_registry)
+        if canonical_frozen_registry is None:
+            canonical_frozen_registry = registry_at(root, parent)
         if len(child_ledger) == len(parent_ledger):
             continue
+        validate_frozen_canonical_history(canonical_frozen_registry, child_registry)
         changed = set(filter(None, git_output(root, "diff", "--name-only", f"{parent}..{child}").splitlines()))
         if changed != {"FILE_REGISTRY.yml", "PROJECT_MAP.md"}:
             raise ReleaseStateError("promotion transition must change exactly FILE_REGISTRY.yml and PROJECT_MAP.md")
@@ -1368,6 +1375,10 @@ def validate_promotion_history(root: Path, current: list[dict[str, Any]], comple
         raise ReleaseStateError("promoted_candidates deletion is forbidden")
     if any(count != 1 for count in introductions.values()):
         raise ReleaseStateError("each promotion record requires one uniquely discoverable transition")
+    if current and canonical_frozen_registry is not None:
+        validate_frozen_canonical_history(
+            canonical_frozen_registry, current_registry or registry_at(root, head)
+        )
 
 
 def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str, Any]:
@@ -1431,7 +1442,7 @@ def validate_repository(root: Path, *, candidate_mode: bool = False) -> dict[str
     for record in promoted:
         if record["work_block"] in completed_set:
             raise ReleaseStateError("promoted candidate must stay outside completed_work_blocks")
-    validate_promotion_history(root, promoted, completed)
+    validate_promotion_history(root, promoted, completed, registry)
     effective_before_candidate = promoted[-1]["work_block"] if promoted else completed[-1]
     map_completed = string_list(
         map_state.get("completed_work_blocks"), "PROJECT_MAP completed_work_blocks"

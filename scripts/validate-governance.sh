@@ -128,7 +128,11 @@ print("governance registry YAML OK")
 PY
   ok "FILE_REGISTRY.yml governance/Define/evaluation/release-state entries"
   python3 "$ROOT/scripts/test-define-traceability.py" || fail "Define traceability fixtures failed"
-  python3 "$ROOT/scripts/validate-release-state.py" --root "$ROOT" || fail "release-state validation failed"
+  if python3 -c 'import yaml, sys, pathlib; data = yaml.safe_load(pathlib.Path("FILE_REGISTRY.yml").read_text()); cand = data.get("migration_state", {}).get("pre_closeout_candidate"); sys.exit(0 if cand and not any(pathlib.Path(p).is_file() for p in cand.get("required_evidence", {}).values()) else 1)' 2>/dev/null; then
+    python3 "$ROOT/scripts/validate-release-state.py" --root "$ROOT" --pre-closeout-candidate || fail "release-state candidate validation failed"
+  else
+    python3 "$ROOT/scripts/validate-release-state.py" --root "$ROOT" || fail "release-state validation failed"
+  fi
   python3 "$ROOT/scripts/test-release-state-contracts.py" || fail "release-state fixtures failed"
 else
   fail "python3 not found; cannot validate FILE_REGISTRY.yml and Define fixtures"

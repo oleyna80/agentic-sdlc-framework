@@ -4,7 +4,7 @@ artifact_type: tasklist
 work_block_id: WB-GOV-001
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
 specification_revision: owner-approved-pr51-correction-r2-2026-09-06
-status: completed
+status: in_progress
 ---
 
 # WB-GOV-001 tasklist
@@ -17,6 +17,12 @@ status: completed
 - [x] TASK-006 [type=assurance] [req=-] [ac=AC-017] [paths=docs/reports/drift/wb-gov-001-commit-work-block-linkage.md,docs/reports/closeout/wb-gov-001-commit-work-block-linkage.md] Record drift, publication, release-state, and closeout evidence.
 - [x] TASK-007 [type=assurance] [req=-] [ac=-] [paths=docs/reports/requirements/wb-gov-001-commit-work-block-linkage.md] Record Define quality and structural traceability evidence.
 - [x] TASK-008 [type=requirement] [req=REQ-004,REQ-008,REQ-009] [ac=AC-004,AC-008,AC-009] [paths=template/scripts/bootstrap.sh,governance/commit-work-block-linkage.md,scripts/test-commit-work-block-linkage.sh] Reconcile read-only hook check behavior, narrow normative enforcement guarantee, and add limitation fixtures.
+
+## Release-State Sequence Note
+
+Genuinely delivered implementation and correction tasks are complete. Candidate
+declaration, terminal assurance persistence, and canonical promotion are governed
+by the prospective release-state sequence (`candidate -> evidence persistence -> promotion`).
 
 ## Stop conditions
 
