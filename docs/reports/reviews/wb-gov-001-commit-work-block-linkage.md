@@ -5,7 +5,7 @@ artifact_id: wb-gov-001-commit-work-block-linkage-review
 status: approved
 owner_role: reviewer
 work_block_id: WB-GOV-001
-subject_revision: be988807c38543eb90a728fcb4349bc97dd5695a
+subject_revision: a97e05643613946fc20c8c50a31647c1da9852d0
 created_at: 2026-09-06
 last_verified: 2026-09-06
 ---
@@ -31,6 +31,9 @@ last_verified: 2026-09-06
 - The hook is runtime-neutral under `template/.githooks/commit-msg`, is executable,
   and is required by the common profile manifest.
 - The fixture and CI changes stay within the approved framework write-set.
+
+The reviewed immutable implementation subject is `a97e05643613946fc20c8c50a31647c1da9852d0`.
+The original baseline is `be988807c38543eb90a728fcb4349bc97dd5695a`.
 
 No blocker was found. The initial Define-traceability correction was limited to
 task metadata: implementation coverage now includes all 12 requirements and 18

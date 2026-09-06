@@ -5,7 +5,7 @@ artifact_id: wb-gov-001-commit-work-block-linkage-verification
 status: approved
 owner_role: verifier
 work_block_id: WB-GOV-001
-subject_revision: be988807c38543eb90a728fcb4349bc97dd5695a
+subject_revision: a97e05643613946fc20c8c50a31647c1da9852d0
 created_at: 2026-09-06
 last_verified: 2026-09-06
 ---
@@ -14,13 +14,14 @@ last_verified: 2026-09-06
 
 - **Verdict:** READY
 - **Exact base:** `be988807c38543eb90a728fcb4349bc97dd5695a`
+- **Frozen implementation subject:** `a97e05643613946fc20c8c50a31647c1da9852d0`
 - **Application/framework reserved paths:** unchanged
 - **Active Work Block:** none in the framework source repository
 - **Global/system hooks configuration:** unchanged
 
 ## Deterministic evidence
 
-- commit-linkage fixture suite: **27 assertions PASS**;
+- commit-linkage fixture suite: **28 assertions PASS**;
 - bootstrap profile matrix: PASS;
 - CI contract router fixtures: PASS;
 - runtime-neutral SDD contract: PASS;
