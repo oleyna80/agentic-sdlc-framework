@@ -1,7 +1,8 @@
 # Commit ↔ Work Block linkage
 
-Generated projects may opt into the cooperative project-local hook
-`template/.githooks/commit-msg` with:
+The framework source stores the cooperative project-local hook at
+`template/.githooks/commit-msg`. After bootstrap, a generated project's hook is
+at `.githooks/commit-msg` and can be enabled with:
 
 ```bash
 ./scripts/bootstrap.sh --install-git-hooks

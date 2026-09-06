@@ -6,6 +6,11 @@ HOOK="$ROOT/template/.githooks/commit-msg"
 COUNT=0
 TMP_ROOT="$(mktemp -d -t wb-gov-001-XXXXXX)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
+GLOBAL_CONFIG="$TMP_ROOT/global.gitconfig"
+printf '[wb-fixture]\n\tsentinel = unchanged\n' > "$GLOBAL_CONFIG"
+export GIT_CONFIG_GLOBAL="$GLOBAL_CONFIG"
+export GIT_CONFIG_NOSYSTEM=1
+GLOBAL_CONFIG_BEFORE="$(sha256sum "$GLOBAL_CONFIG" | awk '{print $1}')"
 
 assert_success() { "$@" >/dev/null 2>&1 || { echo "FAIL: $*" >&2; exit 1; }; COUNT=$((COUNT + 1)); }
 assert_failure() { if "$@" >/dev/null 2>&1; then echo "FAIL unexpectedly passed: $*" >&2; exit 1; fi; COUNT=$((COUNT + 1)); }
@@ -80,6 +85,13 @@ assert_failure git -C "$project" commit --allow-empty -m "real fixture rejection
 assert_success git -C "$project" commit --allow-empty --no-verify -m "real fixture bypass"
 message "Work-Block: WB-REAL" "$project/commit-msg.txt"
 assert_success git -C "$project" commit --allow-empty -F "$project/commit-msg.txt"
+COUNT=$((COUNT + 1))
+
+GLOBAL_CONFIG_AFTER="$(sha256sum "$GLOBAL_CONFIG" | awk '{print $1}')"
+[ "$GLOBAL_CONFIG_BEFORE" = "$GLOBAL_CONFIG_AFTER" ] || {
+  echo "FAIL: bootstrap changed disposable global Git config" >&2
+  exit 1
+}
 COUNT=$((COUNT + 1))
 
 echo "PASS commit↔Work Block linkage fixtures: $COUNT assertions"
