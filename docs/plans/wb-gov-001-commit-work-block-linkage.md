@@ -2,23 +2,36 @@
 schema_version: 1
 artifact_type: work_block
 work_block_id: WB-GOV-001
-status: in_progress
+status: closeout_candidate
 governance_profile: Managed
-branch: agent/wb-gov-001-commit-work-block-linkage
+branch: agent/wb-gov-001-clean-closeout
 base_revision: be988807c38543eb90a728fcb4349bc97dd5695a
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
 specification_revision: owner-approved-pr51-correction-r2-2026-09-06
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: APPROVE
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: SKIPPED
-closeout_mode: pending
+closeout_mode: candidate
 owner_approval: Owner authorized implementation, tests, assurance evidence, commit, and non-force feature-branch push; PR merge and protected/default branch mutation remain out of scope.
 ---
 
 # WB-GOV-001 — Implementation plan
+
+## Current State
+
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Drift Gate:** PENDING
+- **Closeout Mode:** candidate
+
+The implementation subject is the valid H3 revision
+`1f508bf6eefc577951a2102685a41a94e4bdd949`. Invalid historical H4/H5/H6
+heads are not part of this clean candidate lineage.
 
 ## Stage and objective
 

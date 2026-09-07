@@ -4,7 +4,7 @@ artifact_type: tasklist
 work_block_id: WB-GOV-001
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
 specification_revision: owner-approved-pr51-correction-r2-2026-09-06
-status: in_progress
+status: closeout_candidate
 ---
 
 # WB-GOV-001 tasklist

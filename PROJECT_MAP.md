@@ -36,7 +36,20 @@ completed_work_blocks:
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
 active_work_block: null
-pre_closeout_candidate: null
+pre_closeout_candidate:
+  work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+  work_block_id: WB-GOV-001
+  predecessor_completed_work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+  state: assurance_pending
+  required_evidence:
+    review: docs/reports/reviews/wb-gov-001-commit-work-block-linkage-r2.md
+    verification: docs/reports/verification/wb-gov-001-commit-work-block-linkage-r2.md
+    drift: docs/reports/drift/wb-gov-001-commit-work-block-linkage-r2.md
+    closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r2.md
+  normative_manifest:
+    - docs/plans/wb-gov-001-commit-work-block-linkage.md
+    - FILE_REGISTRY.yml
+    - PROJECT_MAP.md
 promoted_candidates:
   - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
     work_block_id: WB-RELEASE-001
@@ -383,7 +396,9 @@ Canonical promoted candidate:
 
 WB-RELEASE-001 is the sole canonical `promoted_effective` ledger record. Its
 `pre_closeout_candidate` slot is cleared, raw completed history is preserved,
-and no successor candidate is declared. This release-state projection makes no
+Closeout candidate: `docs/plans/wb-gov-001-commit-work-block-linkage.md`
+(WB-GOV-001), awaiting assurance evidence on this clean successor revision.
+This release-state projection makes no
 GitHub, PR, merge, or deployment claim.
 
 No active implementation Work Block.
