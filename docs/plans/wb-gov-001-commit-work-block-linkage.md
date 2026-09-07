@@ -2,23 +2,38 @@
 schema_version: 1
 artifact_type: work_block
 work_block_id: WB-GOV-001
-status: in_progress
+status: closeout_candidate
 governance_profile: Managed
-branch: agent/wb-gov-001-commit-work-block-linkage
-base_revision: be988807c38543eb90a728fcb4349bc97dd5695a
+branch: agent/wb-gov-001-final-clean
+base_revision: 1f508bf6eefc577951a2102685a41a94e4bdd949
 specification: docs/specs/wb-gov-001-commit-work-block-linkage.md
 specification_revision: owner-approved-pr51-correction-r2-2026-09-06
-write_gate: READY
+write_gate: BLOCKED
 critic_gate: APPROVE
 review_gate: PENDING
 verification_verdict: PENDING
 drift_gate: PENDING
 evaluation_verdict: SKIPPED
-closeout_mode: pending
+closeout_mode: candidate
 owner_approval: Owner authorized implementation, tests, assurance evidence, commit, and non-force feature-branch push; PR merge and protected/default branch mutation remain out of scope.
 ---
 
 # WB-GOV-001 — Implementation plan
+
+## Current State
+
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Drift Gate:** PENDING
+- **Closeout Mode:** candidate
+
+The valid implementation lineage is H3
+`1f508bf6eefc577951a2102685a41a94e4bdd949` → H7
+`308ffc58bba73820987f9e1b7a1e9774514c02cd`. Historical H4/H5/H6 and the
+old promoted P1 are excluded. C3 records the clean candidate before the four
+r3 assurance artifacts are persisted.
 
 ## Stage and objective
 
@@ -37,9 +52,12 @@ artifacts. No runtime provider or application paths are authorized.
 
 ## Design decisions
 
-1. The hook uses `git rev-parse`, `git interpret-trailers`, and Python JSON
-   parsing available in the generated framework contract; it resolves the
-   repository root and never depends on Codex, Claude, OpenCode, or branch names.
+1. The hook uses `git rev-parse`, isolated `git interpret-trailers`, and Python
+   JSON parsing available in the generated framework contract. Git system and
+   global configuration are excluded from trailer parsing, so only the literal
+   canonical `Work-Block` key is accepted; repository-local trailer aliases and
+   separators cannot remap the contract. It resolves the repository root and
+   never depends on Codex, Claude, OpenCode, or branch names.
 2. Bootstrap flags are explicit. No-argument health checks perform no Git config
    write. Install uses `git config --local`; check is strictly read-only and exits
    immediately without modifying files or configuration.
