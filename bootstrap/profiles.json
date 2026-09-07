@@ -7,6 +7,7 @@
     "generic": "core"
   },
   "common_required_paths": [
+    ".githooks/commit-msg",
     ".gitignore",
     "AGENTS.md",
     "PROJECT_MAP.md",

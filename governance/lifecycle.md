@@ -6,6 +6,11 @@ The lifecycle defines control functions and evidence transitions. It does not
 require one permanent agent per function and does not prescribe a specific
 runtime topology.
 
+For the optional cooperative commit traceability contract, see
+`governance/commit-work-block-linkage.md`. It provides local enforcement for
+hook-invoking commit flows and does not change lifecycle authority, state
+schema, or closeout semantics.
+
 The lifecycle is a process-control system, not the primary security boundary.
 Work Blocks, write sets, Critic/Reviewer/Verifier gates, and project-local hooks
 constrain normal agent behavior. Consequential authority is enforced externally

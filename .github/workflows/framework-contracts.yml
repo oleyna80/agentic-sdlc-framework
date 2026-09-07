@@ -93,6 +93,7 @@ jobs:
               Path("scripts/test-repair-lifecycle-contracts.py"),
               Path("scripts/validate_evaluation_publication.py"),
               Path("template/scripts/validate-installation-profile.py"),
+              Path("template/.githooks/commit-msg"),
               Path("template/scripts/validate-evaluation.py"),
               Path("template/scripts/repair-lifecycle.py"),
               Path("template/.agent/hooks/hard_stop_policy.py"),
@@ -152,6 +153,7 @@ jobs:
         run: |
           python scripts/test-repair-lifecycle-contracts.py
           python scripts/test-ci-contract-router.py
+          bash scripts/test-commit-work-block-linkage.sh
 
       - name: Validate installation profiles and runtime conformance (full suite)
         if: needs.route.outputs.suite == 'full'
@@ -267,6 +269,7 @@ jobs:
           test -f "$target/scripts/validate-installation-profile.py"
           test -f "$target/scripts/validate-evaluation.py"
           test -f "$target/scripts/repair-lifecycle.py"
+          test -x "$target/.githooks/commit-msg"
           test -f "$target/docs/evals/README.md"
           test -f "$target/docs/reports/evaluations/README.md"
           test -f "$target/docs/templates/evaluation-plan-template.json"

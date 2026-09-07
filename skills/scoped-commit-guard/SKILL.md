@@ -28,6 +28,12 @@ allowed-tools:
 ## Objective
 Сделать предсказуемый commit без утечки чужих/вне-scope изменений.
 
+For generated projects, the optional runtime-neutral Work Block trailer hook is
+documented in `governance/commit-work-block-linkage.md`. It is a cooperative
+traceability guard for hook-invoking commit flows, not a security boundary; use
+the canonical `Work-Block: <exact-current_work_block_id>` trailer when linkage is
+active.
+
 ## Workflow
 1. Зафиксировать whitelist файлов stage.
 2. `git add <whitelist only>`.
