@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 
 def fail(message: str) -> int:
@@ -37,10 +39,22 @@ def main() -> int:
     if not work_block_id or mode != "pending":
         return 0
     try:
-        parsed = subprocess.run(
-            ["git", "interpret-trailers", "--parse"],
-            input=Path(sys.argv[1]).read_bytes(), capture_output=True, check=True,
-        ).stdout.decode("utf-8")
+        # Git's trailer parser applies repository-local trailer.* configuration,
+        # which can remap the literal key before this contract inspects it. Keep
+        # Git's placement/separator semantics, but run it outside the subject
+        # repository with global/system configuration disabled so the parsed key
+        # cannot be redefined by repository or ambient Git configuration.
+        parser_env = os.environ.copy()
+        parser_env["GIT_CONFIG_NOSYSTEM"] = "1"
+        parser_env["GIT_CONFIG_GLOBAL"] = os.devnull
+        for variable in ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR"):
+            parser_env.pop(variable, None)
+        with tempfile.TemporaryDirectory(prefix="work-block-trailer-") as parser_cwd:
+            parsed = subprocess.run(
+                ["git", "interpret-trailers", "--parse"],
+                input=Path(sys.argv[1]).read_bytes(), capture_output=True, check=True,
+                cwd=parser_cwd, env=parser_env,
+            ).stdout.decode("utf-8")
     except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as exc:
         return fail(f"cannot parse Git trailers: {exc}")
     trailers = []

@@ -64,6 +64,23 @@ printf '{"schema_version":3,"work_block_id":7,"closeout_mode":"pending"}\n' > "$
 write_state "$repo" "WB-A" pending READY
 message "work-block: WB-A" "$msg"; assert_failure hook_check "$repo" "$msg"
 
+# --- Literal-key handling must ignore repository-local trailer remapping ---
+write_state "$repo" "WB-EXAMPLE" pending READY
+git -C "$repo" config trailer.foo.key Work-Block
+message "Foo: WB-EXAMPLE" "$msg"; assert_failure hook_check "$repo" "$msg"
+message "Work-Block: WB-EXAMPLE" "$msg"; assert_success hook_check "$repo" "$msg"
+git -C "$repo" config --unset-all trailer.foo.key
+
+git -C "$repo" config trailer.work-block.key Foo
+message "Work-Block: WB-EXAMPLE" "$msg"; assert_success hook_check "$repo" "$msg"
+message "Foo: WB-EXAMPLE" "$msg"; assert_failure hook_check "$repo" "$msg"
+git -C "$repo" config --unset-all trailer.work-block.key
+
+git -C "$repo" config trailer.separators '; '
+message "Work-Block: WB-EXAMPLE" "$msg"; assert_success hook_check "$repo" "$msg"
+message "Work-Block; WB-EXAMPLE" "$msg"; assert_failure hook_check "$repo" "$msg"
+git -C "$repo" config --unset-all trailer.separators
+
 # --- Read-only check invariance on fresh generated project ---
 fresh_project="$TMP_ROOT/fresh-generated"
 assert_success "$ROOT/bootstrap.sh" --profile core "$fresh_project" "Fresh Project" fresh-project
