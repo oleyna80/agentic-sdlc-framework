@@ -226,20 +226,7 @@ migration_state:
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
     - docs/plans/wb-skill-002b-provider-guard-boundaries.md
   active_work_block: null
-  pre_closeout_candidate:
-    work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
-    work_block_id: WB-GOV-001
-    predecessor_completed_work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
-    state: assurance_pending
-    required_evidence:
-      review: docs/reports/reviews/wb-gov-001-commit-work-block-linkage-r3.md
-      verification: docs/reports/verification/wb-gov-001-commit-work-block-linkage-r3.md
-      drift: docs/reports/drift/wb-gov-001-commit-work-block-linkage-r3.md
-      closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r3.md
-    normative_manifest:
-      - docs/plans/wb-gov-001-commit-work-block-linkage.md
-      - FILE_REGISTRY.yml
-      - PROJECT_MAP.md
+  pre_closeout_candidate: null
   promoted_candidates:
     - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
       work_block_id: WB-RELEASE-001
@@ -253,6 +240,21 @@ migration_state:
         closeout: docs/reports/closeout/wb-release-001-closeout-sequencing-reconciliation-r8.md
       normative_manifest:
         - docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+        - FILE_REGISTRY.yml
+        - PROJECT_MAP.md
+      state: promoted_effective
+    - work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+      work_block_id: WB-GOV-001
+      predecessor_effective_work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
+      candidate_revision: 611dc1c88aa3932b67e2e52836bee2ad2a105637
+      evidence_revision: 4704f897d475ea357d136386199572b1f8d2e869
+      required_evidence:
+        review: docs/reports/reviews/wb-gov-001-commit-work-block-linkage-r3.md
+        verification: docs/reports/verification/wb-gov-001-commit-work-block-linkage-r3.md
+        drift: docs/reports/drift/wb-gov-001-commit-work-block-linkage-r3.md
+        closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r3.md
+      normative_manifest:
+        - docs/plans/wb-gov-001-commit-work-block-linkage.md
         - FILE_REGISTRY.yml
         - PROJECT_MAP.md
       state: promoted_effective
