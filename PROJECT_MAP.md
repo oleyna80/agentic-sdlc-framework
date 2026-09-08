@@ -36,7 +36,20 @@ completed_work_blocks:
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
 active_work_block: null
-pre_closeout_candidate: null
+pre_closeout_candidate:
+  work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+  work_block_id: WB-LEARNING-002
+  predecessor_completed_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+  state: assurance_pending
+  required_evidence:
+    review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+    verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+    drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+    closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+  normative_manifest:
+    - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+    - FILE_REGISTRY.yml
+    - PROJECT_MAP.md
 promoted_candidates:
   - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
     work_block_id: WB-RELEASE-001
@@ -393,12 +406,15 @@ authority.
 
 ## Migration Work
 
-WB-GOV-001 is the latest canonical `promoted_effective` Work Block:
+Closeout candidate: `docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md`
+(`WB-LEARNING-002`) is awaiting assurance evidence.
+
+WB-GOV-001 remains the latest canonical `promoted_effective` Work Block:
 `docs/plans/wb-gov-001-commit-work-block-linkage.md`. WB-RELEASE-001 is its
-preserved promoted predecessor. The `pre_closeout_candidate` slot is cleared;
-there is no active closeout candidate and no successor candidate awaiting
-assurance or promotion. Raw completed history remains preserved. This
-release-state projection makes no GitHub PR, merge, or deployment claim.
+preserved promoted predecessor. WB-LEARNING-002 is a closeout candidate awaiting
+the four declared assurance reports and evidence persistence. There is no active
+Work Block. Raw completed history remains preserved. This release-state
+projection makes no GitHub PR, merge, or deployment claim.
 
 No active implementation Work Block.
 

@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-learning-002-engineering-memory-lesson-promotion
 work_block_id: WB-LEARNING-002
-status: completed
+status: closeout_candidate
 owner_role: orchestrator
 created_at: 2026-09-08
 base_revision: 168d61d470e434ac0f5e5c56e244c2516e7d3148
@@ -17,6 +17,18 @@ specification: docs/specs/wb-learning-002-engineering-memory-lesson-promotion.md
 ---
 
 # WB-LEARNING-002 — Selective Promotion of Durable Engineering Memory Lessons
+
+## Current State
+
+- **Current Stage:** Close
+- **Stage State:** assurance_pending
+- **Write Gate:** BLOCKED
+- **Critic Gate:** READY
+- **Review Gate:** PENDING
+- **Verification Verdict:** PENDING
+- **Drift Gate:** PENDING
+- **Evaluation Verdict:** SKIPPED
+- **Closeout Mode:** candidate
 
 ## Define decision
 
@@ -78,8 +90,10 @@ cleanup.
 | Source branch is deleted prematurely | Deletion is a later assessment gated by semantic coverage and dependency checks. |
 | Define silently expands into framework policy | Any policy or contract change returns to a new Define/Owner decision. |
 
-## Define readiness
+## Candidate disposition
 
-The Define was `DEFINE_READY` before Execute. Execute and assurance evidence are
-complete for this bounded content change; release-state promotion, merge,
-deployment, and destructive cleanup remain separately Owner-controlled.
+The bounded Execute subject is frozen at
+`0c8cd0311133a876a05419061e83680ca890dd97`. This revision declares the Work
+Block as a canonical closeout candidate; the four required assurance reports
+are intentionally absent until the sole evidence-persistence commit. No
+terminal completion or canonical promotion is asserted by this candidate.
