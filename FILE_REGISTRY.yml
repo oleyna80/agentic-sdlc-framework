@@ -226,20 +226,7 @@ migration_state:
     - docs/plans/wb-skill-002a-post-merge-reconciliation.md
     - docs/plans/wb-skill-002b-provider-guard-boundaries.md
   active_work_block: null
-  pre_closeout_candidate:
-    work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
-    work_block_id: WB-LEARNING-002
-    predecessor_completed_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
-    state: assurance_pending
-    required_evidence:
-      review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-      verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-      drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-      closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-    normative_manifest:
-      - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
-      - FILE_REGISTRY.yml
-      - PROJECT_MAP.md
+  pre_closeout_candidate: null
   promoted_candidates:
     - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
       work_block_id: WB-RELEASE-001
@@ -268,6 +255,21 @@ migration_state:
         closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r3.md
       normative_manifest:
         - docs/plans/wb-gov-001-commit-work-block-linkage.md
+        - FILE_REGISTRY.yml
+        - PROJECT_MAP.md
+      state: promoted_effective
+    - work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+      work_block_id: WB-LEARNING-002
+      predecessor_effective_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+      candidate_revision: 39eb26bb9098d0dc3cebdf31cd88eb9a331b067d
+      evidence_revision: 6c60d81b7c986b53d125cf251a6a3199d9ab8faa
+      required_evidence:
+        review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+        verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+        drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+        closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      normative_manifest:
+        - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
         - FILE_REGISTRY.yml
         - PROJECT_MAP.md
       state: promoted_effective

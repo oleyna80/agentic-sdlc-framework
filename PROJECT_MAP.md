@@ -36,20 +36,7 @@ completed_work_blocks:
   - docs/plans/wb-skill-002a-post-merge-reconciliation.md
   - docs/plans/wb-skill-002b-provider-guard-boundaries.md
 active_work_block: null
-pre_closeout_candidate:
-  work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
-  work_block_id: WB-LEARNING-002
-  predecessor_completed_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
-  state: assurance_pending
-  required_evidence:
-    review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-    verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-    drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-    closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
-  normative_manifest:
-    - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
-    - FILE_REGISTRY.yml
-    - PROJECT_MAP.md
+pre_closeout_candidate: null
 promoted_candidates:
   - work_block: docs/plans/wb-release-001-closeout-sequencing-reconciliation.md
     work_block_id: WB-RELEASE-001
@@ -78,6 +65,21 @@ promoted_candidates:
       closeout: docs/reports/closeout/wb-gov-001-commit-work-block-linkage-r3.md
     normative_manifest:
       - docs/plans/wb-gov-001-commit-work-block-linkage.md
+      - FILE_REGISTRY.yml
+      - PROJECT_MAP.md
+    state: promoted_effective
+  - work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+    work_block_id: WB-LEARNING-002
+    predecessor_effective_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+    candidate_revision: 39eb26bb9098d0dc3cebdf31cd88eb9a331b067d
+    evidence_revision: 6c60d81b7c986b53d125cf251a6a3199d9ab8faa
+    required_evidence:
+      review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+    normative_manifest:
+      - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
       - FILE_REGISTRY.yml
       - PROJECT_MAP.md
     state: promoted_effective
@@ -406,15 +408,13 @@ authority.
 
 ## Migration Work
 
-Closeout candidate: `docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md`
-(`WB-LEARNING-002`) is awaiting assurance evidence.
-
-WB-GOV-001 remains the latest canonical `promoted_effective` Work Block:
-`docs/plans/wb-gov-001-commit-work-block-linkage.md`. WB-RELEASE-001 is its
-preserved promoted predecessor. WB-LEARNING-002 is a closeout candidate awaiting
-the four declared assurance reports and evidence persistence. There is no active
-Work Block. Raw completed history remains preserved. This release-state
-projection makes no GitHub PR, merge, or deployment claim.
+WB-LEARNING-002 is now the latest canonical `promoted_effective` Work Block:
+`docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md`. WB-GOV-001
+is its promoted predecessor, and WB-RELEASE-001 remains preserved in the
+ledger. The `pre_closeout_candidate` slot is cleared; there is no active
+closeout candidate and no active implementation Work Block. Raw completed
+history remains unchanged. This release-state projection makes no GitHub PR,
+merge, deployment, or branch-deletion claim.
 
 No active implementation Work Block.
 
