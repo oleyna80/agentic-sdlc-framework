@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: specification
 artifact_id: wb-learning-002-engineering-memory-lesson-promotion
-status: approved
+status: completed
 owner_role: owner
 work_block_id: WB-LEARNING-002
 revision: define-2
@@ -90,15 +90,13 @@ Out of scope:
 
 ## Authority and lifecycle boundary
 
-This is a Define-only artifact with `status: draft`; it is not an active
-implementation Work Block and does not open a write gate. The proposed future
-Execute write-set is `docs/engineering-memory/lessons-learned.md` for the two
-new entries plus only the lifecycle/evidence artifacts required by the existing
-contract. It does not include existing lesson rewrites, runtime, validators,
-authority, architecture, lifecycle/release-state semantics, or source-branch
-cleanup. If the framework requires lifecycle registration for future Execute,
-that registration must use the existing canonical lifecycle/release-state flow
-and a separately approved Execute gate. This Define does not alter that flow.
+This artifact records the approved Define and its bounded Execute result. The
+Execute write-set was `docs/engineering-memory/lessons-learned.md` for the two
+new entries plus the evidence artifacts required by the existing contract. It
+did not include existing lesson rewrites, runtime, validators, authority,
+architecture, lifecycle/release-state semantics, or source-branch cleanup.
+Existing canonical release-state data remains unchanged; no active Work Block
+was registered in the current main release-state projection.
 
 ## Evidence and provenance strategy
 
@@ -110,11 +108,9 @@ authority boundary, review trigger, and last-verified metadata; it must not
 claim that source-branch wording was adopted literally. Any unavailable or
 unconfirmed evidence is recorded as such rather than inferred.
 
-If the existing lifecycle contract requires separate future assurance records,
-the expected evidence surfaces are the Work Block's review, verification,
-drift, and closeout reports under `docs/reports/`. Their exact terminal values
-and bindings must be established by the future canonical lifecycle flow; this
-Define does not create or pre-authorize those records.
+The assurance evidence surfaces are the Work Block's implementation, review,
+verification, drift, and closeout reports under `docs/reports/`, each bound to
+the implementation subject recorded in the plan.
 
 ## Deletion-readiness assessment
 
@@ -128,8 +124,7 @@ authorized, retain the branch.
 
 ## Future Owner gate
 
-Define materialization is ready for a separate `OWNER_LEARNING_002_EXECUTE_GATE`
-only after independent Define review confirms that the three artifacts agree,
-the future canonical lesson write-set is explicit, the collision/provenance
-rules are testable, and no scope expansion is needed.
-That gate, not this document, decides whether and how promotion proceeds.
+The pre-execution Define review established readiness for the
+`OWNER_LEARNING_002_EXECUTE_GATE`. That gate authorized the bounded promotion;
+the resulting assurance reports record the implementation outcome. No merge,
+deployment, or branch deletion is authorized by this document.

@@ -8,6 +8,7 @@ owner_role: orchestrator
 created_at: 2026-09-08
 base_revision: 168d61d470e434ac0f5e5c56e244c2516e7d3148
 branch: feat/wb-learning-002-lesson-promotion-023
+implementation_subject: 0c8cd0311133a876a05419061e83680ca890dd97
 governance_profile: Managed
 verification_tier: Standard
 source_branch: agent/engineering-memory-lessons-2026-08-31
@@ -35,18 +36,17 @@ branch implementation is a baseline for future work.
    rewrite `LL-001` or `LL-002`.
 4. Perform independent semantic mapping, genericity, provenance, and evidence
    review before any promotion decision.
-5. If promotion is approved, use the existing canonical lifecycle and
+5. The executed promotion used the existing canonical lifecycle and
    release-state flow; do not introduce new lifecycle or release-state
    semantics.
 6. After promotion or explicit rejection, perform a separate source-branch
    deletion-readiness assessment against the four conditions in the
    specification.
 
-The future content write is limited to
-`docs/engineering-memory/lessons-learned.md`. If the existing lifecycle
-contract requires assurance evidence, use its canonical review, verification,
-drift, and closeout report surfaces; this Define does not pre-authorize or
-materialize those future records.
+The executed content write was limited to
+`docs/engineering-memory/lessons-learned.md`. The required evidence surfaces
+were the canonical review, verification, drift, and closeout report surfaces,
+bound to the implementation subject.
 
 ## Boundaries
 
@@ -80,7 +80,6 @@ cleanup.
 
 ## Define readiness
 
-The expected terminal result of this materialization is `DEFINE_READY`, subject
-to structural traceability, SSOT/lifecycle consistency, and independent review.
-It is not Execute authorization, lesson promotion, closeout, or deletion
-authority.
+The Define was `DEFINE_READY` before Execute. Execute and assurance evidence are
+complete for this bounded content change; release-state promotion, merge,
+deployment, and destructive cleanup remain separately Owner-controlled.

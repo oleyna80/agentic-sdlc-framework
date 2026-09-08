@@ -7,7 +7,7 @@ specification_revision: define-2
 status: completed
 ---
 
-# WB-LEARNING-002 — Execute-Ready Tasklist
+# WB-LEARNING-002 — Execute and Assurance Tasklist
 
 ## Future Execute tasks
 
