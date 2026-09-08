@@ -17,9 +17,10 @@ governance_profile: Managed
 
 Prepare two generic, evidence-backed engineering-memory lessons for a later
 Owner-authorized promotion into the current framework's canonical engineering
-memory. This Define artifact does not promote either lesson and does not change
-the existing lessons, runtime, validators, lifecycle semantics, or release-state
-semantics.
+memory. This Define artifact does not promote either lesson. A future Execute
+may update the canonical lessons artifact, but may not change any existing
+lesson; runtime, validators, lifecycle semantics, and release-state semantics
+remain outside the approved boundary.
 
 ## Source and baseline
 
@@ -48,10 +49,10 @@ must not be changed or reused.
 - REQ-001: Define exactly two selective-promotion lesson candidates, limited to the ephemeral-evidence principle and the structural-enforcement-boundary principle.
 - REQ-002: Derive both target lessons from the source branch as evidence and provenance, while using current `main` as the only implementation and semantic baseline.
 - REQ-003: Express the ephemeral-evidence candidate as a generic reusable principle, separate from the specific incident, branch, temporary path, date, SHA, or Work Block.
-- REQ-004: Express the structural-enforcement candidate as a generic rule for adopting historical invariants at an enforceable contract boundary, without incident-specific identifiers or framework semantic changes.
+- REQ-004: Express the structural-enforcement candidate as a generic rule for adopting historical invariants at an enforceable contract boundary, without incident-specific identifiers and without requiring a framework semantic change in this lesson-promotion WB.
 - REQ-005: Preserve collision-free identity by treating `LL-003` and `LL-004` as proposed IDs and rechecking them against the Execute baseline; never overwrite or repurpose `LL-001` or `LL-002`.
 - REQ-006: Preserve truthful provenance and semantic mapping from each source lesson to its future canonical candidate without copying stale status or metadata.
-- REQ-007: Keep the promotion knowledge/governance-only: no runtime, validator, lifecycle, release-state, existing-lesson, or framework-policy mutation is authorized by this Define.
+- REQ-007: Keep the promotion knowledge/governance-only: a future Execute may change only the canonical engineering-memory content needed for the two approved lessons; runtime behavior, validators, lifecycle/release-state semantics, authority model, framework architecture, and existing lesson entries remain prohibited.
 - REQ-008: Define deletion readiness for the source branch as a future assessment, not a guaranteed outcome, after promotion or explicit rejection has been established.
 
 ## Acceptance Criteria
@@ -59,10 +60,10 @@ must not be changed or reused.
 - AC-001 [req=REQ-001]: The plan and tasklist identify exactly two bounded candidates and name no additional lesson payload.
 - AC-002 [req=REQ-002]: The artifacts record the exact source branch/tip, current-main baseline, and the source-as-provenance-only boundary.
 - AC-003 [req=REQ-003]: The proposed LL-003 content states the durable-evidence principle without requiring the original incident, `/tmp` path, SHA, date, or WB identifier to understand or reuse it.
-- AC-004 [req=REQ-004]: The proposed LL-004 content states structural adoption/enforcement of historical invariants as a reusable governance principle and explicitly excludes implementation changes in this WB.
+- AC-004 [req=REQ-004]: The proposed LL-004 content states structural adoption/enforcement of historical invariants as a reusable principle, contains no incident-specific identifier, and does not prescribe changing enforcement implementation in this lesson-promotion WB.
 - AC-005 [req=REQ-005]: The artifacts label LL-003 and LL-004 as proposed, require an Execute-time collision check, and explicitly protect LL-001 and LL-002 from modification or reuse.
 - AC-006 [req=REQ-006]: Each candidate has a source-to-target semantic mapping, evidence/provenance requirements, and a rule against importing stale source metadata.
-- AC-007 [req=REQ-007]: Scope and out-of-scope sections exclude `docs/engineering-memory/lessons-learned.md`, runtime, validators, lifecycle/release-state semantics, and lesson promotion during Define.
+- AC-007 [req=REQ-007]: Scope explicitly permits a future Execute edit to `docs/engineering-memory/lessons-learned.md` for the two approved lesson entries while excluding runtime behavior, validators, lifecycle/release-state semantics, authority model, framework architecture, existing lesson mutation, and any lesson edit during Define.
 - AC-008 [req=REQ-008]: Deletion-readiness is conditioned on semantic coverage, no valuable unpromoted content, no live worktree dependency, and no current PR/lifecycle dependency; otherwise the branch remains retained or is separately Owner-classified.
 
 ## Scope
@@ -77,10 +78,12 @@ In scope:
 
 Out of scope:
 
-- Editing `docs/engineering-memory/lessons-learned.md` or any existing lesson.
-- Promoting, rejecting, or deleting either lesson.
+- Editing `docs/engineering-memory/lessons-learned.md` during Define.
+- Promoting, rejecting, or deleting either lesson during Define.
 - Changing runtime behavior, validators, lifecycle semantics, or release-state
-  semantics.
+  semantics at any stage of this WB.
+- Modifying or overwriting existing lesson entries; the future Execute may add
+  only the two approved canonical entries after collision checks.
 - Creating framework policy from either lesson in this WB.
 - Deleting `agent/engineering-memory-lessons-2026-08-31`.
 - Execute, assurance closeout, canonical promotion, PR, merge, or branch deletion.
@@ -88,10 +91,14 @@ Out of scope:
 ## Authority and lifecycle boundary
 
 This is a Define-only artifact with `status: draft`; it is not an active
-implementation Work Block and does not open a write gate. If the framework
-requires lifecycle registration for the future Execute, that registration must
-use the existing canonical lifecycle/release-state flow and a separately
-approved Execute gate. This Define does not alter that flow.
+implementation Work Block and does not open a write gate. The proposed future
+Execute write-set is `docs/engineering-memory/lessons-learned.md` for the two
+new entries plus only the lifecycle/evidence artifacts required by the existing
+contract. It does not include existing lesson rewrites, runtime, validators,
+authority, architecture, lifecycle/release-state semantics, or source-branch
+cleanup. If the framework requires lifecycle registration for future Execute,
+that registration must use the existing canonical lifecycle/release-state flow
+and a separately approved Execute gate. This Define does not alter that flow.
 
 ## Evidence and provenance strategy
 
@@ -102,6 +109,12 @@ canonical lesson must contain the reusable principle, replacement/mitigation,
 authority boundary, review trigger, and last-verified metadata; it must not
 claim that source-branch wording was adopted literally. Any unavailable or
 unconfirmed evidence is recorded as such rather than inferred.
+
+If the existing lifecycle contract requires separate future assurance records,
+the expected evidence surfaces are the Work Block's review, verification,
+drift, and closeout reports under `docs/reports/`. Their exact terminal values
+and bindings must be established by the future canonical lifecycle flow; this
+Define does not create or pre-authorize those records.
 
 ## Deletion-readiness assessment
 
@@ -117,5 +130,6 @@ authorized, retain the branch.
 
 Define materialization is ready for a separate `OWNER_LEARNING_002_EXECUTE_GATE`
 only after independent Define review confirms that the three artifacts agree,
-the collision/provenance rules are testable, and no scope expansion is needed.
+the future canonical lesson write-set is explicit, the collision/provenance
+rules are testable, and no scope expansion is needed.
 That gate, not this document, decides whether and how promotion proceeds.
