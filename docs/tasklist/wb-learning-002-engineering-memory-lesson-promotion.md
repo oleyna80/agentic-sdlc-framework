@@ -3,7 +3,7 @@ schema_version: 1
 artifact_type: tasklist
 work_block_id: WB-LEARNING-002
 specification: docs/specs/wb-learning-002-engineering-memory-lesson-promotion.md
-specification_revision: define-1
+specification_revision: define-2
 status: draft
 ---
 

@@ -5,7 +5,7 @@ artifact_id: wb-learning-002-engineering-memory-lesson-promotion
 status: draft
 owner_role: owner
 work_block_id: WB-LEARNING-002
-revision: define-1
+revision: define-2
 created_at: 2026-09-08
 last_verified: 2026-09-08
 governance_profile: Managed
