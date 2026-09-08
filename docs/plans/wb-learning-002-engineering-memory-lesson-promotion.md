@@ -3,11 +3,11 @@ schema_version: 1
 artifact_type: work_block
 artifact_id: wb-learning-002-engineering-memory-lesson-promotion
 work_block_id: WB-LEARNING-002
-status: draft
+status: completed
 owner_role: orchestrator
 created_at: 2026-09-08
 base_revision: 168d61d470e434ac0f5e5c56e244c2516e7d3148
-branch: docs/wb-learning-002-define-022
+branch: feat/wb-learning-002-lesson-promotion-023
 governance_profile: Managed
 verification_tier: Standard
 source_branch: agent/engineering-memory-lessons-2026-08-31

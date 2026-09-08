@@ -2,7 +2,7 @@
 schema_version: 1
 artifact_type: specification
 artifact_id: wb-learning-002-engineering-memory-lesson-promotion
-status: draft
+status: approved
 owner_role: owner
 work_block_id: WB-LEARNING-002
 revision: define-2
