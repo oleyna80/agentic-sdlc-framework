@@ -68,6 +68,21 @@ promoted_candidates:
       - FILE_REGISTRY.yml
       - PROJECT_MAP.md
     state: promoted_effective
+  - work_block: docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+    work_block_id: WB-LEARNING-002
+    predecessor_effective_work_block: docs/plans/wb-gov-001-commit-work-block-linkage.md
+    candidate_revision: 39eb26bb9098d0dc3cebdf31cd88eb9a331b067d
+    evidence_revision: 6c60d81b7c986b53d125cf251a6a3199d9ab8faa
+    required_evidence:
+      review: docs/reports/reviews/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      verification: docs/reports/verification/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      drift: docs/reports/drift/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+      closeout: docs/reports/closeout/wb-learning-002-engineering-memory-lesson-promotion-r2.md
+    normative_manifest:
+      - docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md
+      - FILE_REGISTRY.yml
+      - PROJECT_MAP.md
+    state: promoted_effective
 -->
 
 ## Current Operational Architecture
@@ -393,12 +408,13 @@ authority.
 
 ## Migration Work
 
-WB-GOV-001 is the latest canonical `promoted_effective` Work Block:
-`docs/plans/wb-gov-001-commit-work-block-linkage.md`. WB-RELEASE-001 is its
-preserved promoted predecessor. The `pre_closeout_candidate` slot is cleared;
-there is no active closeout candidate and no successor candidate awaiting
-assurance or promotion. Raw completed history remains preserved. This
-release-state projection makes no GitHub PR, merge, or deployment claim.
+WB-LEARNING-002 is now the latest canonical `promoted_effective` Work Block:
+`docs/plans/wb-learning-002-engineering-memory-lesson-promotion.md`. WB-GOV-001
+is its promoted predecessor, and WB-RELEASE-001 remains preserved in the
+ledger. The `pre_closeout_candidate` slot is cleared; there is no active
+closeout candidate and no active implementation Work Block. Raw completed
+history remains unchanged. This release-state projection makes no GitHub PR,
+merge, deployment, or branch-deletion claim.
 
 No active implementation Work Block.
 

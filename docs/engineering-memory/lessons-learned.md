@@ -107,3 +107,53 @@ This lesson does **not** mean cryptographic authorization is generally wrong. It
 means cryptographic machinery should be introduced when it protects a real,
 independent, sufficiently valuable boundary rather than as a default layer over
 low-risk reversible development work.
+
+## LL-003 — Ephemeral execution workspaces must not be the sole source of closeout evidence
+
+**Status:** adopted prospectively
+**Evidence:** source branch `agent/engineering-memory-lessons-2026-08-31` at
+`8fb9e2e5df6a74098862240dccd9d72782be37c7`; semantic mapping and provenance:
+`docs/reports/implementation/wb-learning-002-engineering-memory-lesson-promotion.md`
+**Verified:** 2026-09-08
+
+### Reusable principle
+
+Ephemeral execution workspaces may provide isolation, recovery, caching, and
+verification support, but they must not be the sole source of artifacts required
+to prove Assure, Close, or later recovery. Before an ephemeral workspace is
+cleaned up, each required Work Block or assurance artifact must exist in a
+durable canonical repository location or have a verified durable copy or stable
+reference. Closeout must fail closed when required evidence exists only in an
+ephemeral workspace.
+
+### Boundary
+
+This principle concerns evidence durability and closeout recoverability. It does
+not prohibit temporary workspaces or require a particular filesystem, provider,
+incident, revision, date, or Work Block implementation.
+
+## LL-004 — New historical invariants need a structural enforcement boundary
+
+**Status:** adopted prospectively
+**Evidence:** source branch `agent/engineering-memory-lessons-2026-08-31` at
+`8fb9e2e5df6a74098862240dccd9d72782be37c7`; semantic mapping and provenance:
+`docs/reports/implementation/wb-learning-002-engineering-memory-lesson-promotion.md`
+**Verified:** 2026-09-08
+
+### Reusable principle
+
+When a new historical invariant is introduced, define an ancestry- or
+structure-derived adoption boundary between legacy history and enforced history.
+Legacy history before that boundary may be handled only under explicitly bounded
+historical semantics. The adoption boundary and every protected descendant must
+be validated fail-closed; malformed protected lineage must never be silently
+ignored or repaired by an identifier-specific exception. If the boundary cannot
+be established from repository structure, validation must fail closed.
+
+### Boundary
+
+The enforcement boundary must be structural and portable. A particular SHA,
+date, Work Block identifier, or other one-off exception is not a substitute for
+proving where the invariant became enforceable. This lesson records the
+engineering principle only; it does not change any validator or lifecycle
+implementation.
