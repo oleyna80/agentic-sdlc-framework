@@ -28,25 +28,35 @@ branch implementation is a baseline for future work.
 
 1. During future Execute, re-read current `main` engineering memory and confirm
    that proposed `LL-003` and `LL-004` remain collision-free and non-redundant.
-2. Rewrite the ephemeral-workspace lesson into a generic durable-evidence rule,
-   retaining incident evidence only as provenance.
-3. Rewrite/prepare the structural-enforcement lesson as a generic adoption and
-   enforcement-boundary principle, with no SHA/date/WB-specific workaround.
-4. Perform independent semantic mapping and evidence review before any
-   promotion decision.
-5. If promotion is approved, use the existing canonical lifecycle and release-
-   state flow; do not introduce new lifecycle or release-state semantics.
+2. Prepare exactly two new entries in
+   `docs/engineering-memory/lessons-learned.md`: the generic durable-evidence
+   lesson and the generic structural-enforcement-boundary lesson.
+3. Keep incident details as provenance/evidence only; do not overwrite or
+   rewrite `LL-001` or `LL-002`.
+4. Perform independent semantic mapping, genericity, provenance, and evidence
+   review before any promotion decision.
+5. If promotion is approved, use the existing canonical lifecycle and
+   release-state flow; do not introduce new lifecycle or release-state
+   semantics.
 6. After promotion or explicit rejection, perform a separate source-branch
    deletion-readiness assessment against the four conditions in the
    specification.
 
+The future content write is limited to
+`docs/engineering-memory/lessons-learned.md`. If the existing lifecycle
+contract requires assurance evidence, use its canonical review, verification,
+drift, and closeout report surfaces; this Define does not pre-authorize or
+materialize those future records.
+
 ## Boundaries
 
-The future Execute write-set, if approved, must be limited to the canonical
-engineering-memory target and the lifecycle/evidence paths required by the
-existing contract. This Define does not authorize that write-set. It does not
-authorize changes to validators, runtime, lifecycle/release-state semantics,
-existing lessons, source branch, PRs, merges, or destructive cleanup.
+The future Execute write-set, if approved, is the canonical
+`docs/engineering-memory/lessons-learned.md` target for exactly two new entries,
+plus lifecycle/evidence paths required by the existing contract. This Define
+does not authorize that write-set. It does not authorize changes to existing
+lessons, validators, runtime, authority model, architecture,
+lifecycle/release-state semantics, source branch, PRs, merges, or destructive
+cleanup.
 
 ## Dependencies and predecessor
 
